@@ -1,0 +1,41 @@
+//****************************************************************************
+// Copyright © 2016 Jan Erik Breimo. All rights reserved.
+// Created by Jan Erik Breimo on 2016-02-04.
+//
+// This file is distributed under the BSD License.
+// License text is included with the source distribution.
+//****************************************************************************
+#pragma once
+#include <cstdint>
+#include <string>
+#include <GL/glew.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_opengl.h>
+
+namespace Tungsten
+{
+    class GlContext
+    {
+    public:
+        static GlContext create(SDL_Window* window);
+
+        GlContext();
+
+        GlContext(GlContext& other) = delete;
+
+        GlContext(GlContext&& other);
+
+        ~GlContext();
+
+        GlContext& operator=(GlContext& other) = delete;
+
+        GlContext& operator=(GlContext&& other);
+
+        operator SDL_GLContext() const;
+
+    private:
+        GlContext(SDL_Window* window);
+
+        SDL_GLContext m_Context;
+    };
+}
