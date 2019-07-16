@@ -14,8 +14,13 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 find_package(GLEW REQUIRED)
 find_package(SDL2 REQUIRED)
+
 if (NOT TARGET Xyz::Xyz)
-    find_package(Xyz REQUIRED)
+    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/Xyz/CMakeLists.txt")
+        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/Xyz)
+    else()
+        find_package(Xyz REQUIRED)
+    endif()
 endif()
 
 set(PUBLIC_HEADERS
