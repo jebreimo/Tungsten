@@ -81,7 +81,7 @@ namespace Tungsten
 
     void setUniform(GLint location, const Xyz::Vector2f& vec)
     {
-        glUniform1fv(location, 1, vec.data());
+        glUniform2fv(location, 1, vec.data());
         THROW_IF_GL_ERROR();
     }
 
