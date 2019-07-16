@@ -12,3 +12,4 @@
 #include "GlTextures.hpp"
 #include "GlVertices.hpp"
 #include "SdlApplication.hpp"
+#include "ShaderTools.hpp"
