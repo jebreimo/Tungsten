@@ -29,7 +29,7 @@ namespace Tungsten
         WindowParameters(
                 const std::string& title = "SdlApplication",
                 const WindowRectangle& windowRectangle = WindowRectangle(),
-                uint32_t flags = SDL_WINDOW_OPENGL);
+                uint32_t flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
         std::string title;
         WindowRectangle windowRectangle;

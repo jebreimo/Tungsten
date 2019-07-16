@@ -143,7 +143,7 @@ namespace Tungsten
         auto tmpWindowParams = windowParams;
         tmpWindowParams.flags |= SDL_WINDOW_OPENGL;
 
-        setWindow(createWindow(windowParams));
+        setWindow(createWindow(tmpWindowParams));
 
         m_GlContext = GlContext::create(window());
 
