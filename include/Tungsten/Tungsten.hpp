@@ -13,3 +13,4 @@
 #include "GlVertices.hpp"
 #include "SdlApplication.hpp"
 #include "ShaderTools.hpp"
+#include "Uniform.hpp"
