@@ -26,17 +26,4 @@ namespace Tungsten
 
     void setBufferData(GLenum target, GLsizeiptr size,
                        const GLvoid* data, GLenum usage);
-
-    struct GlVertexArrayDeleter
-    {
-        void operator()(GLuint id) const;
-    };
-
-    using VertexArrayHandle = GlHandle<GlVertexArrayDeleter>;
-
-    VertexArrayHandle generateVertexArray();
-
-    std::vector<VertexArrayHandle> generateVertexArrays(GLsizei count);
-
-    void bindVertexArray(GLuint vertexArray);
 }

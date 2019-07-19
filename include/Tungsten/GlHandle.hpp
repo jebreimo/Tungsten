@@ -18,7 +18,7 @@ namespace Tungsten
             : m_Id()
         {}
 
-        GlHandle(GLuint id)
+        explicit GlHandle(GLuint id)
             : m_Id(id)
         {}
 

@@ -7,36 +7,17 @@
 //****************************************************************************
 #pragma once
 #include <vector>
-#include "GlHandle.hpp"
+#include "GlShader.hpp"
 #include "Uniform.hpp"
 
 namespace Tungsten
 {
-    struct GlShaderDeleter
-    {
-        void operator()(GLuint id) const;
-    };
-
-    using ShaderHandle = GlHandle<GlShaderDeleter>;
-
     struct GlProgramDeleter
     {
         void operator()(GLuint id) const;
     };
 
     using ProgramHandle = GlHandle<GlProgramDeleter>;
-
-    void compileShader(GLuint shaderId);
-
-    ShaderHandle createShader(GLuint shaderType);
-
-    void setShaderSource(GLuint shaderId, const std::string& source);
-
-    bool getShaderCompileStatus(GLuint shaderId);
-
-    std::string getShaderInfoLog(GLuint shaderId);
-
-    GLint getShaderInfoLogLength(GLuint shaderId);
 
     ProgramHandle createProgram();
 

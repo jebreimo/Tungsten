@@ -50,38 +50,4 @@ namespace Tungsten
         glBufferData(target, size, data, usage);
         THROW_IF_GL_ERROR();
     }
-
-    void GlVertexArrayDeleter::operator()(GLuint id) const
-    {
-        glDeleteVertexArrays(1, &id);
-        THROW_IF_GL_ERROR();
-    }
-
-    VertexArrayHandle generateVertexArray()
-    {
-        GLuint id;
-        glGenVertexArrays(1, &id);
-        THROW_IF_GL_ERROR();
-        return VertexArrayHandle(id);
-    }
-
-    std::vector<VertexArrayHandle> generateVertexArrays(GLsizei count)
-    {
-        if (count == 0)
-            return std::vector<VertexArrayHandle>();
-
-        auto ids = std::vector<GLuint>(size_t(count));
-        glGenVertexArrays(count, ids.data());
-        THROW_IF_GL_ERROR();
-        auto result = std::vector<VertexArrayHandle>();
-        for (auto id : ids)
-            result.emplace_back(id);
-        return result;
-    }
-
-    void bindVertexArray(GLuint vertexArray)
-    {
-        glBindVertexArray(vertexArray);
-        THROW_IF_GL_ERROR();
-    }
 }

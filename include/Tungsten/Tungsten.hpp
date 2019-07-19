@@ -10,6 +10,7 @@
 #include "GlError.hpp"
 #include "GlProgram.hpp"
 #include "GlTextures.hpp"
+#include "GlVertexArray.hpp"
 #include "GlVertices.hpp"
 #include "SdlApplication.hpp"
 #include "ShaderTools.hpp"
