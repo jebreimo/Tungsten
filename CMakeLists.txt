@@ -49,7 +49,7 @@ set(SOURCE_FILES
     src/Tungsten/SdlSession.hpp
     src/Tungsten/ShaderTools.cpp
     src/Tungsten/Uniform.cpp
-    src/Tungsten/WindowParameters.cpp include/Tungsten/GlVertexArray.hpp src/Tungsten/GlVertexArray.cpp src/Tungsten/GlShader.cpp include/Tungsten/GlShader.hpp)
+    src/Tungsten/WindowParameters.cpp include/Tungsten/GlVertexArray.hpp src/Tungsten/GlVertexArray.cpp src/Tungsten/GlShader.cpp include/Tungsten/GlShader.hpp src/Tungsten/TriangleMeshTools.cpp include/Tungsten/TriangleMeshTools.hpp)
 
 add_library(Tungsten STATIC
     ${PUBLIC_HEADERS}
