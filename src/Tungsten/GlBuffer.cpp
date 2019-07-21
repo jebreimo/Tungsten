@@ -50,4 +50,16 @@ namespace Tungsten
         glBufferData(target, size, data, usage);
         THROW_IF_GL_ERROR();
     }
+
+    void setElementArrayBuffer(GLuint bufferId,
+                               GLsizeiptr valueCount,
+                               const uint16_t* values,
+                               GLenum usage)
+    {
+        bindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferId);
+        setBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                      valueCount * sizeof(uint16_t),
+                      values,
+                      usage);
+    }
 }

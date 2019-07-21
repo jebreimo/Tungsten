@@ -11,6 +11,17 @@
 
 namespace Tungsten
 {
+    void setElementArrayBuffer(
+            GLuint bufferId, size_t faceCount,
+            const Xyz::TriangleFace* faces, GLenum usage)
+    {
+        setElementArrayBuffer(
+                bufferId,
+                faceCount * 3,
+                reinterpret_cast<const uint16_t*>(faces),
+                usage);
+    }
+
     void setBuffers(GLuint arrayBuffer,
                     GLuint elementArrayBuffer,
                     const Xyz::TriangleMesh<float>& mesh,
@@ -46,10 +57,7 @@ namespace Tungsten
                                 mesh.points().size() * rowSize * sizeof(float),
                                 result.data(),
                                 usage);
-        Tungsten::bindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementArrayBuffer);
-        Tungsten::setBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                                mesh.faces().size() * sizeof(Xyz::TriangleFace),
-                                mesh.faces().data(),
-                                usage);
+        setElementArrayBuffer(elementArrayBuffer, mesh.faces().size(),
+                              mesh.faces().data(), usage);
     }
 }
