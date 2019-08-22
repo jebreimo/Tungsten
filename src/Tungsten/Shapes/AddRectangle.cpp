@@ -35,6 +35,8 @@ namespace Tungsten
     {
         addRectangle(builder, rect, cs, offset);
         auto normal = getUnit(cs.fromWorldTransform().row(2));
+        if (rect.isClockwise())
+            normal = -normal;
         setValues(builder, normal, builder.rowCount() - 4, 4, 3);
     }
 
