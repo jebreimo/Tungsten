@@ -23,8 +23,9 @@ namespace Tungsten
             auto row = builder.addRow();
             row.set(0, cs.toWorldPos(makeVector3(rect.point(i), offset)));
         }
-        builder.addElement(0, 1, 2);
-        builder.addElement(0, 2, 3);
+        auto index = builder.rowCount() - 4;
+        builder.addElement(index, index + 1, index + 2);
+        builder.addElement(index, index + 2, index + 3);
     }
 
     void addRectangleWithNormals(ArrayBufferBuilder& builder,
