@@ -23,38 +23,45 @@ if (NOT TARGET Xyz::Xyz)
     endif()
 endif()
 
-set(PUBLIC_HEADERS
+add_library(Tungsten STATIC
+    include/Tungsten/Shapes/ArrayBufferBuilder.hpp
+    include/Tungsten/Shapes/ArrayBufferRowBuilder.hpp
     include/Tungsten/GlBuffer.hpp
     include/Tungsten/GlContext.hpp
     include/Tungsten/GlError.hpp
     include/Tungsten/GlHandle.hpp
     include/Tungsten/GlProgram.hpp
+    include/Tungsten/GlShader.hpp
     include/Tungsten/GlTextures.hpp
-    include/Tungsten/Tungsten.hpp
+    include/Tungsten/GlVertexArray.hpp
     include/Tungsten/GlVertices.hpp
     include/Tungsten/SdlApplication.hpp
     include/Tungsten/ShaderTools.hpp
+    include/Tungsten/TriangleMeshTools.hpp
+    include/Tungsten/Tungsten.hpp
     include/Tungsten/Uniform.hpp
-    include/Tungsten/WindowParameters.hpp)
-
-set(SOURCE_FILES
+    include/Tungsten/WindowParameters.hpp
+    include/Tungsten/Shapes/AddRectangle.hpp
+    src/Tungsten/ArrayBufferBuilder.cpp
+    src/Tungsten/ArrayBufferRowBuilder.cpp
     src/Tungsten/GlBuffer.cpp
     src/Tungsten/GlContext.cpp
     src/Tungsten/GlError.cpp
     src/Tungsten/GlProgram.cpp
+    src/Tungsten/GlShader.cpp
     src/Tungsten/GlTextures.cpp
+    src/Tungsten/GlVertexArray.cpp
     src/Tungsten/GlVertices.cpp
     src/Tungsten/SdlApplication.cpp
     src/Tungsten/SdlSession.cpp
     src/Tungsten/SdlSession.hpp
     src/Tungsten/ShaderTools.cpp
+    src/Tungsten/TriangleMeshTools.cpp
     src/Tungsten/Uniform.cpp
-    src/Tungsten/WindowParameters.cpp include/Tungsten/GlVertexArray.hpp src/Tungsten/GlVertexArray.cpp src/Tungsten/GlShader.cpp include/Tungsten/GlShader.hpp src/Tungsten/TriangleMeshTools.cpp include/Tungsten/TriangleMeshTools.hpp)
-
-add_library(Tungsten STATIC
-    ${PUBLIC_HEADERS}
-    ${SOURCE_FILES}
-    )
+    src/Tungsten/WindowParameters.cpp
+    src/Tungsten/Shapes/AddRectangle.cpp
+    src/Tungsten/Shapes/AddCube.cpp
+    include/Tungsten/Shapes/AddCube.hpp include/Tungsten/Shapes.hpp)
 
 target_link_libraries(Tungsten
     PUBLIC
