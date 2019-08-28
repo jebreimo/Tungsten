@@ -61,7 +61,7 @@ add_library(Tungsten STATIC
     src/Tungsten/WindowParameters.cpp
     src/Tungsten/Shapes/AddRectangle.cpp
     src/Tungsten/Shapes/AddCube.cpp
-    include/Tungsten/Shapes/AddCube.hpp include/Tungsten/Shapes.hpp src/Tungsten/Shapes/AddStarPolygon.cpp include/Tungsten/Shapes/AddStarPolygon.hpp)
+    include/Tungsten/Shapes/AddCube.hpp include/Tungsten/Shapes.hpp src/Tungsten/Shapes/AddStarPolygon.cpp include/Tungsten/Shapes/AddStarPolygon.hpp src/Tungsten/Shapes/AddRegularPolygon.cpp include/Tungsten/Shapes/AddRegularPolygon.hpp)
 
 target_link_libraries(Tungsten
     PUBLIC

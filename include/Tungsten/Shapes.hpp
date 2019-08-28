@@ -9,4 +9,5 @@
 
 #include "Shapes/AddCube.hpp"
 #include "Shapes/AddRectangle.hpp"
+#include "Shapes/AddRegularPolygon.hpp"
 #include "Shapes/AddStarPolygon.hpp"

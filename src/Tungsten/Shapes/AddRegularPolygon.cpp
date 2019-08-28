@@ -1,19 +1,19 @@
 //****************************************************************************
 // Copyright © 2019 Jan Erik Breimo. All rights reserved.
-// Created by Jan Erik Breimo on 2019-08-22.
+// Created by Jan Erik Breimo on 2019-08-28.
 //
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/Shapes/AddStarPolygon.hpp"
+#include "Tungsten/Shapes/AddRegularPolygon.hpp"
 #include <Xyz/Xyz.hpp>
 
 namespace Tungsten
 {
-    void addHollowStarPolygon(ArrayBufferBuilder& builder,
-                              unsigned numberOfCorners,
-                              float innerRadius, float outerRadius,
-                              float zValue)
+    void addHollowRegularPolygon(ArrayBufferBuilder& builder,
+                                 unsigned numberOfCorners,
+                                 float innerRadius, float outerRadius,
+                                 float zValue)
     {
         auto outer = Xyz::RegularPolygonGenerator()
                 .setRadius(outerRadius)
@@ -22,7 +22,6 @@ namespace Tungsten
         auto inner = Xyz::RegularPolygonGenerator()
                 .setRadius(innerRadius)
                 .setNumberOfPoints(numberOfCorners)
-                .setAngle(-Xyz::PI_64 / numberOfCorners)
                 .generate<float>();
         if (outer.empty())
             return; // TODO: Throw exception.
@@ -34,7 +33,10 @@ namespace Tungsten
             builder.addRow().set(0, outer[i]).set(2, zValue);
             auto j = index + i * 2;
             builder.addElement(j, j + 1, j + 2);
+            builder.addElement(j + 1, j + 3, j + 2);
         }
+        builder.setElement(-4, index);
+        builder.setElement(-2, index + 1);
         builder.setElement(-1, index);
     }
 }
