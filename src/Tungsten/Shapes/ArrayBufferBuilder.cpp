@@ -40,13 +40,15 @@ namespace Tungsten
     {
         auto offset = m_Buffer.size();
         m_Buffer.resize(m_Buffer.size() + m_RowSize);
-        return {m_Buffer.data() + offset, m_RowSize, unsigned(offset / m_RowSize)};
+        return {m_Buffer.data() + offset, m_RowSize,
+                unsigned(offset / m_RowSize)};
     }
 
-    ArrayBufferRowBuilder ArrayBufferBuilder::row(unsigned index)
+    ArrayBufferRowBuilder ArrayBufferBuilder::row(int index)
     {
-        auto offset = index * m_RowSize;
-        return {m_Buffer.data() + offset, m_RowSize, index};
+        auto i = unsigned(index >= 0 ? index : int(rowCount()) + index);
+        auto offset = i * m_RowSize;
+        return {m_Buffer.data() + offset, m_RowSize, i};
     }
 
     void ArrayBufferBuilder::addElement(unsigned short index)
@@ -70,6 +72,15 @@ namespace Tungsten
         m_Indices.push_back(index3);
     }
 
+    void ArrayBufferBuilder::setElement(int elementIndex,
+                                        unsigned short rowIndex)
+    {
+        auto i = unsigned(elementIndex >= 0
+                          ? elementIndex
+                          : int(m_Indices.size()) + elementIndex);
+        m_Indices[i] = rowIndex;
+    }
+
     const void* ArrayBufferBuilder::arrayBuffer() const
     {
         return m_Buffer.data();
@@ -78,6 +89,11 @@ namespace Tungsten
     unsigned ArrayBufferBuilder::arrayBufferSize() const
     {
         return m_Buffer.size() * sizeof(float);
+    }
+
+    unsigned ArrayBufferBuilder::elementCount() const
+    {
+        return m_Indices.size();
     }
 
     const void* ArrayBufferBuilder::elementArrayBuffer() const
@@ -90,7 +106,8 @@ namespace Tungsten
         return m_Indices.size() * sizeof(unsigned short);
     }
 
-    void setBuffers(GLuint arrayBuffer, GLuint elementArrayBuffer, const ArrayBufferBuilder& builder,
+    void setBuffers(GLuint arrayBuffer, GLuint elementArrayBuffer,
+                    const ArrayBufferBuilder& builder,
                     GLenum usage)
     {
         Tungsten::bindBuffer(GL_ARRAY_BUFFER, arrayBuffer);
@@ -105,7 +122,8 @@ namespace Tungsten
                                 usage);
     }
 
-    void setValues(ArrayBufferBuilder& builder, const Xyz::Vector2f& point, unsigned firstRow,
+    void setValues(ArrayBufferBuilder& builder, const Xyz::Vector2f& point,
+                   unsigned firstRow,
                    unsigned numberOfRows, unsigned columnIndex)
     {
         for (unsigned i = 0; i < numberOfRows; ++i)
@@ -115,7 +133,8 @@ namespace Tungsten
         }
     }
 
-    void setValues(ArrayBufferBuilder& builder, const Xyz::Vector3f& point, unsigned firstRow,
+    void setValues(ArrayBufferBuilder& builder, const Xyz::Vector3f& point,
+                   unsigned firstRow,
                    unsigned numberOfRows, unsigned columnIndex)
     {
         for (unsigned i = 0; i < numberOfRows; ++i)

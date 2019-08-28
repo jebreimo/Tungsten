@@ -42,8 +42,8 @@ add_library(Tungsten STATIC
     include/Tungsten/Uniform.hpp
     include/Tungsten/WindowParameters.hpp
     include/Tungsten/Shapes/AddRectangle.hpp
-    src/Tungsten/ArrayBufferBuilder.cpp
-    src/Tungsten/ArrayBufferRowBuilder.cpp
+    src/Tungsten/Shapes/ArrayBufferBuilder.cpp
+    src/Tungsten/Shapes/ArrayBufferRowBuilder.cpp
     src/Tungsten/GlBuffer.cpp
     src/Tungsten/GlContext.cpp
     src/Tungsten/GlError.cpp
@@ -61,7 +61,7 @@ add_library(Tungsten STATIC
     src/Tungsten/WindowParameters.cpp
     src/Tungsten/Shapes/AddRectangle.cpp
     src/Tungsten/Shapes/AddCube.cpp
-    include/Tungsten/Shapes/AddCube.hpp include/Tungsten/Shapes.hpp)
+    include/Tungsten/Shapes/AddCube.hpp include/Tungsten/Shapes.hpp src/Tungsten/Shapes/AddStarPolygon.cpp include/Tungsten/Shapes/AddStarPolygon.hpp)
 
 target_link_libraries(Tungsten
     PUBLIC

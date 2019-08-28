@@ -15,7 +15,7 @@ namespace Tungsten
     class ArrayBufferBuilder
     {
     public:
-        ArrayBufferBuilder(unsigned rowSize, unsigned rowCount = 0);
+        explicit ArrayBufferBuilder(unsigned rowSize, unsigned rowCount = 0);
 
         unsigned rowSize() const;
 
@@ -27,7 +27,9 @@ namespace Tungsten
 
         ArrayBufferRowBuilder addRow();
 
-        ArrayBufferRowBuilder row(unsigned index);
+        ArrayBufferRowBuilder row(int index);
+
+        unsigned elementCount() const;
 
         void addElement(unsigned short index);
 
@@ -37,6 +39,9 @@ namespace Tungsten
         void addElement(unsigned short index1,
                         unsigned short index2,
                         unsigned short index3);
+
+        void setElement(int elementIndex,
+                        unsigned short rowIndex);
 
         const void* arrayBuffer() const;
 
