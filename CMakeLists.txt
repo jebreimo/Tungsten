@@ -37,7 +37,6 @@ add_library(Tungsten STATIC
     include/Tungsten/GlVertices.hpp
     include/Tungsten/SdlApplication.hpp
     include/Tungsten/ShaderTools.hpp
-    include/Tungsten/TriangleMeshTools.hpp
     include/Tungsten/Tungsten.hpp
     include/Tungsten/Uniform.hpp
     include/Tungsten/WindowParameters.hpp
@@ -56,7 +55,6 @@ add_library(Tungsten STATIC
     src/Tungsten/SdlSession.cpp
     src/Tungsten/SdlSession.hpp
     src/Tungsten/ShaderTools.cpp
-    src/Tungsten/TriangleMeshTools.cpp
     src/Tungsten/Uniform.cpp
     src/Tungsten/WindowParameters.cpp
     src/Tungsten/Shapes/AddRectangle.cpp

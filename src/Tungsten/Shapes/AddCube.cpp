@@ -10,17 +10,14 @@
 
 namespace Tungsten
 {
-    Xyz::CoordinateSystem<float> XYZ_SYSTEM({0, 0, 0}, {1, 0, 0},
-                                            {0, 1, 0}, {0, 0, 1});
-    Xyz::CoordinateSystem<float> YZX_SYSTEM({0, 0, 0}, {0, 1, 0},
-                                            {0, 0, 1}, {1, 0, 0});
-    Xyz::CoordinateSystem<float> ZXY_SYSTEM({0, 0, 0}, {0, 0, 1},
-                                            {1, 0, 0}, {0, 1, 0});
-
     void addCube(ArrayBufferBuilder& builder, unsigned contents)
     {
+        using CS = Xyz::CoordinateSystem<float>;
+        static CS XYZ_SYSTEM({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1});
+        static CS YZX_SYSTEM({0, 0, 0}, {0, 1, 0}, {0, 0, 1}, {1, 0, 0});
+        static CS ZXY_SYSTEM({0, 0, 0}, {0, 0, 1}, {1, 0, 0}, {0, 1, 0});
+        static const CS* systems[] = {&XYZ_SYSTEM, &YZX_SYSTEM, &ZXY_SYSTEM};
         builder.reserve(24);
-        const Xyz::CoordinateSystem<float>* systems[] = {&XYZ_SYSTEM, &YZX_SYSTEM, &ZXY_SYSTEM};
 
         Xyz::Rectangle<float> up({-1, -1}, {2, 2});
         Xyz::Rectangle<float> texUp({0, 0}, {1 / 3.0f, -0.5f});

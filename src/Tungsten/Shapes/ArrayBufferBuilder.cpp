@@ -48,6 +48,8 @@ namespace Tungsten
     {
         auto i = unsigned(index >= 0 ? index : int(rowCount()) + index);
         auto offset = i * m_RowSize;
+        if (offset >= m_Buffer.size())
+            XYZ_THROW("Index is out of range: " + std::to_string(index));
         return {m_Buffer.data() + offset, m_RowSize, i};
     }
 
@@ -122,24 +124,28 @@ namespace Tungsten
                                 usage);
     }
 
-    void setValues(ArrayBufferBuilder& builder, const Xyz::Vector2f& point,
-                   unsigned firstRow,
-                   unsigned numberOfRows, unsigned columnIndex)
+    void setValues(ArrayBufferBuilder& builder,
+                   int firstRow,
+                   unsigned columnIndex,
+                   const Xyz::Vector2f& point,
+                   unsigned numberOfRows)
     {
         for (unsigned i = 0; i < numberOfRows; ++i)
         {
-            auto row = builder.row(i + firstRow);
+            auto row = builder.row(int(i + firstRow));
             row.set(columnIndex, point);
         }
     }
 
-    void setValues(ArrayBufferBuilder& builder, const Xyz::Vector3f& point,
-                   unsigned firstRow,
-                   unsigned numberOfRows, unsigned columnIndex)
+    void setValues(ArrayBufferBuilder& builder,
+                   int firstRow,
+                   unsigned columnIndex,
+                   const Xyz::Vector3f& point,
+                   unsigned numberOfRows)
     {
         for (unsigned i = 0; i < numberOfRows; ++i)
         {
-            auto row = builder.row(i + firstRow);
+            auto row = builder.row(int(i + firstRow));
             row.set(columnIndex, point);
         }
     }

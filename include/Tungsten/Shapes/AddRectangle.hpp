@@ -15,6 +15,10 @@ namespace Tungsten
 {
     void addRectangle(ArrayBufferBuilder& builder,
                       const Xyz::Rectangle<float>& rect,
+                      float offset = 0);
+
+    void addRectangle(ArrayBufferBuilder& builder,
+                      const Xyz::Rectangle<float>& rect,
                       const Xyz::CoordinateSystem<float>& cs,
                       float offset = 0);
 
@@ -24,7 +28,7 @@ namespace Tungsten
                                  float offset = 0);
 
     void setPoints(ArrayBufferBuilder& builder,
-                   unsigned firstRow,
+                   int firstRow,
                    unsigned columnIndex,
                    const Xyz::Rectangle<float>& rect);
 }

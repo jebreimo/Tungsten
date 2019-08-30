@@ -14,5 +14,4 @@
 #include "GlVertices.hpp"
 #include "SdlApplication.hpp"
 #include "ShaderTools.hpp"
-#include "TriangleMeshTools.hpp"
 #include "Uniform.hpp"

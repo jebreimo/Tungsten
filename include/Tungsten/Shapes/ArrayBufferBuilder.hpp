@@ -62,14 +62,20 @@ namespace Tungsten
                     GLenum usage = GL_STATIC_DRAW);
 
     void setValues(ArrayBufferBuilder& builder,
+                   int firstRow,
+                   unsigned columnIndex,
                    const Xyz::Vector2f& point,
-                   unsigned firstRow,
-                   unsigned numberOfRows,
-                   unsigned columnIndex);
+                   unsigned numberOfRows);
 
     void setValues(ArrayBufferBuilder& builder,
+                   int firstRow,
+                   unsigned columnIndex,
                    const Xyz::Vector3f& point,
-                   unsigned firstRow,
-                   unsigned numberOfRows,
-                   unsigned columnIndex);
+                   unsigned numberOfRows);
+
+    void setValues(ArrayBufferBuilder& builder,
+                   int firstRow,
+                   unsigned columnIndex,
+                   const Xyz::Vector2f* points,
+                   unsigned numberOfPoints);
 }
