@@ -53,34 +53,38 @@ namespace Tungsten
         return {m_Buffer.data() + offset, m_RowSize, i};
     }
 
-    void ArrayBufferBuilder::addElement(unsigned short index)
+    ArrayBufferBuilder& ArrayBufferBuilder::addElement(unsigned short index)
     {
         m_Indices.push_back(index);
+        return *this;
     }
 
-    void ArrayBufferBuilder::addElement(unsigned short index1,
-                                        unsigned short index2)
+    ArrayBufferBuilder& ArrayBufferBuilder::addElement(unsigned short index1,
+                                                       unsigned short index2)
     {
         m_Indices.push_back(index1);
         m_Indices.push_back(index2);
+        return *this;
     }
 
-    void ArrayBufferBuilder::addElement(unsigned short index1,
-                                        unsigned short index2,
-                                        unsigned short index3)
+    ArrayBufferBuilder& ArrayBufferBuilder::addElement(unsigned short index1,
+                                                       unsigned short index2,
+                                                       unsigned short index3)
     {
         m_Indices.push_back(index1);
         m_Indices.push_back(index2);
         m_Indices.push_back(index3);
+        return *this;
     }
 
-    void ArrayBufferBuilder::setElement(int elementIndex,
-                                        unsigned short rowIndex)
+    ArrayBufferBuilder& ArrayBufferBuilder::setElement(int elementIndex,
+                                                       unsigned short rowIndex)
     {
         auto i = unsigned(elementIndex >= 0
                           ? elementIndex
                           : int(m_Indices.size()) + elementIndex);
         m_Indices[i] = rowIndex;
+        return *this;
     }
 
     const void* ArrayBufferBuilder::arrayBuffer() const

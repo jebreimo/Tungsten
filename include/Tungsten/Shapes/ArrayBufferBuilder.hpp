@@ -31,17 +31,17 @@ namespace Tungsten
 
         unsigned elementCount() const;
 
-        void addElement(unsigned short index);
+        ArrayBufferBuilder& addElement(unsigned short index);
 
-        void addElement(unsigned short index1,
-                        unsigned short index2);
+        ArrayBufferBuilder& addElement(unsigned short index1,
+                                       unsigned short index2);
 
-        void addElement(unsigned short index1,
-                        unsigned short index2,
-                        unsigned short index3);
+        ArrayBufferBuilder& addElement(unsigned short index1,
+                                       unsigned short index2,
+                                       unsigned short index3);
 
-        void setElement(int elementIndex,
-                        unsigned short rowIndex);
+        ArrayBufferBuilder& setElement(int elementIndex,
+                                       unsigned short rowIndex);
 
         const void* arrayBuffer() const;
 
