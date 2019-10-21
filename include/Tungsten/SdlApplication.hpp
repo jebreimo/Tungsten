@@ -51,6 +51,8 @@ namespace Tungsten
         SDL_Window* window() const;
 
         void setWindow(SDL_Window* window);
+
+        float aspectRatio() const;
     protected:
         SdlApplication& setGlVersion(int majorVersion, int minorVersion);
 

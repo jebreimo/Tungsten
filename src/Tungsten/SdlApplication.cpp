@@ -99,6 +99,13 @@ namespace Tungsten
         m_Window = value;
     }
 
+    float SdlApplication::aspectRatio() const
+    {
+        int w, h;
+        SDL_GetWindowSize(window(), &w, &h);
+        return float(w) / h;
+    }
+
     void SdlApplication::eventLoop()
     {
         while (!status())
