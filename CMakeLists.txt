@@ -24,8 +24,6 @@ if (NOT TARGET Xyz::Xyz)
 endif()
 
 add_library(Tungsten STATIC
-    include/Tungsten/Shapes/ArrayBufferBuilder.hpp
-    include/Tungsten/Shapes/ArrayBufferRowBuilder.hpp
     include/Tungsten/GlBuffer.hpp
     include/Tungsten/GlContext.hpp
     include/Tungsten/GlError.hpp
@@ -37,12 +35,16 @@ add_library(Tungsten STATIC
     include/Tungsten/GlVertices.hpp
     include/Tungsten/SdlApplication.hpp
     include/Tungsten/ShaderTools.hpp
+    include/Tungsten/Shapes.hpp
     include/Tungsten/Tungsten.hpp
     include/Tungsten/Uniform.hpp
     include/Tungsten/WindowParameters.hpp
+    include/Tungsten/Shapes/AddCube.hpp
     include/Tungsten/Shapes/AddRectangle.hpp
-    src/Tungsten/Shapes/ArrayBufferBuilder.cpp
-    src/Tungsten/Shapes/ArrayBufferRowBuilder.cpp
+    include/Tungsten/Shapes/AddRegularPolygon.hpp
+    include/Tungsten/Shapes/AddStarPolygon.hpp
+    include/Tungsten/Shapes/ArrayBufferBuilder.hpp
+    include/Tungsten/Shapes/ArrayBufferRowBuilder.hpp
     src/Tungsten/GlBuffer.cpp
     src/Tungsten/GlContext.cpp
     src/Tungsten/GlError.cpp
@@ -57,9 +59,13 @@ add_library(Tungsten STATIC
     src/Tungsten/ShaderTools.cpp
     src/Tungsten/Uniform.cpp
     src/Tungsten/WindowParameters.cpp
-    src/Tungsten/Shapes/AddRectangle.cpp
     src/Tungsten/Shapes/AddCube.cpp
-    include/Tungsten/Shapes/AddCube.hpp include/Tungsten/Shapes.hpp src/Tungsten/Shapes/AddStarPolygon.cpp include/Tungsten/Shapes/AddStarPolygon.hpp src/Tungsten/Shapes/AddRegularPolygon.cpp include/Tungsten/Shapes/AddRegularPolygon.hpp)
+    src/Tungsten/Shapes/AddRectangle.cpp
+    src/Tungsten/Shapes/AddRegularPolygon.cpp
+    src/Tungsten/Shapes/AddStarPolygon.cpp
+    src/Tungsten/Shapes/ArrayBufferBuilder.cpp
+    src/Tungsten/Shapes/ArrayBufferRowBuilder.cpp
+    )
 
 target_link_libraries(Tungsten
     PUBLIC

@@ -8,17 +8,15 @@
 #include "Tungsten/SdlApplication.hpp"
 #include "SdlSession.hpp"
 
+#ifdef __EMSCRIPTEN__
+    #include <emscripten.h>
+#endif
+
 namespace Tungsten
 {
-    SdlApplication::SdlApplication()
-        : m_Window{},
-          m_GlContext{},
-          m_Status{},
-          m_IsRunning{}
-    {}
+    SdlApplication::SdlApplication() = default;
 
-    SdlApplication::~SdlApplication()
-    {}
+    SdlApplication::~SdlApplication() = default;
 
     void SdlApplication::setup()
     {}
@@ -103,20 +101,7 @@ namespace Tungsten
     {
         int w, h;
         SDL_GetWindowSize(window(), &w, &h);
-        return float(w) / h;
-    }
-
-    void SdlApplication::eventLoop()
-    {
-        while (!status())
-        {
-            SDL_Event event;
-            while (SDL_PollEvent(&event))
-                processEvent(event);
-            update();
-            draw();
-            postDraw();
-        }
+        return float(w) / float(h);
     }
 
     bool SdlApplication::processEvent(const SDL_Event& event)
@@ -143,9 +128,10 @@ namespace Tungsten
     void SdlApplication::doInitialize(const WindowParameters& windowParams)
     {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
-                            SDL_GL_CONTEXT_PROFILE_CORE);
+                            TUNGSTEN_GL_PROFILE);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_MajorGlVersion);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_MinorGlVersion);
+        if (m_MinorGlVersion)
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_MinorGlVersion);
 
         auto tmpWindowParams = windowParams;
         tmpWindowParams.flags |= SDL_WINDOW_OPENGL;
@@ -177,5 +163,43 @@ namespace Tungsten
         auto& wr = windowParams.windowRectangle;
         return SDL_CreateWindow(windowParams.title.c_str(), wr.x, wr.y,
                                 wr.width, wr.height, windowParams.flags);
+    }
+
+    #ifdef __EMSCRIPTEN__
+
+    void SdlApplication::eventLoop()
+    {
+        const int simulate_infinite_loop = 1; // call the function repeatedly
+        const int fps = -1; // call the function as fast as the browser wants to render (typically 60fps)
+        emscripten_set_main_loop_arg(&SdlApplication::emscriptenEventLoopStep,
+                                     this,
+                                     fps,
+                                     simulate_infinite_loop);
+    }
+
+    void SdlApplication::emscriptenEventLoopStep(void* arg)
+    {
+        auto app = static_cast<SdlApplication*>(arg);
+        app->eventLoopStep();
+    }
+
+    #else
+
+    void SdlApplication::eventLoop()
+    {
+        while (!status())
+            eventLoopStep();
+    }
+
+    #endif
+
+    void SdlApplication::eventLoopStep()
+    {
+        SDL_Event event;
+        while (SDL_PollEvent(&event))
+            processEvent(event);
+        update();
+        draw();
+        postDraw();
     }
 }

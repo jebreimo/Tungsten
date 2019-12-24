@@ -11,6 +11,16 @@
 #include "GlContext.hpp"
 #include "WindowParameters.hpp"
 
+#ifdef __EMSCRIPTEN__
+    constexpr int TUNGSTEN_GL_PROFILE = SDL_GL_CONTEXT_PROFILE_ES;
+    constexpr int TUNGSTEN_GL_MAJOR_VERSION = 2;
+    constexpr int TUNGSTEN_GL_MINOR_VERSION = 0;
+#else
+    constexpr int TUNGSTEN_GL_PROFILE = SDL_GL_CONTEXT_PROFILE_CORE;
+    constexpr int TUNGSTEN_GL_MAJOR_VERSION = 3;
+    constexpr int TUNGSTEN_GL_MINOR_VERSION = 1;
+#endif
+
 namespace Tungsten
 {
     class SdlApplication
@@ -58,8 +68,6 @@ namespace Tungsten
 
         void setStatus(int status);
 
-        void eventLoop();
-
         virtual bool processEvent(const SDL_Event& event);
 
         virtual void doInitialize(const WindowParameters& windowParams);
@@ -69,13 +77,20 @@ namespace Tungsten
         virtual void postDraw();
 
         static SDL_Window* createWindow(const WindowParameters& windowParams);
-
     private:
-        SDL_Window* m_Window;
-        GlContext m_GlContext;
-        int m_MajorGlVersion = 3;
-        int m_MinorGlVersion = 1;
-        int m_Status;
-        bool m_IsRunning;
+        void eventLoop();
+
+        void eventLoopStep();
+
+        #ifdef __EMSCRIPTEN__
+        static void emscriptenEventLoopStep(void* arg);
+        #endif
+
+        SDL_Window* m_Window = nullptr;
+        GlContext m_GlContext = {};
+        int m_MajorGlVersion = TUNGSTEN_GL_MAJOR_VERSION;
+        int m_MinorGlVersion = TUNGSTEN_GL_MINOR_VERSION;
+        int m_Status = 0;
+        bool m_IsRunning = false;
     };
 }

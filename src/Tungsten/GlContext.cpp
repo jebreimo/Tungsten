@@ -8,6 +8,7 @@
 #include "Tungsten/GlContext.hpp"
 
 #include <stdexcept>
+#include "Tungsten/GlError.hpp"
 
 namespace Tungsten
 {
@@ -15,7 +16,7 @@ namespace Tungsten
     {
         auto context = GlContext{window};
         if (!context.m_Context)
-            throw std::runtime_error(SDL_GetError());
+            GL_THROW("Unable to create GlContext.");
         return context;
     }
 
