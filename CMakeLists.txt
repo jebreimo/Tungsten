@@ -13,6 +13,7 @@ set(CMAKE_CXX_STANDARD 17)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 find_package(GLEW REQUIRED)
+find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
 
 if (NOT TARGET Xyz::Xyz)
@@ -70,6 +71,7 @@ add_library(Tungsten STATIC
 target_link_libraries(Tungsten
     PUBLIC
         GLEW::GLEW
+        OpenGL::GL
         SDL2::SDL2
         Xyz::Xyz
     )
