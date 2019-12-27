@@ -10,7 +10,9 @@ project(Tungsten)
 
 set(CMAKE_CXX_STANDARD 17)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/tools/cmake)
+# Make TungstenTargetEmbedShaders.cmake available to parent.
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} PARENT_SCOPE)
 
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
