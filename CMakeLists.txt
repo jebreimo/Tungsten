@@ -5,26 +5,21 @@
 ## This file is distributed under the BSD License.
 ## License text is included with the source distribution.
 ##****************************************************************************
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.15)
 project(Tungsten)
 
 set(CMAKE_CXX_STANDARD 17)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/tools/cmake)
-# Make TungstenTargetEmbedShaders.cmake available to parent.
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} PARENT_SCOPE)
+
+include(FetchContent)
+FetchContent_Declare(Xyz
+    GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git")
+FetchContent_MakeAvailable(Xyz)
 
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
-
-if (NOT TARGET Xyz::Xyz)
-    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/Xyz/CMakeLists.txt")
-        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/Xyz)
-    else()
-        find_package(Xyz REQUIRED)
-    endif()
-endif()
 
 add_library(Tungsten STATIC
     include/Tungsten/GlBuffer.hpp
