@@ -97,22 +97,27 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
-    void setUniform(GLint location, const Xyz::Matrix2f& mat, bool transpose)
+    void setUniform(GLint location, Xyz::Matrix2f mat, bool transpose)
     {
-        glUniformMatrix2fv(location, 1, GLboolean(transpose),
-                           mat.data());
+        if (transpose)
+            Xyz::transposeAssign(mat);
+        glUniformMatrix2fv(location, 1, false, mat.data());
         THROW_IF_GL_ERROR();
     }
 
-    void setUniform(GLint location, const Xyz::Matrix3f& mat, bool transpose)
+    void setUniform(GLint location, Xyz::Matrix3f mat, bool transpose)
     {
-        glUniformMatrix3fv(location, 1, GLboolean(transpose), mat.data());
+        if (transpose)
+            Xyz::transposeAssign(mat);
+        glUniformMatrix3fv(location, 1, false, mat.data());
         THROW_IF_GL_ERROR();
     }
 
-    void setUniform(GLint location, const Xyz::Matrix4f& mat, bool transpose)
+    void setUniform(GLint location, Xyz::Matrix4f mat, bool transpose)
     {
-        glUniformMatrix4fv(location, 1, GLboolean(transpose), mat.data());
+        if (transpose)
+            Xyz::transposeAssign(mat);
+        glUniformMatrix4fv(location, 1, false, mat.data());
         THROW_IF_GL_ERROR();
     }
 }

@@ -41,11 +41,11 @@ namespace Tungsten
 
     void setUniform(GLint location, const Xyz::Vector4f& vec);
 
-    void setUniform(GLint location, const Xyz::Matrix2f& mat, bool transpose = true);
+    void setUniform(GLint location, Xyz::Matrix2f mat, bool transpose = true);
 
-    void setUniform(GLint location, const Xyz::Matrix3f& mat, bool transpose = true);
+    void setUniform(GLint location, Xyz::Matrix3f mat, bool transpose = true);
 
-    void setUniform(GLint location, const Xyz::Matrix4f& mat, bool transpose = true);
+    void setUniform(GLint location, Xyz::Matrix4f mat, bool transpose = true);
 
     template <typename T>
     class Uniform
@@ -55,7 +55,7 @@ namespace Tungsten
                 : m_Location(-1)
         {}
 
-        Uniform(GLint location)
+        explicit Uniform(GLint location)
                 : m_Location(location)
         {}
 
