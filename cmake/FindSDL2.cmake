@@ -32,7 +32,7 @@ if (EMSCRIPTEN)
         add_library(SDL2::OpenGL INTERFACE IMPORTED)
         target_compile_options(SDL2::OpenGL
             INTERFACE
-                "SHELL:-s FULL_ES=1"
+                "SHELL:-s FULL_ES2=1"
             )
     endif ()
 
