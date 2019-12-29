@@ -15,7 +15,6 @@
 list(FIND SDL2_FIND_COMPONENTS OpenGL FIND_OPENGL)
 
 if (EMSCRIPTEN)
-    message("Emscripten!")
 
     if (NOT TARGET SDL2::SDL2)
         add_library(SDL2::SDL2 INTERFACE IMPORTED)
@@ -33,14 +32,13 @@ if (EMSCRIPTEN)
         add_library(SDL2::OpenGL INTERFACE IMPORTED)
         target_compile_options(SDL2::OpenGL
             INTERFACE
-                "SHELL:-s FULL_ES=2"
+                "SHELL:-s FULL_ES=1"
             )
     endif ()
 
     set(SDL2_FOUND 1)
 
 else ()
-    message("No Emscripten!")
 
     find_package(PkgConfig)
     pkg_check_modules(PC_SDL2 QUIET sdl2)
