@@ -10,16 +10,14 @@ project(Tungsten)
 
 set(CMAKE_CXX_STANDARD 17)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/tools/cmake)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 include(FetchContent)
 FetchContent_Declare(Xyz
     GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git")
 FetchContent_MakeAvailable(Xyz)
 
-find_package(GLEW REQUIRED)
-find_package(OpenGL REQUIRED)
-find_package(SDL2 REQUIRED)
+find_package(SDL2 REQUIRED OpenGL)
 
 add_library(Tungsten STATIC
     include/Tungsten/GlBuffer.hpp
@@ -67,9 +65,8 @@ add_library(Tungsten STATIC
 
 target_link_libraries(Tungsten
     PUBLIC
-        GLEW::GLEW
-        OpenGL::GL
         SDL2::SDL2
+        SDL2::OpenGL
         Xyz::Xyz
     )
 
