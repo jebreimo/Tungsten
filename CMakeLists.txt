@@ -5,7 +5,7 @@
 ## This file is distributed under the BSD License.
 ## License text is included with the source distribution.
 ##****************************************************************************
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.13)
 project(Tungsten)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -15,7 +15,11 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(FetchContent)
 FetchContent_Declare(Xyz
     GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git")
-FetchContent_MakeAvailable(Xyz)
+FetchContent_GetProperties(Xyz)
+if (NOT Xyz_POPULATED)
+    FetchContent_Populate(Xyz)
+    add_subdirectory(${Xyz_SOURCE_DIR} ${Xyz_BINARY_DIR})
+endif ()
 
 find_package(SDL2 REQUIRED OpenGL)
 
