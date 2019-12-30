@@ -13,12 +13,12 @@ set(CMAKE_CXX_STANDARD 17)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 include(FetchContent)
-FetchContent_Declare(Xyz
+FetchContent_Declare(xyz
     GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git")
-FetchContent_GetProperties(Xyz)
-if (NOT Xyz_POPULATED)
-    FetchContent_Populate(Xyz)
-    add_subdirectory(${Xyz_SOURCE_DIR} ${Xyz_BINARY_DIR})
+FetchContent_GetProperties(xyz)
+if (NOT xyz_POPULATED)
+    FetchContent_Populate(xyz)
+    add_subdirectory(${xyz_SOURCE_DIR} ${xyz_BINARY_DIR})
 endif ()
 
 find_package(SDL2 REQUIRED OpenGL)
