@@ -11,7 +11,7 @@
 #include "GlContext.hpp"
 #include "WindowParameters.hpp"
 
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) || defined(__arm__)
     constexpr int TUNGSTEN_GL_PROFILE = SDL_GL_CONTEXT_PROFILE_ES;
     constexpr int TUNGSTEN_GL_MAJOR_VERSION = 2;
     constexpr int TUNGSTEN_GL_MINOR_VERSION = 0;
