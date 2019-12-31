@@ -97,6 +97,13 @@ namespace Tungsten
         m_Window = value;
     }
 
+    std::pair<int, int> SdlApplication::windowSize() const
+    {
+        int w, h;
+        SDL_GetWindowSize(window(), &w, &h);
+        return {w, h};
+    }
+
     float SdlApplication::aspectRatio() const
     {
         int w, h;
