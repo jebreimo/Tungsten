@@ -192,10 +192,7 @@ namespace Tungsten
 
         WindowParameters params;
         if (width > 0 && height > 0)
-        {
-            params.width = width;
-            params.height = height;
-        }
+            params.windowRectangle = WindowRectangle(width, height);
         return params;
     }
 
