@@ -14,9 +14,9 @@ namespace Tungsten
 {
     struct WindowRectangle
     {
-        WindowRectangle(int width = 800, int height = 600);
+        explicit WindowRectangle(int width = 800, int height = 600);
 
-        WindowRectangle(int x, int y, int width, int height);
+        explicit WindowRectangle(int x, int y, int width, int height);
 
         int x;
         int y;
@@ -26,13 +26,13 @@ namespace Tungsten
 
     struct WindowParameters
     {
-        WindowParameters(
+        explicit WindowParameters(
                 const std::string& title = "SdlApplication",
                 const WindowRectangle& windowRectangle = WindowRectangle(),
-                uint32_t flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+                uint32_t sdlFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
         std::string title;
         WindowRectangle windowRectangle;
-        uint32_t flags;
+        uint32_t sdlFlags;
     };
 }

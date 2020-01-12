@@ -65,6 +65,8 @@ namespace Tungsten
         std::pair<int, int> windowSize() const;
 
         float aspectRatio() const;
+
+        static WindowParameters getDefaultWindowParameters();
     protected:
         SdlApplication& setGlVersion(int majorVersion, int minorVersion);
 

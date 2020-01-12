@@ -39,7 +39,7 @@ namespace Tungsten
 
     void SdlApplication::run()
     {
-        run(WindowParameters());
+        run(getDefaultWindowParameters());
     }
 
     bool SdlApplication::isRunning() const
@@ -141,7 +141,7 @@ namespace Tungsten
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_MinorGlVersion);
 
         auto tmpWindowParams = windowParams;
-        tmpWindowParams.flags |= SDL_WINDOW_OPENGL;
+        tmpWindowParams.sdlFlags |= SDL_WINDOW_OPENGL;
 
         setWindow(createWindow(tmpWindowParams));
 
@@ -169,10 +169,35 @@ namespace Tungsten
     {
         auto& wr = windowParams.windowRectangle;
         return SDL_CreateWindow(windowParams.title.c_str(), wr.x, wr.y,
-                                wr.width, wr.height, windowParams.flags);
+                                wr.width, wr.height, windowParams.sdlFlags);
     }
 
     #ifdef __EMSCRIPTEN__
+
+    EM_JS(int, canvas_get_width, (),
+    {
+      return Module.canvas.width;
+    });
+
+    EM_JS(int, canvas_get_height, (),
+    {
+      return Module.canvas.height;
+    });
+
+    WindowParameters SdlApplication::getDefaultWindowParameters()
+    {
+        int width = canvas_get_width();
+        int height = canvas_get_height();
+        SDL_Log("width = %d, height = %d", width, height);
+
+        WindowParameters params;
+        if (width > 0 && height > 0)
+        {
+            params.width = width;
+            params.height = height;
+        }
+        return params;
+    }
 
     void SdlApplication::eventLoop()
     {
@@ -191,6 +216,11 @@ namespace Tungsten
     }
 
     #else
+
+    WindowParameters SdlApplication::getDefaultWindowParameters()
+    {
+        return WindowParameters();
+    }
 
     void SdlApplication::eventLoop()
     {

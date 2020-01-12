@@ -10,24 +10,24 @@
 namespace Tungsten
 {
     WindowRectangle::WindowRectangle(int width, int height)
-        : x(SDL_WINDOWPOS_CENTERED),
-          y(SDL_WINDOWPOS_CENTERED),
+        : x(SDL_WINDOWPOS_UNDEFINED),
+          y(SDL_WINDOWPOS_UNDEFINED),
           width(width),
           height(height)
     {}
 
     WindowRectangle::WindowRectangle(int x, int y, int width, int height)
-        : x(SDL_WINDOWPOS_CENTERED),
-          y(SDL_WINDOWPOS_CENTERED),
+        : x(SDL_WINDOWPOS_UNDEFINED),
+          y(SDL_WINDOWPOS_UNDEFINED),
           width(width),
           height(height)
     {}
 
     WindowParameters::WindowParameters(const std::string& title,
                                        const WindowRectangle& windowRectangle,
-                                       uint32_t flags)
+                                       uint32_t sdlFlags)
         : title(title),
           windowRectangle(windowRectangle),
-          flags(flags)
+          sdlFlags(sdlFlags)
     {}
 }
