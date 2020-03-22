@@ -5,6 +5,8 @@
 # This file is distributed under the BSD License.
 # License text is included with the source distribution.
 #****************************************************************************
+cmake_minimum_required(VERSION 3.13)
+
 if (NOT TARGET GLEW::GLEW)
     add_library(GLEW::GLEW INTERFACE IMPORTED)
 endif ()

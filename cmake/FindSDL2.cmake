@@ -5,6 +5,7 @@
 # This file is distributed under the BSD License.
 # License text is included with the source distribution.
 #****************************************************************************
+cmake_minimum_required(VERSION 3.13)
 
 ## Defines the target SDL2::SDL2.
 ##

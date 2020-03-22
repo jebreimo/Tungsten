@@ -5,11 +5,13 @@
 # This file is distributed under the BSD License.
 # License text is included with the source distribution.
 #****************************************************************************
+cmake_minimum_required(VERSION 3.13)
+
 if (NOT TARGET OpenGL::GL)
     add_library(OpenGL::GL INTERFACE IMPORTED)
     target_compile_options(OpenGL::GL
         INTERFACE
-        "SHELL:-s FULL_ES2=1"
+            "SHELL:-s FULL_ES2=1"
         )
 endif ()
 
