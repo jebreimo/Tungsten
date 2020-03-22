@@ -10,7 +10,11 @@ project(Tungsten)
 
 set(CMAKE_CXX_STANDARD 17)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+if (EMSCRIPTEN)
+    list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/emscripten)
+else ()
+    list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+endif ()
 
 include(FetchContent)
 FetchContent_Declare(xyz
@@ -21,7 +25,9 @@ if (NOT xyz_POPULATED)
     add_subdirectory(${xyz_SOURCE_DIR} ${xyz_BINARY_DIR})
 endif ()
 
-find_package(SDL2 REQUIRED OpenGL)
+find_package(GLEW REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(SDL2 REQUIRED)
 
 add_library(Tungsten STATIC
     include/Tungsten/GlBuffer.hpp
@@ -69,8 +75,9 @@ add_library(Tungsten STATIC
 
 target_link_libraries(Tungsten
     PUBLIC
+        GLEW::GLEW
+        OpenGL::GL
         SDL2::SDL2
-        SDL2::OpenGL
         Xyz::Xyz
     )
 
