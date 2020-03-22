@@ -188,7 +188,6 @@ namespace Tungsten
     {
         int width = canvas_get_width();
         int height = canvas_get_height();
-        SDL_Log("width = %d, height = %d", width, height);
 
         WindowParameters params;
         if (width > 0 && height > 0)
