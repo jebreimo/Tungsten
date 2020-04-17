@@ -8,7 +8,7 @@
 #include "Tungsten/GlContext.hpp"
 
 #include <stdexcept>
-#include "Tungsten/GlError.hpp"
+#include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
 {
@@ -16,7 +16,7 @@ namespace Tungsten
     {
         auto context = GlContext{window};
         if (!context.m_Context)
-            GL_THROW("Unable to create GlContext.");
+            TUNGSTEN_THROW("Unable to create GlContext.");
         return context;
     }
 

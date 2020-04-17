@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <string>
 #include <GL/glew.h>
+#include <SDL2/SDL.h>
 
 namespace Tungsten
 {
@@ -19,38 +20,29 @@ namespace Tungsten
                                    long lineNo,
                                    const std::string& funcName);
 
-    class GlError : public std::runtime_error
+    class TungstenException : public std::runtime_error
     {
     public:
-        GlError(GLenum errorCode) noexcept
-            : GlError(errorCode, "", -1, "")
-        {}
-
-        GlError(GLenum errorCode,
-                 const std::string& fileName,
-                 long lineNo,
-                 const std::string& funcName) noexcept
-            : GlError(getGlErrorMessage(errorCode), fileName, -1, funcName)
-        {}
-
-        GlError(const std::string& message,
-                 const std::string& fileName,
-                 long lineNo,
-                 const std::string& funcName) noexcept
+        TungstenException(const std::string& message,
+                const std::string& fileName,
+                long lineNo,
+                const std::string& funcName) noexcept
             : std::runtime_error(formatErrorMessage(message, fileName,
                                                     lineNo, funcName))
         {}
     };
-
 }
 
-#define GL_THROW(msg) \
-        throw GlError((msg), __FILE__, __LINE__, __FUNCTION__)
+#define TUNGSTEN_THROW(msg) \
+        throw TungstenException((msg), __FILE__, __LINE__, __FUNCTION__)
 
 #define THROW_IF_GL_ERROR() \
     do { \
         auto e = glGetError(); \
         if (!e) \
             break; \
-        throw GlError(e, __FILE__, __LINE__, __FUNCTION__); \
+        throw TungstenException(getGlErrorMessage(e), __FILE__, __LINE__, __FUNCTION__); \
     } while (false)
+
+#define THROW_SDL_ERROR() \
+    throw TungstenException(SDL_GetError(), __FILE__, __LINE__, __FUNCTION__)

@@ -6,7 +6,10 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #include "Tungsten/SdlApplication.hpp"
-#include "SdlSession.hpp"
+
+#include <iostream>
+#include <Argos/ArgumentParser.hpp>
+#include <Tungsten/GlVersion.hpp>
 
 #ifdef __EMSCRIPTEN__
     #include <emscripten.h>
@@ -14,32 +17,213 @@
 
 namespace Tungsten
 {
-    SdlApplication::SdlApplication() = default;
+    namespace
+    {
+        #ifdef __EMSCRIPTEN__
+
+        EM_JS(int, canvas_get_width, (),
+        {
+            return Module.canvas.width;
+        });
+
+        EM_JS(int, canvas_get_height, (),
+        {
+            return Module.canvas.height;
+        });
+
+        WindowParameters getDefaultWindowParameters()
+        {
+            int width = canvas_get_width();
+            int height = canvas_get_height();
+
+            WindowParameters params;
+            if (width > 0 && height > 0)
+                params.windowRectangle = WindowRectangle(width, height);
+            return params;
+        }
+
+        #else
+
+        WindowParameters getDefaultWindowParameters()
+        {
+            return {};
+        }
+
+        #endif
+
+        Argos::ArgumentParser makeArgParser()
+        {
+            using namespace Argos;
+            return ArgumentParser()
+                .text(TextId::USAGE_TITLE, {})
+                .text(TextId::USAGE, {})
+                .text(TextId::ERROR_USAGE, {})
+                .ignoreUndefinedArguments(true)
+                .ignoreUndefinedArguments(true)
+                .allowAbbreviatedOptions(true)
+                .add(Option{"--fullscreen"})
+                .add(Option{"--screensize"}.argument("<HOR>x<VER>"))
+                .add(Option{"--list-screen-modes"}.type(OptionType::STOP))
+                .move();
+        }
+
+        const char* getPixelFormatName(int format)
+        {
+            switch (format)
+            {
+            case SDL_PIXELFORMAT_ABGR1555:
+                return "ABGR1555";
+            case SDL_PIXELFORMAT_ABGR4444:
+                return "ABGR4444";
+            case SDL_PIXELFORMAT_ABGR8888:
+                return "ABGR8888";
+            case SDL_PIXELFORMAT_ARGB1555:
+                return "ARGB1555";
+            case SDL_PIXELFORMAT_ARGB2101010:
+                return "ARGB2101010";
+            case SDL_PIXELFORMAT_ARGB4444:
+                return "ARGB4444";
+            case SDL_PIXELFORMAT_ARGB8888:
+                return "ARGB8888";
+            case SDL_PIXELFORMAT_BGR24:
+                return "BGR24";
+            case SDL_PIXELFORMAT_BGR555:
+                return "BGR555";
+            case SDL_PIXELFORMAT_BGR565:
+                return "BGR565";
+            case SDL_PIXELFORMAT_BGR888:
+                return "BGR888";
+            case SDL_PIXELFORMAT_BGRA4444:
+                return "BGRA4444";
+            case SDL_PIXELFORMAT_BGRA5551:
+                return "BGRA5551";
+            case SDL_PIXELFORMAT_BGRA8888:
+                return "BGRA8888";
+            case SDL_PIXELFORMAT_BGRX8888:
+                return "BGRX8888";
+            case SDL_PIXELFORMAT_INDEX1LSB:
+                return "INDEX1LSB";
+            case SDL_PIXELFORMAT_INDEX1MSB:
+                return "INDEX1MSB";
+            case SDL_PIXELFORMAT_INDEX4LSB:
+                return "INDEX4LSB";
+            case SDL_PIXELFORMAT_INDEX4MSB:
+                return "INDEX4MSB";
+            case SDL_PIXELFORMAT_INDEX8:
+                return "INDEX8";
+            case SDL_PIXELFORMAT_IYUV:
+                return "IYUV";
+            case SDL_PIXELFORMAT_NV12:
+                return "NV12";
+            case SDL_PIXELFORMAT_NV21:
+                return "NV21";
+            case SDL_PIXELFORMAT_RGB24:
+                return "RGB24";
+            case SDL_PIXELFORMAT_RGB332:
+                return "RGB332";
+            case SDL_PIXELFORMAT_RGB444:
+                return "RGB444";
+            case SDL_PIXELFORMAT_RGB555:
+                return "RGB555";
+            case SDL_PIXELFORMAT_RGB565:
+                return "RGB565";
+            case SDL_PIXELFORMAT_RGB888:
+                return "RGB888";
+            case SDL_PIXELFORMAT_RGBA4444:
+                return "RGBA4444";
+            case SDL_PIXELFORMAT_RGBA5551:
+                return "RGBA5551";
+            case SDL_PIXELFORMAT_RGBA8888:
+                return "RGBA8888";
+            case SDL_PIXELFORMAT_RGBX8888:
+                return "RGBX8888";
+            case SDL_PIXELFORMAT_UYVY:
+                return "UYVY";
+            case SDL_PIXELFORMAT_YUY2:
+                return "YUY2";
+            case SDL_PIXELFORMAT_YV12:
+                return "YV12";
+            case SDL_PIXELFORMAT_YVYU:
+                return "YVYU";
+            default:
+                return "UNKNOWN";
+            }
+        }
+
+        void printDisplayMode(std::ostream& stream,
+                              int displayIndex,
+                              int modeIndex,
+                              const SDL_DisplayMode& mode)
+        {
+            stream << "Display " << displayIndex
+                   << ", mode " << modeIndex
+                   << ": " << getPixelFormatName(mode.format)
+                   << " " << mode.w << "x" << mode.h
+                   << " " << mode.refresh_rate << "Hz\n";
+        }
+
+        void printDisplayModes(std::ostream& stream)
+        {
+            int numDisplays = SDL_GetNumVideoDisplays();
+            for (int d = 0; d < numDisplays; ++d)
+            {
+                if (auto name = SDL_GetDisplayName(d))
+                    stream << "Display " << d << ": " << name << "\n";
+                int numModes = SDL_GetNumDisplayModes(d);
+                for (int m = 0; m < numModes; ++m)
+                {
+                    SDL_DisplayMode mode = {};
+                    if (SDL_GetDisplayMode(d, m, &mode) == 0)
+                        printDisplayMode(stream, d, m, mode);
+                }
+            }
+        }
+    }
+
+    SdlApplication::SdlApplication(
+        std::string name,
+        std::unique_ptr<EventLoopCallbacks> callbacks)
+        : m_Name(move(name)),
+          m_Callbacks(move(callbacks)),
+          m_WindowParameters(getDefaultWindowParameters())
+    {}
 
     SdlApplication::~SdlApplication() = default;
 
-    void SdlApplication::setup()
-    {}
-
-    void SdlApplication::update()
-    {}
-
-    void SdlApplication::draw()
-    {}
-
-    void SdlApplication::shutdown()
-    {}
-
-    void SdlApplication::run(const WindowParameters& windowParams)
+    void SdlApplication::parseCommandLineOptions(int& argc, char**& argv)
     {
-        auto session = SdlSession::create(SDL_INIT_VIDEO);
-        doInitialize(windowParams);
-        doRun();
+        using namespace Argos;
+        auto args = makeArgParser().parse(argc, argv);
+        if (args.value("--list-screen-modes").asBool())
+        {
+            if (!m_Session)
+                m_Session = SdlSession(SDL_INIT_VIDEO);
+            printDisplayModes(std::cout);
+            auto ver = getSdlGlVersion();
+            std::cout << "Version: " << ver.profile << " "
+                      << ver.majorVersion << "." << ver.minorVersion << "\n";
+            exit(0);
+        }
+
+        auto size = args.value("--screensize").split('x', 2, 2)
+            .asInts({640, 480});
+        m_WindowParameters.windowSize = {size[0], size[1]};
+        if (args.value("--fullscreen").asBool())
+        {
+            auto mode = getClosestDisplayMode(m_WindowParameters.windowSize);
+            m_WindowParameters.fullScreenMode = mode.first;
+            m_WindowParameters.sdlFlags |= SDL_WINDOW_FULLSCREEN;
+        }
     }
 
     void SdlApplication::run()
     {
-        run(getDefaultWindowParameters());
+        initialize(m_WindowParameters);
+        m_Callbacks->onStartup(*this);
+        m_IsRunning = true;
+        eventLoop();
+        m_IsRunning = false;
+        m_Callbacks->onShutdown(*this);
     }
 
     bool SdlApplication::isRunning() const
@@ -55,12 +239,6 @@ namespace Tungsten
     SDL_GLContext SdlApplication::glContext() const
     {
         return m_GlContext;
-    }
-
-    SdlApplication& SdlApplication::setGlContext(GlContext&& value)
-    {
-        m_GlContext = std::move(value);
-        return *this;
     }
 
     int SdlApplication::status()
@@ -82,14 +260,6 @@ namespace Tungsten
     SDL_Window* SdlApplication::window() const
     {
         return m_Window;
-    }
-
-    SdlApplication& SdlApplication::setGlVersion(int majorVersion,
-                                                 int minorVersion)
-    {
-        m_MajorGlVersion = majorVersion;
-        m_MinorGlVersion = minorVersion;
-        return *this;
     }
 
     void SdlApplication::setWindow(SDL_Window* value)
@@ -132,14 +302,11 @@ namespace Tungsten
         return true;
     }
 
-    void SdlApplication::doInitialize(const WindowParameters& windowParams)
+    void SdlApplication::initialize(const WindowParameters& windowParams)
     {
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
-                            TUNGSTEN_GL_PROFILE);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_MajorGlVersion);
-        if (m_MinorGlVersion)
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_MinorGlVersion);
-
+        if (!m_Session)
+            m_Session = SdlSession(SDL_INIT_VIDEO);
+        setSdlGlVersion(getDefaultGlVersion(GlVersionCode::ES_2));
         auto tmpWindowParams = windowParams;
         tmpWindowParams.sdlFlags |= SDL_WINDOW_OPENGL;
 
@@ -151,49 +318,54 @@ namespace Tungsten
         glewInit();
     }
 
-    void SdlApplication::doRun()
+    SDL_Window* SdlApplication::createWindow(const WindowParameters& winParams)
     {
-        setup();
-        m_IsRunning = true;
-        eventLoop();
-        m_IsRunning = false;
-        shutdown();
+        SDL_Log("createWindow");
+        auto& pos = winParams.windowPos;
+        auto& size = winParams.windowSize;
+        auto window = SDL_CreateWindow(winParams.title.c_str(),
+                                       pos.x, pos.y,
+                                       size.width, size.height,
+                                       winParams.sdlFlags);
+        if (winParams.fullScreenMode && winParams.sdlFlags)
+        {
+            SDL_Log("fullscreen");
+
+            SDL_DisplayMode mode;
+            if (SDL_GetDisplayMode(winParams.fullScreenMode.displayIndex, winParams.fullScreenMode.modeIndex, &mode) >= 0)
+            {
+                SDL_SetWindowDisplayMode(window, &mode);
+                SDL_Log("set fullscreen");
+            }
+        }
+        return window;
     }
 
-    void SdlApplication::postDraw()
+    std::pair<FullScreenMode, WindowSize>
+    SdlApplication::getClosestDisplayMode(WindowSize size, int displayIndex)
     {
-        SDL_GL_SwapWindow(window());
-    }
+        if (!m_Session)
+            m_Session = SdlSession(SDL_INIT_VIDEO);
+        int bestMode = -1;
+        WindowSize bestSize(-1, -1);
+        int numModes = SDL_GetNumDisplayModes(displayIndex);
+        for (int m = 0; m < numModes; ++m)
+        {
+            SDL_DisplayMode mode = {};
+            if (SDL_GetDisplayMode(displayIndex, m, &mode) == 0
+                && (bestMode == -1
+                    || (mode.w >= size.width && mode.h >= size.height
+                        && mode.w * mode.h < bestSize.width * bestSize.height)))
+            {
+                bestMode = m;
+                bestSize = {mode.w, mode.h};
+            }
+        }
 
-    SDL_Window* SdlApplication::createWindow(const WindowParameters& windowParams)
-    {
-        auto& wr = windowParams.windowRectangle;
-        return SDL_CreateWindow(windowParams.title.c_str(), wr.x, wr.y,
-                                wr.width, wr.height, windowParams.sdlFlags);
+        return {{displayIndex, bestMode}, bestSize};
     }
 
     #ifdef __EMSCRIPTEN__
-
-    EM_JS(int, canvas_get_width, (),
-    {
-      return Module.canvas.width;
-    });
-
-    EM_JS(int, canvas_get_height, (),
-    {
-      return Module.canvas.height;
-    });
-
-    WindowParameters SdlApplication::getDefaultWindowParameters()
-    {
-        int width = canvas_get_width();
-        int height = canvas_get_height();
-
-        WindowParameters params;
-        if (width > 0 && height > 0)
-            params.windowRectangle = WindowRectangle(width, height);
-        return params;
-    }
 
     void SdlApplication::eventLoop()
     {
@@ -213,11 +385,6 @@ namespace Tungsten
 
     #else
 
-    WindowParameters SdlApplication::getDefaultWindowParameters()
-    {
-        return WindowParameters();
-    }
-
     void SdlApplication::eventLoop()
     {
         while (!status())
@@ -230,9 +397,32 @@ namespace Tungsten
     {
         SDL_Event event;
         while (SDL_PollEvent(&event))
-            processEvent(event);
-        update();
-        draw();
-        postDraw();
+        {
+            if (!m_Callbacks->onEvent(*this, event))
+                processEvent(event);
+        }
+        m_Callbacks->onUpdate(*this);
+        m_Callbacks->onDraw(*this);
+        SDL_GL_SwapWindow(window());
+    }
+
+    const WindowParameters& SdlApplication::windowParameters() const
+    {
+        return m_WindowParameters;
+    }
+
+    void SdlApplication::setWindowParameters(const WindowParameters& windowParameters)
+    {
+        m_WindowParameters = windowParameters;
+    }
+
+    EventLoopCallbacks& SdlApplication::callbacks()
+    {
+        return *m_Callbacks;
+    }
+
+    const EventLoopCallbacks& SdlApplication::callbacks() const
+    {
+        return *m_Callbacks;
     }
 }

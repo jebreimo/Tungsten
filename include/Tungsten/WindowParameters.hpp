@@ -12,27 +12,68 @@
 
 namespace Tungsten
 {
-    struct WindowRectangle
+    struct WindowPos
     {
-        explicit WindowRectangle(int width = 800, int height = 600);
+        WindowPos() = default;
+        WindowPos(int x, int y) : x(x), y(y) {}
 
-        explicit WindowRectangle(int x, int y, int width, int height);
+        int x = SDL_WINDOWPOS_UNDEFINED;
+        int y = SDL_WINDOWPOS_UNDEFINED;
+    };
 
-        int x;
-        int y;
-        int width;
-        int height;
+    struct WindowSize
+    {
+        WindowSize() = default;
+        WindowSize(int w, int h) : width(w), height(h) {}
+
+        int width = 640;
+        int height = 480;
+    };
+
+    //struct WindowRectangle
+    //{
+    //    explicit WindowRectangle(int width = 800, int height = 600);
+    //
+    //    explicit WindowRectangle(int x, int y, int width, int height);
+    //
+    //    int x;
+    //    int y;
+    //    int width;
+    //    int height;
+    //};
+
+    struct FullScreenMode
+    {
+        FullScreenMode() = default;
+
+        FullScreenMode(int display, int mode)
+            : displayIndex(display), modeIndex(mode)
+        {}
+
+        explicit operator bool() const
+        {
+            return displayIndex >= 0 && modeIndex >= 0;
+        }
+
+        int displayIndex = -1;
+        int modeIndex = -1;
     };
 
     struct WindowParameters
     {
+        WindowParameters();
+
         explicit WindowParameters(
-                const std::string& title = "SdlApplication",
-                const WindowRectangle& windowRectangle = WindowRectangle(),
-                uint32_t sdlFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+                std::string title,
+                WindowPos windowPos = {},
+                WindowSize windowSize = {},
+                uint32_t sdlFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE,
+                FullScreenMode fullScreenMode = {});
 
         std::string title;
-        WindowRectangle windowRectangle;
-        uint32_t sdlFlags;
+        WindowPos windowPos;
+        WindowSize windowSize;
+        uint32_t sdlFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+        FullScreenMode fullScreenMode;
     };
 }

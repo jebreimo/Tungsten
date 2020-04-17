@@ -5,9 +5,8 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include <sstream>
 #include <string>
-#include "Tungsten/GlError.hpp"
+#include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
 {
@@ -33,10 +32,17 @@ namespace Tungsten
                                    long lineNo,
                                    const std::string& funcName)
     {
-        std::stringstream ss;
+        std::string msg;
         if (!funcName.empty())
-            ss << funcName << "() in ";
-        ss << fileName << ":" << lineNo << ": " << message;
-        return ss.str();
+        {
+            msg += funcName;
+            msg += "() in ";
+        }
+        msg += fileName;
+        msg += ":";
+        msg += std::to_string(lineNo);
+        msg += ": ";
+        msg += message;
+        return msg;
     }
 }

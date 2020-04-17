@@ -17,6 +17,16 @@ else ()
 endif ()
 
 include(FetchContent)
+
+FetchContent_Declare(argos
+    GIT_REPOSITORY "https://github.com/jebreimo/Argos.git"
+    GIT_TAG "v0.99.9")
+FetchContent_GetProperties(argos)
+if (NOT argos_POPULATED)
+    FetchContent_Populate(argos)
+    add_subdirectory(${argos_SOURCE_DIR} ${argos_BINARY_DIR})
+endif ()
+
 FetchContent_Declare(xyz
     GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git")
 FetchContent_GetProperties(xyz)
@@ -32,14 +42,16 @@ find_package(SDL2 REQUIRED)
 add_library(Tungsten STATIC
     include/Tungsten/GlBuffer.hpp
     include/Tungsten/GlContext.hpp
-    include/Tungsten/GlError.hpp
+    include/Tungsten/TungstenException.hpp
     include/Tungsten/GlHandle.hpp
     include/Tungsten/GlProgram.hpp
     include/Tungsten/GlShader.hpp
     include/Tungsten/GlTextures.hpp
+    include/Tungsten/GlVersion.hpp
     include/Tungsten/GlVertexArray.hpp
     include/Tungsten/GlVertices.hpp
     include/Tungsten/SdlApplication.hpp
+    include/Tungsten/SdlSession.hpp
     include/Tungsten/ShaderTools.hpp
     include/Tungsten/Shapes.hpp
     include/Tungsten/Tungsten.hpp
@@ -53,15 +65,15 @@ add_library(Tungsten STATIC
     include/Tungsten/Shapes/ArrayBufferRowBuilder.hpp
     src/Tungsten/GlBuffer.cpp
     src/Tungsten/GlContext.cpp
-    src/Tungsten/GlError.cpp
+    src/Tungsten/TungstenException.cpp
     src/Tungsten/GlProgram.cpp
     src/Tungsten/GlShader.cpp
     src/Tungsten/GlTextures.cpp
+    src/Tungsten/GlVersion.cpp
     src/Tungsten/GlVertexArray.cpp
     src/Tungsten/GlVertices.cpp
     src/Tungsten/SdlApplication.cpp
     src/Tungsten/SdlSession.cpp
-    src/Tungsten/SdlSession.hpp
     src/Tungsten/ShaderTools.cpp
     src/Tungsten/Uniform.cpp
     src/Tungsten/WindowParameters.cpp
@@ -79,6 +91,8 @@ target_link_libraries(Tungsten
         OpenGL::GL
         SDL2::SDL2
         Xyz::Xyz
+    PRIVATE
+        Argos
     )
 
 add_library(Tungsten::Tungsten ALIAS Tungsten)

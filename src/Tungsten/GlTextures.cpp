@@ -6,7 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #include "Tungsten/GlTextures.hpp"
-#include "Tungsten/GlError.hpp"
+#include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
 {

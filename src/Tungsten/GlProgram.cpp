@@ -6,7 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #include "Tungsten/GlProgram.hpp"
-#include "Tungsten/GlError.hpp"
+#include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
 {
@@ -71,7 +71,7 @@ namespace Tungsten
         glLinkProgram(programId);
         THROW_IF_GL_ERROR();
         if (!getProgramLinkStatus(programId))
-            GL_THROW(getProgramInfoLog(programId));
+            TUNGSTEN_THROW(getProgramInfoLog(programId));
     }
 
     void useProgram(GLuint programId)

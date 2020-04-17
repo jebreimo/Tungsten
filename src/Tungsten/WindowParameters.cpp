@@ -7,27 +7,21 @@
 //****************************************************************************
 #include "Tungsten/WindowParameters.hpp"
 
+#include <utility>
+
 namespace Tungsten
 {
-    WindowRectangle::WindowRectangle(int width, int height)
-        : x(SDL_WINDOWPOS_UNDEFINED),
-          y(SDL_WINDOWPOS_UNDEFINED),
-          width(width),
-          height(height)
-    {}
+    WindowParameters::WindowParameters() = default;
 
-    WindowRectangle::WindowRectangle(int x, int y, int width, int height)
-        : x(SDL_WINDOWPOS_UNDEFINED),
-          y(SDL_WINDOWPOS_UNDEFINED),
-          width(width),
-          height(height)
-    {}
-
-    WindowParameters::WindowParameters(const std::string& title,
-                                       const WindowRectangle& windowRectangle,
-                                       uint32_t sdlFlags)
-        : title(title),
-          windowRectangle(windowRectangle),
-          sdlFlags(sdlFlags)
+    WindowParameters::WindowParameters(std::string title,
+                                       WindowPos windowPos,
+                                       WindowSize windowSize,
+                                       uint32_t sdlFlags,
+                                       FullScreenMode fullScreenMode)
+        : title(std::move(title)),
+          windowPos(windowPos),
+          windowSize(windowSize),
+          sdlFlags(sdlFlags),
+          fullScreenMode(fullScreenMode)
     {}
 }

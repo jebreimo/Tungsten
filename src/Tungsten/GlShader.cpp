@@ -6,7 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #include "Tungsten/GlShader.hpp"
-#include "Tungsten/GlError.hpp"
+#include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
 {
@@ -21,7 +21,7 @@ namespace Tungsten
         glCompileShader(shaderId);
         THROW_IF_GL_ERROR();
         if (!getShaderCompileStatus(shaderId))
-            GL_THROW(getShaderInfoLog(shaderId));
+            TUNGSTEN_THROW(getShaderInfoLog(shaderId));
     }
 
     ShaderHandle createShader(GLuint shaderType)

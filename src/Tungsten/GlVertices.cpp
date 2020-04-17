@@ -6,7 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #include "Tungsten/GlVertices.hpp"
-#include "Tungsten/GlError.hpp"
+#include "Tungsten/TungstenException.hpp"
 
 
 namespace Tungsten
@@ -20,7 +20,7 @@ namespace Tungsten
         case GL_UNSIGNED_BYTE:
             return 1;
         default:
-            GL_THROW("Unsupported type: " + std::to_string(type));
+            TUNGSTEN_THROW("Unsupported type: " + std::to_string(type));
         }
     }
 

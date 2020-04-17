@@ -8,7 +8,7 @@
 #include "Tungsten/Shapes/AddRectangle.hpp"
 #include <Xyz/Xyz.hpp>
 #include <Xyz/Geometry/CoordinateSystem.hpp>
-#include "Tungsten/GlError.hpp"
+#include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
 {

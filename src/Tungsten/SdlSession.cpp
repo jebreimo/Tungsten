@@ -5,16 +5,16 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "SdlSession.hpp"
-#include <memory>
+#include "Tungsten/SdlSession.hpp"
 #include <stdexcept>
 
 namespace Tungsten
 {
     SdlSession::SdlSession(int flags)
-            : m_Active(true)
+            : m_Active(SDL_Init(flags) == 0)
     {
-        m_Active = SDL_Init(flags) == 0;
+        if (!m_Active)
+            throw std::runtime_error(SDL_GetError());
     }
 
     SdlSession::SdlSession(SdlSession&& other)
@@ -29,20 +29,12 @@ namespace Tungsten
             SDL_Quit();
     }
 
-    SdlSession& SdlSession::operator=(SdlSession&& other)
+    SdlSession& SdlSession::operator=(SdlSession&& other) noexcept
     {
         if (m_Active)
             SDL_Quit();
         m_Active = other.m_Active;
         other.m_Active = false;
         return *this;
-    }
-
-    SdlSession SdlSession::create(int flags)
-    {
-        auto session = SdlSession{flags};
-        if (!session.m_Active)
-            throw std::runtime_error(SDL_GetError());
-        return session;
     }
 }

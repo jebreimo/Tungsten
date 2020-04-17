@@ -6,7 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #include "Tungsten/Shapes/ArrayBufferRowBuilder.hpp"
-#include "Tungsten/GlError.hpp"
+#include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
 {
@@ -21,7 +21,7 @@ namespace Tungsten
     ArrayBufferRowBuilder& ArrayBufferRowBuilder::set(unsigned index, float value)
     {
         if (index + 1 > m_Size)
-            GL_THROW("Assignment beyond the end of the row.");
+            TUNGSTEN_THROW("Assignment beyond the end of the row.");
         m_Values[index] = value;
         return *this;
     }
@@ -29,7 +29,7 @@ namespace Tungsten
     ArrayBufferRowBuilder& ArrayBufferRowBuilder::set(unsigned index, float value1, float value2)
     {
         if (index + 2 > m_Size)
-            GL_THROW("Assignment beyond the end of the row.");
+            TUNGSTEN_THROW("Assignment beyond the end of the row.");
         m_Values[index] = value1;
         m_Values[index + 1] = value2;
         return *this;
@@ -39,7 +39,7 @@ namespace Tungsten
     ArrayBufferRowBuilder::set(unsigned index, float value1, float value2, float value3)
     {
         if (index + 3 > m_Size)
-            GL_THROW("Assignment beyond the end of the row.");
+            TUNGSTEN_THROW("Assignment beyond the end of the row.");
         m_Values[index] = value1;
         m_Values[index + 1] = value2;
         m_Values[index + 2] = value3;

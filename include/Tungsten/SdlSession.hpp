@@ -15,16 +15,14 @@ namespace Tungsten
     class SdlSession
     {
     public:
-        SdlSession(SdlSession&& other);
+        explicit SdlSession(int flags);
+
+        explicit SdlSession(SdlSession&& other);
 
         ~SdlSession();
 
-        SdlSession& operator=(SdlSession&& other);
-
-        static SdlSession create(int flags);
+        SdlSession& operator=(SdlSession&& other) noexcept;
     private:
-        SdlSession(int flags);
-
         int m_Active;
     };
 }

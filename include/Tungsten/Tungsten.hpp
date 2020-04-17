@@ -7,7 +7,7 @@
 //****************************************************************************
 #pragma once
 #include "GlBuffer.hpp"
-#include "GlError.hpp"
+#include "TungstenException.hpp"
 #include "GlProgram.hpp"
 #include "GlTextures.hpp"
 #include "GlVertexArray.hpp"

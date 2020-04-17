@@ -6,27 +6,42 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include <iosfwd>
+#include <vector>
 #include <GL/glew.h>
-#include <SDL2/SDL.h>
+#include <optional>
 #include "GlContext.hpp"
+#include "SdlSession.hpp"
 #include "WindowParameters.hpp"
-
-#if defined(__EMSCRIPTEN__) || defined(__arm__)
-    constexpr int TUNGSTEN_GL_PROFILE = SDL_GL_CONTEXT_PROFILE_ES;
-    constexpr int TUNGSTEN_GL_MAJOR_VERSION = 2;
-    constexpr int TUNGSTEN_GL_MINOR_VERSION = 0;
-#else
-    constexpr int TUNGSTEN_GL_PROFILE = SDL_GL_CONTEXT_PROFILE_CORE;
-    constexpr int TUNGSTEN_GL_MAJOR_VERSION = 3;
-    constexpr int TUNGSTEN_GL_MINOR_VERSION = 1;
-#endif
 
 namespace Tungsten
 {
+    class SdlApplication;
+
+    class EventLoopCallbacks
+    {
+    public:
+        virtual ~EventLoopCallbacks() = default;
+
+        virtual void onStartup(SdlApplication& app) {}
+
+        virtual bool onEvent(SdlApplication& app, const SDL_Event& event)
+        {
+            return false;
+        }
+
+        virtual void onUpdate(SdlApplication& app) {}
+
+        virtual void onDraw(SdlApplication& app) {}
+
+        virtual void onShutdown(SdlApplication& app) {}
+    };
+
     class SdlApplication
     {
     public:
-        SdlApplication();
+        SdlApplication(std::string name,
+                       std::unique_ptr<EventLoopCallbacks> callbacks);
 
         SdlApplication(SdlApplication&&) = default;
 
@@ -34,25 +49,17 @@ namespace Tungsten
 
         SdlApplication& operator=(SdlApplication&&) = default;
 
-        virtual void setup();
+        void parseCommandLineOptions(int& argc, char**& argv);
 
-        virtual void update();
+        void printCommandLineHelp(std::ostream& stream) const;
 
-        virtual void draw();
-
-        virtual void shutdown();
-
-        virtual void run();
-
-        void run(const WindowParameters& params);
+        void run();
 
         bool isRunning() const;
 
         void quit();
 
         SDL_GLContext glContext() const;
-
-        SdlApplication& setGlContext(GlContext&& context);
 
         int status();
 
@@ -66,21 +73,24 @@ namespace Tungsten
 
         float aspectRatio() const;
 
-        static WindowParameters getDefaultWindowParameters();
-    protected:
-        SdlApplication& setGlVersion(int majorVersion, int minorVersion);
+        std::pair<FullScreenMode, WindowSize>
+        getClosestDisplayMode(WindowSize size, int displayIndex = 0);
 
+        const WindowParameters& windowParameters() const;
+
+        void setWindowParameters(const WindowParameters& windowParameters);
+
+        const EventLoopCallbacks& callbacks() const;
+
+        EventLoopCallbacks& callbacks();
+    protected:
         void setStatus(int status);
 
-        virtual bool processEvent(const SDL_Event& event);
+        bool processEvent(const SDL_Event& event);
 
-        virtual void doInitialize(const WindowParameters& windowParams);
+        void initialize(const WindowParameters& windowParams);
 
-        virtual void doRun();
-
-        virtual void postDraw();
-
-        static SDL_Window* createWindow(const WindowParameters& windowParams);
+        static SDL_Window* createWindow(const WindowParameters& winParams);
     private:
         void eventLoop();
 
@@ -90,10 +100,13 @@ namespace Tungsten
         static void emscriptenEventLoopStep(void* arg);
         #endif
 
+
+        std::string m_Name;
+        std::unique_ptr<EventLoopCallbacks> m_Callbacks;
+        WindowParameters m_WindowParameters;
+        std::optional<SdlSession> m_Session;
         SDL_Window* m_Window = nullptr;
         GlContext m_GlContext = {};
-        int m_MajorGlVersion = TUNGSTEN_GL_MAJOR_VERSION;
-        int m_MinorGlVersion = TUNGSTEN_GL_MINOR_VERSION;
         int m_Status = 0;
         bool m_IsRunning = false;
     };
