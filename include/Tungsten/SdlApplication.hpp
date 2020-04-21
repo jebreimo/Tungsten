@@ -9,10 +9,8 @@
 #include <iosfwd>
 #include <vector>
 #include <GL/glew.h>
-#include <optional>
-#include "EventLoopCallbacks.hpp"
+#include "EventLoop.hpp"
 #include "GlContext.hpp"
-#include "SdlSession.hpp"
 #include "WindowParameters.hpp"
 
 namespace Tungsten
@@ -23,7 +21,7 @@ namespace Tungsten
     {
     public:
         SdlApplication(std::string name,
-                       std::unique_ptr<EventLoopCallbacks> callbacks);
+                       std::unique_ptr<EventLoop> eventloop);
 
         SdlApplication(SdlApplication&&) = default;
 
@@ -62,9 +60,9 @@ namespace Tungsten
 
         void setWindowParameters(const WindowParameters& windowParameters);
 
-        const EventLoopCallbacks& callbacks() const;
+        const EventLoop& callbacks() const;
 
-        EventLoopCallbacks& callbacks();
+        EventLoop& callbacks();
     protected:
         void setStatus(int status);
 
@@ -83,7 +81,7 @@ namespace Tungsten
         #endif
 
         std::string m_Name;
-        std::unique_ptr<EventLoopCallbacks> m_Callbacks;
+        std::unique_ptr<EventLoop> m_EventLoop;
         WindowParameters m_WindowParameters;
         SDL_Window* m_Window = nullptr;
         GlContext m_GlContext = {};

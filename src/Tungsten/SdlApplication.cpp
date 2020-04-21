@@ -6,11 +6,13 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #include "Tungsten/SdlApplication.hpp"
-#include "Tungsten/EventLoopCallbacks.hpp"
 
 #include <Argos/ArgumentParser.hpp>
-#include <Tungsten/GlVersion.hpp>
+#include "Tungsten/EventLoop.hpp"
+#include "Tungsten/GlVersion.hpp"
+#include "Tungsten/TungstenException.hpp"
 #include "CommandLine.hpp"
+#include "SdlSession.hpp"
 
 #ifdef __EMSCRIPTEN__
     #include <emscripten.h>
@@ -71,9 +73,9 @@ namespace Tungsten
 
     SdlApplication::SdlApplication(
         std::string name,
-        std::unique_ptr<EventLoopCallbacks> callbacks)
+        std::unique_ptr<EventLoop> eventloop)
         : m_Name(move(name)),
-          m_Callbacks(move(callbacks)),
+          m_EventLoop(move(eventloop)),
           m_WindowParameters(getDefaultWindowParameters())
     {}
 
@@ -97,13 +99,15 @@ namespace Tungsten
 
     void SdlApplication::run()
     {
+        if (!m_EventLoop)
+            TUNGSTEN_THROW("No eventloop.");
         SdlSession session(SDL_INIT_VIDEO);
         initialize(m_WindowParameters);
-        m_Callbacks->onStartup(*this);
+        m_EventLoop->onStartup(*this);
         m_IsRunning = true;
         eventLoop();
         m_IsRunning = false;
-        m_Callbacks->onShutdown(*this);
+        m_EventLoop->onShutdown(*this);
     }
 
     bool SdlApplication::isRunning() const
@@ -252,11 +256,11 @@ namespace Tungsten
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
-            if (!m_Callbacks->onEvent(*this, event))
+            if (!m_EventLoop->onEvent(*this, event))
                 processEvent(event);
         }
-        m_Callbacks->onUpdate(*this);
-        m_Callbacks->onDraw(*this);
+        m_EventLoop->onUpdate(*this);
+        m_EventLoop->onDraw(*this);
         SDL_GL_SwapWindow(window());
     }
 
@@ -270,13 +274,13 @@ namespace Tungsten
         m_WindowParameters = windowParameters;
     }
 
-    EventLoopCallbacks& SdlApplication::callbacks()
+    EventLoop& SdlApplication::callbacks()
     {
-        return *m_Callbacks;
+        return *m_EventLoop;
     }
 
-    const EventLoopCallbacks& SdlApplication::callbacks() const
+    const EventLoop& SdlApplication::callbacks() const
     {
-        return *m_Callbacks;
+        return *m_EventLoop;
     }
 }

@@ -12,10 +12,10 @@ namespace Tungsten
 {
     class SdlApplication;
 
-    class EventLoopCallbacks
+    class EventLoop
     {
     public:
-        virtual ~EventLoopCallbacks() = default;
+        virtual ~EventLoop() = default;
 
         virtual void onStartup(SdlApplication& app)
         {}

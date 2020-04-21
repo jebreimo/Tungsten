@@ -42,7 +42,6 @@ find_package(SDL2 REQUIRED)
 add_library(Tungsten STATIC
     include/Tungsten/GlBuffer.hpp
     include/Tungsten/GlContext.hpp
-    include/Tungsten/TungstenException.hpp
     include/Tungsten/GlHandle.hpp
     include/Tungsten/GlProgram.hpp
     include/Tungsten/GlShader.hpp
@@ -51,10 +50,10 @@ add_library(Tungsten STATIC
     include/Tungsten/GlVertexArray.hpp
     include/Tungsten/GlVertices.hpp
     include/Tungsten/SdlApplication.hpp
-    include/Tungsten/SdlSession.hpp
     include/Tungsten/ShaderTools.hpp
     include/Tungsten/Shapes.hpp
     include/Tungsten/Tungsten.hpp
+    include/Tungsten/TungstenException.hpp
     include/Tungsten/Uniform.hpp
     include/Tungsten/WindowParameters.hpp
     include/Tungsten/Shapes/AddCube.hpp
@@ -63,9 +62,10 @@ add_library(Tungsten STATIC
     include/Tungsten/Shapes/AddStarPolygon.hpp
     include/Tungsten/Shapes/ArrayBufferBuilder.hpp
     include/Tungsten/Shapes/ArrayBufferRowBuilder.hpp
+    src/Tungsten/CommandLine.cpp
+    src/Tungsten/CommandLine.hpp
     src/Tungsten/GlBuffer.cpp
     src/Tungsten/GlContext.cpp
-    src/Tungsten/TungstenException.cpp
     src/Tungsten/GlProgram.cpp
     src/Tungsten/GlShader.cpp
     src/Tungsten/GlTextures.cpp
@@ -73,8 +73,10 @@ add_library(Tungsten STATIC
     src/Tungsten/GlVertexArray.cpp
     src/Tungsten/GlVertices.cpp
     src/Tungsten/SdlApplication.cpp
+    src/Tungsten/SdlSession.hpp
     src/Tungsten/SdlSession.cpp
     src/Tungsten/ShaderTools.cpp
+    src/Tungsten/TungstenException.cpp
     src/Tungsten/Uniform.cpp
     src/Tungsten/WindowParameters.cpp
     src/Tungsten/Shapes/AddCube.cpp
@@ -83,7 +85,7 @@ add_library(Tungsten STATIC
     src/Tungsten/Shapes/AddStarPolygon.cpp
     src/Tungsten/Shapes/ArrayBufferBuilder.cpp
     src/Tungsten/Shapes/ArrayBufferRowBuilder.cpp
-    src/Tungsten/CommandLine.cpp src/Tungsten/CommandLine.hpp)
+    )
 
 target_link_libraries(Tungsten
     PUBLIC
