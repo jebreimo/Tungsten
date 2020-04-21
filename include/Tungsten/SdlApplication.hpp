@@ -10,6 +10,7 @@
 #include <vector>
 #include <GL/glew.h>
 #include <optional>
+#include "EventLoopCallbacks.hpp"
 #include "GlContext.hpp"
 #include "SdlSession.hpp"
 #include "WindowParameters.hpp"
@@ -17,25 +18,6 @@
 namespace Tungsten
 {
     class SdlApplication;
-
-    class EventLoopCallbacks
-    {
-    public:
-        virtual ~EventLoopCallbacks() = default;
-
-        virtual void onStartup(SdlApplication& app) {}
-
-        virtual bool onEvent(SdlApplication& app, const SDL_Event& event)
-        {
-            return false;
-        }
-
-        virtual void onUpdate(SdlApplication& app) {}
-
-        virtual void onDraw(SdlApplication& app) {}
-
-        virtual void onShutdown(SdlApplication& app) {}
-    };
 
     class SdlApplication
     {
@@ -49,7 +31,10 @@ namespace Tungsten
 
         SdlApplication& operator=(SdlApplication&&) = default;
 
-        void parseCommandLineOptions(int& argc, char**& argv);
+        const std::string& name() const;
+
+        void parseCommandLineOptions(int& argc, char**& argv,
+                                     bool partialParse = false);
 
         void printCommandLineHelp(std::ostream& stream) const;
 
@@ -61,7 +46,7 @@ namespace Tungsten
 
         SDL_GLContext glContext() const;
 
-        int status();
+        int status() const;
 
         SdlApplication& setSwapInterval(int interval);
 
@@ -72,9 +57,6 @@ namespace Tungsten
         std::pair<int, int> windowSize() const;
 
         float aspectRatio() const;
-
-        std::pair<FullScreenMode, WindowSize>
-        getClosestDisplayMode(WindowSize size, int displayIndex = 0);
 
         const WindowParameters& windowParameters() const;
 
@@ -100,11 +82,9 @@ namespace Tungsten
         static void emscriptenEventLoopStep(void* arg);
         #endif
 
-
         std::string m_Name;
         std::unique_ptr<EventLoopCallbacks> m_Callbacks;
         WindowParameters m_WindowParameters;
-        std::optional<SdlSession> m_Session;
         SDL_Window* m_Window = nullptr;
         GlContext m_GlContext = {};
         int m_Status = 0;

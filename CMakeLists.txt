@@ -20,7 +20,7 @@ include(FetchContent)
 
 FetchContent_Declare(argos
     GIT_REPOSITORY "https://github.com/jebreimo/Argos.git"
-    GIT_TAG "v0.99.9")
+    GIT_TAG "v0.99.11")
 FetchContent_GetProperties(argos)
 if (NOT argos_POPULATED)
     FetchContent_Populate(argos)
@@ -83,7 +83,7 @@ add_library(Tungsten STATIC
     src/Tungsten/Shapes/AddStarPolygon.cpp
     src/Tungsten/Shapes/ArrayBufferBuilder.cpp
     src/Tungsten/Shapes/ArrayBufferRowBuilder.cpp
-    )
+    src/Tungsten/CommandLine.cpp src/Tungsten/CommandLine.hpp)
 
 target_link_libraries(Tungsten
     PUBLIC

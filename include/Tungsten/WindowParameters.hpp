@@ -30,18 +30,6 @@ namespace Tungsten
         int height = 480;
     };
 
-    //struct WindowRectangle
-    //{
-    //    explicit WindowRectangle(int width = 800, int height = 600);
-    //
-    //    explicit WindowRectangle(int x, int y, int width, int height);
-    //
-    //    int x;
-    //    int y;
-    //    int width;
-    //    int height;
-    //};
-
     struct FullScreenMode
     {
         FullScreenMode() = default;
@@ -52,7 +40,7 @@ namespace Tungsten
 
         explicit operator bool() const
         {
-            return displayIndex >= 0 && modeIndex >= 0;
+            return modeIndex >= 0;
         }
 
         int displayIndex = -1;
