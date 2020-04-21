@@ -49,16 +49,6 @@ namespace Tungsten
 
     struct WindowParameters
     {
-        WindowParameters();
-
-        explicit WindowParameters(
-                std::string title,
-                WindowPos windowPos = {},
-                WindowSize windowSize = {},
-                uint32_t sdlFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE,
-                FullScreenMode fullScreenMode = {});
-
-        std::string title;
         WindowPos windowPos;
         WindowSize windowSize;
         uint32_t sdlFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;

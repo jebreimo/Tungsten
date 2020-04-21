@@ -41,7 +41,7 @@ namespace Tungsten
 
             WindowParameters params;
             if (width > 0 && height > 0)
-                params.windowRectangle = WindowRectangle(width, height);
+                params.windowSize = {width, height};
             return params;
         }
 
@@ -205,7 +205,7 @@ namespace Tungsten
         SDL_Log("createWindow");
         const auto& pos = winParams.windowPos;
         const auto& size = winParams.windowSize;
-        auto window = SDL_CreateWindow(winParams.title.c_str(),
+        auto window = SDL_CreateWindow(m_Name.c_str(),
                                        pos.x, pos.y,
                                        size.width, size.height,
                                        winParams.sdlFlags);

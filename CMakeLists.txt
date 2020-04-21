@@ -78,7 +78,6 @@ add_library(Tungsten STATIC
     src/Tungsten/ShaderTools.cpp
     src/Tungsten/TungstenException.cpp
     src/Tungsten/Uniform.cpp
-    src/Tungsten/WindowParameters.cpp
     src/Tungsten/Shapes/AddCube.cpp
     src/Tungsten/Shapes/AddRectangle.cpp
     src/Tungsten/Shapes/AddRegularPolygon.cpp

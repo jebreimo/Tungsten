@@ -70,7 +70,7 @@ namespace Tungsten
 
         void initialize(const WindowParameters& windowParams);
 
-        static SDL_Window* createWindow(const WindowParameters& winParams);
+        SDL_Window* createWindow(const WindowParameters& winParams);
     private:
         void eventLoop();
 
