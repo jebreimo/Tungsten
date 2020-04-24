@@ -7,6 +7,7 @@
 //****************************************************************************
 #pragma once
 #include <iosfwd>
+#include <memory>
 #include <vector>
 #include <GL/glew.h>
 #include "EventLoop.hpp"

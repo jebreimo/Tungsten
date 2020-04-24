@@ -6,7 +6,7 @@
 ## License text is included with the source distribution.
 ##****************************************************************************
 cmake_minimum_required(VERSION 3.13)
-project(Tungsten)
+project(Tungsten VERSION 0.1.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -20,7 +20,7 @@ include(FetchContent)
 
 FetchContent_Declare(argos
     GIT_REPOSITORY "https://github.com/jebreimo/Argos.git"
-    GIT_TAG "v0.99.11")
+    GIT_TAG "v0.99.12")
 FetchContent_GetProperties(argos)
 if (NOT argos_POPULATED)
     FetchContent_Populate(argos)
