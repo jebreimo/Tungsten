@@ -43,7 +43,7 @@ namespace Tungsten
             return modeIndex >= 0;
         }
 
-        int displayIndex = -1;
+        int displayIndex = 0;
         int modeIndex = -1;
     };
 
