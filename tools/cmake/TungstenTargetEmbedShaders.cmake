@@ -12,7 +12,7 @@ set_property(GLOBAL
         tungsten_cmake_module_dir "${CMAKE_CURRENT_LIST_DIR}")
 
 function(tungsten_target_embed_shaders targetName)
-    find_package(PythonInterp REQUIRED)
+    find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
     # TODO: Add FILE_SUFFIX
     cmake_parse_arguments(ARG "" "" "FILES" ${ARGN})
@@ -24,7 +24,7 @@ function(tungsten_target_embed_shaders targetName)
         get_property(SCRIPT_DIR GLOBAL PROPERTY tungsten_cmake_module_dir)
         set(SCRIPT_PATH ${SCRIPT_DIR}/make_cpp_string.py)
         add_custom_command(OUTPUT "${SHADER_OUTPUT}"
-            COMMAND "${PYTHON_EXECUTABLE}" ${SCRIPT_PATH} "${SHADER_INPUT}" "${SHADER_OUTPUT}"
+            COMMAND "${Python3_EXECUTABLE}" ${SCRIPT_PATH} "${SHADER_INPUT}" "${SHADER_OUTPUT}"
             DEPENDS "${SHADER_INPUT}")
         list(APPEND SHADER_OUTPUT_FILES "${SHADER_OUTPUT}")
     endforeach ()
