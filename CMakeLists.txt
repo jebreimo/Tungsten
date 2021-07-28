@@ -5,8 +5,8 @@
 ## This file is distributed under the BSD License.
 ## License text is included with the source distribution.
 ##****************************************************************************
-cmake_minimum_required(VERSION 3.13)
-project(Tungsten VERSION 0.1.1)
+cmake_minimum_required(VERSION 3.15)
+project(Tungsten VERSION 0.1.2)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -20,20 +20,11 @@ include(FetchContent)
 
 FetchContent_Declare(argos
     GIT_REPOSITORY "https://github.com/jebreimo/Argos.git"
-    GIT_TAG "v0.99.12")
-FetchContent_GetProperties(argos)
-if (NOT argos_POPULATED)
-    FetchContent_Populate(argos)
-    add_subdirectory(${argos_SOURCE_DIR} ${argos_BINARY_DIR})
-endif ()
-
+    GIT_TAG "v0.101.0")
 FetchContent_Declare(xyz
-    GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git")
-FetchContent_GetProperties(xyz)
-if (NOT xyz_POPULATED)
-    FetchContent_Populate(xyz)
-    add_subdirectory(${xyz_SOURCE_DIR} ${xyz_BINARY_DIR})
-endif ()
+    GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
+    GIT_TAG "v0.1.3")
+FetchContent_MakeAvailable(argos xyz)
 
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -62,6 +53,7 @@ add_library(Tungsten STATIC
     include/Tungsten/Shapes/AddStarPolygon.hpp
     include/Tungsten/Shapes/ArrayBufferBuilder.hpp
     include/Tungsten/Shapes/ArrayBufferRowBuilder.hpp
+    include/Tungsten/Shapes/RegularPolygonGenerator.hpp
     src/Tungsten/CommandLine.cpp
     src/Tungsten/CommandLine.hpp
     src/Tungsten/GlBuffer.cpp

@@ -182,7 +182,7 @@ namespace Tungsten
         wp.windowSize = {size[0], size[1]};
         auto display = args.value("--display");
         auto mode = args.value("--mode");
-        if (display.hasValue() && !mode.hasValue())
+        if (display && !mode)
         {
             args.value("--display")
                 .error("'--mode' must also be given for '--display' to"

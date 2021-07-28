@@ -100,7 +100,7 @@ namespace Tungsten
     void setUniform(GLint location, Xyz::Matrix2f mat, bool transpose)
     {
         if (transpose)
-            Xyz::transposeAssign(mat);
+            Xyz::transposeInplace(mat);
         glUniformMatrix2fv(location, 1, false, mat.data());
         THROW_IF_GL_ERROR();
     }
@@ -108,7 +108,7 @@ namespace Tungsten
     void setUniform(GLint location, Xyz::Matrix3f mat, bool transpose)
     {
         if (transpose)
-            Xyz::transposeAssign(mat);
+            Xyz::transposeInplace(mat);
         glUniformMatrix3fv(location, 1, false, mat.data());
         THROW_IF_GL_ERROR();
     }
@@ -116,7 +116,7 @@ namespace Tungsten
     void setUniform(GLint location, Xyz::Matrix4f mat, bool transpose)
     {
         if (transpose)
-            Xyz::transposeAssign(mat);
+            Xyz::transposeInplace(mat);
         glUniformMatrix4fv(location, 1, false, mat.data());
         THROW_IF_GL_ERROR();
     }

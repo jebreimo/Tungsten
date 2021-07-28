@@ -7,7 +7,7 @@
 //****************************************************************************
 #include "Tungsten/Shapes/AddRectangle.hpp"
 #include <Xyz/Xyz.hpp>
-#include <Xyz/Geometry/CoordinateSystem.hpp>
+#include <Xyz/CoordinateSystem.hpp>
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
@@ -21,7 +21,7 @@ namespace Tungsten
         for (size_t i = 0; i < 4; ++i)
         {
             auto row = builder.addRow();
-            row.set(0, makeVector3(rect.point(i), offset));
+            row.set(0, makeVector3(rect.vertex(i), offset));
         }
         builder.addElement(index, index + 1, index + 2);
         builder.addElement(index, index + 2, index + 3);
@@ -36,7 +36,7 @@ namespace Tungsten
         for (size_t i = 0; i < 4; ++i)
         {
             auto row = builder.addRow();
-            row.set(0, cs.toWorldPos(makeVector3(rect.point(i), offset)));
+            row.set(0, cs.toWorldPos(makeVector3(rect.vertex(i), offset)));
         }
         auto index = builder.rowCount() - 4;
         builder.addElement(index, index + 1, index + 2);
@@ -62,7 +62,7 @@ namespace Tungsten
         for (int i = 0; i < 4; ++i)
         {
             auto row = builder.row(firstRow + i);
-            row.set(columnIndex, rect.point(i));
+            row.set(columnIndex, rect.vertex(i));
         }
     }
 }

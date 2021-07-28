@@ -6,7 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #include "Tungsten/Shapes/AddStarPolygon.hpp"
-#include <Xyz/Xyz.hpp>
+#include "Tungsten/Shapes/RegularPolygonGenerator.hpp"
 
 namespace Tungsten
 {
@@ -15,14 +15,14 @@ namespace Tungsten
                               float innerRadius, float outerRadius,
                               float zValue)
     {
-        auto outer = Xyz::RegularPolygonGenerator()
+        auto outer = RegularPolygonGenerator()
                 .setRadius(outerRadius)
                 .setNumberOfPoints(numberOfCorners)
                 .generate<float>();
-        auto inner = Xyz::RegularPolygonGenerator()
+        auto inner = RegularPolygonGenerator()
                 .setRadius(innerRadius)
                 .setNumberOfPoints(numberOfCorners)
-                .setAngle(-Xyz::PI_64 / numberOfCorners)
+                .setAngle(-Xyz::Constants<double>::PI / numberOfCorners)
                 .generate<float>();
         if (outer.empty())
             return; // TODO: Throw exception.

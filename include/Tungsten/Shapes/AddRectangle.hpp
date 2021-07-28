@@ -8,7 +8,7 @@
 #pragma once
 
 #include <Xyz/Xyz.hpp>
-#include <Xyz/Geometry/CoordinateSystem.hpp>
+#include <Xyz/CoordinateSystem.hpp>
 #include "ArrayBufferBuilder.hpp"
 
 namespace Tungsten
