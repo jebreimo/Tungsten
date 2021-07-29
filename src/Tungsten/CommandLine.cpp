@@ -31,6 +31,8 @@ namespace Tungsten
                     .generateHelpOption(false);
             }
             return p.allowAbbreviatedOptions(true)
+                .add(Option{"--windowpos"}.argument("<X>,<Y>")
+                    .text("Set the window position (top left corner)."))
                 .add(Option{"--windowsize"}.argument("<HOR>x<VER>")
                     .text("Set the window size."))
                 .add(Option{"--fullscreen"}
@@ -162,15 +164,6 @@ namespace Tungsten
                 }
             }
         }
-
-        std::pair<int, int> getScreenResolution(int display, int mode)
-        {
-            SdlSession session(SDL_INIT_VIDEO);
-            SDL_DisplayMode modeInfo = {};
-            if (SDL_GetDisplayMode(display, mode, &modeInfo) != 0)
-                return {};
-            return {modeInfo.w, modeInfo.h};
-        }
     }
 
     void parseCommandLineOptions(int& argc, char**& argv,
@@ -199,16 +192,19 @@ namespace Tungsten
                 auto mode = modeArg.split(':', 2, 2).asInts();
                 wp.fullScreenMode = {mode[0], mode[1]};
                 wp.sdlFlags |= SDL_WINDOW_FULLSCREEN;
-                auto [w, h] = getScreenResolution(mode[0], mode[1]);
-                wp.windowSize = {w, h};
-                SDL_Log("Screen resolution is %dx%d", w, h);
             }
         }
 
         if (auto windowSizeArg = args.value("--windowsize"))
         {
-            auto size = windowSizeArg.split('x', 2, 2).asInts({640, 480});
+            auto size = windowSizeArg.split('x', 2, 2).asInts();
             wp.windowSize = {size[0], size[1]};
+        }
+
+        if (auto windowPosArg = args.value("--windowpos"))
+        {
+            auto pos = windowPosArg.split(',', 2, 2).asInts();
+            wp.windowSize = {pos[0], pos[1]};
         }
 
         app.setWindowParameters(wp);

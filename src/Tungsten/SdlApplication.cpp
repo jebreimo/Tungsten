@@ -184,26 +184,45 @@ namespace Tungsten
         glewInit();
     }
 
-    SDL_Window* SdlApplication::createWindow(const WindowParameters& winParams)
+    SDL_Window*
+    SdlApplication::createWindow(const WindowParameters& winParams)
     {
-        SDL_Log("createWindow");
         const auto& pos = winParams.windowPos;
-        const auto& size = winParams.windowSize;
+        auto size = winParams.windowSize;
+        if (winParams.fullScreenMode && !size)
+        {
+            SDL_DisplayMode modeInfo = {};
+            if (SDL_GetDisplayMode(winParams.fullScreenMode.display,
+                                   winParams.fullScreenMode.mode,
+                                   &modeInfo) != 0)
+            {
+                size = {modeInfo.w, modeInfo.h};
+            }
+        }
+
+        if (!size)
+            size = winParams.defaultWindowSize;
+
+        SDL_Log("Create window with size %dx%d.", size.width, size.height);
         auto window = SDL_CreateWindow(m_Name.c_str(),
                                        pos.x, pos.y,
                                        size.width, size.height,
                                        winParams.sdlFlags);
+
         if (winParams.fullScreenMode && winParams.sdlFlags)
         {
-            SDL_Log("fullscreen");
-
             SDL_DisplayMode mode;
-            if (SDL_GetDisplayMode(winParams.fullScreenMode.displayIndex, winParams.fullScreenMode.modeIndex, &mode) >= 0)
+            if (SDL_GetDisplayMode(winParams.fullScreenMode.display,
+                                   winParams.fullScreenMode.mode,
+                                   &mode) >= 0)
             {
+                SDL_Log("Set fullscreen mode: %d:%d.",
+                        winParams.fullScreenMode.display,
+                        winParams.fullScreenMode.mode);
                 SDL_SetWindowDisplayMode(window, &mode);
-                SDL_Log("set fullscreen");
             }
         }
+
         return window;
     }
 

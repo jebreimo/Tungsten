@@ -15,6 +15,7 @@ namespace Tungsten
     struct WindowPos
     {
         WindowPos() = default;
+
         WindowPos(int x, int y) : x(x), y(y) {}
 
         int x = SDL_WINDOWPOS_UNDEFINED;
@@ -24,10 +25,16 @@ namespace Tungsten
     struct WindowSize
     {
         WindowSize() = default;
+
         WindowSize(int w, int h) : width(w), height(h) {}
 
-        int width = 640;
-        int height = 480;
+        explicit operator bool() const
+        {
+            return width > 0 && height > 0;
+        }
+
+        int width = -1;
+        int height = -1;
     };
 
     struct FullScreenMode
@@ -35,22 +42,23 @@ namespace Tungsten
         FullScreenMode() = default;
 
         FullScreenMode(int display, int mode)
-            : displayIndex(display), modeIndex(mode)
+            : display(display), mode(mode)
         {}
 
         explicit operator bool() const
         {
-            return modeIndex >= 0;
+            return display >= 0 && mode >= 0;
         }
 
-        int displayIndex = 0;
-        int modeIndex = -1;
+        int display = -1;
+        int mode = -1;
     };
 
     struct WindowParameters
     {
         WindowPos windowPos;
         WindowSize windowSize;
+        WindowSize defaultWindowSize = {640, 480};
         uint32_t sdlFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
         FullScreenMode fullScreenMode;
     };
