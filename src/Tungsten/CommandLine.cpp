@@ -31,22 +31,23 @@ namespace Tungsten
                     .generateHelpOption(false);
             }
             return p.allowAbbreviatedOptions(true)
-                .add(Option{"--display"}.argument("NUM")
-                         .text("Set display for fullscreen mode."
-                               " (Default: 0)"))
-                .add(Option{"--mode"}.argument("NUM")
-                         .text("Set mode for fullscreen mode. The normal"
-                               " desktop mode is used if none is given."))
                 .add(Option{"--windowsize"}.argument("<HOR>x<VER>")
-                         .text("Set the window size."
-                               " Ignored if --mode is given."))
+                    .text("Set the window size."))
                 .add(Option{"--fullscreen"}
-                         .text("Start program in fullscreen mode."))
-                .add(Option{"--window"}.value("--fullscreen").constant(false)
-                         .text("Start program in window mode. (Default)"))
-                .add(Option{"--list-modes"}.type(OptionType::STOP)
-                         .text("Display a list of the available fullscreen"
-                               " modes and quit."))
+                    /*.value("--fullscreen=")*/.constant("F")
+                    .text("Start program in the default fullscreen mode."))
+                .add(Option{"--fullscreen="}.argument("<MODE>")
+                    .value("--fullscreen")
+                    .text("Start program in the given fullscreen mode."
+                          " MODE is a pair of integers separated by a colon,"
+                          " e.g. '0:5'. Use --listmodes to list available"
+                          " modes."))
+                .add(Option{"--window"}
+                    .value("--fullscreen").constant("W")
+                    .text("Start program in window mode. (Default)"))
+                .add(Option{"--listmodes"}.type(OptionType::STOP)
+                    .text("Display a list of the available fullscreen"
+                          " modes and quit."))
                 .move();
         }
 
@@ -138,9 +139,9 @@ namespace Tungsten
                               int modeIndex,
                               const SDL_DisplayMode& mode)
         {
-            stream << "Display " << displayIndex
-                   << ", mode " << modeIndex
-                   << ": " << getPixelFormatName(mode.format)
+            stream << "Mode " << displayIndex
+                   << ":" << modeIndex
+                   << "  " << getPixelFormatName(mode.format)
                    << " " << mode.w << "x" << mode.h
                    << " " << mode.refresh_rate << "Hz\n";
         }
@@ -164,6 +165,7 @@ namespace Tungsten
 
         std::pair<int, int> getScreenResolution(int display, int mode)
         {
+            SdlSession session(SDL_INIT_VIDEO);
             SDL_DisplayMode modeInfo = {};
             if (SDL_GetDisplayMode(display, mode, &modeInfo) != 0)
                 return {};
@@ -177,7 +179,7 @@ namespace Tungsten
     {
         using namespace Argos;
         auto args = makeArgParser(app.name(), partialParse).parse(argc, argv);
-        if (args.value("--list-modes").asBool())
+        if (args.value("--listmodes").asBool())
         {
             SdlSession session(SDL_INIT_VIDEO);
             printDisplayModes(std::cout);
@@ -185,37 +187,31 @@ namespace Tungsten
         }
 
         WindowParameters wp;
-        auto display = args.value("--display");
-        auto mode = args.value("--mode");
-        if (display && !mode)
+
+        if (auto modeArg = args.value("--fullscreen"))
         {
-            args.value("--display")
-                .error("'--mode' must also be given for '--display' to"
-                       " have any effect.");
-        }
-        wp.fullScreenMode = {display.asInt(-1), mode.asInt(-1)};
-        if (args.value("--fullscreen").asBool())
-        {
-            if (wp.fullScreenMode)
-            {
-                wp.sdlFlags |= SDL_WINDOW_FULLSCREEN;
-                auto [w, h] = getScreenResolution(
-                    wp.fullScreenMode.displayIndex,
-                    wp.fullScreenMode.modeIndex);
-                wp.windowSize = {w, h};
-            }
-            else
+            if (modeArg.asString() == "F")
             {
                 wp.sdlFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
             }
+            else if (modeArg.asString() != "W")
+            {
+                auto mode = modeArg.split(':', 2, 2).asInts();
+                wp.fullScreenMode = {mode[0], mode[1]};
+                wp.sdlFlags |= SDL_WINDOW_FULLSCREEN;
+                auto [w, h] = getScreenResolution(mode[0], mode[1]);
+                wp.windowSize = {w, h};
+                SDL_Log("Screen resolution is %dx%d", w, h);
+            }
         }
 
-        if (auto windowSize = args.value("--windowsize"))
+        if (auto windowSizeArg = args.value("--windowsize"))
         {
-            auto size = windowSize.split('x', 2, 2).asInts({640, 480});
+            auto size = windowSizeArg.split('x', 2, 2).asInts({640, 480});
             wp.windowSize = {size[0], size[1]};
-            app.setWindowParameters(wp);
         }
+
+        app.setWindowParameters(wp);
 
         if (partialParse)
             args.filterParsedArguments(argc, argv);
