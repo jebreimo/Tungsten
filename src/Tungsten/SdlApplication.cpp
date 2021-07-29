@@ -194,7 +194,7 @@ namespace Tungsten
             SDL_DisplayMode modeInfo = {};
             if (SDL_GetDisplayMode(winParams.fullScreenMode.display,
                                    winParams.fullScreenMode.mode,
-                                   &modeInfo) != 0)
+                                   &modeInfo) >= 0)
             {
                 size = {modeInfo.w, modeInfo.h};
             }
