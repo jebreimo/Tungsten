@@ -53,22 +53,6 @@ namespace Tungsten
         }
 
         #endif
-
-        Argos::ArgumentParser makeArgParser()
-        {
-            using namespace Argos;
-            return ArgumentParser()
-                .text(TextId::USAGE_TITLE, {})
-                .text(TextId::USAGE, {})
-                .text(TextId::ERROR_USAGE, {})
-                .ignoreUndefinedArguments(true)
-                .ignoreUndefinedArguments(true)
-                .allowAbbreviatedOptions(true)
-                .add(Option{"--fullscreen"})
-                .add(Option{"--screensize"}.argument("<HOR>x<VER>"))
-                .add(Option{"--list-screen-modes"}.type(OptionType::STOP))
-                .move();
-        }
     }
 
     SdlApplication::SdlApplication(

@@ -6,9 +6,24 @@
 ## License text is included with the source distribution.
 ##****************************************************************************
 cmake_minimum_required(VERSION 3.15)
-project(Tungsten VERSION 0.1.2)
+project(Tungsten VERSION 0.1.2.1)
 
 set(CMAKE_CXX_STANDARD 17)
+
+# Set TUNGSTEN_MASTER_PROJECT to ON if Xyz is the root level project.
+if (NOT DEFINED TUNGSTEN_MASTER_PROJECT)
+    if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+        set(TUNGSTEN_MASTER_PROJECT ON)
+    else ()
+        set(TUNGSTEN_MASTER_PROJECT OFF)
+    endif ()
+endif ()
+
+# # Test option
+# option(TUNGSTEN_BUILD_TEST "Build tests" ${TUNGSTEN_MASTER_PROJECT})
+#
+# # Install option
+# option(TUNGSTEN_INSTALL "Generate the install target" ${TUNGSTEN_MASTER_PROJECT})
 
 if (EMSCRIPTEN)
     list(PREPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/emscripten)
@@ -18,12 +33,19 @@ endif ()
 
 include(FetchContent)
 
+if (DEFINED LOCAL_SOURCE_PACKAGE_DIR)
+    FetchContent_Declare(xyz
+        URL "file://${LOCAL_SOURCE_PACKAGE_DIR}/Xyz-0.1.3.tar.gz")
+else ()
+    FetchContent_Declare(xyz
+        GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
+        GIT_TAG v0.1.3)
+endif ()
+
 FetchContent_Declare(argos
     GIT_REPOSITORY "https://github.com/jebreimo/Argos.git"
     GIT_TAG "v0.101.0")
-FetchContent_Declare(xyz
-    GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
-    GIT_TAG "v0.1.3")
+
 FetchContent_MakeAvailable(argos xyz)
 
 find_package(GLEW REQUIRED)
@@ -97,3 +119,15 @@ target_include_directories(Tungsten
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
     )
+
+if (DEFINED LOCAL_SOURCE_PACKAGE_DIR OR DEFINED ENV{LOCAL_SOURCE_PACKAGE_DIR})
+    if (NOT LOCAL_SOURCE_PACKAGE_DIR)
+        set(LOCAL_SOURCE_PACKAGE_DIR $ENV{LOCAL_SOURCE_PACKAGE_DIR})
+    endif ()
+    if (TUNGSTEN_MASTER_PROJECT)
+        add_custom_target(${PROJECT_NAME}_BUILD_SRC_TARBALL
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMAND git archive -v --format=tar.gz --prefix=${PROJECT_NAME}/ HEAD > ${LOCAL_SOURCE_PACKAGE_DIR}/${PROJECT_NAME}-${PROJECT_VERSION}.tar.gz
+            )
+    endif ()
+endif ()
