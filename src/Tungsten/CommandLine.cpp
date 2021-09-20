@@ -7,11 +7,10 @@
 //****************************************************************************
 #include "CommandLine.hpp"
 
+#include <iostream>
 #include <SDL2/SDL.h>
 #include <Argos/ArgumentParser.hpp>
 #include <Tungsten/SdlSession.hpp>
-#include <iostream>
-#include <Tungsten/GlVersion.hpp>
 #include <Tungsten/SdlApplication.hpp>
 
 namespace Tungsten
@@ -53,7 +52,7 @@ namespace Tungsten
                 .move();
         }
 
-        const char* getPixelFormatName(int format)
+        const char* getPixelFormatName(uint32_t format)
         {
             switch (format)
             {
