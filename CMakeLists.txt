@@ -6,7 +6,7 @@
 ## License text is included with the source distribution.
 ##****************************************************************************
 cmake_minimum_required(VERSION 3.15)
-project(Tungsten VERSION 0.1.3.2)
+project(Tungsten VERSION 0.1.3.3)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -44,7 +44,7 @@ endif ()
 
 FetchContent_Declare(argos
     GIT_REPOSITORY "https://github.com/jebreimo/Argos.git"
-    GIT_TAG "v0.101.0")
+    GIT_TAG "v1.1.3")
 
 FetchContent_MakeAvailable(argos xyz)
 

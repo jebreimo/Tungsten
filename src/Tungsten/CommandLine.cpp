@@ -18,37 +18,37 @@ namespace Tungsten
 {
     namespace
     {
-        Argos::ArgumentParser makeArgParser(const std::string_view& appName,
+        argos::ArgumentParser makeArgParser(const std::string_view& appName,
                                             bool partialParse)
         {
-            using namespace Argos;
+            using namespace argos;
             ArgumentParser p(appName);
             if (partialParse)
             {
                 p.text(TextId::USAGE, {})
-                    .ignoreUndefinedArguments(true)
-                    .ignoreUndefinedArguments(true)
-                    .generateHelpOption(false);
+                    .ignore_undefined_arguments(true)
+                    .ignore_undefined_arguments(true)
+                    .generate_help_option(false);
             }
-            return p.allowAbbreviatedOptions(true)
+            return p.allow_abbreviated_options(true)
                 .add(Option{"--windowpos"}.argument("<X>,<Y>")
-                    .text("Set the window position (top left corner)."))
+                    .help("Set the window position (top left corner)."))
                 .add(Option{"--windowsize"}.argument("<HOR>x<VER>")
-                    .text("Set the window size."))
+                    .help("Set the window size."))
                 .add(Option{"--fullscreen"}
-                    /*.value("--fullscreen=")*/.constant("F")
-                    .text("Start program in the default fullscreen mode."))
+                    .constant("F")
+                    .help("Start program in the default fullscreen mode."))
                 .add(Option{"--fullscreen="}.argument("<MODE>")
-                    .value("--fullscreen")
-                    .text("Start program in the given fullscreen mode."
+                    .alias("--fullscreen")
+                    .help("Start program in the given fullscreen mode."
                           " MODE is a pair of integers separated by a colon,"
                           " e.g. '0:5'. Use --listmodes to list available"
                           " modes."))
                 .add(Option{"--window"}
-                    .value("--fullscreen").constant("W")
-                    .text("Start program in window mode. (Default)"))
+                    .alias("--fullscreen").constant("W")
+                    .help("Start program in window mode. (Default)"))
                 .add(Option{"--listmodes"}.type(OptionType::STOP)
-                    .text("Display a list of the available fullscreen"
+                    .help("Display a list of the available fullscreen"
                           " modes and quit."))
                 .move();
         }
@@ -170,9 +170,8 @@ namespace Tungsten
                                  SdlApplication& app,
                                  bool partialParse)
     {
-        using namespace Argos;
         auto args = makeArgParser(app.name(), partialParse).parse(argc, argv);
-        if (args.value("--listmodes").asBool())
+        if (args.value("--listmodes").as_bool())
         {
             SdlSession session(SDL_INIT_VIDEO);
             printDisplayModes(std::cout);
@@ -183,13 +182,13 @@ namespace Tungsten
 
         if (auto modeArg = args.value("--fullscreen"))
         {
-            if (modeArg.asString() == "F")
+            if (modeArg.as_string() == "F")
             {
                 wp.sdlFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
             }
-            else if (modeArg.asString() != "W")
+            else if (modeArg.as_string() != "W")
             {
-                auto mode = modeArg.split(':', 2, 2).asInts();
+                auto mode = modeArg.split(':', 2, 2).as_ints();
                 wp.fullScreenMode = {mode[0], mode[1]};
                 wp.sdlFlags |= SDL_WINDOW_FULLSCREEN;
             }
@@ -197,24 +196,24 @@ namespace Tungsten
 
         if (auto windowSizeArg = args.value("--windowsize"))
         {
-            auto size = windowSizeArg.split('x', 2, 2).asInts();
+            auto size = windowSizeArg.split('x', 2, 2).as_ints();
             wp.windowSize = {size[0], size[1]};
         }
 
         if (auto windowPosArg = args.value("--windowpos"))
         {
-            auto pos = windowPosArg.split(',', 2, 2).asInts();
+            auto pos = windowPosArg.split(',', 2, 2).as_ints();
             wp.windowSize = {pos[0], pos[1]};
         }
 
         app.setWindowParameters(wp);
 
         if (partialParse)
-            args.filterParsedArguments(argc, argv);
+            args.filter_parsed_arguments(argc, argv);
     }
 
     void printCommandLineHelp(std::ostream& stream)
     {
-        makeArgParser({}, true).stream(&stream).writeHelpText();
+        makeArgParser({}, true).stream(&stream).write_help_text();
     }
 }
