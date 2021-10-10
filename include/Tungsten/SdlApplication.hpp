@@ -14,6 +14,12 @@
 #include "GlContext.hpp"
 #include "WindowParameters.hpp"
 
+namespace argos
+{
+    class ArgumentParser;
+    class ParsedArguments;
+}
+
 namespace Tungsten
 {
     class SdlApplication;
@@ -30,37 +36,47 @@ namespace Tungsten
 
         SdlApplication& operator=(SdlApplication&&) = default;
 
+        [[nodiscard]]
         const std::string& name() const;
 
-        void parseCommandLineOptions(int& argc, char**& argv,
-                                     bool partialParse = false);
+        static void addCommandLineOptions(argos::ArgumentParser& parser);
 
-        void printCommandLineHelp(std::ostream& stream) const;
+        void readCommandLineOptions(const argos::ParsedArguments& args);
+
+        void parseCommandLineOptions(int& argc, char**& argv);
 
         void run();
 
+        [[nodiscard]]
         bool isRunning() const;
 
         void quit();
 
+        [[nodiscard]]
         SDL_GLContext glContext() const;
 
+        [[nodiscard]]
         int status() const;
 
         SdlApplication& setSwapInterval(int interval);
 
+        [[nodiscard]]
         SDL_Window* window() const;
 
         void setWindow(SDL_Window* window);
 
+        [[nodiscard]]
         std::pair<int, int> windowSize() const;
 
+        [[nodiscard]]
         float aspectRatio() const;
 
+        [[nodiscard]]
         const WindowParameters& windowParameters() const;
 
         void setWindowParameters(const WindowParameters& windowParameters);
 
+        [[nodiscard]]
         const EventLoop& callbacks() const;
 
         EventLoop& callbacks();

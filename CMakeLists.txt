@@ -6,7 +6,7 @@
 ## License text is included with the source distribution.
 ##****************************************************************************
 cmake_minimum_required(VERSION 3.15)
-project(Tungsten VERSION 0.1.3.4)
+project(Tungsten VERSION 0.1.3.5)
 
 set(CMAKE_CXX_STANDARD 17)
 

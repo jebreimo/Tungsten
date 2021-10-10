@@ -8,13 +8,22 @@
 #pragma once
 #include <ostream>
 
+namespace argos
+{
+    class ArgumentParser;
+
+    class ParsedArguments;
+}
+
 namespace Tungsten
 {
     class SdlApplication;
 
-    void parseCommandLineOptions(int& argc, char**& argv,
-                                 SdlApplication& app,
-                                 bool partialParse);
+    void addCommandLineOptions(argos::ArgumentParser& parser);
 
-    void printCommandLineHelp(std::ostream& stream);
+    void readCommandLineOptions(const argos::ParsedArguments& args,
+                                SdlApplication& app);
+
+    void parseCommandLineOptions(int& argc, char**& argv,
+                                 SdlApplication& app);
 }

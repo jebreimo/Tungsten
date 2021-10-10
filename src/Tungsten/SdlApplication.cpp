@@ -70,15 +70,19 @@ namespace Tungsten
         return m_Name;
     }
 
-    void SdlApplication::parseCommandLineOptions(int& argc, char**& argv,
-                                                 bool partialParse)
+    void SdlApplication::addCommandLineOptions(argos::ArgumentParser& parser)
     {
-        Tungsten::parseCommandLineOptions(argc, argv, *this, partialParse);
+        Tungsten::addCommandLineOptions(parser);
     }
 
-    void SdlApplication::printCommandLineHelp(std::ostream& stream) const
+    void SdlApplication::readCommandLineOptions(const argos::ParsedArguments& args)
     {
-        Tungsten::printCommandLineHelp(stream);
+        Tungsten::readCommandLineOptions(args, *this);
+    }
+
+    void SdlApplication::parseCommandLineOptions(int& argc, char**& argv)
+    {
+        Tungsten::parseCommandLineOptions(argc, argv, *this);
     }
 
     void SdlApplication::run()

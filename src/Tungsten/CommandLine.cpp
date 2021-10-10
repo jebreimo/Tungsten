@@ -17,41 +17,6 @@ namespace Tungsten
 {
     namespace
     {
-        argos::ArgumentParser makeArgParser(const std::string_view& appName,
-                                            bool partialParse)
-        {
-            using namespace argos;
-            ArgumentParser p(appName);
-            if (partialParse)
-            {
-                p.text(TextId::USAGE, {})
-                    .ignore_undefined_arguments(true)
-                    .ignore_undefined_arguments(true)
-                    .generate_help_option(false);
-            }
-            return p.allow_abbreviated_options(true)
-                .add(Option{"--windowpos"}.argument("<X>,<Y>")
-                    .help("Set the window position (top left corner)."))
-                .add(Option{"--windowsize"}.argument("<HOR>x<VER>")
-                    .help("Set the window size."))
-                .add(Option{"--fullscreen"}
-                    .constant("F")
-                    .help("Start program in the default fullscreen mode."))
-                .add(Option{"--fullscreen="}.argument("<MODE>")
-                    .alias("--fullscreen")
-                    .help("Start program in the given fullscreen mode."
-                          " MODE is a pair of integers separated by a colon,"
-                          " e.g. '0:5'. Use --listmodes to list available"
-                          " modes."))
-                .add(Option{"--window"}
-                    .alias("--fullscreen").constant("W")
-                    .help("Start program in window mode. (Default)"))
-                .add(Option{"--listmodes"}.type(OptionType::STOP)
-                    .help("Display a list of the available fullscreen"
-                          " modes and quit."))
-                .move();
-        }
-
         const char* getPixelFormatName(uint32_t format)
         {
             switch (format)
@@ -165,11 +130,34 @@ namespace Tungsten
         }
     }
 
-    void parseCommandLineOptions(int& argc, char**& argv,
-                                 SdlApplication& app,
-                                 bool partialParse)
+    void addCommandLineOptions(argos::ArgumentParser& parser)
     {
-        auto args = makeArgParser(app.name(), partialParse).parse(argc, argv);
+        using namespace argos;
+        parser.allow_abbreviated_options(true)
+            .add(Option{"--windowpos"}.argument("<X>,<Y>")
+                     .help("Set the window position (top left corner)."))
+            .add(Option{"--windowsize"}.argument("<HOR>x<VER>")
+                     .help("Set the window size."))
+            .add(Option{"--fullscreen"}
+                     .constant("F")
+                     .help("Start program in the default fullscreen mode."))
+            .add(Option{"--fullscreen="}.argument("<MODE>")
+                     .alias("--fullscreen")
+                     .help("Start program in the given fullscreen mode."
+                           " MODE is a pair of integers separated by a colon,"
+                           " e.g. '0:5'. Use --listmodes to list available"
+                           " modes."))
+            .add(Option{"--window"}
+                     .alias("--fullscreen").constant("W")
+                     .help("Start program in window mode. (Default)"))
+            .add(Option{"--listmodes"}.type(OptionType::STOP)
+                     .help("Display a list of the available fullscreen"
+                           " modes and quit."));
+    }
+
+    void readCommandLineOptions(const argos::ParsedArguments& args,
+                                SdlApplication& app)
+    {
         if (args.value("--listmodes").as_bool())
         {
             SdlSession session(SDL_INIT_VIDEO);
@@ -206,13 +194,15 @@ namespace Tungsten
         }
 
         app.setWindowParameters(wp);
-
-        if (partialParse)
-            args.filter_parsed_arguments(argc, argv);
     }
 
-    void printCommandLineHelp(std::ostream& stream)
+    void parseCommandLineOptions(int& argc, char**& argv,
+                                 SdlApplication& app)
     {
-        makeArgParser({}, true).stream(&stream).write_help_text();
+        using namespace argos;
+        ArgumentParser parser(app.name());
+        addCommandLineOptions(parser);
+        auto args = parser.parse(argc, argv);
+        readCommandLineOptions(args, app);
     }
 }
