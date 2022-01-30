@@ -10,9 +10,9 @@
 
 namespace Tungsten
 {
-    GlVersion getDefaultGlVersion(GlVersionCode versionCode)
+    GlVersion get_default_gl_version(GlVersionCode version_code)
     {
-        switch (versionCode)
+        switch (version_code)
         {
             #if defined(__EMSCRIPTEN__) || defined(__arm__)
         case GlVersionCode::ES_2:
@@ -30,7 +30,7 @@ namespace Tungsten
         }
     }
 
-    GlVersion getSdlGlVersion()
+    GlVersion get_sdl_gl_version()
     {
         int p, ma, mi;
         if (SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &p) != 0
@@ -43,14 +43,14 @@ namespace Tungsten
         return {SDL_GLprofile(p), ma, mi};
     }
 
-    void setSdlGlVersion(GlVersion version)
+    void set_sdl_gl_version(GlVersion version)
     {
         if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
                                 version.profile) != 0
             || SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION,
-                                   version.majorVersion) != 0
+                                   version.major_version) != 0
             || SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION,
-                                   version.minorVersion) != 0)
+                                   version.minor_version) != 0)
         {
             THROW_SDL_ERROR();
         }

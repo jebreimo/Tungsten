@@ -19,15 +19,15 @@ namespace Tungsten
 
     using ShaderHandle = GlHandle<GlShaderDeleter>;
 
-    void compileShader(GLuint shaderId);
+    void compile_shader(GLuint shader_id);
 
-    ShaderHandle createShader(GLuint shaderType);
+    ShaderHandle create_shader(GLuint shaderType);
 
-    void setShaderSource(GLuint shaderId, const std::string& source);
+    void set_shader_source(GLuint shader_id, const std::string& source);
 
-    bool getShaderCompileStatus(GLuint shaderId);
+    bool get_shader_compile_status(GLuint shader_id);
 
-    std::string getShaderInfoLog(GLuint shaderId);
+    std::string get_shader_info_log(GLuint shader_id);
 
-    GLint getShaderInfoLogLength(GLuint shaderId);
+    GLint get_shader_info_log_length(GLuint shader_id);
 }

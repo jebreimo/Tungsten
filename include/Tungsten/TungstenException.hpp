@@ -13,22 +13,22 @@
 
 namespace Tungsten
 {
-    std::string getGlErrorMessage(GLenum errorCode);
+    std::string get_gl_error_message(GLenum error_code);
 
-    std::string formatErrorMessage(const std::string& error,
-                                   const std::string& fileName,
-                                   long lineNo,
-                                   const std::string& funcName);
+    std::string format_error_message(const std::string& error,
+                                     const std::string& file_name,
+                                     long line_no,
+                                     const std::string& func_name);
 
     class TungstenException : public std::runtime_error
     {
     public:
         TungstenException(const std::string& message,
-                const std::string& fileName,
-                long lineNo,
-                const std::string& funcName) noexcept
-            : std::runtime_error(formatErrorMessage(message, fileName,
-                                                    lineNo, funcName))
+                          const std::string& fileName,
+                          long lineNo,
+                          const std::string& funcName) noexcept
+            : std::runtime_error(format_error_message(message, fileName,
+                                                      lineNo, funcName))
         {}
     };
 }
@@ -41,7 +41,7 @@ namespace Tungsten
         auto e = glGetError(); \
         if (!e) \
             break; \
-        throw TungstenException(getGlErrorMessage(e), __FILE__, __LINE__, __FUNCTION__); \
+        throw TungstenException(get_gl_error_message(e), __FILE__, __LINE__, __FUNCTION__); \
     } while (false)
 
 #define THROW_SDL_ERROR() \

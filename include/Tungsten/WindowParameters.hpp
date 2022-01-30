@@ -56,10 +56,10 @@ namespace Tungsten
 
     struct WindowParameters
     {
-        WindowPos windowPos;
-        WindowSize windowSize;
-        WindowSize defaultWindowSize = {640, 480};
-        uint32_t sdlFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
-        FullScreenMode fullScreenMode;
+        WindowPos window_pos;
+        WindowSize window_size;
+        WindowSize default_window_size = {640, 480};
+        uint32_t sdl_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+        FullScreenMode full_screen_mode;
     };
 }

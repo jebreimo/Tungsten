@@ -23,6 +23,6 @@ namespace Tungsten
 
         SdlSession& operator=(SdlSession&& other) noexcept;
     private:
-        int m_Active;
+        int m_active;
     };
 }

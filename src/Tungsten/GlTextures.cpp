@@ -16,25 +16,25 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
-    void activateTexture(GLenum texture)
+    void activate_texture(GLenum texture)
     {
         glActiveTexture(texture);
         THROW_IF_GL_ERROR();
     }
 
-    void bindTexture(GLenum target, GLuint texture)
+    void bind_texture(GLenum target, GLuint texture)
     {
         glBindTexture(target, texture);
         THROW_IF_GL_ERROR();
     }
 
-    void generateMipMap(GLenum target)
+    void generate_mip_map(GLenum target)
     {
         glGenerateMipmap(target);
         THROW_IF_GL_ERROR();
     }
 
-    TextureHandle generateTexture()
+    TextureHandle generate_texture()
     {
         GLuint id;
         glGenTextures(1, &id);
@@ -42,7 +42,7 @@ namespace Tungsten
         return TextureHandle(id);
     }
 
-    std::vector<TextureHandle> generateTextures(GLsizei count)
+    std::vector<TextureHandle> generate_textures(GLsizei count)
     {
         if (count == 0)
             return std::vector<TextureHandle>();
@@ -56,42 +56,42 @@ namespace Tungsten
         return result;
     }
 
-    void setTextureImage2D(GLenum target, GLint level, GLint internalFormat,
-                           GLsizei width, GLsizei height,
-                           GLenum format, GLenum type, GLvoid* data)
+    void set_texture_image_2d(GLenum target, GLint level, GLint internal_format,
+                              GLsizei width, GLsizei height,
+                              GLenum format, GLenum type, GLvoid* data)
     {
-        glTexImage2D(target, level, internalFormat, width, height, 0,
+        glTexImage2D(target, level, internal_format, width, height, 0,
                      format, type, data);
         THROW_IF_GL_ERROR();
     }
 
-    void setTextureMagFilter(GLenum target, GLint param)
+    void set_texture_mag_filter(GLenum target, GLint param)
     {
-        setTextureParameter(target, GL_TEXTURE_MAG_FILTER, param);
+        set_texture_parameter(target, GL_TEXTURE_MAG_FILTER, param);
     }
 
-    void setTextureMinFilter(GLenum target, GLint param)
+    void set_texture_min_filter(GLenum target, GLint param)
     {
-        setTextureParameter(target, GL_TEXTURE_MIN_FILTER, param);
+        set_texture_parameter(target, GL_TEXTURE_MIN_FILTER, param);
     }
 
-    void setTextureParameter(GLenum target, GLenum pname, GLfloat param)
+    void set_texture_parameter(GLenum target, GLenum pname, GLfloat param)
     {
         glTexParameterf(target, pname, param);
         THROW_IF_GL_ERROR();
     }
 
-    void setTextureParameter(GLenum target, GLenum pname, GLint param)
+    void set_texture_parameter(GLenum target, GLenum pname, GLint param)
     {
         glTexParameteri(target, pname, param);
         THROW_IF_GL_ERROR();
     }
 
-    void setTextureSubImage2D(GLenum target, GLint level, GLint xOffset,
-                              GLint yOffset, GLsizei width, GLsizei height,
-                              GLenum format, GLenum type, GLvoid* data)
+    void set_texture_sub_image_2d(GLenum target, GLint level, GLint x_offset,
+                                  GLint y_offset, GLsizei width, GLsizei height,
+                                  GLenum format, GLenum type, GLvoid* data)
     {
-        glTexSubImage2D(target, level, xOffset, yOffset, width, height,
+        glTexSubImage2D(target, level, x_offset, y_offset, width, height,
                         format, type, data);
         THROW_IF_GL_ERROR();
     }

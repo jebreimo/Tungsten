@@ -34,24 +34,24 @@ namespace Tungsten
         }
     }
 
-    std::string readShader(const std::string& path)
+    std::string read_shader(const std::string& path)
     {
         return readFile(path);
     }
 
-    Tungsten::ShaderHandle createShader(GLuint shaderType,
-                                        const std::string& sourceCode)
+    Tungsten::ShaderHandle create_shader(GLuint shader_type,
+                                         const std::string& source_code)
     {
-        auto shader = Tungsten::createShader(shaderType);
-        Tungsten::setShaderSource(shader, sourceCode);
-        Tungsten::compileShader(shader);
+        auto shader = Tungsten::create_shader(shader_type);
+        Tungsten::set_shader_source(shader, source_code);
+        Tungsten::compile_shader(shader);
         return shader;
     }
 
-    Tungsten::ShaderHandle readAndCompileShader(GLuint shaderType,
-                                                const std::string& path)
+    Tungsten::ShaderHandle read_and_compile_shader(GLuint shader_type,
+                                                   const std::string& path)
     {
-        auto source = readShader(path);
-        return createShader(shaderType, source);
+        auto source = read_shader(path);
+        return create_shader(shader_type, source);
     }
 }

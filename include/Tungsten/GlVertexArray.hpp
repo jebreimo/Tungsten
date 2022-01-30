@@ -18,9 +18,9 @@ namespace Tungsten
 
     using VertexArrayHandle = GlHandle<GlVertexArrayDeleter>;
 
-    VertexArrayHandle generateVertexArray();
+    VertexArrayHandle generate_vertex_array();
 
-    std::vector<VertexArrayHandle> generateVertexArrays(GLsizei count);
+    std::vector<VertexArrayHandle> generate_vertex_arrays(GLsizei count);
 
-    void bindVertexArray(GLuint vertexArray);
+    void bind_vertex_array(GLuint vertex_array);
 }

@@ -10,9 +10,9 @@
 
 namespace Tungsten
 {
-    std::string getGlErrorMessage(GLenum errorCode)
+    std::string get_gl_error_message(GLenum error_code)
     {
-        switch (errorCode)
+        switch (error_code)
         {
         case GL_NO_ERROR: return "No error.";
         case GL_INVALID_ENUM: return "Invalid enum.";
@@ -27,20 +27,20 @@ namespace Tungsten
         return "Unknown error.";
     }
 
-    std::string formatErrorMessage(const std::string& message,
-                                   const std::string& fileName,
-                                   long lineNo,
-                                   const std::string& funcName)
+    std::string format_error_message(const std::string& message,
+                                     const std::string& file_name,
+                                     long line_no,
+                                     const std::string& func_name)
     {
         std::string msg;
-        if (!funcName.empty())
+        if (!func_name.empty())
         {
-            msg += funcName;
+            msg += func_name;
             msg += "() in ";
         }
-        msg += fileName;
+        msg += file_name;
         msg += ":";
-        msg += std::to_string(lineNo);
+        msg += std::to_string(line_no);
         msg += ": ";
         msg += message;
         return msg;

@@ -41,7 +41,7 @@ namespace Tungsten
 
             WindowParameters params;
             if (width > 0 && height > 0)
-                params.windowSize = {width, height};
+                params.window_size = {width, height};
             return params;
         }
 
@@ -57,73 +57,73 @@ namespace Tungsten
 
     SdlApplication::SdlApplication(
         std::string name,
-        std::unique_ptr<EventLoop> eventloop)
-        : m_Name(move(name)),
-          m_EventLoop(move(eventloop)),
-          m_WindowParameters(getDefaultWindowParameters())
+        std::unique_ptr<EventLoop> event_loop)
+        : m_name(move(name)),
+          m_event_loop(move(event_loop)),
+          m_window_parameters(getDefaultWindowParameters())
     {}
 
     SdlApplication::~SdlApplication() = default;
 
     const std::string& SdlApplication::name() const
     {
-        return m_Name;
+        return m_name;
     }
 
-    void SdlApplication::addCommandLineOptions(argos::ArgumentParser& parser)
+    void SdlApplication::add_command_line_options(argos::ArgumentParser& parser)
     {
-        Tungsten::addCommandLineOptions(parser);
+        Tungsten::add_command_line_options(parser);
     }
 
-    void SdlApplication::readCommandLineOptions(const argos::ParsedArguments& args)
+    void SdlApplication::read_command_line_options(const argos::ParsedArguments& args)
     {
-        Tungsten::readCommandLineOptions(args, *this);
+        Tungsten::read_command_line_options(args, *this);
     }
 
-    void SdlApplication::parseCommandLineOptions(int& argc, char**& argv)
+    void SdlApplication::parse_command_line_options(int& argc, char**& argv)
     {
-        Tungsten::parseCommandLineOptions(argc, argv, *this);
+        Tungsten::parse_command_line_options(argc, argv, *this);
     }
 
     void SdlApplication::run()
     {
-        if (!m_EventLoop)
+        if (!m_event_loop)
             TUNGSTEN_THROW("No eventloop.");
         SdlSession session(SDL_INIT_VIDEO);
-        initialize(m_WindowParameters);
-        m_EventLoop->onStartup(*this);
-        m_IsRunning = true;
-        eventLoop();
-        m_IsRunning = false;
-        m_EventLoop->onShutdown(*this);
+        initialize(m_window_parameters);
+        m_event_loop->on_startup(*this);
+        m_is_running = true;
+        event_loop();
+        m_is_running = false;
+        m_event_loop->on_shutdown(*this);
     }
 
-    bool SdlApplication::isRunning() const
+    bool SdlApplication::is_running() const
     {
-        return m_IsRunning;
+        return m_is_running;
     }
 
     void SdlApplication::quit()
     {
-        setStatus(1);
+        set_status(1);
     }
 
-    SDL_GLContext SdlApplication::glContext() const
+    SDL_GLContext SdlApplication::gl_context() const
     {
-        return m_GlContext;
+        return m_gl_context;
     }
 
     int SdlApplication::status() const
     {
-        return m_Status;
+        return m_status;
     }
 
-    void SdlApplication::setStatus(int status)
+    void SdlApplication::set_status(int status)
     {
-        m_Status = status;
+        m_status = status;
     }
 
-    SdlApplication& SdlApplication::setSwapInterval(int interval)
+    SdlApplication& SdlApplication::set_swap_interval(int interval)
     {
         SDL_GL_SetSwapInterval(interval);
         return *this;
@@ -131,29 +131,29 @@ namespace Tungsten
 
     SDL_Window* SdlApplication::window() const
     {
-        return m_Window;
+        return m_window;
     }
 
     void SdlApplication::setWindow(SDL_Window* value)
     {
-        m_Window = value;
+        m_window = value;
     }
 
-    std::pair<int, int> SdlApplication::windowSize() const
+    std::pair<int, int> SdlApplication::window_size() const
     {
         int w = 0, h = 0;
         SDL_GetWindowSize(window(), &w, &h);
         return {w, h};
     }
 
-    float SdlApplication::aspectRatio() const
+    float SdlApplication::aspect_ratio() const
     {
         int w = 0, h = 0;
         SDL_GetWindowSize(window(), &w, &h);
         return float(w) / float(h);
     }
 
-    bool SdlApplication::processEvent(const SDL_Event& event)
+    bool SdlApplication::process_event(const SDL_Event& event)
     {
         switch (event.type)
         {
@@ -174,30 +174,30 @@ namespace Tungsten
         return true;
     }
 
-    void SdlApplication::initialize(const WindowParameters& windowParams)
+    void SdlApplication::initialize(const WindowParameters& window_parameters)
     {
-        setSdlGlVersion(getDefaultGlVersion(GlVersionCode::ES_2));
-        auto tmpWindowParams = windowParams;
-        tmpWindowParams.sdlFlags |= SDL_WINDOW_OPENGL;
+        set_sdl_gl_version(get_default_gl_version(GlVersionCode::ES_2));
+        auto tmpWindowParams = window_parameters;
+        tmpWindowParams.sdl_flags |= SDL_WINDOW_OPENGL;
 
-        setWindow(createWindow(tmpWindowParams));
+        setWindow(create_window(tmpWindowParams));
 
-        m_GlContext = GlContext::create(window());
+        m_gl_context = GlContext::create(window());
 
         glewExperimental = GL_TRUE;
         glewInit();
     }
 
     SDL_Window*
-    SdlApplication::createWindow(const WindowParameters& winParams)
+    SdlApplication::create_window(const WindowParameters& window_parameters)
     {
-        const auto& pos = winParams.windowPos;
-        auto size = winParams.windowSize;
-        if (winParams.fullScreenMode && !size)
+        const auto& pos = window_parameters.window_pos;
+        auto size = window_parameters.window_size;
+        if (window_parameters.full_screen_mode && !size)
         {
             SDL_DisplayMode modeInfo = {};
-            if (SDL_GetDisplayMode(winParams.fullScreenMode.display,
-                                   winParams.fullScreenMode.mode,
+            if (SDL_GetDisplayMode(window_parameters.full_screen_mode.display,
+                                   window_parameters.full_screen_mode.mode,
                                    &modeInfo) >= 0)
             {
                 size = {modeInfo.w, modeInfo.h};
@@ -205,24 +205,24 @@ namespace Tungsten
         }
 
         if (!size)
-            size = winParams.defaultWindowSize;
+            size = window_parameters.default_window_size;
 
         SDL_Log("Create window with size %dx%d.", size.width, size.height);
-        auto window = SDL_CreateWindow(m_Name.c_str(),
+        auto window = SDL_CreateWindow(m_name.c_str(),
                                        pos.x, pos.y,
                                        size.width, size.height,
-                                       winParams.sdlFlags);
+                                       window_parameters.sdl_flags);
 
-        if (winParams.fullScreenMode && winParams.sdlFlags)
+        if (window_parameters.full_screen_mode && window_parameters.sdl_flags)
         {
             SDL_DisplayMode mode;
-            if (SDL_GetDisplayMode(winParams.fullScreenMode.display,
-                                   winParams.fullScreenMode.mode,
+            if (SDL_GetDisplayMode(window_parameters.full_screen_mode.display,
+                                   window_parameters.full_screen_mode.mode,
                                    &mode) >= 0)
             {
                 SDL_Log("Set fullscreen mode: %d:%d.",
-                        winParams.fullScreenMode.display,
-                        winParams.fullScreenMode.mode);
+                        window_parameters.full_screen_mode.display,
+                        window_parameters.full_screen_mode.mode);
                 SDL_SetWindowDisplayMode(window, &mode);
             }
         }
@@ -250,44 +250,44 @@ namespace Tungsten
 
     #else
 
-    void SdlApplication::eventLoop()
+    void SdlApplication::event_loop()
     {
         while (!status())
-            eventLoopStep();
+            event_loop_step();
     }
 
     #endif
 
-    void SdlApplication::eventLoopStep()
+    void SdlApplication::event_loop_step()
     {
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
-            if (!m_EventLoop->onEvent(*this, event))
-                processEvent(event);
+            if (!m_event_loop->on_event(*this, event))
+                process_event(event);
         }
-        m_EventLoop->onUpdate(*this);
-        m_EventLoop->onDraw(*this);
+        m_event_loop->on_update(*this);
+        m_event_loop->on_draw(*this);
         SDL_GL_SwapWindow(window());
     }
 
-    const WindowParameters& SdlApplication::windowParameters() const
+    const WindowParameters& SdlApplication::window_parameters() const
     {
-        return m_WindowParameters;
+        return m_window_parameters;
     }
 
-    void SdlApplication::setWindowParameters(const WindowParameters& windowParameters)
+    void SdlApplication::set_window_parameters(const WindowParameters& window_parameters)
     {
-        m_WindowParameters = windowParameters;
+        m_window_parameters = window_parameters;
     }
 
     EventLoop& SdlApplication::callbacks()
     {
-        return *m_EventLoop;
+        return *m_event_loop;
     }
 
     const EventLoop& SdlApplication::callbacks() const
     {
-        return *m_EventLoop;
+        return *m_event_loop;
     }
 }

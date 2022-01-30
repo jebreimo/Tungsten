@@ -28,7 +28,7 @@ namespace Tungsten
     {
     public:
         SdlApplication(std::string name,
-                       std::unique_ptr<EventLoop> eventloop);
+                       std::unique_ptr<EventLoop> event_loop);
 
         SdlApplication(SdlApplication&&) = default;
 
@@ -39,26 +39,26 @@ namespace Tungsten
         [[nodiscard]]
         const std::string& name() const;
 
-        static void addCommandLineOptions(argos::ArgumentParser& parser);
+        static void add_command_line_options(argos::ArgumentParser& parser);
 
-        void readCommandLineOptions(const argos::ParsedArguments& args);
+        void read_command_line_options(const argos::ParsedArguments& args);
 
-        void parseCommandLineOptions(int& argc, char**& argv);
+        void parse_command_line_options(int& argc, char**& argv);
 
         void run();
 
         [[nodiscard]]
-        bool isRunning() const;
+        bool is_running() const;
 
         void quit();
 
         [[nodiscard]]
-        SDL_GLContext glContext() const;
+        SDL_GLContext gl_context() const;
 
         [[nodiscard]]
         int status() const;
 
-        SdlApplication& setSwapInterval(int interval);
+        SdlApplication& set_swap_interval(int interval);
 
         [[nodiscard]]
         SDL_Window* window() const;
@@ -66,43 +66,43 @@ namespace Tungsten
         void setWindow(SDL_Window* window);
 
         [[nodiscard]]
-        std::pair<int, int> windowSize() const;
+        std::pair<int, int> window_size() const;
 
         [[nodiscard]]
-        float aspectRatio() const;
+        float aspect_ratio() const;
 
         [[nodiscard]]
-        const WindowParameters& windowParameters() const;
+        const WindowParameters& window_parameters() const;
 
-        void setWindowParameters(const WindowParameters& windowParameters);
+        void set_window_parameters(const WindowParameters& window_parameters);
 
         [[nodiscard]]
         const EventLoop& callbacks() const;
 
         EventLoop& callbacks();
     protected:
-        void setStatus(int status);
+        void set_status(int status);
 
-        bool processEvent(const SDL_Event& event);
+        bool process_event(const SDL_Event& event);
 
-        void initialize(const WindowParameters& windowParams);
+        void initialize(const WindowParameters& window_parameters);
 
-        SDL_Window* createWindow(const WindowParameters& winParams);
+        SDL_Window* create_window(const WindowParameters& window_parameters);
     private:
-        void eventLoop();
+        void event_loop();
 
-        void eventLoopStep();
+        void event_loop_step();
 
         #ifdef __EMSCRIPTEN__
-        static void emscriptenEventLoopStep(void* arg);
+        static void emscripten_event_loop_step(void* arg);
         #endif
 
-        std::string m_Name;
-        std::unique_ptr<EventLoop> m_EventLoop;
-        WindowParameters m_WindowParameters;
-        SDL_Window* m_Window = nullptr;
-        GlContext m_GlContext = {};
-        int m_Status = 0;
-        bool m_IsRunning = false;
+        std::string m_name;
+        std::unique_ptr<EventLoop> m_event_loop;
+        WindowParameters m_window_parameters;
+        SDL_Window* m_window = nullptr;
+        GlContext m_gl_context = {};
+        int m_status = 0;
+        bool m_is_running = false;
     };
 }

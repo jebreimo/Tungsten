@@ -24,33 +24,33 @@ namespace Tungsten
         }
     }
 
-    void drawElements(GLenum mode, GLsizei count, GLenum type, GLsizei offset)
+    void draw_elements(GLenum mode, GLsizei count, GLenum type, GLsizei offset)
     {
         auto tmpOffset = size_t(offset * getTypeSize(type));
         glDrawElements(mode, count, type, reinterpret_cast<void*>(tmpOffset));
         THROW_IF_GL_ERROR();
     }
 
-    void enableVertexAttribute(GLuint location)
+    void enable_vertex_attribute(GLuint location)
     {
         glEnableVertexAttribArray(location);
         THROW_IF_GL_ERROR();
     }
 
-    void disableVertexAttribute(GLuint location)
+    void disable_vertex_attribute(GLuint location)
     {
         glDisableVertexAttribArray(location);
         THROW_IF_GL_ERROR();
     }
 
-    void defineVertexAttributePointer(GLuint attributeLocation,
-                                      GLint size,
-                                      GLenum type,
-                                      bool normalized,
-                                      GLsizei stride,
-                                      size_t offset)
+    void define_vertex_attribute_pointer(GLuint attribute_location,
+                                         GLint size,
+                                         GLenum type,
+                                         bool normalized,
+                                         GLsizei stride,
+                                         size_t offset)
     {
-        glVertexAttribPointer(attributeLocation, size, type,
+        glVertexAttribPointer(attribute_location, size, type,
                               GLboolean(normalized ? 1 : 0),
                               stride,
                               reinterpret_cast<void*>(offset));

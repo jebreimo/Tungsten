@@ -17,7 +17,7 @@ namespace Tungsten
 {
     namespace
     {
-        const char* getPixelFormatName(uint32_t format)
+        const char* get_pixel_format_name(uint32_t format)
         {
             switch (format)
             {
@@ -100,37 +100,37 @@ namespace Tungsten
             }
         }
 
-        void printDisplayMode(std::ostream& stream,
-                              int displayIndex,
-                              int modeIndex,
-                              const SDL_DisplayMode& mode)
+        void print_display_mode(std::ostream& stream,
+                                int display_index,
+                                int mode_index,
+                                const SDL_DisplayMode& mode)
         {
-            stream << "Mode " << displayIndex
-                   << ":" << modeIndex
-                   << "  " << getPixelFormatName(mode.format)
+            stream << "Mode " << display_index
+                   << ":" << mode_index
+                   << "  " << get_pixel_format_name(mode.format)
                    << " " << mode.w << "x" << mode.h
                    << " " << mode.refresh_rate << "Hz\n";
         }
 
-        void printDisplayModes(std::ostream& stream)
+        void print_display_modes(std::ostream& stream)
         {
-            int numDisplays = SDL_GetNumVideoDisplays();
-            for (int d = 0; d < numDisplays; ++d)
+            int num_displays = SDL_GetNumVideoDisplays();
+            for (int d = 0; d < num_displays; ++d)
             {
                 if (auto name = SDL_GetDisplayName(d))
                     stream << "Display " << d << ": " << name << "\n";
-                int numModes = SDL_GetNumDisplayModes(d);
-                for (int m = 0; m < numModes; ++m)
+                int num_modes = SDL_GetNumDisplayModes(d);
+                for (int m = 0; m < num_modes; ++m)
                 {
                     SDL_DisplayMode mode = {};
                     if (SDL_GetDisplayMode(d, m, &mode) == 0)
-                        printDisplayMode(stream, d, m, mode);
+                        print_display_mode(stream, d, m, mode);
                 }
             }
         }
     }
 
-    void addCommandLineOptions(argos::ArgumentParser& parser)
+    void add_command_line_options(argos::ArgumentParser& parser)
     {
         using namespace argos;
         parser.allow_abbreviated_options(true)
@@ -155,54 +155,54 @@ namespace Tungsten
                            " modes and quit."));
     }
 
-    void readCommandLineOptions(const argos::ParsedArguments& args,
-                                SdlApplication& app)
+    void read_command_line_options(const argos::ParsedArguments& args,
+                                   SdlApplication& app)
     {
         if (args.value("--listmodes").as_bool())
         {
             SdlSession session(SDL_INIT_VIDEO);
-            printDisplayModes(std::cout);
+            print_display_modes(std::cout);
             exit(0);
         }
 
         WindowParameters wp;
 
-        if (auto modeArg = args.value("--fullscreen"))
+        if (auto mode_arg = args.value("--fullscreen"))
         {
-            if (modeArg.as_string() == "F")
+            if (mode_arg.as_string() == "F")
             {
-                wp.sdlFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+                wp.sdl_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
             }
-            else if (modeArg.as_string() != "W")
+            else if (mode_arg.as_string() != "W")
             {
-                auto mode = modeArg.split(':', 2, 2).as_ints();
-                wp.fullScreenMode = {mode[0], mode[1]};
-                wp.sdlFlags |= SDL_WINDOW_FULLSCREEN;
+                auto mode = mode_arg.split(':', 2, 2).as_ints();
+                wp.full_screen_mode = {mode[0], mode[1]};
+                wp.sdl_flags |= SDL_WINDOW_FULLSCREEN;
             }
         }
 
-        if (auto windowSizeArg = args.value("--windowsize"))
+        if (auto window_size_arg = args.value("--windowsize"))
         {
-            auto size = windowSizeArg.split('x', 2, 2).as_ints();
-            wp.windowSize = {size[0], size[1]};
+            auto size = window_size_arg.split('x', 2, 2).as_ints();
+            wp.window_size = {size[0], size[1]};
         }
 
-        if (auto windowPosArg = args.value("--windowpos"))
+        if (auto window_pos_arg = args.value("--windowpos"))
         {
-            auto pos = windowPosArg.split(',', 2, 2).as_ints();
-            wp.windowSize = {pos[0], pos[1]};
+            auto pos = window_pos_arg.split(',', 2, 2).as_ints();
+            wp.window_size = {pos[0], pos[1]};
         }
 
-        app.setWindowParameters(wp);
+        app.set_window_parameters(wp);
     }
 
-    void parseCommandLineOptions(int& argc, char**& argv,
-                                 SdlApplication& app)
+    void parse_command_line_options(int& argc, char**& argv,
+                                    SdlApplication& app)
     {
         using namespace argos;
         ArgumentParser parser(app.name());
-        addCommandLineOptions(parser);
+        add_command_line_options(parser);
         auto args = parser.parse(argc, argv);
-        readCommandLineOptions(args, app);
+        read_command_line_options(args, app);
     }
 }

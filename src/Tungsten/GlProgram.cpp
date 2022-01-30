@@ -16,29 +16,29 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
-    ProgramHandle createProgram()
+    ProgramHandle create_program()
     {
         auto id = glCreateProgram();
         THROW_IF_GL_ERROR();
         return ProgramHandle(id);
     }
 
-    void attachShader(GLuint programId, GLuint shaderId)
+    void attach_shader(GLuint program_id, GLuint shader_id)
     {
-        glAttachShader(programId, shaderId);
+        glAttachShader(program_id, shader_id);
         THROW_IF_GL_ERROR();
     }
 
-    GLuint getVertexAttribute(GLuint programId, const std::string& name)
+    GLuint get_vertex_attribute(GLuint program_id, const std::string& name)
     {
-        auto attrLoc = glGetAttribLocation(programId, name.c_str());
+        auto attrLoc = glGetAttribLocation(program_id, name.c_str());
         THROW_IF_GL_ERROR();
         return GLuint(attrLoc);
     }
 
-    GLint getUniformLocation(GLuint programId, const char* name)
+    GLint get_uniform_location(GLuint program_id, const char* name)
     {
-        auto result = glGetUniformLocation(programId, name);
+        auto result = glGetUniformLocation(program_id, name);
         THROW_IF_GL_ERROR();
         return result;
     }
@@ -66,17 +66,17 @@ namespace Tungsten
         return result;
     }
 
-    void linkProgram(GLuint programId)
+    void link_program(GLuint program_id)
     {
-        glLinkProgram(programId);
+        glLinkProgram(program_id);
         THROW_IF_GL_ERROR();
-        if (!getProgramLinkStatus(programId))
-            TUNGSTEN_THROW(getProgramInfoLog(programId));
+        if (!getProgramLinkStatus(program_id))
+            TUNGSTEN_THROW(getProgramInfoLog(program_id));
     }
 
-    void useProgram(GLuint programId)
+    void use_program(GLuint program_id)
     {
-        glUseProgram(programId);
+        glUseProgram(program_id);
         THROW_IF_GL_ERROR();
     }
 }

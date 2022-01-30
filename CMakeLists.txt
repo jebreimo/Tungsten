@@ -6,7 +6,7 @@
 ## License text is included with the source distribution.
 ##****************************************************************************
 cmake_minimum_required(VERSION 3.15)
-project(Tungsten VERSION 0.1.3.5)
+project(Tungsten VERSION 0.2.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -35,11 +35,11 @@ include(FetchContent)
 
 if (DEFINED LOCAL_SOURCE_PACKAGE_DIR)
     FetchContent_Declare(xyz
-        URL "file://${LOCAL_SOURCE_PACKAGE_DIR}/Xyz-0.1.3.tar.gz")
+        URL "file://${LOCAL_SOURCE_PACKAGE_DIR}/Xyz-0.2.1.tar.gz")
 else ()
     FetchContent_Declare(xyz
         GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
-        GIT_TAG v0.1.3)
+        GIT_TAG master)
 endif ()
 
 FetchContent_Declare(argos
@@ -53,6 +53,7 @@ find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
 
 add_library(Tungsten STATIC
+    include/Tungsten/ArrayBuffer.hpp
     include/Tungsten/GlBuffer.hpp
     include/Tungsten/GlContext.hpp
     include/Tungsten/GlHandle.hpp
@@ -64,18 +65,10 @@ add_library(Tungsten STATIC
     include/Tungsten/GlVertices.hpp
     include/Tungsten/SdlApplication.hpp
     include/Tungsten/ShaderTools.hpp
-    include/Tungsten/Shapes.hpp
     include/Tungsten/Tungsten.hpp
     include/Tungsten/TungstenException.hpp
     include/Tungsten/Uniform.hpp
     include/Tungsten/WindowParameters.hpp
-    include/Tungsten/Shapes/AddCube.hpp
-    include/Tungsten/Shapes/AddRectangle.hpp
-    include/Tungsten/Shapes/AddRegularPolygon.hpp
-    include/Tungsten/Shapes/AddStarPolygon.hpp
-    include/Tungsten/Shapes/ArrayBufferBuilder.hpp
-    include/Tungsten/Shapes/ArrayBufferRowBuilder.hpp
-    include/Tungsten/Shapes/RegularPolygonGenerator.hpp
     src/Tungsten/CommandLine.cpp
     src/Tungsten/CommandLine.hpp
     src/Tungsten/GlBuffer.cpp
@@ -92,12 +85,6 @@ add_library(Tungsten STATIC
     src/Tungsten/ShaderTools.cpp
     src/Tungsten/TungstenException.cpp
     src/Tungsten/Uniform.cpp
-    src/Tungsten/Shapes/AddCube.cpp
-    src/Tungsten/Shapes/AddRectangle.cpp
-    src/Tungsten/Shapes/AddRegularPolygon.cpp
-    src/Tungsten/Shapes/AddStarPolygon.cpp
-    src/Tungsten/Shapes/ArrayBufferBuilder.cpp
-    src/Tungsten/Shapes/ArrayBufferRowBuilder.cpp
     )
 
 target_link_libraries(Tungsten

@@ -15,17 +15,17 @@ namespace Tungsten
     {
     public:
         GlHandle()
-            : m_Id()
+            : m_id()
         {}
 
         explicit GlHandle(GLuint id)
-            : m_Id(id)
+            : m_id(id)
         {}
 
         GlHandle(GlHandle&& other)
-            : m_Id(other.m_Id)
+            : m_id(other.m_id)
         {
-            other.m_Id = 0;
+            other.m_id = 0;
         }
 
         ~GlHandle()
@@ -35,30 +35,30 @@ namespace Tungsten
 
         GlHandle& operator=(GlHandle&& other)
         {
-            reset(other.m_Id);
-            other.m_Id = 0;
+            reset(other.m_id);
+            other.m_id = 0;
             return *this;
         }
 
         operator GLuint() const
         {
-            return m_Id;
+            return m_id;
         }
 
         void reset(GLuint id = 0)
         {
-            if (m_Id)
-                Deleter()(m_Id);
-            m_Id = id;
+            if (m_id)
+                Deleter()(m_id);
+            m_id = id;
         }
 
         GLuint release()
         {
-            auto id = m_Id;
-            m_Id = 0;
+            auto id = m_id;
+            m_id = 0;
             return id;
         }
     private:
-        GLuint m_Id;
+        GLuint m_id;
     };
 }

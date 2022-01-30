@@ -17,21 +17,21 @@ namespace Tungsten
     public:
         virtual ~EventLoop() = default;
 
-        virtual void onStartup(SdlApplication& app)
+        virtual void on_startup(SdlApplication& app)
         {}
 
-        virtual bool onEvent(SdlApplication& app, const SDL_Event& event)
+        virtual bool on_event(SdlApplication& app, const SDL_Event& event)
         {
             return false;
         }
 
-        virtual void onUpdate(SdlApplication& app)
+        virtual void on_update(SdlApplication& app)
         {}
 
-        virtual void onDraw(SdlApplication& app)
+        virtual void on_draw(SdlApplication& app)
         {}
 
-        virtual void onShutdown(SdlApplication& app)
+        virtual void on_shutdown(SdlApplication& app)
         {}
     };
 }

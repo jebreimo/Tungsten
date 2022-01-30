@@ -18,29 +18,29 @@ namespace Tungsten
 
     using TextureHandle = GlHandle<GlTextureDeleter>;
 
-    void activateTexture(GLenum texture);
+    void activate_texture(GLenum texture);
 
-    void bindTexture(GLenum target, GLuint texture);
+    void bind_texture(GLenum target, GLuint texture);
 
-    void generateMipMap(GLenum target);
+    void generate_mip_map(GLenum target);
 
-    TextureHandle generateTexture();
+    TextureHandle generate_texture();
 
-    std::vector<TextureHandle> generateTextures(GLsizei count);
+    std::vector<TextureHandle> generate_textures(GLsizei count);
 
-    void setTextureImage2D(GLenum target, GLint level, GLint internalFormat,
-                           GLsizei width, GLsizei height,
-                           GLenum format, GLenum type, GLvoid* data);
-
-    void setTextureMagFilter(GLenum target, GLint param);
-
-    void setTextureMinFilter(GLenum target, GLint param);
-
-    void setTextureParameter(GLenum target, GLenum pname, GLfloat param);
-
-    void setTextureParameter(GLenum target, GLenum pname, GLint param);
-
-    void setTextureSubImage2D(GLenum target, GLint level, GLint xOffset,
-                              GLint yOffset, GLsizei width, GLsizei height,
+    void set_texture_image_2d(GLenum target, GLint level, GLint internal_format,
+                              GLsizei width, GLsizei height,
                               GLenum format, GLenum type, GLvoid* data);
+
+    void set_texture_mag_filter(GLenum target, GLint param);
+
+    void set_texture_min_filter(GLenum target, GLint param);
+
+    void set_texture_parameter(GLenum target, GLenum pname, GLfloat param);
+
+    void set_texture_parameter(GLenum target, GLenum pname, GLint param);
+
+    void set_texture_sub_image_2d(GLenum target, GLint level, GLint x_offset,
+                                  GLint y_offset, GLsizei width, GLsizei height,
+                                  GLenum format, GLenum type, GLvoid* data);
 }

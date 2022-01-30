@@ -19,11 +19,11 @@ namespace Tungsten
 {
     class SdlApplication;
 
-    void addCommandLineOptions(argos::ArgumentParser& parser);
+    void add_command_line_options(argos::ArgumentParser& parser);
 
-    void readCommandLineOptions(const argos::ParsedArguments& args,
-                                SdlApplication& app);
+    void read_command_line_options(const argos::ParsedArguments& args,
+                                   SdlApplication& app);
 
-    void parseCommandLineOptions(int& argc, char**& argv,
-                                 SdlApplication& app);
+    void parse_command_line_options(int& argc, char**& argv,
+                                    SdlApplication& app);
 }

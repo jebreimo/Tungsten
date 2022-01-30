@@ -11,30 +11,30 @@
 namespace Tungsten
 {
     SdlSession::SdlSession(int flags)
-            : m_Active(SDL_Init(flags) == 0)
+            : m_active(SDL_Init(flags) == 0)
     {
-        if (!m_Active)
+        if (!m_active)
             throw std::runtime_error(SDL_GetError());
     }
 
     SdlSession::SdlSession(SdlSession&& other)
-            : m_Active(other.m_Active)
+            : m_active(other.m_active)
     {
-        other.m_Active = false;
+        other.m_active = false;
     }
 
     SdlSession::~SdlSession()
     {
-        if (m_Active)
+        if (m_active)
             SDL_Quit();
     }
 
     SdlSession& SdlSession::operator=(SdlSession&& other) noexcept
     {
-        if (m_Active)
+        if (m_active)
             SDL_Quit();
-        m_Active = other.m_Active;
-        other.m_Active = false;
+        m_active = other.m_active;
+        other.m_active = false;
         return *this;
     }
 }

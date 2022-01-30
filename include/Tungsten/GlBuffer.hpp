@@ -18,17 +18,17 @@ namespace Tungsten
 
     using BufferHandle = GlHandle<GlBufferDeleter>;
 
-    void bindBuffer(GLenum target, GLuint buffer);
+    void bind_buffer(GLenum target, GLuint buffer);
 
-    BufferHandle generateBuffer();
+    BufferHandle generate_buffer();
 
-    std::vector<BufferHandle> generateBuffers(GLsizei count);
+    std::vector<BufferHandle> generate_buffers(GLsizei count);
 
-    void setBufferData(GLenum target, GLsizeiptr size,
-                       const GLvoid* data, GLenum usage);
+    void set_buffer_data(GLenum target, GLsizeiptr size,
+                         const GLvoid* data, GLenum usage);
 
-    void setElementArrayBuffer(GLuint bufferId,
-                               GLsizeiptr valueCount,
-                               const uint16_t* values,
-                               GLenum usage);
+    void set_element_array_buffer(GLuint buffer_id,
+                                  GLsizeiptr value_count,
+                                  const uint16_t* values,
+                                  GLenum usage);
 }

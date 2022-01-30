@@ -19,21 +19,21 @@ namespace Tungsten
 
     using ProgramHandle = GlHandle<GlProgramDeleter>;
 
-    ProgramHandle createProgram();
+    ProgramHandle create_program();
 
-    void attachShader(GLuint programId, GLuint shaderId);
+    void attach_shader(GLuint program_id, GLuint shader_id);
 
-    GLuint getVertexAttribute(GLuint programId, const std::string& name);
+    GLuint get_vertex_attribute(GLuint program_id, const std::string& name);
 
-    GLint getUniformLocation(GLuint programId, const char* name);
+    GLint get_uniform_location(GLuint program_id, const char* name);
 
     template <typename T>
-    Uniform<T> getUniform(GLuint programId, const char* name)
+    Uniform<T> get_uniform(GLuint program_id, const char* name)
     {
-        return Uniform<T>(getUniformLocation(programId, name));
+        return Uniform<T>(get_uniform_location(program_id, name));
     }
 
-    void linkProgram(GLuint programId);
+    void link_program(GLuint program_id);
 
-    void useProgram(GLuint programId);
+    void use_program(GLuint program_id);
 }

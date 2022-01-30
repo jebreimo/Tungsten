@@ -16,7 +16,7 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
-    VertexArrayHandle generateVertexArray()
+    VertexArrayHandle generate_vertex_array()
     {
         GLuint id;
         glGenVertexArrays(1, &id);
@@ -24,7 +24,7 @@ namespace Tungsten
         return VertexArrayHandle(id);
     }
 
-    std::vector<VertexArrayHandle> generateVertexArrays(GLsizei count)
+    std::vector<VertexArrayHandle> generate_vertex_arrays(GLsizei count)
     {
         if (count == 0)
             return std::vector<VertexArrayHandle>();
@@ -38,9 +38,9 @@ namespace Tungsten
         return result;
     }
 
-    void bindVertexArray(GLuint vertexArray)
+    void bind_vertex_array(GLuint vertex_array)
     {
-        glBindVertexArray(vertexArray);
+        glBindVertexArray(vertex_array);
         THROW_IF_GL_ERROR();
     }
 }

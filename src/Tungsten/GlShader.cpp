@@ -16,22 +16,22 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
-    void compileShader(GLuint shaderId)
+    void compile_shader(GLuint shaderId)
     {
         glCompileShader(shaderId);
         THROW_IF_GL_ERROR();
-        if (!getShaderCompileStatus(shaderId))
-            TUNGSTEN_THROW(getShaderInfoLog(shaderId));
+        if (!get_shader_compile_status(shaderId))
+            TUNGSTEN_THROW(get_shader_info_log(shaderId));
     }
 
-    ShaderHandle createShader(GLuint shaderType)
+    ShaderHandle create_shader(GLuint shaderType)
     {
         auto id = glCreateShader(shaderType);
         THROW_IF_GL_ERROR();
         return ShaderHandle(id);
     }
 
-    bool getShaderCompileStatus(GLuint shaderId)
+    bool get_shader_compile_status(GLuint shaderId)
     {
         GLint result = 0;
         glGetShaderiv(shaderId, GL_COMPILE_STATUS, &result);
@@ -39,22 +39,22 @@ namespace Tungsten
         return result == GL_TRUE;
     }
 
-    GLint getShaderInfoLogLength(GLuint shaderId)
+    GLint get_shader_info_log_length(GLuint shaderId)
     {
         GLint size;
         glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &size);
         return size;
     }
 
-    std::string getShaderInfoLog(GLuint shaderId)
+    std::string get_shader_info_log(GLuint shaderId)
     {
-        auto size = getShaderInfoLogLength(shaderId);
+        auto size = get_shader_info_log_length(shaderId);
         std::string result(size, '\0');
         glGetShaderInfoLog(shaderId, size, &size, &result[0]);
         return result;
     }
 
-    void setShaderSource(GLuint shaderId, const std::string& source)
+    void set_shader_source(GLuint shaderId, const std::string& source)
     {
         auto length = (GLint)source.size();
         auto str = source.c_str();

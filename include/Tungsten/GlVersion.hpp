@@ -14,12 +14,12 @@ namespace Tungsten
     {
         explicit constexpr operator bool() const
         {
-            return majorVersion != 0;
+            return major_version != 0;
         }
 
         SDL_GLprofile profile = SDL_GLprofile(0);
-        int majorVersion = 0;
-        int minorVersion = 0;
+        int major_version = 0;
+        int minor_version = 0;
     };
 
     enum class GlVersionCode
@@ -29,9 +29,9 @@ namespace Tungsten
         CORE_4_1
     };
 
-    GlVersion getDefaultGlVersion(GlVersionCode versionCode);
+    GlVersion get_default_gl_version(GlVersionCode version_code);
 
-    GlVersion getSdlGlVersion();
+    GlVersion get_sdl_gl_version();
 
-    void setSdlGlVersion(GlVersion version);
+    void set_sdl_gl_version(GlVersion version);
 }

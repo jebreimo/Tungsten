@@ -16,13 +16,13 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
-    void bindBuffer(GLenum target, GLuint buffer)
+    void bind_buffer(GLenum target, GLuint buffer)
     {
         glBindBuffer(target, buffer);
         THROW_IF_GL_ERROR();
     }
 
-    BufferHandle generateBuffer()
+    BufferHandle generate_buffer()
     {
         GLuint id;
         glGenBuffers(1, &id);
@@ -30,7 +30,7 @@ namespace Tungsten
         return BufferHandle(id);
     }
 
-    std::vector<BufferHandle> generateBuffers(GLsizei count)
+    std::vector<BufferHandle> generate_buffers(GLsizei count)
     {
         if (count == 0)
             return std::vector<BufferHandle>();
@@ -44,22 +44,22 @@ namespace Tungsten
         return result;
     }
 
-    void setBufferData(GLenum target, GLsizeiptr size, const GLvoid* data,
-                       GLenum usage)
+    void set_buffer_data(GLenum target, GLsizeiptr size, const GLvoid* data,
+                         GLenum usage)
     {
         glBufferData(target, size, data, usage);
         THROW_IF_GL_ERROR();
     }
 
-    void setElementArrayBuffer(GLuint bufferId,
-                               GLsizeiptr valueCount,
-                               const uint16_t* values,
-                               GLenum usage)
+    void set_element_array_buffer(GLuint buffer_id,
+                                  GLsizeiptr value_count,
+                                  const uint16_t* values,
+                                  GLenum usage)
     {
-        bindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferId);
-        setBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                      valueCount * sizeof(uint16_t),
-                      values,
-                      usage);
+        bind_buffer(GL_ELEMENT_ARRAY_BUFFER, buffer_id);
+        set_buffer_data(GL_ELEMENT_ARRAY_BUFFER,
+                        GLsizeiptr(value_count * sizeof(uint16_t)),
+                        values,
+                        usage);
     }
 }

@@ -10,14 +10,14 @@
 
 namespace Tungsten
 {
-    void drawElements(GLenum mode, GLsizei count,
-                      GLenum type, GLsizei offset = 0);
+    void draw_elements(GLenum mode, GLsizei count,
+                       GLenum type, GLsizei offset = 0);
 
-    void defineVertexAttributePointer(GLuint attributeLocation, GLint size,
-                                      GLenum type, bool normalized,
-                                      GLsizei stride, size_t offset = 0);
+    void define_vertex_attribute_pointer(GLuint attribute_location, GLint size,
+                                         GLenum type, bool normalized,
+                                         GLsizei stride, size_t offset = 0);
 
-    void enableVertexAttribute(GLuint location);
+    void enable_vertex_attribute(GLuint location);
 
-    void disableVertexAttribute(GLuint location);
+    void disable_vertex_attribute(GLuint location);
 }
