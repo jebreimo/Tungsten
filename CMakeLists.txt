@@ -6,7 +6,7 @@
 ## License text is included with the source distribution.
 ##****************************************************************************
 cmake_minimum_required(VERSION 3.15)
-project(Tungsten VERSION 0.2.0)
+project(Tungsten VERSION 0.2.1)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -31,11 +31,17 @@ else ()
     list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 endif ()
 
+if (DEFINED LOCAL_SOURCE_PACKAGE_DIR OR DEFINED ENV{LOCAL_SOURCE_PACKAGE_DIR})
+    if (NOT LOCAL_SOURCE_PACKAGE_DIR)
+        set(LOCAL_SOURCE_PACKAGE_DIR $ENV{LOCAL_SOURCE_PACKAGE_DIR})
+    endif ()
+endif ()
+
 include(FetchContent)
 
 if (DEFINED LOCAL_SOURCE_PACKAGE_DIR)
     FetchContent_Declare(xyz
-        URL "file://${LOCAL_SOURCE_PACKAGE_DIR}/Xyz-0.2.1.tar.gz")
+        URL "file://${LOCAL_SOURCE_PACKAGE_DIR}/Xyz-0.2.2.tar.gz")
 else ()
     FetchContent_Declare(xyz
         GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
