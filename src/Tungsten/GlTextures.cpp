@@ -56,9 +56,10 @@ namespace Tungsten
         return result;
     }
 
-    void set_texture_image_2d(GLenum target, GLint level, GLint internal_format,
-                              GLsizei width, GLsizei height,
-                              GLenum format, GLenum type, GLvoid* data)
+    void set_texture_image_2d(GLenum target, GLint level,
+                              GLint internal_format, GLsizei width,
+                              GLsizei height, GLenum format,
+                              GLenum type, const void* data)
     {
         glTexImage2D(target, level, internal_format, width, height, 0,
                      format, type, data);
@@ -88,8 +89,9 @@ namespace Tungsten
     }
 
     void set_texture_sub_image_2d(GLenum target, GLint level, GLint x_offset,
-                                  GLint y_offset, GLsizei width, GLsizei height,
-                                  GLenum format, GLenum type, GLvoid* data)
+                                  GLint y_offset, GLsizei width,
+                                  GLsizei height, GLenum format,
+                                  GLenum type, const void* data)
     {
         glTexSubImage2D(target, level, x_offset, y_offset, width, height,
                         format, type, data);

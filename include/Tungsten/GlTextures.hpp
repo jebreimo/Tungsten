@@ -28,9 +28,10 @@ namespace Tungsten
 
     std::vector<TextureHandle> generate_textures(GLsizei count);
 
-    void set_texture_image_2d(GLenum target, GLint level, GLint internal_format,
-                              GLsizei width, GLsizei height,
-                              GLenum format, GLenum type, GLvoid* data);
+    void set_texture_image_2d(GLenum target, GLint level,
+                              GLint internal_format, GLsizei width,
+                              GLsizei height, GLenum format,
+                              GLenum type, const void* data);
 
     void set_texture_mag_filter(GLenum target, GLint param);
 
@@ -40,7 +41,9 @@ namespace Tungsten
 
     void set_texture_parameter(GLenum target, GLenum pname, GLint param);
 
-    void set_texture_sub_image_2d(GLenum target, GLint level, GLint x_offset,
-                                  GLint y_offset, GLsizei width, GLsizei height,
-                                  GLenum format, GLenum type, GLvoid* data);
+    void set_texture_sub_image_2d(GLenum target, GLint level,
+                                  GLint x_offset, GLint y_offset,
+                                  GLsizei width, GLsizei height,
+                                  GLenum format, GLenum type,
+                                  const void* data);
 }
