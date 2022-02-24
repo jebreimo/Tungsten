@@ -61,43 +61,43 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, const Xyz::Vector2i& vec)
+    void set_uniform(GLint location, const Xyz::Vector2I& vec)
     {
         glUniform2iv(location, 1, vec.data());
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, const Xyz::Vector3i& vec)
+    void set_uniform(GLint location, const Xyz::Vector3I& vec)
     {
         glUniform3iv(location, 1, vec.data());
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, const Xyz::Vector4i& vec)
+    void set_uniform(GLint location, const Xyz::Vector4I& vec)
     {
         glUniform4iv(location, 1, vec.data());
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, const Xyz::Vector2f& vec)
+    void set_uniform(GLint location, const Xyz::Vector2F& vec)
     {
         glUniform2fv(location, 1, vec.data());
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, const Xyz::Vector3f& vec)
+    void set_uniform(GLint location, const Xyz::Vector3F& vec)
     {
         glUniform3fv(location, 1, vec.data());
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, const Xyz::Vector4f& vec)
+    void set_uniform(GLint location, const Xyz::Vector4F& vec)
     {
         glUniform4fv(location, 1, vec.data());
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, Xyz::Matrix2f mat, bool transpose)
+    void set_uniform(GLint location, Xyz::Matrix2F mat, bool transpose)
     {
         if (transpose)
             Xyz::transpose_inplace(mat);
@@ -105,7 +105,7 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, Xyz::Matrix3f mat, bool transpose)
+    void set_uniform(GLint location, Xyz::Matrix3F mat, bool transpose)
     {
         if (transpose)
             Xyz::transpose_inplace(mat);
@@ -113,7 +113,7 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, Xyz::Matrix4f mat, bool transpose)
+    void set_uniform(GLint location, Xyz::Matrix4F mat, bool transpose)
     {
         if (transpose)
             Xyz::transpose_inplace(mat);

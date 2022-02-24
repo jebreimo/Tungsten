@@ -6,7 +6,7 @@
 ## License text is included with the source distribution.
 ##****************************************************************************
 cmake_minimum_required(VERSION 3.15)
-project(Tungsten VERSION 0.2.3)
+project(Tungsten VERSION 0.2.4)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -41,11 +41,11 @@ include(FetchContent)
 
 if (DEFINED LOCAL_SOURCE_PACKAGE_DIR)
     FetchContent_Declare(xyz
-        URL "file://${LOCAL_SOURCE_PACKAGE_DIR}/Xyz-0.2.3.tar.gz")
+        URL "file://${LOCAL_SOURCE_PACKAGE_DIR}/Xyz-0.2.5.tar.gz")
 else ()
     FetchContent_Declare(xyz
         GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
-        GIT_TAG master)
+        GIT_TAG v0.2.5)
 endif ()
 
 FetchContent_Declare(argos
