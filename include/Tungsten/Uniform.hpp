@@ -52,18 +52,18 @@ namespace Tungsten
     {
     public:
         Uniform()
-                : m_location(-1)
+                : location_(-1)
         {}
 
         explicit Uniform(GLint location)
-                : m_location(location)
+                : location_(location)
         {}
 
         void set(const T& value)
         {
-            set_uniform(m_location, value);
+            set_uniform(location_, value);
         }
     private:
-        GLint m_location;
+        GLint location_;
     };
 }

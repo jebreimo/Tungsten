@@ -15,44 +15,44 @@ namespace Tungsten
     GlContext GlContext::create(SDL_Window* window)
     {
         auto context = GlContext{window};
-        if (!context.m_context)
+        if (!context.context_)
             TUNGSTEN_THROW("Unable to create GlContext.");
         return context;
     }
 
     GlContext::GlContext()
-            : m_context(nullptr)
+            : context_(nullptr)
     {
     }
 
     GlContext::GlContext(SDL_Window* window)
-            : m_context(SDL_GL_CreateContext(window))
+            : context_(SDL_GL_CreateContext(window))
     {
     }
 
     GlContext::GlContext(GlContext&& other)
-            : m_context(other.m_context)
+            : context_(other.context_)
     {
-        other.m_context = nullptr;
+        other.context_ = nullptr;
     }
 
     GlContext::~GlContext()
     {
-        if (m_context)
-            SDL_GL_DeleteContext(m_context);
+        if (context_)
+            SDL_GL_DeleteContext(context_);
     }
 
     GlContext& GlContext::operator=(GlContext&& other)
     {
-        if (m_context)
-            SDL_GL_DeleteContext(m_context);
-        m_context = other.m_context;
-        other.m_context = nullptr;
+        if (context_)
+            SDL_GL_DeleteContext(context_);
+        context_ = other.context_;
+        other.context_ = nullptr;
         return *this;
     }
 
     GlContext::operator SDL_GLContext() const
     {
-        return m_context;
+        return context_;
     }
 }

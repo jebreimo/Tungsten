@@ -5,12 +5,12 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/GlVersion.hpp"
+#include "Tungsten/GlParameters.hpp"
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
 {
-    GlVersion get_default_gl_version(GlVersionCode version_code)
+    GlVersion make_gl_version(GlVersionCode version_code)
     {
         switch (version_code)
         {
@@ -43,7 +43,7 @@ namespace Tungsten
         return {SDL_GLprofile(p), ma, mi};
     }
 
-    void set_sdl_gl_version(GlVersion version)
+    void set_sdl_gl_version(const GlVersion& version)
     {
         if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
                                 version.profile) != 0
@@ -54,5 +54,38 @@ namespace Tungsten
         {
             THROW_SDL_ERROR();
         }
+    }
+
+    GlMultiSampling get_sdl_gl_multi_sampling()
+    {
+        int buffers, samples;
+        if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &buffers) != 0
+            || SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &samples) != 0)
+        {
+            THROW_SDL_ERROR();
+        }
+        return {buffers, samples};
+    }
+
+    void set_sdl_gl_multi_sampling(const GlMultiSampling& multi_sampling)
+    {
+        if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS,
+                                multi_sampling.buffers) != 0
+            || SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES,
+                                   multi_sampling.samples) != 0)
+        {
+            THROW_SDL_ERROR();
+        }
+    }
+
+    void set_sdl_gl_parameters(const GlParamaters& params)
+    {
+        if (params.version)
+            set_sdl_gl_version(params.version);
+        else
+            set_sdl_gl_version(make_gl_version(GlVersionCode::ES_2));
+
+        if (params.multi_sampling)
+            set_sdl_gl_multi_sampling(params.multi_sampling);
     }
 }

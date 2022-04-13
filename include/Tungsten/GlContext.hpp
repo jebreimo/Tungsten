@@ -36,6 +36,6 @@ namespace Tungsten
     private:
         GlContext(SDL_Window* window);
 
-        SDL_GLContext m_context;
+        SDL_GLContext context_;
     };
 }

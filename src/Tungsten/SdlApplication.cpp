@@ -9,7 +9,7 @@
 
 #include <Argos/ArgumentParser.hpp>
 #include "Tungsten/EventLoop.hpp"
-#include "Tungsten/GlVersion.hpp"
+#include "Tungsten/GlParameters.hpp"
 #include "Tungsten/TungstenException.hpp"
 #include "CommandLine.hpp"
 #include "SdlSession.hpp"
@@ -58,16 +58,16 @@ namespace Tungsten
     SdlApplication::SdlApplication(
         std::string name,
         std::unique_ptr<EventLoop> event_loop)
-        : m_name(move(name)),
-          m_event_loop(move(event_loop)),
-          m_window_parameters(getDefaultWindowParameters())
+        : name_(move(name)),
+          event_loop_(move(event_loop)),
+          window_parameters_(getDefaultWindowParameters())
     {}
 
     SdlApplication::~SdlApplication() = default;
 
     const std::string& SdlApplication::name() const
     {
-        return m_name;
+        return name_;
     }
 
     void SdlApplication::add_command_line_options(argos::ArgumentParser& parser)
@@ -87,20 +87,20 @@ namespace Tungsten
 
     void SdlApplication::run()
     {
-        if (!m_event_loop)
+        if (!event_loop_)
             TUNGSTEN_THROW("No eventloop.");
         SdlSession session(SDL_INIT_VIDEO);
-        initialize(m_window_parameters);
-        m_event_loop->on_startup(*this);
-        m_is_running = true;
+        initialize(window_parameters_);
+        event_loop_->on_startup(*this);
+        is_running_ = true;
         event_loop();
-        m_is_running = false;
-        m_event_loop->on_shutdown(*this);
+        is_running_ = false;
+        event_loop_->on_shutdown(*this);
     }
 
     bool SdlApplication::is_running() const
     {
-        return m_is_running;
+        return is_running_;
     }
 
     void SdlApplication::quit()
@@ -110,17 +110,17 @@ namespace Tungsten
 
     SDL_GLContext SdlApplication::gl_context() const
     {
-        return m_gl_context;
+        return gl_context_;
     }
 
     int SdlApplication::status() const
     {
-        return m_status;
+        return status_;
     }
 
     void SdlApplication::set_status(int status)
     {
-        m_status = status;
+        status_ = status;
     }
 
     SdlApplication& SdlApplication::set_swap_interval(int interval)
@@ -131,12 +131,12 @@ namespace Tungsten
 
     SDL_Window* SdlApplication::window() const
     {
-        return m_window;
+        return window_;
     }
 
     void SdlApplication::setWindow(SDL_Window* value)
     {
-        m_window = value;
+        window_ = value;
     }
 
     std::pair<int, int> SdlApplication::window_size() const
@@ -176,13 +176,14 @@ namespace Tungsten
 
     void SdlApplication::initialize(const WindowParameters& window_parameters)
     {
-        set_sdl_gl_version(get_default_gl_version(GlVersionCode::ES_2));
+        set_sdl_gl_parameters(window_parameters.gl_parameters);
+
         auto tmpWindowParams = window_parameters;
         tmpWindowParams.sdl_flags |= SDL_WINDOW_OPENGL;
 
         setWindow(create_window(tmpWindowParams));
 
-        m_gl_context = GlContext::create(window());
+        gl_context_ = GlContext::create(window());
 
         glewExperimental = GL_TRUE;
         glewInit();
@@ -193,7 +194,7 @@ namespace Tungsten
     {
         const auto& pos = window_parameters.window_pos;
         auto size = window_parameters.window_size;
-        if (window_parameters.full_screen_mode && !size)
+        if (window_parameters.full_screen_mode)
         {
             SDL_DisplayMode modeInfo = {};
             if (SDL_GetDisplayMode(window_parameters.full_screen_mode.display,
@@ -205,10 +206,10 @@ namespace Tungsten
         }
 
         if (!size)
-            size = window_parameters.default_window_size;
+            size = {640, 480};
 
         SDL_Log("Create window with size %dx%d.", size.width, size.height);
-        auto window = SDL_CreateWindow(m_name.c_str(),
+        auto window = SDL_CreateWindow(name_.c_str(),
                                        pos.x, pos.y,
                                        size.width, size.height,
                                        window_parameters.sdl_flags);
@@ -263,31 +264,31 @@ namespace Tungsten
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
-            if (!m_event_loop->on_event(*this, event))
+            if (!event_loop_->on_event(*this, event))
                 process_event(event);
         }
-        m_event_loop->on_update(*this);
-        m_event_loop->on_draw(*this);
+        event_loop_->on_update(*this);
+        event_loop_->on_draw(*this);
         SDL_GL_SwapWindow(window());
     }
 
     const WindowParameters& SdlApplication::window_parameters() const
     {
-        return m_window_parameters;
+        return window_parameters_;
     }
 
     void SdlApplication::set_window_parameters(const WindowParameters& window_parameters)
     {
-        m_window_parameters = window_parameters;
+        window_parameters_ = window_parameters;
     }
 
     EventLoop& SdlApplication::callbacks()
     {
-        return *m_event_loop;
+        return *event_loop_;
     }
 
     const EventLoop& SdlApplication::callbacks() const
     {
-        return *m_event_loop;
+        return *event_loop_;
     }
 }

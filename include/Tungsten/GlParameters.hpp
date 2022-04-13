@@ -22,6 +22,10 @@ namespace Tungsten
         int minor_version = 0;
     };
 
+    GlVersion get_sdl_gl_version();
+
+    void set_sdl_gl_version(const GlVersion& version);
+
     enum class GlVersionCode
     {
         ES_2,
@@ -29,9 +33,28 @@ namespace Tungsten
         CORE_4_1
     };
 
-    GlVersion get_default_gl_version(GlVersionCode version_code);
+    GlVersion make_gl_version(GlVersionCode version_code);
 
-    GlVersion get_sdl_gl_version();
+    struct GlMultiSampling
+    {
+        explicit constexpr operator bool() const
+        {
+            return buffers != 0 && samples != 0;
+        }
 
-    void set_sdl_gl_version(GlVersion version);
+        int buffers = 0;
+        int samples = 0;
+    };
+
+    GlMultiSampling get_sdl_gl_multi_sampling();
+
+    void set_sdl_gl_multi_sampling(const GlMultiSampling& multi_sampling);
+
+    struct GlParamaters
+    {
+        GlVersion version;
+        GlMultiSampling multi_sampling;
+    };
+
+    void set_sdl_gl_parameters(const GlParamaters& params);
 }

@@ -15,17 +15,17 @@ namespace Tungsten
     {
     public:
         GlHandle()
-            : m_id()
+            : id_()
         {}
 
         explicit GlHandle(GLuint id)
-            : m_id(id)
+            : id_(id)
         {}
 
-        GlHandle(GlHandle&& other)
-            : m_id(other.m_id)
+        GlHandle(GlHandle&& other) noexcept
+            : id_(other.id_)
         {
-            other.m_id = 0;
+            other.id_ = 0;
         }
 
         ~GlHandle()
@@ -33,32 +33,32 @@ namespace Tungsten
             reset();
         }
 
-        GlHandle& operator=(GlHandle&& other)
+        GlHandle& operator=(GlHandle&& other) noexcept
         {
-            reset(other.m_id);
-            other.m_id = 0;
+            reset(other.id_);
+            other.id_ = 0;
             return *this;
         }
 
         operator GLuint() const
         {
-            return m_id;
+            return id_;
         }
 
         void reset(GLuint id = 0)
         {
-            if (m_id)
-                Deleter()(m_id);
-            m_id = id;
+            if (id_)
+                Deleter()(id_);
+            id_ = id;
         }
 
         GLuint release()
         {
-            auto id = m_id;
-            m_id = 0;
+            auto id = id_;
+            id_ = 0;
             return id;
         }
     private:
-        GLuint m_id;
+        GLuint id_;
     };
 }

@@ -97,12 +97,12 @@ namespace Tungsten
         static void emscripten_event_loop_step(void* arg);
         #endif
 
-        std::string m_name;
-        std::unique_ptr<EventLoop> m_event_loop;
-        WindowParameters m_window_parameters;
-        SDL_Window* m_window = nullptr;
-        GlContext m_gl_context = {};
-        int m_status = 0;
-        bool m_is_running = false;
+        std::string name_;
+        std::unique_ptr<EventLoop> event_loop_;
+        WindowParameters window_parameters_;
+        SDL_Window* window_ = nullptr;
+        GlContext gl_context_ = {};
+        int status_ = 0;
+        bool is_running_ = false;
     };
 }

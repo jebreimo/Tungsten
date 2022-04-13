@@ -22,45 +22,45 @@ namespace Tungsten
 
         explicit ArrayBufferBuilder(ArrayBuffer<Item>& array,
                                     size_t base_index)
-            : m_array(array),
-              m_base_index(base_index)
+            : array_(array),
+              base_index_(base_index)
         {}
 
         void reserve_vertexes(size_t count)
         {
-            m_array.vertexes.reserve(m_base_index + count);
+            array_.vertexes.reserve(base_index_ + count);
         }
 
         void add_vertex(const Item& vertex)
         {
-            m_array.vertexes.push_back(vertex);
+            array_.vertexes.push_back(vertex);
         }
 
         [[nodiscard]]
         Item& vertex(size_t index)
         {
-            return m_array.vertexes[index];
+            return array_.vertexes[index];
         }
 
         void reserve_indexes(size_t count)
         {
-            m_array.indexes.reserve(m_array.indexes.size() + count);
+            array_.indexes.reserve(array_.indexes.size() + count);
         }
 
         void add_index(uint16_t a)
         {
-            m_array.indexes.push_back(a + m_base_index);
+            array_.indexes.push_back(a + base_index_);
         }
 
         void add_indexes(uint16_t a, uint16_t b, uint16_t c)
         {
-            m_array.indexes.push_back(a + m_base_index);
-            m_array.indexes.push_back(b + m_base_index);
-            m_array.indexes.push_back(c + m_base_index);
+            array_.indexes.push_back(a + base_index_);
+            array_.indexes.push_back(b + base_index_);
+            array_.indexes.push_back(c + base_index_);
         }
 
     private:
-        ArrayBuffer <Item>& m_array;
-        uint32_t m_base_index = 0;
+        ArrayBuffer <Item>& array_;
+        uint32_t base_index_ = 0;
     };
 }

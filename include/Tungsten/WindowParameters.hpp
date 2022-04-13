@@ -8,7 +8,7 @@
 #pragma once
 #include <cstdint>
 #include <string>
-#include <SDL2/SDL.h>
+#include "GlParameters.hpp"
 
 namespace Tungsten
 {
@@ -54,12 +54,13 @@ namespace Tungsten
         int mode = -1;
     };
 
+
     struct WindowParameters
     {
-        WindowPos window_pos;
         WindowSize window_size;
-        WindowSize default_window_size = {640, 480};
-        uint32_t sdl_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+        WindowPos window_pos;
         FullScreenMode full_screen_mode;
+        GlParamaters gl_parameters;
+        uint32_t sdl_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
     };
 }

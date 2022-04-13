@@ -6,7 +6,7 @@
 ## License text is included with the source distribution.
 ##****************************************************************************
 cmake_minimum_required(VERSION 3.15)
-project(Tungsten VERSION 0.2.4)
+project(Tungsten VERSION 0.2.6)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -63,10 +63,10 @@ add_library(Tungsten STATIC
     include/Tungsten/GlBuffer.hpp
     include/Tungsten/GlContext.hpp
     include/Tungsten/GlHandle.hpp
+    include/Tungsten/GlParameters.hpp
     include/Tungsten/GlProgram.hpp
     include/Tungsten/GlShader.hpp
     include/Tungsten/GlTextures.hpp
-    include/Tungsten/GlVersion.hpp
     include/Tungsten/GlVertexArray.hpp
     include/Tungsten/GlVertices.hpp
     include/Tungsten/SdlApplication.hpp
@@ -79,10 +79,10 @@ add_library(Tungsten STATIC
     src/Tungsten/CommandLine.hpp
     src/Tungsten/GlBuffer.cpp
     src/Tungsten/GlContext.cpp
+    src/Tungsten/GlParameters.cpp
     src/Tungsten/GlProgram.cpp
     src/Tungsten/GlShader.cpp
     src/Tungsten/GlTextures.cpp
-    src/Tungsten/GlVersion.cpp
     src/Tungsten/GlVertexArray.cpp
     src/Tungsten/GlVertices.cpp
     src/Tungsten/SdlApplication.cpp
