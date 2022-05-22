@@ -58,9 +58,8 @@ namespace Tungsten
             array_.indexes.push_back(b + base_index_);
             array_.indexes.push_back(c + base_index_);
         }
-
     private:
-        ArrayBuffer <Item>& array_;
+        ArrayBuffer<Item>& array_;
         uint32_t base_index_ = 0;
     };
 }
