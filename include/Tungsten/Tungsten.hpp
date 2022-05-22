@@ -6,12 +6,14 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include "ArrayBuffer.hpp"
+#include "ArrayBufferBuilder.hpp"
 #include "GlBuffer.hpp"
-#include "TungstenException.hpp"
 #include "GlProgram.hpp"
 #include "GlTextures.hpp"
 #include "GlVertexArray.hpp"
 #include "GlVertices.hpp"
 #include "SdlApplication.hpp"
 #include "ShaderTools.hpp"
+#include "TungstenException.hpp"
 #include "Uniform.hpp"
