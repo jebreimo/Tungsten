@@ -21,14 +21,13 @@ endif ()
 
 project(Tungsten VERSION 0.2.${TUNGSTEN_GIT_VERSION})
 
-message("Tungsten version is ${Tungsten_VERSION}")
-
 set(CMAKE_CXX_STANDARD 17)
 
 # Set TUNGSTEN_MASTER_PROJECT to ON if Xyz is the root level project.
 if (NOT DEFINED TUNGSTEN_MASTER_PROJECT)
     if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
         set(TUNGSTEN_MASTER_PROJECT ON)
+        message("Tungsten version is ${Tungsten_VERSION}")
     else ()
         set(TUNGSTEN_MASTER_PROJECT OFF)
     endif ()
