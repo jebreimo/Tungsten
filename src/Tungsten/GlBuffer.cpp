@@ -33,7 +33,7 @@ namespace Tungsten
     std::vector<BufferHandle> generate_buffers(GLsizei count)
     {
         if (count == 0)
-            return std::vector<BufferHandle>();
+            return {};
 
         auto ids = std::vector<GLuint>(size_t(count));
         glGenBuffers(count, ids.data());
@@ -48,6 +48,13 @@ namespace Tungsten
                          GLenum usage)
     {
         glBufferData(target, size, data, usage);
+        THROW_IF_GL_ERROR();
+    }
+
+    void set_buffer_subdata(GLenum target, GLintptr offset,
+                            GLsizeiptr size, const GLvoid* data)
+    {
+        glBufferSubData(target, offset, size, data);
         THROW_IF_GL_ERROR();
     }
 

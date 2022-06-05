@@ -6,7 +6,22 @@
 ## License text is included with the source distribution.
 ##****************************************************************************
 cmake_minimum_required(VERSION 3.15)
-project(Tungsten VERSION 0.2.7)
+
+find_package(Git QUIET)
+if (Git_FOUND)
+    execute_process(
+        COMMAND ${GIT_EXECUTABLE} rev-list --count HEAD
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        OUTPUT_VARIABLE TUNGSTEN_GIT_VERSION
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+else ()
+    set(TUNGSTEN_GIT_VERSION 0)
+endif ()
+
+project(Tungsten VERSION 0.2.${TUNGSTEN_GIT_VERSION})
+
+message("Tungsten version is ${Tungsten_VERSION}")
 
 set(CMAKE_CXX_STANDARD 17)
 

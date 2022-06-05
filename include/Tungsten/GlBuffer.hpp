@@ -27,6 +27,9 @@ namespace Tungsten
     void set_buffer_data(GLenum target, GLsizeiptr size,
                          const GLvoid* data, GLenum usage);
 
+    void set_buffer_subdata(GLenum target, GLintptr offset,
+                            GLsizeiptr size, const GLvoid* data);
+
     void set_element_array_buffer(GLuint buffer_id,
                                   GLsizeiptr value_count,
                                   const uint16_t* values,
