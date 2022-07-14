@@ -7,19 +7,7 @@
 ##****************************************************************************
 cmake_minimum_required(VERSION 3.15)
 
-find_package(Git QUIET)
-if (Git_FOUND)
-    execute_process(
-        COMMAND ${GIT_EXECUTABLE} rev-list --count HEAD
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        OUTPUT_VARIABLE TUNGSTEN_GIT_VERSION
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-else ()
-    set(TUNGSTEN_GIT_VERSION 0)
-endif ()
-
-project(Tungsten VERSION 0.2.${TUNGSTEN_GIT_VERSION})
+project(Tungsten VERSION 0.2.69)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -27,7 +15,6 @@ set(CMAKE_CXX_STANDARD 17)
 if (NOT DEFINED TUNGSTEN_MASTER_PROJECT)
     if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
         set(TUNGSTEN_MASTER_PROJECT ON)
-        message("Tungsten version is ${Tungsten_VERSION}")
     else ()
         set(TUNGSTEN_MASTER_PROJECT OFF)
     endif ()
@@ -55,11 +42,11 @@ include(FetchContent)
 
 if (DEFINED LOCAL_SOURCE_PACKAGE_DIR)
     FetchContent_Declare(xyz
-        URL "file://${LOCAL_SOURCE_PACKAGE_DIR}/Xyz-0.2.6.tar.gz")
+        URL "file://${LOCAL_SOURCE_PACKAGE_DIR}/Xyz-0.2.75.76.tar.gz")
 else ()
     FetchContent_Declare(xyz
         GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
-        GIT_TAG v0.2.6)
+        GIT_TAG v0.2.75)
 endif ()
 
 FetchContent_Declare(argos
@@ -132,9 +119,18 @@ if (DEFINED LOCAL_SOURCE_PACKAGE_DIR OR DEFINED ENV{LOCAL_SOURCE_PACKAGE_DIR})
         set(LOCAL_SOURCE_PACKAGE_DIR $ENV{LOCAL_SOURCE_PACKAGE_DIR})
     endif ()
     if (TUNGSTEN_MASTER_PROJECT)
+        find_package(Git REQUIRED)
+        execute_process(
+            COMMAND ${GIT_EXECUTABLE} rev-list --count HEAD
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            OUTPUT_VARIABLE CURRENT_GIT_REVISION
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+
         add_custom_target(${PROJECT_NAME}_BUILD_SRC_TARBALL
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            COMMAND git archive -v --format=tar.gz --prefix=${PROJECT_NAME}/ HEAD > ${LOCAL_SOURCE_PACKAGE_DIR}/${PROJECT_NAME}-${PROJECT_VERSION}.tar.gz
+            COMMAND ${GIT_EXECUTABLE} archive -v --format=tar.gz --prefix=${PROJECT_NAME}/ HEAD > ${LOCAL_SOURCE_PACKAGE_DIR}/${PROJECT_NAME}-${PROJECT_VERSION}.${CURRENT_GIT_REVISION}.tar.gz
+            COMMAND echo Created ${LOCAL_SOURCE_PACKAGE_DIR}/${PROJECT_NAME}-${PROJECT_VERSION}.${CURRENT_GIT_REVISION}.tar.gz
             )
     endif ()
 endif ()
