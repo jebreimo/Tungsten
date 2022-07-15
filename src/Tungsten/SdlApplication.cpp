@@ -58,8 +58,8 @@ namespace Tungsten
     SdlApplication::SdlApplication(
         std::string name,
         std::unique_ptr<EventLoop> event_loop)
-        : name_(move(name)),
-          event_loop_(move(event_loop)),
+        : name_(std::move(name)),
+          event_loop_(std::move(event_loop)),
           window_parameters_(getDefaultWindowParameters())
     {}
 
@@ -243,10 +243,10 @@ namespace Tungsten
                                      simulate_infinite_loop);
     }
 
-    void SdlApplication::emscriptenEventLoopStep(void* arg)
+    void SdlApplication::emscripten_event_loop_step(void* arg)
     {
         auto app = static_cast<SdlApplication*>(arg);
-        app->eventLoopStep();
+        app->event_loop_step();
     }
 
     #else
