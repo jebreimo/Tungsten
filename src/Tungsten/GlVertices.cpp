@@ -11,7 +11,7 @@
 
 namespace Tungsten
 {
-    GLsizei getTypeSize(GLenum type)
+    GLsizei get_type_size(GLenum type)
     {
         switch (type)
         {
@@ -26,8 +26,8 @@ namespace Tungsten
 
     void draw_elements(GLenum mode, GLsizei count, GLenum type, GLsizei offset)
     {
-        auto tmpOffset = size_t(offset * getTypeSize(type));
-        glDrawElements(mode, count, type, reinterpret_cast<void*>(tmpOffset));
+        intptr_t tmp_offset = offset * get_type_size(type);
+        glDrawElements(mode, count, type, reinterpret_cast<void*>(tmp_offset));
         THROW_IF_GL_ERROR();
     }
 

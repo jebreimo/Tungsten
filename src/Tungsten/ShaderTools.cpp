@@ -13,7 +13,7 @@ namespace Tungsten
 {
     namespace
     {
-        std::string readFile(const std::string& path)
+        std::string read_file(const std::string& path)
         {
             std::ifstream file(path);
             if (!file)
@@ -21,22 +21,22 @@ namespace Tungsten
 
             std::string result;
             file.seekg(0, std::ios::end);
-            auto fileSize = static_cast<size_t>(file.tellg());
-            result.resize(fileSize);
-            if (result.size() < fileSize)
+            auto file_size = static_cast<size_t>(file.tellg());
+            result.resize(file_size);
+            if (result.size() < file_size)
             {
                 throw std::runtime_error(path + ": File is too big. Size = "
-                                         + std::to_string(fileSize));
+                                         + std::to_string(file_size));
             }
             file.seekg(0, std::ios::beg);
-            file.read(&result[0], fileSize);
+            file.read(&result[0], file_size);
             return result;
         }
     }
 
     std::string read_shader(const std::string& path)
     {
-        return readFile(path);
+        return read_file(path);
     }
 
     Tungsten::ShaderHandle create_shader(GLuint shader_type,

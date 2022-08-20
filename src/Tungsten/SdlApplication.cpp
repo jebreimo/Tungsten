@@ -34,11 +34,12 @@ namespace Tungsten
             return Module.canvas.height;
         });
 
-        WindowParameters getDefaultWindowParameters()
+        WindowParameters get_default_window_parameters()
         {
             int width = canvas_get_width();
             int height = canvas_get_height();
 
+            SDL_Log
             WindowParameters params;
             if (width > 0 && height > 0)
                 params.window_size = {width, height};
@@ -47,7 +48,7 @@ namespace Tungsten
 
         #else
 
-        WindowParameters getDefaultWindowParameters()
+        WindowParameters get_default_window_parameters()
         {
             return {};
         }
@@ -60,7 +61,7 @@ namespace Tungsten
         std::unique_ptr<EventLoop> event_loop)
         : name_(std::move(name)),
           event_loop_(std::move(event_loop)),
-          window_parameters_(getDefaultWindowParameters())
+          window_parameters_(get_default_window_parameters())
     {}
 
     SdlApplication::~SdlApplication() = default;
@@ -134,9 +135,9 @@ namespace Tungsten
         return window_;
     }
 
-    void SdlApplication::setWindow(SDL_Window* value)
+    void SdlApplication::set_window(SDL_Window* window)
     {
-        window_ = value;
+        window_ = window;
     }
 
     std::pair<int, int> SdlApplication::window_size() const
@@ -174,14 +175,14 @@ namespace Tungsten
         return true;
     }
 
-    void SdlApplication::initialize(const WindowParameters& window_parameters)
+    void SdlApplication::initialize(const WindowParameters& params)
     {
-        set_sdl_gl_parameters(window_parameters.gl_parameters);
+        set_sdl_gl_parameters(params.gl_parameters);
 
-        auto tmpWindowParams = window_parameters;
+        auto tmpWindowParams = params;
         tmpWindowParams.sdl_flags |= SDL_WINDOW_OPENGL;
 
-        setWindow(create_window(tmpWindowParams));
+        set_window(create_window(tmpWindowParams));
 
         gl_context_ = GlContext::create(window());
 
@@ -190,15 +191,15 @@ namespace Tungsten
     }
 
     SDL_Window*
-    SdlApplication::create_window(const WindowParameters& window_parameters)
+    SdlApplication::create_window(const WindowParameters& params)
     {
-        const auto& pos = window_parameters.window_pos;
-        auto size = window_parameters.window_size;
-        if (window_parameters.full_screen_mode)
+        const auto& pos = params.window_pos;
+        auto size = params.window_size;
+        if (params.full_screen_mode)
         {
             SDL_DisplayMode modeInfo = {};
-            if (SDL_GetDisplayMode(window_parameters.full_screen_mode.display,
-                                   window_parameters.full_screen_mode.mode,
+            if (SDL_GetDisplayMode(params.full_screen_mode.display,
+                                   params.full_screen_mode.mode,
                                    &modeInfo) >= 0)
             {
                 size = {modeInfo.w, modeInfo.h};
@@ -212,18 +213,18 @@ namespace Tungsten
         auto window = SDL_CreateWindow(name_.c_str(),
                                        pos.x, pos.y,
                                        size.width, size.height,
-                                       window_parameters.sdl_flags);
+                                       params.sdl_flags);
 
-        if (window_parameters.full_screen_mode && window_parameters.sdl_flags)
+        if (params.full_screen_mode && params.sdl_flags)
         {
             SDL_DisplayMode mode;
-            if (SDL_GetDisplayMode(window_parameters.full_screen_mode.display,
-                                   window_parameters.full_screen_mode.mode,
+            if (SDL_GetDisplayMode(params.full_screen_mode.display,
+                                   params.full_screen_mode.mode,
                                    &mode) >= 0)
             {
                 SDL_Log("Set fullscreen mode: %d:%d.",
-                        window_parameters.full_screen_mode.display,
-                        window_parameters.full_screen_mode.mode);
+                        params.full_screen_mode.display,
+                        params.full_screen_mode.mode);
                 SDL_SetWindowDisplayMode(window, &mode);
             }
         }
@@ -276,9 +277,9 @@ namespace Tungsten
         return window_parameters_;
     }
 
-    void SdlApplication::set_window_parameters(const WindowParameters& window_parameters)
+    void SdlApplication::set_window_parameters(const WindowParameters& params)
     {
-        window_parameters_ = window_parameters;
+        window_parameters_ = params;
     }
 
     EventLoop& SdlApplication::callbacks()

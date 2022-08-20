@@ -21,7 +21,7 @@ namespace Tungsten
 
     void compile_shader(GLuint shader_id);
 
-    ShaderHandle create_shader(GLuint shaderType);
+    ShaderHandle create_shader(GLuint shader_type);
 
     void set_shader_source(GLuint shader_id, const std::string& source);
 

@@ -43,26 +43,26 @@ namespace Tungsten
         return result;
     }
 
-    bool getProgramLinkStatus(GLuint programId)
+    bool get_program_link_status(GLuint program_id)
     {
         GLint result = 0;
-        glGetProgramiv(programId, GL_LINK_STATUS, &result);
+        glGetProgramiv(program_id, GL_LINK_STATUS, &result);
         THROW_IF_GL_ERROR();
         return result == GL_TRUE;
     }
 
-    GLint getProgramInfoLogLength(GLuint programId)
+    GLint get_program_info_log_length(GLuint program_id)
     {
         GLint size;
-        glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &size);
+        glGetProgramiv(program_id, GL_INFO_LOG_LENGTH, &size);
         return size;
     }
 
-    std::string getProgramInfoLog(GLuint programId)
+    std::string get_program_info_log(GLuint program_id)
     {
-        auto size = getProgramInfoLogLength(programId);
+        auto size = get_program_info_log_length(program_id);
         std::string result(size, '\0');
-        glGetProgramInfoLog(programId, size, &size, &result[0]);
+        glGetProgramInfoLog(program_id, size, &size, &result[0]);
         return result;
     }
 
@@ -70,8 +70,8 @@ namespace Tungsten
     {
         glLinkProgram(program_id);
         THROW_IF_GL_ERROR();
-        if (!getProgramLinkStatus(program_id))
-            TUNGSTEN_THROW(getProgramInfoLog(program_id));
+        if (!get_program_link_status(program_id))
+            TUNGSTEN_THROW(get_program_info_log(program_id));
     }
 
     void use_program(GLuint program_id)

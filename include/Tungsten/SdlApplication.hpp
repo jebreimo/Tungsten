@@ -63,7 +63,7 @@ namespace Tungsten
         [[nodiscard]]
         SDL_Window* window() const;
 
-        void setWindow(SDL_Window* window);
+        void set_window(SDL_Window* window);
 
         [[nodiscard]]
         std::pair<int, int> window_size() const;
@@ -74,7 +74,7 @@ namespace Tungsten
         [[nodiscard]]
         const WindowParameters& window_parameters() const;
 
-        void set_window_parameters(const WindowParameters& window_parameters);
+        void set_window_parameters(const WindowParameters& params);
 
         [[nodiscard]]
         const EventLoop& callbacks() const;
@@ -85,9 +85,9 @@ namespace Tungsten
 
         bool process_event(const SDL_Event& event);
 
-        void initialize(const WindowParameters& window_parameters);
+        void initialize(const WindowParameters& params);
 
-        SDL_Window* create_window(const WindowParameters& window_parameters);
+        SDL_Window* create_window(const WindowParameters& params);
     private:
         void event_loop();
 

@@ -16,49 +16,49 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
-    void compile_shader(GLuint shaderId)
+    void compile_shader(GLuint shader_id)
     {
-        glCompileShader(shaderId);
+        glCompileShader(shader_id);
         THROW_IF_GL_ERROR();
-        if (!get_shader_compile_status(shaderId))
-            TUNGSTEN_THROW(get_shader_info_log(shaderId));
+        if (!get_shader_compile_status(shader_id))
+            TUNGSTEN_THROW(get_shader_info_log(shader_id));
     }
 
-    ShaderHandle create_shader(GLuint shaderType)
+    ShaderHandle create_shader(GLuint shader_type)
     {
-        auto id = glCreateShader(shaderType);
+        auto id = glCreateShader(shader_type);
         THROW_IF_GL_ERROR();
         return ShaderHandle(id);
     }
 
-    bool get_shader_compile_status(GLuint shaderId)
+    bool get_shader_compile_status(GLuint shader_id)
     {
         GLint result = 0;
-        glGetShaderiv(shaderId, GL_COMPILE_STATUS, &result);
+        glGetShaderiv(shader_id, GL_COMPILE_STATUS, &result);
         THROW_IF_GL_ERROR();
         return result == GL_TRUE;
     }
 
-    GLint get_shader_info_log_length(GLuint shaderId)
+    GLint get_shader_info_log_length(GLuint shader_id)
     {
         GLint size;
-        glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &size);
+        glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &size);
         return size;
     }
 
-    std::string get_shader_info_log(GLuint shaderId)
+    std::string get_shader_info_log(GLuint shader_id)
     {
-        auto size = get_shader_info_log_length(shaderId);
+        auto size = get_shader_info_log_length(shader_id);
         std::string result(size, '\0');
-        glGetShaderInfoLog(shaderId, size, &size, &result[0]);
+        glGetShaderInfoLog(shader_id, size, &size, &result[0]);
         return result;
     }
 
-    void set_shader_source(GLuint shaderId, const std::string& source)
+    void set_shader_source(GLuint shader_id, const std::string& source)
     {
         auto length = (GLint)source.size();
         auto str = source.c_str();
-        glShaderSource(shaderId, 1, &str, &length);
+        glShaderSource(shader_id, 1, &str, &length);
         THROW_IF_GL_ERROR();
     }
 }
