@@ -63,37 +63,37 @@ namespace Tungsten
 
     void set_uniform(GLint location, const Xyz::Vector2I& vec)
     {
-        glUniform2iv(location, 1, vec.data());
+        glUniform2iv(location, 1, vec.values);
         THROW_IF_GL_ERROR();
     }
 
     void set_uniform(GLint location, const Xyz::Vector3I& vec)
     {
-        glUniform3iv(location, 1, vec.data());
+        glUniform3iv(location, 1, vec.values);
         THROW_IF_GL_ERROR();
     }
 
     void set_uniform(GLint location, const Xyz::Vector4I& vec)
     {
-        glUniform4iv(location, 1, vec.data());
+        glUniform4iv(location, 1, vec.values);
         THROW_IF_GL_ERROR();
     }
 
     void set_uniform(GLint location, const Xyz::Vector2F& vec)
     {
-        glUniform2fv(location, 1, vec.data());
+        glUniform2fv(location, 1, vec.values);
         THROW_IF_GL_ERROR();
     }
 
     void set_uniform(GLint location, const Xyz::Vector3F& vec)
     {
-        glUniform3fv(location, 1, vec.data());
+        glUniform3fv(location, 1, vec.values);
         THROW_IF_GL_ERROR();
     }
 
     void set_uniform(GLint location, const Xyz::Vector4F& vec)
     {
-        glUniform4fv(location, 1, vec.data());
+        glUniform4fv(location, 1, vec.values);
         THROW_IF_GL_ERROR();
     }
 
@@ -101,7 +101,7 @@ namespace Tungsten
     {
         if (transpose)
             Xyz::transpose_inplace(mat);
-        glUniformMatrix2fv(location, 1, false, mat.data());
+        glUniformMatrix2fv(location, 1, false, mat.values);
         THROW_IF_GL_ERROR();
     }
 
@@ -109,7 +109,7 @@ namespace Tungsten
     {
         if (transpose)
             Xyz::transpose_inplace(mat);
-        glUniformMatrix3fv(location, 1, false, mat.data());
+        glUniformMatrix3fv(location, 1, false, mat.values);
         THROW_IF_GL_ERROR();
     }
 
@@ -117,7 +117,7 @@ namespace Tungsten
     {
         if (transpose)
             Xyz::transpose_inplace(mat);
-        glUniformMatrix4fv(location, 1, false, mat.data());
+        glUniformMatrix4fv(location, 1, false, mat.values);
         THROW_IF_GL_ERROR();
     }
 }
