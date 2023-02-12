@@ -22,7 +22,11 @@ namespace argos
 
 namespace Tungsten
 {
-    class SdlApplication;
+    enum class EventLoopMode
+    {
+        UPDATE_CONTINUOUSLY,
+        WAIT_FOR_EVENTS
+    };
 
     class SdlApplication
     {
@@ -77,6 +81,11 @@ namespace Tungsten
         void set_window_parameters(const WindowParameters& params);
 
         [[nodiscard]]
+        EventLoopMode event_loop_mode() const;
+
+        void set_event_loop_mode(EventLoopMode mode);
+
+        [[nodiscard]]
         const EventLoop& callbacks() const;
 
         EventLoop& callbacks();
@@ -97,8 +106,9 @@ namespace Tungsten
         static void emscripten_event_loop_step(void* arg);
         #endif
 
-        std::string name_;
         std::unique_ptr<EventLoop> event_loop_;
+        EventLoopMode event_loop_mode_ = EventLoopMode::UPDATE_CONTINUOUSLY;
+        std::string name_;
         WindowParameters window_parameters_;
         SDL_Window* window_ = nullptr;
         GlContext gl_context_ = {};

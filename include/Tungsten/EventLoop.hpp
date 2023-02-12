@@ -33,5 +33,24 @@ namespace Tungsten
 
         virtual void on_shutdown(SdlApplication& app)
         {}
+
+        void redraw()
+        {
+            redraw_ = true;
+        }
+
+        void clear_redraw()
+        {
+            redraw_ = false;
+        }
+
+        [[nodiscard]]
+        bool should_redraw() const
+        {
+            return redraw_;
+        }
+
+    private:
+        bool redraw_ = true;
     };
 }

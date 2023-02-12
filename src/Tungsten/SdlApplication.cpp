@@ -156,21 +156,27 @@ namespace Tungsten
 
     bool SdlApplication::process_event(const SDL_Event& event)
     {
-        switch (event.type)
+        if (!event_loop_->on_event(*this, event))
         {
-        case SDL_QUIT:
-            quit();
-            break;
-        case SDL_KEYUP:
-            if (event.key.keysym.sym == SDLK_ESCAPE)
+            switch (event.type)
+            {
+            case SDL_QUIT:
                 quit();
-            break;
-        case SDL_WINDOWEVENT:
-            if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
-                glViewport(0, 0, event.window.data1, event.window.data2);
-            break;
-        default:
-            break;
+                break;
+            case SDL_KEYUP:
+                if (event.key.keysym.sym == SDLK_ESCAPE)
+                    quit();
+                break;
+            case SDL_WINDOWEVENT:
+                if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+                {
+                    glViewport(0, 0, event.window.data1, event.window.data2);
+                    event_loop_->redraw();
+                }
+                break;
+            default:
+                break;
+            }
         }
         return true;
     }
@@ -263,13 +269,23 @@ namespace Tungsten
     {
         SDL_Event event;
         while (SDL_PollEvent(&event))
-        {
-            if (!event_loop_->on_event(*this, event))
                 process_event(event);
-        }
+
         event_loop_->on_update(*this);
-        event_loop_->on_draw(*this);
-        SDL_GL_SwapWindow(window());
+
+        if (event_loop_->should_redraw())
+        {
+            event_loop_->clear_redraw();
+            event_loop_->on_draw(*this);
+            SDL_GL_SwapWindow(window());
+        }
+
+        if (event_loop_mode_ == EventLoopMode::WAIT_FOR_EVENTS
+            && !event_loop_->should_redraw())
+        {
+            SDL_WaitEvent(&event);
+            process_event(event);
+        }
     }
 
     const WindowParameters& SdlApplication::window_parameters() const
@@ -280,6 +296,16 @@ namespace Tungsten
     void SdlApplication::set_window_parameters(const WindowParameters& params)
     {
         window_parameters_ = params;
+    }
+
+    EventLoopMode SdlApplication::event_loop_mode() const
+    {
+        return event_loop_mode_;
+    }
+
+    void SdlApplication::set_event_loop_mode(EventLoopMode mode)
+    {
+        event_loop_mode_ = mode;
     }
 
     EventLoop& SdlApplication::callbacks()
