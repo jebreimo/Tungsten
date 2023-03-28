@@ -50,6 +50,7 @@ find_package(SDL2 REQUIRED)
 
 add_library(Tungsten STATIC
     include/Tungsten/ArrayBuffer.hpp
+    include/Tungsten/ArrayBufferBuilder.hpp
     include/Tungsten/GlBuffer.hpp
     include/Tungsten/GlContext.hpp
     include/Tungsten/GlHandle.hpp
