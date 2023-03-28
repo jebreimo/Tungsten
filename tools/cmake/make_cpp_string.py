@@ -37,7 +37,7 @@ def main(args):
         print("usage: %s <shader file> [output file]"
               % os.path.basename(sys.argv[0]))
         return 1
-    input = open(args[0])
+    input_file = open(args[0])
     if len(args) == 2:
         dir_name = os.path.dirname(args[1])
         if dir_name and not os.path.exists(dir_name):
@@ -46,7 +46,7 @@ def main(args):
     else:
         output = sys.stdout
     output.write('constexpr char %s[] = R"---(' % make_variable_name(args[0]))
-    output.write(input.read())
+    output.write(input_file.read())
     output.write(')---";\n')
     return 0
 
