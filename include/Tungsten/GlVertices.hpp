@@ -15,7 +15,7 @@ namespace Tungsten
 
     inline void draw_lines16(GLsizei count, GLsizei offset = 0)
     {
-        draw_elements(GL_TRIANGLES, count, GL_UNSIGNED_SHORT, offset);
+        draw_elements(GL_LINES, count, GL_UNSIGNED_SHORT, offset);
     }
 
     inline void draw_line_loop16(GLsizei count, GLsizei offset = 0)
