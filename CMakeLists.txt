@@ -7,7 +7,7 @@
 ##****************************************************************************
 cmake_minimum_required(VERSION 3.15)
 
-project(Tungsten VERSION 0.2.78)
+project(Tungsten VERSION 0.2.79)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -19,12 +19,6 @@ if (NOT DEFINED TUNGSTEN_MASTER_PROJECT)
         set(TUNGSTEN_MASTER_PROJECT OFF)
     endif ()
 endif ()
-
-# # Test option
-# option(TUNGSTEN_BUILD_TEST "Build tests" ${TUNGSTEN_MASTER_PROJECT})
-#
-# # Install option
-# option(TUNGSTEN_INSTALL "Generate the install target" ${TUNGSTEN_MASTER_PROJECT})
 
 if (EMSCRIPTEN)
     list(PREPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/emscripten)

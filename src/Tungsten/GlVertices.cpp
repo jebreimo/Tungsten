@@ -8,19 +8,21 @@
 #include "Tungsten/GlVertices.hpp"
 #include "Tungsten/TungstenException.hpp"
 
-
 namespace Tungsten
 {
-    GLsizei get_type_size(GLenum type)
+    namespace
     {
-        switch (type)
+        GLsizei get_type_size(GLenum type)
         {
-        case GL_UNSIGNED_SHORT:
-            return sizeof(unsigned short);
-        case GL_UNSIGNED_BYTE:
-            return 1;
-        default:
-            TUNGSTEN_THROW("Unsupported type: " + std::to_string(type));
+            switch (type)
+            {
+            case GL_UNSIGNED_SHORT:
+                return sizeof(unsigned short);
+            case GL_UNSIGNED_BYTE:
+                return 1;
+            default:
+                TUNGSTEN_THROW("Unsupported type: " + std::to_string(type));
+            }
         }
     }
 
