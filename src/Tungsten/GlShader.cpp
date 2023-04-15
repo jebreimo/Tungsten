@@ -21,7 +21,7 @@ namespace Tungsten
         glCompileShader(shader_id);
         THROW_IF_GL_ERROR();
         if (!get_shader_compile_status(shader_id))
-            TUNGSTEN_THROW(get_shader_info_log(shader_id));
+            TUNGSTEN_THROW(+ get_shader_info_log(shader_id));
     }
 
     ShaderHandle create_shader(GLuint shader_type)

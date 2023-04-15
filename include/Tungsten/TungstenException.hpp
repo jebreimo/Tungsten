@@ -15,34 +15,37 @@ namespace Tungsten
 {
     std::string get_gl_error_message(GLenum error_code);
 
-    std::string format_error_message(const std::string& error,
-                                     const std::string& file_name,
-                                     long line_no,
-                                     const std::string& func_name);
-
     class TungstenException : public std::runtime_error
     {
     public:
-        TungstenException(const std::string& message,
-                          const std::string& fileName,
-                          long lineNo,
-                          const std::string& funcName) noexcept
-            : std::runtime_error(format_error_message(message, fileName,
-                                                      lineNo, funcName))
-        {}
+        using std::runtime_error::runtime_error;
     };
 }
 
+#ifdef _MSC_VER
+    #define _TUNGSTEN_THROW_3(file, line, msg) \
+        throw ::Tungsten::TungstenException(file "(" #line "): " msg)
+#else
+    #define _TUNGSTEN_THROW_3(file, line, msg) \
+        throw ::Tungsten::TungstenException(file ":" #line ": " msg)
+#endif
+
+#define _TUNGSTEN_THROW_2(file, line, msg) \
+    _TUNGSTEN_THROW_3(file, line, msg)
+
 #define TUNGSTEN_THROW(msg) \
-        throw TungstenException((msg), __FILE__, __LINE__, __FUNCTION__)
+    _TUNGSTEN_THROW_2(__FILE__, __LINE__, msg)
 
 #define THROW_IF_GL_ERROR() \
     do { \
-        auto e = glGetError(); \
-        if (!e) \
+        auto my_gl_error = glGetError(); \
+        if (!my_gl_error) \
             break; \
-        throw TungstenException(get_gl_error_message(e), __FILE__, __LINE__, __FUNCTION__); \
+        _TUNGSTEN_THROW_2(__FILE__, __LINE__, \
+                          + std::string("[") + __func__ + "] " \
+                          + get_gl_error_message(my_gl_error)); \
     } while (false)
 
 #define THROW_SDL_ERROR() \
-    throw TungstenException(SDL_GetError(), __FILE__, __LINE__, __FUNCTION__)
+    _TUNGSTEN_THROW_2(__FILE__, __LINE__, \
+                      + std::string("[") + __func__ + "] " + SDL_GetError())

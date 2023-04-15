@@ -71,7 +71,7 @@ namespace Tungsten
         glLinkProgram(program_id);
         THROW_IF_GL_ERROR();
         if (!get_program_link_status(program_id))
-            TUNGSTEN_THROW(get_program_info_log(program_id));
+            TUNGSTEN_THROW(+ get_program_info_log(program_id));
     }
 
     void use_program(GLuint program_id)

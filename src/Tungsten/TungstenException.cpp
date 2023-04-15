@@ -22,27 +22,7 @@ namespace Tungsten
         case GL_OUT_OF_MEMORY: return "Out of memory.";
         case GL_STACK_UNDERFLOW: return "Stack underflow.";
         case GL_STACK_OVERFLOW: return "Stack overflow.";
-        default: break;
+        default: return "Unknown error.";
         }
-        return "Unknown error.";
-    }
-
-    std::string format_error_message(const std::string& message,
-                                     const std::string& file_name,
-                                     long line_no,
-                                     const std::string& func_name)
-    {
-        std::string msg;
-        if (!func_name.empty())
-        {
-            msg += func_name;
-            msg += "() in ";
-        }
-        msg += file_name;
-        msg += ":";
-        msg += std::to_string(line_no);
-        msg += ": ";
-        msg += message;
-        return msg;
     }
 }
