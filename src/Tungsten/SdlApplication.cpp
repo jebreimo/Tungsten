@@ -304,7 +304,7 @@ namespace Tungsten
 
     void SdlApplication::set_event_loop_mode(EventLoopMode mode)
     {
-        #ifndef __EMSCRIPTEN__
+        #ifdef __EMSCRIPTEN__
         if (mode == EventLoopMode::WAIT_FOR_EVENTS)
             TUNGSTEN_THROW("Can't use WAIT_FOR_EVENTS with Emscripten.");
         #endif
