@@ -26,11 +26,21 @@ namespace Tungsten
         }
     }
 
-    void draw_elements(GLenum mode, GLsizei count, GLenum type, GLsizei offset)
+    void draw_array(GLenum mode, GLsizei offset, GLsizei count)
+    {
+        glDrawArrays(mode, GLint(offset), count);
+    }
+
+    void draw_elements(GLenum mode, GLenum type, GLsizei offset, GLsizei count)
     {
         intptr_t tmp_offset = offset * get_type_size(type);
         glDrawElements(mode, count, type, reinterpret_cast<void*>(tmp_offset));
         THROW_IF_GL_ERROR();
+    }
+
+    void draw_elements_16(GLenum mode, GLsizei offset, GLsizei count)
+    {
+        draw_elements(mode, GL_UNSIGNED_SHORT, offset, count);
     }
 
     void enable_vertex_attribute(GLuint location)
@@ -57,5 +67,14 @@ namespace Tungsten
                               stride,
                               reinterpret_cast<void*>(offset));
         THROW_IF_GL_ERROR();
+    }
+
+    void define_vertex_attribute_float_pointer(GLuint attribute_location,
+                                               GLint size,
+                                               GLsizei stride,
+                                               size_t offset)
+    {
+        define_vertex_attribute_pointer(attribute_location, size, GL_FLOAT,
+                                        false, stride, offset);
     }
 }

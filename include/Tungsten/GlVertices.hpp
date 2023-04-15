@@ -10,42 +10,84 @@
 
 namespace Tungsten
 {
-    void draw_elements(GLenum mode, GLsizei count,
-                       GLenum type, GLsizei offset = 0);
+    void draw_array(GLenum mode, GLsizei offset, GLsizei count);
 
-    inline void draw_lines16(GLsizei count, GLsizei offset = 0)
+    void draw_elements(GLenum mode, GLenum type,
+                       GLsizei offset, GLsizei count);
+
+    void draw_elements_16(GLenum mode, GLsizei offset, GLsizei count);
+
+    inline void draw_line_array(GLsizei offset, GLsizei count)
     {
-        draw_elements(GL_LINES, count, GL_UNSIGNED_SHORT, offset);
+        draw_array(GL_LINES, offset, count);
     }
 
-    inline void draw_line_loop16(GLsizei count, GLsizei offset = 0)
+    inline void draw_line_elements_16(GLsizei offset, GLsizei count)
     {
-        draw_elements(GL_LINE_LOOP, count, GL_UNSIGNED_SHORT, offset);
+        draw_elements_16(GL_LINES, offset, count);
     }
 
-    inline void draw_line_strip16(GLsizei count, GLsizei offset = 0)
+    inline void draw_polygon_array(GLsizei offset, GLsizei count)
     {
-        draw_elements(GL_LINE_STRIP, count, GL_UNSIGNED_SHORT, offset);
+        draw_array(GL_LINE_LOOP, offset, count);
     }
 
-    inline void draw_points16(GLsizei count, GLsizei offset = 0)
+    inline void draw_polygon_elements_16(GLsizei offset, GLsizei count)
     {
-        draw_elements(GL_POINTS, count, GL_UNSIGNED_SHORT, offset);
+        draw_elements_16(GL_LINE_LOOP, offset, count);
     }
 
-    inline void draw_triangles16(GLsizei count, GLsizei offset = 0)
+    inline void draw_line_strip_array(GLsizei offset, GLsizei count)
     {
-        draw_elements(GL_TRIANGLES, count, GL_UNSIGNED_SHORT, offset);
+        draw_array(GL_LINE_STRIP, offset, count);
     }
 
-    inline void draw_triangle_strip16(GLsizei count, GLsizei offset = 0)
+    inline void draw_line_strip_elements_16(GLsizei offset, GLsizei count)
     {
-        draw_elements(GL_TRIANGLE_STRIP, count, GL_UNSIGNED_SHORT, offset);
+        draw_elements_16(GL_LINE_STRIP, offset, count);
     }
 
-    void define_vertex_attribute_pointer(GLuint attribute_location, GLint size,
-                                         GLenum type, bool normalized,
-                                         GLsizei stride, size_t offset = 0);
+    inline void draw_point_array(GLsizei offset, GLsizei count)
+    {
+        draw_array(GL_POINTS, offset, count);
+    }
+
+    inline void draw_point_elements_16(GLsizei offset, GLsizei count)
+    {
+        draw_elements_16(GL_POINTS, offset, count);
+    }
+
+    inline void draw_triangle_array(GLsizei offset, GLsizei count)
+    {
+        draw_array(GL_TRIANGLES, offset, count);
+    }
+
+    inline void draw_triangle_elements_16(GLsizei offset, GLsizei count)
+    {
+        draw_elements_16(GL_TRIANGLES, offset, count);
+    }
+
+    inline void draw_triangle_strip_array(GLsizei offset, GLsizei count)
+    {
+        draw_array(GL_TRIANGLE_STRIP, offset, count);
+    }
+
+    inline void draw_triangle_strip_elements_16(GLsizei offset, GLsizei count)
+    {
+        draw_elements_16(GL_TRIANGLE_STRIP, offset, count);
+    }
+
+    void define_vertex_attribute_pointer(GLuint attribute_location,
+                                         GLint size,
+                                         GLenum type,
+                                         bool normalized,
+                                         GLsizei stride,
+                                         size_t offset = 0);
+
+    void define_vertex_attribute_float_pointer(GLuint attribute_location,
+                                               GLint size,
+                                               GLsizei stride,
+                                               size_t offset = 0);
 
     void enable_vertex_attribute(GLuint location);
 
