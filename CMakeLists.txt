@@ -7,7 +7,7 @@
 ##****************************************************************************
 cmake_minimum_required(VERSION 3.15)
 
-project(Tungsten VERSION 0.3.1)
+project(Tungsten VERSION 0.3.2)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -30,7 +30,7 @@ include(FetchContent)
 
 FetchContent_Declare(xyz
     GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
-    GIT_TAG v0.2.86)
+    GIT_TAG v0.2.88)
 
 FetchContent_Declare(argos
     GIT_REPOSITORY "https://github.com/jebreimo/Argos.git"
