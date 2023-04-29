@@ -125,7 +125,8 @@ namespace Tungsten
 
     SdlApplication& SdlApplication::set_swap_interval(int interval)
     {
-        SDL_GL_SetSwapInterval(interval);
+        if (SDL_GL_SetSwapInterval(interval) == -1)
+            THROW_SDL_ERROR();
         return *this;
     }
 
