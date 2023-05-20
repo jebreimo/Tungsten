@@ -55,6 +55,8 @@ namespace Tungsten
         #endif
     }
 
+    SdlApplication::SdlApplication() = default;
+
     SdlApplication::SdlApplication(
         std::string name,
         std::unique_ptr<EventLoop> event_loop)
@@ -142,15 +144,17 @@ namespace Tungsten
 
     std::pair<int, int> SdlApplication::window_size() const
     {
+        if (!window())
+            TUNGSTEN_THROW("window is NULL!");
+
         int w = 0, h = 0;
-        SDL_GetWindowSize(window(), &w, &h);
+        SDL_GL_GetDrawableSize(window(), &w, &h);
         return {w, h};
     }
 
     float SdlApplication::aspect_ratio() const
     {
-        int w = 0, h = 0;
-        SDL_GetWindowSize(window(), &w, &h);
+        auto [w, h] = window_size();
         return float(w) / float(h);
     }
 

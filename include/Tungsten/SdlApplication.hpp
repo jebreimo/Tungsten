@@ -31,6 +31,8 @@ namespace Tungsten
     class SdlApplication
     {
     public:
+        SdlApplication();
+
         SdlApplication(std::string name,
                        std::unique_ptr<EventLoop> event_loop);
 
