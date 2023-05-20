@@ -244,7 +244,7 @@ namespace Tungsten
 
     #ifdef __EMSCRIPTEN__
 
-    void SdlApplication::event_loop()
+    void SdlApplication::run_event_loop()
     {
         const int simulate_infinite_loop = 1; // call the function repeatedly
         const int fps = -1; // call the function as fast as the browser wants to render (typically 60fps)
@@ -256,7 +256,7 @@ namespace Tungsten
     void SdlApplication::emscripten_event_loop_step(void* arg)
     {
         auto app = static_cast<SdlApplication*>(arg);
-        app->event_loop_step();
+        app->run_event_loop_step();
     }
 
     #else
