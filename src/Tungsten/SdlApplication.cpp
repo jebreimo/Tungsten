@@ -95,7 +95,7 @@ namespace Tungsten
         initialize(window_parameters_);
         event_loop_->on_startup(*this);
         is_running_ = true;
-        event_loop();
+        run_event_loop();
         is_running_ = false;
         event_loop_->on_shutdown(*this);
     }
@@ -261,15 +261,15 @@ namespace Tungsten
 
     #else
 
-    void SdlApplication::event_loop()
+    void SdlApplication::run_event_loop()
     {
         while (!status())
-            event_loop_step();
+            run_event_loop_step();
     }
 
     #endif
 
-    void SdlApplication::event_loop_step()
+    void SdlApplication::run_event_loop_step()
     {
         SDL_Event event;
         while (SDL_PollEvent(&event))
@@ -290,6 +290,16 @@ namespace Tungsten
             SDL_WaitEvent(&event);
             process_event(event);
         }
+    }
+
+    const EventLoop* SdlApplication::event_loop() const
+    {
+        return event_loop_.get();
+    }
+
+    EventLoop* SdlApplication::event_loop()
+    {
+        return event_loop_.get();
     }
 
     const WindowParameters& SdlApplication::window_parameters() const

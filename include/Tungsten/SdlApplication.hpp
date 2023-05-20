@@ -78,6 +78,12 @@ namespace Tungsten
         float aspect_ratio() const;
 
         [[nodiscard]]
+        const EventLoop* event_loop() const;
+
+        [[nodiscard]]
+        EventLoop* event_loop();
+
+        [[nodiscard]]
         const WindowParameters& window_parameters() const;
 
         void set_window_parameters(const WindowParameters& params);
@@ -100,9 +106,9 @@ namespace Tungsten
 
         SDL_Window* create_window(const WindowParameters& params);
     private:
-        void event_loop();
+        void run_event_loop();
 
-        void event_loop_step();
+        void run_event_loop_step();
 
         #ifdef __EMSCRIPTEN__
         static void emscripten_event_loop_step(void* arg);
