@@ -30,13 +30,21 @@ include(FetchContent)
 
 FetchContent_Declare(xyz
     GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
-    GIT_TAG v0.2.89)
+    GIT_TAG master)
 
 FetchContent_Declare(argos
     GIT_REPOSITORY "https://github.com/jebreimo/Argos.git"
-    GIT_TAG "v1.1.269")
+    GIT_TAG v1.1.271)
 
-FetchContent_MakeAvailable(argos xyz)
+FetchContent_Declare(yconvert
+    GIT_REPOSITORY "https://github.com/jebreimo/Yconvert.git"
+    GIT_TAG v0.2.0)
+
+FetchContent_Declare(yimage
+    GIT_REPOSITORY "https://github.com/jebreimo/Yimage.git"
+    GIT_TAG main)
+
+FetchContent_MakeAvailable(argos xyz yconvert yimage)
 
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -78,7 +86,12 @@ add_library(Tungsten STATIC
     src/Tungsten/ShaderTools.cpp
     src/Tungsten/TungstenException.cpp
     src/Tungsten/Uniform.cpp
-    )
+    include/Tungsten/Font.hpp
+    src/Tungsten/TextRenderer.cpp
+    include/Tungsten/TextRenderer.hpp
+    src/Tungsten/YimageGl.hpp
+    src/Tungsten/YimageGl.cpp
+)
 
 target_link_libraries(Tungsten
     PUBLIC
@@ -86,6 +99,8 @@ target_link_libraries(Tungsten
         OpenGL::GL
         SDL2::SDL2
         Xyz::Xyz
+        Yconvert::Yconvert
+        Yimage::Yimage
     PRIVATE
         Argos
     )
