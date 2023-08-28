@@ -10,6 +10,8 @@
 #include <Yconvert/Convert.hpp>
 #include <Yimage/Yimage.hpp>
 #include "Tungsten/ArrayBufferBuilder.hpp"
+#include "Tungsten/GlTextures.hpp"
+#include "YimageGl.hpp"
 
 namespace Tungsten
 {
@@ -116,10 +118,12 @@ namespace Tungsten
         Tungsten::set_texture_parameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         Tungsten::set_texture_parameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        if (image_)
-            set_image(image_);
-        else
-            set_image(make_dummy_image());
+        auto [format, type] = get_ogl_pixel_type(image_.pixel_type());
+        set_texture_image_2d(GL_PROXY_TEXTURE_2D, 0, GL_RED,
+                             GLsizei(image_.width()),
+                             GLsizei(image_.height()),
+                             format, type,
+                             image_.data());
     }
 
     void TextRenderer::draw_text()

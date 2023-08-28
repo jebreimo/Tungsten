@@ -6,10 +6,11 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include <unordered_map>
+#include "Font.hpp"
 #include "GlBuffer.hpp"
 #include "GlTextures.hpp"
 #include "GlVertexArray.hpp"
-#include "Font.hpp"
 
 namespace Tungsten
 {
