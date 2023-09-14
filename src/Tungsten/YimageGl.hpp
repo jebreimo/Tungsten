@@ -7,13 +7,20 @@
 //****************************************************************************
 #pragma once
 #include <utility>
-#include "Yimage/Image.hpp"
+#include <Xyz/Vector.hpp>
+#include <Yimage/Image.hpp>
 
 namespace Tungsten
 {
+    [[nodiscard]]
     std::pair<int, int> get_ogl_pixel_type(Yimage::PixelType type);
 
+    [[nodiscard]]
     Yimage::Image read_image(const std::string& file_name);
 
+    [[nodiscard]]
     Yimage::Image read_image(const void* buffer, size_t size);
+
+    [[nodiscard]]
+    Xyz::Vector4F to_vector(Yimage::Rgba8 rgba);
 }

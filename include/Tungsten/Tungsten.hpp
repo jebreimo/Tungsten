@@ -8,6 +8,7 @@
 #pragma once
 #include "ArrayBuffer.hpp"
 #include "ArrayBufferBuilder.hpp"
+#include "FontManager.hpp"
 #include "GlBuffer.hpp"
 #include "GlProgram.hpp"
 #include "GlTextures.hpp"
@@ -15,5 +16,6 @@
 #include "GlVertices.hpp"
 #include "SdlApplication.hpp"
 #include "ShaderTools.hpp"
+#include "TextRenderer.hpp"
 #include "TungstenException.hpp"
 #include "Uniform.hpp"

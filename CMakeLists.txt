@@ -20,6 +20,11 @@ if (NOT DEFINED TUNGSTEN_MASTER_PROJECT)
     endif ()
 endif ()
 
+# Install option
+option(TUNGSTEN_INSTALL "Generate the install target" ${TUNGSTEN_MASTER_PROJECT})
+
+option(TUNGSTEN_BUILD_EXAMPLES "Build the examples" ${TUNGSTEN_MASTER_PROJECT})
+
 if (EMSCRIPTEN)
     list(PREPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/emscripten)
 else ()
@@ -91,6 +96,12 @@ add_library(Tungsten STATIC
     include/Tungsten/TextRenderer.hpp
     src/Tungsten/YimageGl.hpp
     src/Tungsten/YimageGl.cpp
+    src/Tungsten/RenderTextShaderProgram.cpp
+    src/Tungsten/RenderTextShaderProgram.hpp
+    src/Tungsten/FontManager.cpp
+    include/Tungsten/FontManager.hpp
+    include/Tungsten/FontManager.hpp
+    src/Tungsten/Monaco64.hpp
 )
 
 target_link_libraries(Tungsten
@@ -103,7 +114,7 @@ target_link_libraries(Tungsten
         Yimage::Yimage
     PRIVATE
         Argos
-    )
+)
 
 add_library(Tungsten::Tungsten ALIAS Tungsten)
 
@@ -113,4 +124,18 @@ target_include_directories(Tungsten
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
-    )
+)
+
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/tools/cmake)
+
+include(TungstenTargetEmbedShaders)
+
+tungsten_target_embed_shaders(Tungsten
+    FILES
+        src/Tungsten/shaders/RenderText-frag.glsl
+        src/Tungsten/shaders/RenderText-vert.glsl
+)
+
+if (TUNGSTEN_BUILD_EXAMPLES)
+    add_subdirectory(examples/show_text)
+endif ()

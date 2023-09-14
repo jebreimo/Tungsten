@@ -14,22 +14,37 @@
 
 namespace Tungsten
 {
+    class RenderTextShaderProgram;
+
     class TextRenderer
     {
     public:
         explicit TextRenderer(const Font& font);
 
+        TextRenderer(const TextRenderer&) = delete;
+        TextRenderer(TextRenderer&&) noexcept;
+        ~TextRenderer();
+        TextRenderer& operator=(const TextRenderer&) = delete;
+        TextRenderer& operator=(TextRenderer&&) noexcept;
+
         void prepare_text(std::string_view text);
 
-        void draw_text();
+        void draw_text(const Xyz::Vector2F& pos,
+                       const Xyz::Vector2F& screen_size) const;
 
+        [[nodiscard]] const Yimage::Rgba8& color() const;
+
+        void set_color(const Yimage::Rgba8& color);
     private:
+        void initialize(std::string_view text);
+
         std::vector<Tungsten::BufferHandle> buffers_;
         Tungsten::VertexArrayHandle vertex_array_;
         Tungsten::TextureHandle texture_;
-        std::unordered_map<char32_t, Glyph> glyphs_;
-        Yimage::Image image_;
-        std::string font_name_;
-        unsigned font_size_;
+        const Font* font_;
+        std::unordered_map<char32_t, const Glyph*> glyphs_;
+        Yimage::Rgba8 color_;
+        std::unique_ptr<RenderTextShaderProgram> program_;
+        size_t count_ = 0;
     };
 }

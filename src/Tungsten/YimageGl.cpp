@@ -58,4 +58,11 @@ namespace Tungsten
         flip_vertically(image);
         return image;
     }
+
+    Xyz::Vector4F to_vector(Yimage::Rgba8 rgba)
+    {
+        constexpr float D = 255.0f;
+        return {float(rgba.r) / D, float(rgba.g) / D,
+                float(rgba.b) / D, float(rgba.a) / D};
+    }
 }

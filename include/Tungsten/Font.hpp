@@ -9,6 +9,7 @@
 #include <string>
 #include <Xyz/Rectangle.hpp>
 #include <Yimage/Image.hpp>
+#include <utility>
 
 namespace Tungsten
 {
@@ -20,12 +21,41 @@ namespace Tungsten
         Xyz::Vector2F advance;
     };
 
+    struct FontId
+    {
+        std::string family;
+        size_t size;
+    };
+
+    inline bool operator==(const FontId& a, const FontId& b)
+    {
+        return a.family == b.family && a.size == b.size;
+    }
+
+    inline bool operator!=(const FontId& a, const FontId& b)
+    {
+        return !(a == b);
+    }
+
+    inline bool operator<(const FontId& a, const FontId& b)
+    {
+        if (a.family != b.family)
+            return a.family < b.family;
+        return a.size < b.size;
+    }
+
     struct Font
     {
-        std::string family_name;
-        unsigned size;
+        Font(FontId identifier,
+             std::vector<Glyph> glyphs,
+             Yimage::Image  image)
+            : identifier{std::move(identifier)},
+              glyphs(std::move(glyphs)),
+              image(std::move(image))
+        {}
+
+        FontId identifier;
         std::vector<Glyph> glyphs;
-        const void* image_buffer;
-        size_t image_buffer_size;
+        Yimage::Image image;
     };
 }
