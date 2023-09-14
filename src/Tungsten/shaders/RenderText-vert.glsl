@@ -7,10 +7,10 @@
 //****************************************************************************
 #version 100
 
-attribute vec2 a_Position;
-attribute vec2 a_TextureCoord;
+attribute highp vec2 a_Position;
+attribute highp vec2 a_TextureCoord;
 
-uniform mat4 u_MvpMatrix;
+uniform highp mat4 u_MvpMatrix;
 
 varying highp vec2 v_TextureCoord;
 

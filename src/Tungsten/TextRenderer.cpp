@@ -14,8 +14,6 @@
 #include "RenderTextShaderProgram.hpp"
 #include "YimageGl.hpp"
 
-#include "Debug.hpp"
-
 namespace Tungsten
 {
     namespace
@@ -26,11 +24,11 @@ namespace Tungsten
             Xyz::Vector2F texture;
         };
 
-        void add_rectangle(ArrayBufferBuilder<TextVertex> builder,
+        void add_rectangle(ArrayBuffer<TextVertex>& buffer,
                            const Xyz::RectangleF& vertex_rect,
                            const Xyz::RectangleF& tex_rect)
         {
-            JEB_SHOW(vertex_rect, tex_rect);
+            ArrayBufferBuilder<TextVertex> builder(buffer);
             builder.reserve_vertexes(4);
             builder.add_vertex({get_bottom_left(vertex_rect),
                                 get_bottom_left(tex_rect)});
@@ -64,7 +62,6 @@ namespace Tungsten
             );
 
             ArrayBuffer<TextVertex> buffer;
-            ArrayBufferBuilder buffer_builder(buffer);
 
             Xyz::Vector2F pos;
             for (const auto c: chars)
@@ -85,7 +82,7 @@ namespace Tungsten
                 auto& glyph = it->second;
                 if (!is_empty(glyph->glyph_rect))
                 {
-                    add_rectangle(buffer_builder,
+                    add_rectangle(buffer,
                                   offset(glyph->glyph_rect, pos),
                                   glyph->tex_rect);
                 }
