@@ -17,7 +17,7 @@ public:
 
     void on_startup(Tungsten::SdlApplication& app) override
     {
-        text_renderer_.prepare_text("Jan Erik Breimo");
+        text_renderer_.prepare_text("Jan Erik Breimo\nNatasha Barrett");
     }
 
     void on_draw(Tungsten::SdlApplication& app) override
@@ -25,7 +25,8 @@ public:
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         auto [w, h] = app.window_size();
-        text_renderer_.draw_text({-1.0f, 0.0f}, {float(w), float(h)});
+        auto size = text_renderer_.get_size({float(w), float(h)});
+        text_renderer_.draw_text({-size[0] / 2, size[1] / 2}, {float(w), float(h)});
     }
 private:
     Tungsten::TextRenderer text_renderer_;

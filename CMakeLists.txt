@@ -49,7 +49,11 @@ FetchContent_Declare(yimage
     GIT_REPOSITORY "https://github.com/jebreimo/Yimage.git"
     GIT_TAG main)
 
-FetchContent_MakeAvailable(argos xyz yconvert yimage)
+FetchContent_Declare(ystring2
+    GIT_REPOSITORY "https://github.com/jebreimo/Ystring2.git"
+    GIT_TAG v2.1.2)
+
+FetchContent_MakeAvailable(argos xyz yconvert yimage ystring2)
 
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -110,10 +114,11 @@ target_link_libraries(Tungsten
         OpenGL::GL
         SDL2::SDL2
         Xyz::Xyz
-        Yconvert::Yconvert
         Yimage::Yimage
     PRIVATE
         Argos
+        Yconvert::Yconvert
+        Ystring2::Ystring
 )
 
 add_library(Tungsten::Tungsten ALIAS Tungsten)

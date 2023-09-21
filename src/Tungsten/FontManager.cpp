@@ -6,7 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #include "Tungsten/FontManager.hpp"
-#include "Monaco64.hpp"
+#include "Monaco32.hpp"
 
 #include <Yimage/WritePng.hpp>
 
@@ -20,7 +20,7 @@ namespace Tungsten
 
     FontManager::FontManager()
     {
-        auto default_font = get_monaco_64();
+        auto default_font = get_monaco_32();
         default_font_id_ = default_font->identifier;
         Yimage::write_png("image.png", default_font->image);
         add_font(std::move(default_font));
