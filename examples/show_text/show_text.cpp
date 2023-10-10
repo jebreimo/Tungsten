@@ -7,6 +7,7 @@
 //****************************************************************************
 #include <iostream>
 #include <Tungsten/Tungsten.hpp>
+//#include "Debug.hpp"
 
 class ShowText : public Tungsten::EventLoop
 {
@@ -25,8 +26,13 @@ public:
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         auto [w, h] = app.window_size();
-        auto size = text_renderer_.get_size({float(w), float(h)});
-        text_renderer_.draw_text({-size[0] / 2, size[1] / 2}, {float(w), float(h)});
+        auto screen_size = Xyz::Vector2F(float(w), float(h));
+        auto text_rect = text_renderer_.get_size("Jan Erik Breimo\nNatasha Barrett");
+        //JEB_SHOW(text_rect);
+        auto size = text_rect.size * 2.f / screen_size;
+        auto origin = text_rect.origin * 2.f / screen_size;
+        text_renderer_.draw_text({-size[0] / 2, -size[1] / 2 - origin[1]}, screen_size);
+        text_renderer_.draw_text(Xyz::Vector2F {-1.f, 1.f - size[1] - origin[1]}, screen_size);
     }
 private:
     Tungsten::TextRenderer text_renderer_;
@@ -36,7 +42,7 @@ int main(int argc, char* argv[])
 {
     try
     {
-        Tungsten::SdlApplication app("Circles", std::make_unique<ShowText>());
+        Tungsten::SdlApplication app("ShowText", std::make_unique<ShowText>());
         app.parse_command_line_options(argc, argv);
         app.run();
     }

@@ -9,16 +9,16 @@
 #include <string>
 #include <Xyz/Rectangle.hpp>
 #include <Yimage/Image.hpp>
+#include <unordered_map>
 #include <utility>
 
 namespace Tungsten
 {
     struct Glyph
     {
-        char32_t character;
         Xyz::RectangleF tex_rect;
         Xyz::RectangleF glyph_rect;
-        Xyz::Vector2F advance;
+        float advance = 0.0;
     };
 
     struct FontId
@@ -47,15 +47,18 @@ namespace Tungsten
     struct Font
     {
         Font(FontId identifier,
-             std::vector<Glyph> glyphs,
+             const Xyz::RectangleF& max_glyph,
+             std::unordered_map<char32_t, Glyph> glyphs,
              Yimage::Image  image)
             : identifier{std::move(identifier)},
+              max_glyph(max_glyph),
               glyphs(std::move(glyphs)),
               image(std::move(image))
         {}
 
         FontId identifier;
-        std::vector<Glyph> glyphs;
+        Xyz::RectangleF max_glyph;
+        std::unordered_map<char32_t, Glyph> glyphs;
         Yimage::Image image;
     };
 }

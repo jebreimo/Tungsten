@@ -27,10 +27,9 @@ namespace Tungsten
         TextRenderer& operator=(const TextRenderer&) = delete;
         TextRenderer& operator=(TextRenderer&&) noexcept;
 
-        [[nodiscard]] Xyz::Vector2F
-        get_size(const Xyz::Vector2F& screen_size) const;
-
         void prepare_text(std::string_view text);
+
+        [[nodiscard]] Xyz::RectangleF get_size(std::string_view text) const;
 
         void draw_text(const Xyz::Vector2F& pos,
                        const Xyz::Vector2F& screen_size) const;
@@ -45,10 +44,8 @@ namespace Tungsten
         Tungsten::VertexArrayHandle vertex_array_;
         Tungsten::TextureHandle texture_;
         const Font* font_;
-        std::unordered_map<char32_t, const Glyph*> glyphs_;
         Yimage::Rgba8 color_;
         std::unique_ptr<RenderTextShaderProgram> program_;
-        Xyz::Vector2F text_size_;
         size_t count_ = 0;
     };
 }

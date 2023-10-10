@@ -44,15 +44,15 @@ namespace Tungsten
         }
 
         [[nodiscard]]
-        std::pair<ArrayBuffer<TextVertex>, Xyz::Vector2F>
+        ArrayBuffer<TextVertex>
         make_text_array_buffer(
-            const std::unordered_map<char32_t, const Glyph*>& glyphs,
-            std::string_view text)
+            const Font& font,
+            std::string_view text,
+            float line_separator = 0.1)
         {
+            const auto& glyphs = font.glyphs;
             if (glyphs.empty() || text.empty())
                 return {};
-
-            auto vertical_advance = glyphs.begin()->second->advance[1];
 
             auto chars = Yconvert::convert_to<std::u32string>(
                 text,
@@ -63,13 +63,12 @@ namespace Tungsten
 
             ArrayBuffer<TextVertex> buffer;
 
-            Xyz::Vector2F size, pos;
+            Xyz::Vector2F pos;
             for (const auto c: chars)
             {
                 if (c == '\n')
                 {
-                    size[0] = std::max(size[0], pos[0]);
-                    pos = {0, pos[1] - vertical_advance};
+                    pos = {0, pos[1] - (1.f + line_separator) * font.max_glyph.size[1]};
                     continue;
                 }
 
@@ -81,43 +80,77 @@ namespace Tungsten
                 }
 
                 auto& glyph = it->second;
-                if (!is_empty(glyph->glyph_rect))
+                if (!is_empty(glyph.glyph_rect))
                 {
                     add_rectangle(buffer,
-                                  offset(glyph->glyph_rect, pos),
-                                  glyph->tex_rect);
+                                  offset(glyph.glyph_rect, pos),
+                                  glyph.tex_rect);
                 }
-                pos[0] += glyph->advance[0];
-            }
-            if (pos[0] != 0)
-            {
-                size[0] = std::max(size[0], pos[0]);
-                size[1] += vertical_advance;
+                pos[0] += glyph.advance;
             }
 
-            return {buffer, size};
+            return buffer;
         }
+    }
+
+    Xyz::RectangleF get_text_size(
+        const Font& font,
+        std::string_view text,
+        float line_separator = 0.1)
+    {
+        const auto& glyphs = font.glyphs;
+        if (glyphs.empty() || text.empty())
+            return {};
+
+        Xyz::RectangleF result;
+        auto chars = Yconvert::convert_to<std::u32string>(
+            text,
+            Yconvert::Encoding::UTF_8,
+            Yconvert::Encoding::UTF_32_NATIVE,
+            Yconvert::ErrorPolicy::REPLACE
+        );
+
+        unsigned lines = 0;
+        float max_width = 0;
+        float width = 0;
+        for (char32_t c : chars)
+        {
+            if (c == '\n')
+            {
+                ++lines;
+                max_width = std::max(max_width, width);
+                width = 0;
+            }
+
+            auto it = glyphs.find(c);
+            if (it == glyphs.end())
+            {
+                it = glyphs.find('?');
+                if (it == glyphs.end())
+                    continue;
+            }
+
+            auto& glyph = it->second;
+            width += glyph.advance;
+        }
+        if (width > 0)
+            ++lines;
+        max_width = std::max(max_width, width);
+        auto height = (float(lines) * (1 + line_separator) - line_separator) * font.max_glyph.size[1];
+        auto y = font.max_glyph.origin[1] - float(lines - 1) * (1 + line_separator) * font.max_glyph.size[1];
+        return {{font.max_glyph.origin[0], y}, {max_width, height}};
     }
 
     TextRenderer::TextRenderer(const Font& font)
         : font_(&font),
           color_(0xFFFFFFFF)
-    {
-        for (auto& glyph : font.glyphs)
-            glyphs_.insert({glyph.character, &glyph});
-    }
+    {}
 
     TextRenderer::TextRenderer(TextRenderer&&) noexcept = default;
 
     TextRenderer::~TextRenderer() = default;
 
     TextRenderer& TextRenderer::operator=(TextRenderer&&) noexcept = default;
-
-    Xyz::Vector2F
-    TextRenderer::get_size(const Xyz::Vector2F& screen_size) const
-    {
-        return text_size_ * 2.0f / screen_size;
-    }
 
     void TextRenderer::prepare_text(std::string_view text)
     {
@@ -127,10 +160,15 @@ namespace Tungsten
         }
         else
         {
-            auto [array_buffer, size] = make_text_array_buffer(glyphs_, text);
+            auto array_buffer = make_text_array_buffer(*font_, text);
             set_buffers(buffers_[0], buffers_[1], array_buffer);
-            text_size_ = size;
         }
+    }
+
+    Xyz::RectangleF
+    TextRenderer::get_size(std::string_view text) const
+    {
+        return get_text_size(*font_, text);
     }
 
     void TextRenderer::draw_text(const Xyz::Vector2F& pos,
@@ -158,10 +196,9 @@ namespace Tungsten
         vertex_array_ = generate_vertex_array();
         bind_vertex_array(vertex_array_);
         buffers_ = generate_buffers(2);
-        auto [array_buffer, size] = make_text_array_buffer(glyphs_, text);
+        auto array_buffer = make_text_array_buffer(*font_, text);
         count_ = array_buffer.indexes.size();
         set_buffers(buffers_[0], buffers_[1], array_buffer);
-        text_size_ = size;
 
         texture_ = generate_texture();
         bind_texture(GL_TEXTURE_2D, texture_);

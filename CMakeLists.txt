@@ -39,7 +39,7 @@ FetchContent_Declare(xyz
 
 FetchContent_Declare(argos
     GIT_REPOSITORY "https://github.com/jebreimo/Argos.git"
-    GIT_TAG v1.1.271)
+    GIT_TAG master)
 
 FetchContent_Declare(yconvert
     GIT_REPOSITORY "https://github.com/jebreimo/Yconvert.git"
