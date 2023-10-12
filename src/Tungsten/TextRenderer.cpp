@@ -162,6 +162,7 @@ namespace Tungsten
         {
             auto array_buffer = make_text_array_buffer(*font_, text);
             set_buffers(buffers_[0], buffers_[1], array_buffer);
+            count_ = array_buffer.indexes.size();
         }
     }
 

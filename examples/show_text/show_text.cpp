@@ -7,7 +7,7 @@
 //****************************************************************************
 #include <iostream>
 #include <Tungsten/Tungsten.hpp>
-//#include "Debug.hpp"
+#include "Debug.hpp"
 
 class ShowText : public Tungsten::EventLoop
 {
@@ -18,7 +18,18 @@ public:
 
     void on_startup(Tungsten::SdlApplication& app) override
     {
-        text_renderer_.prepare_text("Jan Erik Breimo\nNatasha Barrett");
+    }
+
+    void on_update(Tungsten::SdlApplication& app) override
+    {
+        auto current_second = SDL_GetTicks() / 1000;
+        if (current_second != second_)
+        {
+            second_ = current_second;
+            text_ = "Jan Erik Breimo\nNatasha Barrett\nTime: " + std::to_string(second_);
+            text_renderer_.prepare_text(text_);
+            redraw();
+        }
     }
 
     void on_draw(Tungsten::SdlApplication& app) override
@@ -27,8 +38,8 @@ public:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         auto [w, h] = app.window_size();
         auto screen_size = Xyz::Vector2F(float(w), float(h));
-        auto text_rect = text_renderer_.get_size("Jan Erik Breimo\nNatasha Barrett");
-        //JEB_SHOW(text_rect);
+        auto text_rect = text_renderer_.get_size(text_);
+        JEB_SHOW(text_rect);
         auto size = text_rect.size * 2.f / screen_size;
         auto origin = text_rect.origin * 2.f / screen_size;
         text_renderer_.draw_text({-size[0] / 2, -size[1] / 2 - origin[1]}, screen_size);
@@ -36,6 +47,8 @@ public:
     }
 private:
     Tungsten::TextRenderer text_renderer_;
+    uint32_t second_ = UINT32_MAX;
+    std::string text_;
 };
 
 int main(int argc, char* argv[])
