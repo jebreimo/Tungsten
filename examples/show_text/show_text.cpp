@@ -38,12 +38,12 @@ public:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         auto [w, h] = app.window_size();
         auto screen_size = Xyz::Vector2F(float(w), float(h));
-        auto text_rect = text_renderer_.get_size(text_);
-        JEB_SHOW(text_rect);
-        auto size = text_rect.size * 2.f / screen_size;
-        auto origin = text_rect.origin * 2.f / screen_size;
-        text_renderer_.draw_text({-size[0] / 2, -size[1] / 2 - origin[1]}, screen_size);
-        text_renderer_.draw_text(Xyz::Vector2F {-1.f, 1.f - size[1] - origin[1]}, screen_size);
+        auto size = text_renderer_.get_size() * 2.f / screen_size;
+        text_renderer_.draw_text({-size[0] / 2, -size[1] / 2}, screen_size);
+        text_renderer_.draw_text({-1.f, 1.f - size[1]}, screen_size);
+        text_renderer_.draw_text({-1.f, -1.f}, screen_size);
+        text_renderer_.draw_text({1.f - size[0], -1.f}, screen_size);
+        text_renderer_.draw_text({1.f - size[0], 1.f - size[1]}, screen_size);
     }
 private:
     Tungsten::TextRenderer text_renderer_;

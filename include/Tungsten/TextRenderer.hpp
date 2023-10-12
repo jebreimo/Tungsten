@@ -29,7 +29,8 @@ namespace Tungsten
 
         void prepare_text(std::string_view text);
 
-        [[nodiscard]] Xyz::RectangleF get_size(std::string_view text) const;
+        [[nodiscard]] Xyz::Vector2F get_size(std::string_view text) const;
+        [[nodiscard]] Xyz::Vector2F get_size() const;
 
         void draw_text(const Xyz::Vector2F& pos,
                        const Xyz::Vector2F& screen_size) const;
@@ -47,5 +48,6 @@ namespace Tungsten
         Yimage::Rgba8 color_;
         std::unique_ptr<RenderTextShaderProgram> program_;
         size_t count_ = 0;
+        Xyz::RectangleF text_rect_;
     };
 }

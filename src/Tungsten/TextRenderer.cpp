@@ -44,7 +44,7 @@ namespace Tungsten
         }
 
         [[nodiscard]]
-        ArrayBuffer<TextVertex>
+        std::pair<ArrayBuffer<TextVertex>, Xyz::RectangleF>
         make_text_array_buffer(
             const Font& font,
             std::string_view text,
@@ -63,11 +63,15 @@ namespace Tungsten
 
             ArrayBuffer<TextVertex> buffer;
 
+            unsigned lines = 0;
+            float max_width = 0;
             Xyz::Vector2F pos;
             for (const auto c: chars)
             {
                 if (c == '\n')
                 {
+                    ++lines;
+                    max_width = std::max(max_width, pos[0]);
                     pos = {0, pos[1] - (1.f + line_separator) * font.max_glyph.size[1]};
                     continue;
                 }
@@ -88,8 +92,15 @@ namespace Tungsten
                 }
                 pos[0] += glyph.advance;
             }
-
-            return buffer;
+            if (pos[0] > 0)
+                ++lines;
+            max_width = std::max(max_width, pos[0]);
+            auto height =
+                (float(lines) * (1 + line_separator) - line_separator) * font.max_glyph.size[1];
+            auto y = font.max_glyph.origin[1]
+                     - float(lines - 1) * (1 + line_separator) * font.max_glyph.size[1];
+            Xyz::RectangleF rect({font.max_glyph.origin[0], y}, {max_width, height});
+            return {buffer, rect};
         }
     }
 
@@ -102,7 +113,6 @@ namespace Tungsten
         if (glyphs.empty() || text.empty())
             return {};
 
-        Xyz::RectangleF result;
         auto chars = Yconvert::convert_to<std::u32string>(
             text,
             Yconvert::Encoding::UTF_8,
@@ -161,15 +171,21 @@ namespace Tungsten
         else
         {
             auto array_buffer = make_text_array_buffer(*font_, text);
-            set_buffers(buffers_[0], buffers_[1], array_buffer);
-            count_ = array_buffer.indexes.size();
+            set_buffers(buffers_[0], buffers_[1], array_buffer.first);
+            count_ = array_buffer.first.indexes.size();
+            text_rect_ = array_buffer.second;
         }
     }
 
-    Xyz::RectangleF
+    Xyz::Vector2F
     TextRenderer::get_size(std::string_view text) const
     {
-        return get_text_size(*font_, text);
+        return get_text_size(*font_, text).size;
+    }
+
+    Xyz::Vector2F TextRenderer::get_size() const
+    {
+        return text_rect_.size;
     }
 
     void TextRenderer::draw_text(const Xyz::Vector2F& pos,
@@ -177,7 +193,8 @@ namespace Tungsten
     {
         program_->color.set(to_vector(color_));
         auto [w, h] = screen_size;
-        program_->mvp_matrix.set(Xyz::translate4(pos[0], pos[1], 0.f)
+        auto adjusted_pos = pos - text_rect_.origin * 2.0f / Xyz::Vector2F(w, h);
+        program_->mvp_matrix.set(Xyz::translate4(adjusted_pos[0], adjusted_pos[1], 0.f)
                                  * Xyz::scale4(2.0f / w, 2.0f / h, 1.0f));
         draw_triangle_elements_16(0, GLsizei(count_));
     }
@@ -198,8 +215,9 @@ namespace Tungsten
         bind_vertex_array(vertex_array_);
         buffers_ = generate_buffers(2);
         auto array_buffer = make_text_array_buffer(*font_, text);
-        count_ = array_buffer.indexes.size();
-        set_buffers(buffers_[0], buffers_[1], array_buffer);
+        count_ = array_buffer.first.indexes.size();
+        set_buffers(buffers_[0], buffers_[1], array_buffer.first);
+        text_rect_ = array_buffer.second;
 
         texture_ = generate_texture();
         bind_texture(GL_TEXTURE_2D, texture_);
