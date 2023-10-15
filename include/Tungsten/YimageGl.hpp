@@ -7,8 +7,8 @@
 //****************************************************************************
 #pragma once
 #include <utility>
-#include <Xyz/Vector.hpp>
-#include <Yimage/Image.hpp>
+#include "Xyz/Vector.hpp"
+#include "Yimage/Image.hpp"
 
 namespace Tungsten
 {

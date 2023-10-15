@@ -6,7 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #include "Tungsten/FontManager.hpp"
-#include "Monaco32.hpp"
+#include "Tungsten/details/Monaco32.hpp"
 
 #include <Yimage/WritePng.hpp>
 

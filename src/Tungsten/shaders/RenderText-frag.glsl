@@ -16,8 +16,10 @@ void main()
 {
     highp vec4 texCol = texture2D(u_Texture, v_TextureCoord);
     highp float value = max(texCol.r, max(texCol.g, texCol.b));
+    if (value == 0.0)
+        discard;
     gl_FragColor = vec4(u_TextColor.r * value,
                         u_TextColor.g * value,
                         u_TextColor.b * value,
-                        u_TextColor.a);
+                        u_TextColor.a * value);
 }

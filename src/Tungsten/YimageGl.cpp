@@ -5,7 +5,7 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "YimageGl.hpp"
+#include "Tungsten/YimageGl.hpp"
 #include <stdexcept>
 #include <string>
 #include <utility>

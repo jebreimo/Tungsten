@@ -11,8 +11,8 @@
 #include "Tungsten/ArrayBufferBuilder.hpp"
 #include "Tungsten/GlTextures.hpp"
 #include "Tungsten/GlVertices.hpp"
-#include "RenderTextShaderProgram.hpp"
-#include "YimageGl.hpp"
+#include "Tungsten/details/RenderTextShaderProgram.hpp"
+#include "Tungsten/YimageGl.hpp"
 
 namespace Tungsten
 {
@@ -48,7 +48,7 @@ namespace Tungsten
         make_text_array_buffer(
             const Font& font,
             std::string_view text,
-            float line_separator = 0.1)
+            float line_separator)
         {
             const auto& glyphs = font.glyphs;
             if (glyphs.empty() || text.empty())
@@ -107,7 +107,7 @@ namespace Tungsten
     Xyz::RectangleF get_text_size(
         const Font& font,
         std::string_view text,
-        float line_separator = 0.1)
+        float line_separator)
     {
         const auto& glyphs = font.glyphs;
         if (glyphs.empty() || text.empty())
@@ -170,17 +170,11 @@ namespace Tungsten
         }
         else
         {
-            auto array_buffer = make_text_array_buffer(*font_, text);
+            auto array_buffer = make_text_array_buffer(*font_, text, line_separator_);
             set_buffers(buffers_[0], buffers_[1], array_buffer.first);
             count_ = array_buffer.first.indexes.size();
             text_rect_ = array_buffer.second;
         }
-    }
-
-    Xyz::Vector2F
-    TextRenderer::get_size(std::string_view text) const
-    {
-        return get_text_size(*font_, text).size;
     }
 
     Xyz::Vector2F TextRenderer::get_size() const
@@ -199,6 +193,16 @@ namespace Tungsten
         draw_triangle_elements_16(0, GLsizei(count_));
     }
 
+    float TextRenderer::line_separator() const
+    {
+        return line_separator_;
+    }
+
+    void TextRenderer::set_line_separator(float line_separator)
+    {
+        line_separator_ = line_separator;
+    }
+
     const Yimage::Rgba8& TextRenderer::color() const
     {
         return color_;
@@ -214,7 +218,7 @@ namespace Tungsten
         vertex_array_ = generate_vertex_array();
         bind_vertex_array(vertex_array_);
         buffers_ = generate_buffers(2);
-        auto array_buffer = make_text_array_buffer(*font_, text);
+        auto array_buffer = make_text_array_buffer(*font_, text, line_separator_);
         count_ = array_buffer.first.indexes.size();
         set_buffers(buffers_[0], buffers_[1], array_buffer.first);
         text_rect_ = array_buffer.second;
@@ -243,5 +247,11 @@ namespace Tungsten
         define_vertex_attribute_float_pointer(
             program_->texture_coord, 2, 4 * sizeof(float), 2 * sizeof(float));
         enable_vertex_attribute(program_->texture_coord);
+    }
+
+    Xyz::Vector2F get_size(std::string_view text, const Font& font,
+                           float line_separator)
+    {
+        return get_text_size(font, text, line_separator).size;
     }
 }

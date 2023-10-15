@@ -98,14 +98,14 @@ add_library(Tungsten STATIC
     include/Tungsten/Font.hpp
     src/Tungsten/TextRenderer.cpp
     include/Tungsten/TextRenderer.hpp
-    src/Tungsten/YimageGl.hpp
+    include/Tungsten/YimageGl.hpp
     src/Tungsten/YimageGl.cpp
-    src/Tungsten/RenderTextShaderProgram.cpp
-    src/Tungsten/RenderTextShaderProgram.hpp
+    src/Tungsten/details/RenderTextShaderProgram.cpp
+    src/Tungsten/details/RenderTextShaderProgram.hpp
     src/Tungsten/FontManager.cpp
     include/Tungsten/FontManager.hpp
     include/Tungsten/FontManager.hpp
-    src/Tungsten/Monaco64.hpp
+    src/Tungsten/details/Monaco64.hpp
 )
 
 target_link_libraries(Tungsten

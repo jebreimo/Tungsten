@@ -39,10 +39,15 @@ public:
         auto [w, h] = app.window_size();
         auto screen_size = Xyz::Vector2F(float(w), float(h));
         auto size = text_renderer_.get_size() * 2.f / screen_size;
+        text_renderer_.set_color({0xFF, 0, 0, 0xFF});
         text_renderer_.draw_text({-size[0] / 2, -size[1] / 2}, screen_size);
+        text_renderer_.set_color({0, 0xFF, 0, 0xFF});
         text_renderer_.draw_text({-1.f, 1.f - size[1]}, screen_size);
+        text_renderer_.set_color({0, 0, 0xFF, 0xFF});
         text_renderer_.draw_text({-1.f, -1.f}, screen_size);
+        text_renderer_.set_color({0xFF, 0, 0xFF, 0xFF});
         text_renderer_.draw_text({1.f - size[0], -1.f}, screen_size);
+        text_renderer_.set_color({0xFF, 0xFF, 0xFF, 0xFF});
         text_renderer_.draw_text({1.f - size[0], 1.f - size[1]}, screen_size);
     }
 private:
