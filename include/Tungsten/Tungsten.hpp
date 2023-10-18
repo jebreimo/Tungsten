@@ -19,3 +19,4 @@
 #include "TextRenderer.hpp"
 #include "TungstenException.hpp"
 #include "Uniform.hpp"
+#include "YimageGl.hpp"
