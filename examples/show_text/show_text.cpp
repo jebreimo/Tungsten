@@ -16,10 +16,6 @@ public:
         : text_renderer_(Tungsten::FontManager::instance().default_font())
     {}
 
-    void on_startup(Tungsten::SdlApplication& app) override
-    {
-    }
-
     void on_update(Tungsten::SdlApplication& app) override
     {
         auto current_second = SDL_GetTicks() / 1000;
