@@ -7,7 +7,6 @@
 //****************************************************************************
 #include <iostream>
 #include <Tungsten/Tungsten.hpp>
-#include "Debug.hpp"
 
 class ShowText : public Tungsten::EventLoop
 {
