@@ -7,7 +7,7 @@
 ##****************************************************************************
 cmake_minimum_required(VERSION 3.15)
 
-project(Tungsten VERSION 0.3.1)
+project(Tungsten VERSION 0.3.2)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -33,13 +33,13 @@ endif ()
 
 include(FetchContent)
 
-FetchContent_Declare(xyz
-    GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
-    GIT_TAG master)
-
 FetchContent_Declare(argos
     GIT_REPOSITORY "https://github.com/jebreimo/Argos.git"
-    GIT_TAG master)
+    GIT_TAG v1.2.1)
+
+FetchContent_Declare(xyz
+    GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
+    GIT_TAG v0.2.91)
 
 FetchContent_Declare(yconvert
     GIT_REPOSITORY "https://github.com/jebreimo/Yconvert.git"
@@ -47,7 +47,7 @@ FetchContent_Declare(yconvert
 
 FetchContent_Declare(yimage
     GIT_REPOSITORY "https://github.com/jebreimo/Yimage.git"
-    GIT_TAG main)
+    GIT_TAG v0.1.7)
 
 FetchContent_Declare(ystring2
     GIT_REPOSITORY "https://github.com/jebreimo/Ystring2.git"
