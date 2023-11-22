@@ -69,4 +69,25 @@ namespace Tungsten
                         values,
                         usage);
     }
+
+    bool is_buffer(GLuint buffer)
+    {
+        return glIsBuffer(buffer) != 0;
+    }
+
+    GLsizei get_buffer_size(GLenum target)
+    {
+        GLint size;
+        glGetBufferParameteriv(target, GL_BUFFER_SIZE, &size);
+        THROW_IF_GL_ERROR();
+        return size;
+    }
+
+    GLenum get_buffer_usage(GLenum target)
+    {
+        GLint usage;
+        glGetBufferParameteriv(target, GL_BUFFER_USAGE, &usage);
+        THROW_IF_GL_ERROR();
+        return GLenum(usage);
+    }
 }

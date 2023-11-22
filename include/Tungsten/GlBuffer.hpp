@@ -6,6 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include <span>
 #include <vector>
 #include "GlHandle.hpp"
 
@@ -34,4 +35,13 @@ namespace Tungsten
                                   GLsizeiptr value_count,
                                   const uint16_t* values,
                                   GLenum usage);
+
+    [[nodiscard]]
+    bool is_buffer(GLuint buffer);
+
+    [[nodiscard]]
+    GLsizei get_buffer_size(GLenum target);
+
+    [[nodiscard]]
+    GLenum get_buffer_usage(GLenum target);
 }

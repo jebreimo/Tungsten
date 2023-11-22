@@ -10,7 +10,7 @@
 #include "RenderText-frag.glsl.hpp"
 #include "RenderText-vert.glsl.hpp"
 
-namespace Tungsten
+namespace Tungsten::Detail
 {
     RenderTextShaderProgram::RenderTextShaderProgram()
     {

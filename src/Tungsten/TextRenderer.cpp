@@ -11,8 +11,9 @@
 #include "Tungsten/ArrayBufferBuilder.hpp"
 #include "Tungsten/GlTextures.hpp"
 #include "Tungsten/GlVertices.hpp"
-#include "Tungsten/details/RenderTextShaderProgram.hpp"
 #include "Tungsten/YimageGl.hpp"
+#include "Tungsten/VertexArray.hpp"
+#include "Tungsten/details/RenderTextShaderProgram.hpp"
 
 namespace Tungsten
 {
@@ -151,6 +152,12 @@ namespace Tungsten
         return {{font.max_glyph.origin[0], y}, {max_width, height}};
     }
 
+    struct TextRenderer::Data
+    {
+        VertexArray<TextVertex> vertex_array;
+        Detail::RenderTextShaderProgram program;
+    };
+
     TextRenderer::TextRenderer(const Font& font)
         : font_(&font),
           color_(0xFFFFFFFF)
@@ -164,16 +171,15 @@ namespace Tungsten
 
     void TextRenderer::prepare_text(std::string_view text)
     {
-        if (!program_)
+        if (!data_)
         {
             initialize(text);
         }
         else
         {
-            auto array_buffer = make_text_array_buffer(*font_, text, line_separator_);
-            set_buffers(buffers_[0], buffers_[1], array_buffer.first);
-            count_ = array_buffer.first.indexes.size();
-            text_rect_ = array_buffer.second;
+            auto [buffer, rect] = make_text_array_buffer(*font_, text, line_gap_);
+            set_buffers(data_->vertex_array, buffer);
+            text_rect_ = rect;
         }
     }
 
@@ -185,22 +191,22 @@ namespace Tungsten
     void TextRenderer::draw_text(const Xyz::Vector2F& pos,
                                  const Xyz::Vector2F& screen_size) const
     {
-        program_->color.set(to_vector(color_));
+        data_->program.color.set(to_vector(color_));
         auto [w, h] = screen_size;
         auto adjusted_pos = pos - text_rect_.origin * 2.0f / Xyz::Vector2F(w, h);
-        program_->mvp_matrix.set(Xyz::translate4(adjusted_pos[0], adjusted_pos[1], 0.f)
-                                 * Xyz::scale4(2.0f / w, 2.0f / h, 1.0f));
-        draw_triangle_elements_16(0, GLsizei(count_));
+        data_->program.mvp_matrix.set(Xyz::translate4(adjusted_pos[0], adjusted_pos[1], 0.f)
+                                      * Xyz::scale4(2.0f / w, 2.0f / h, 1.0f));
+        draw_triangle_elements_16(0, GLsizei(data_->vertex_array.indexes.size()));
     }
 
-    float TextRenderer::line_separator() const
+    float TextRenderer::line_gap() const
     {
-        return line_separator_;
+        return line_gap_;
     }
 
-    void TextRenderer::set_line_separator(float line_separator)
+    void TextRenderer::set_line_gap(float line_gap)
     {
-        line_separator_ = line_separator;
+        line_gap_ = line_gap;
     }
 
     const Yimage::Rgba8& TextRenderer::color() const
@@ -215,13 +221,10 @@ namespace Tungsten
 
     void TextRenderer::initialize(std::string_view text)
     {
-        vertex_array_ = generate_vertex_array();
-        bind_vertex_array(vertex_array_);
-        buffers_ = generate_buffers(2);
-        auto array_buffer = make_text_array_buffer(*font_, text, line_separator_);
-        count_ = array_buffer.first.indexes.size();
-        set_buffers(buffers_[0], buffers_[1], array_buffer.first);
-        text_rect_ = array_buffer.second;
+        data_ = std::make_unique<Data>();
+        auto [buffer, rect] = make_text_array_buffer(*font_, text, line_gap_);
+        set_buffers(data_->vertex_array, buffer);
+        text_rect_ = rect;
 
         texture_ = generate_texture();
         bind_texture(GL_TEXTURE_2D, texture_);
@@ -238,15 +241,13 @@ namespace Tungsten
                              format, type,
                              font_->image.data());
 
-        program_ = std::make_unique<RenderTextShaderProgram>();
-
-        use_program(program_->program);
+        use_program(data_->program.program);
         define_vertex_attribute_float_pointer(
-            program_->position, 2, 4 * sizeof(float), 0);
-        enable_vertex_attribute(program_->position);
+            data_->program.position, 2, 4 * sizeof(float), 0);
+        enable_vertex_attribute(data_->program.position);
         define_vertex_attribute_float_pointer(
-            program_->texture_coord, 2, 4 * sizeof(float), 2 * sizeof(float));
-        enable_vertex_attribute(program_->texture_coord);
+            data_->program.texture_coord, 2, 4 * sizeof(float), 2 * sizeof(float));
+        enable_vertex_attribute(data_->program.texture_coord);
     }
 
     Xyz::Vector2F get_size(std::string_view text, const Font& font,

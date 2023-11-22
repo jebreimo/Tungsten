@@ -27,7 +27,7 @@ namespace Tungsten
     std::vector<VertexArrayHandle> generate_vertex_arrays(GLsizei count)
     {
         if (count == 0)
-            return std::vector<VertexArrayHandle>();
+            return {};
 
         auto ids = std::vector<GLuint>(size_t(count));
         glGenVertexArrays(count, ids.data());

@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 3.15)
 
 project(Tungsten VERSION 0.3.2)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 # Set TUNGSTEN_MASTER_PROJECT to ON if Xyz is the root level project.
 if (NOT DEFINED TUNGSTEN_MASTER_PROJECT)
@@ -43,7 +43,7 @@ FetchContent_Declare(xyz
 
 FetchContent_Declare(yconvert
     GIT_REPOSITORY "https://github.com/jebreimo/Yconvert.git"
-    GIT_TAG v0.2.1)
+    GIT_TAG v0.2.3)
 
 FetchContent_Declare(yimage
     GIT_REPOSITORY "https://github.com/jebreimo/Yimage.git"
@@ -106,6 +106,8 @@ add_library(Tungsten STATIC
     include/Tungsten/FontManager.hpp
     include/Tungsten/FontManager.hpp
     src/Tungsten/details/Monaco64.hpp
+    include/Tungsten/VertexArray.hpp
+    include/Tungsten/Buffer.hpp
 )
 
 target_link_libraries(Tungsten

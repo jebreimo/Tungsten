@@ -10,12 +10,9 @@
 #include "Font.hpp"
 #include "GlBuffer.hpp"
 #include "GlTextures.hpp"
-#include "GlVertexArray.hpp"
 
 namespace Tungsten
 {
-    class RenderTextShaderProgram;
-
     class TextRenderer
     {
     public:
@@ -34,9 +31,9 @@ namespace Tungsten
 
         [[nodiscard]] Xyz::Vector2F get_size() const;
 
-        [[nodiscard]] float line_separator() const;
+        [[nodiscard]] float line_gap() const;
 
-        void set_line_separator(float line_separator);
+        void set_line_gap(float line_gap);
 
         [[nodiscard]] const Yimage::Rgba8& color() const;
 
@@ -45,15 +42,13 @@ namespace Tungsten
     private:
         void initialize(std::string_view text);
 
-        std::vector<Tungsten::BufferHandle> buffers_;
-        Tungsten::VertexArrayHandle vertex_array_;
+        struct Data;
+        std::unique_ptr<Data> data_;
         Tungsten::TextureHandle texture_;
         const Font* font_;
         Yimage::Rgba8 color_;
-        std::unique_ptr<RenderTextShaderProgram> program_;
-        size_t count_ = 0;
         Xyz::RectangleF text_rect_;
-        float line_separator_ = 0.1;
+        float line_gap_ = 0.1;
     };
 
     [[nodiscard]] Xyz::Vector2F

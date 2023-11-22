@@ -9,7 +9,7 @@
 #include "Tungsten/GlProgram.hpp"
 #include "Tungsten/Uniform.hpp"
 
-namespace Tungsten
+namespace Tungsten::Detail
 {
     class RenderTextShaderProgram
     {

@@ -8,7 +8,7 @@
 #pragma once
 #include <cstdint>
 #include <vector>
-#include "GlBuffer.hpp"
+#include "VertexArray.hpp"
 
 namespace Tungsten
 {
@@ -16,22 +16,8 @@ namespace Tungsten
     struct ArrayBuffer
     {
     public:
-        using Item = ItemType;
-
-        std::vector<Item> vertexes;
+        std::vector<ItemType> vertexes;
         std::vector<uint16_t> indexes;
-
-        [[nodiscard]]
-        std::pair<const void*, size_t> array_buffer() const
-        {
-            return {vertexes.data(), vertexes.size() * sizeof(Item)};
-        }
-
-        [[nodiscard]]
-        std::pair<const uint16_t*, size_t> index_buffer() const
-        {
-            return {indexes.data(), indexes.size() * sizeof(uint16_t)};
-        }
     };
 
     template <typename Item>
@@ -45,5 +31,15 @@ namespace Tungsten
         Tungsten::bind_buffer(GL_ELEMENT_ARRAY_BUFFER, element_array_buffer);
         auto [i_buf, i_size] = array.index_buffer();
         Tungsten::set_buffer_data(GL_ELEMENT_ARRAY_BUFFER, i_size, i_buf, usage);
+    }
+
+    template <typename Item>
+    void set_buffers(VertexArray<Item>& vertex_array,
+                     const ArrayBuffer<Item>& array,
+                     GLenum usage = GL_STATIC_DRAW)
+    {
+        vertex_array.bind();
+        vertex_array.vertexes.set_data(array.vertexes);
+        vertex_array.indexes.set_data(array.indexes);
     }
 }
