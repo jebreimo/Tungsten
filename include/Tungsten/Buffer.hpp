@@ -34,6 +34,11 @@ namespace Tungsten
             bind_buffer(target_, buffer_);
         }
 
+        void unbind() const
+        {
+            bind_buffer(target_, 0);
+        }
+
         void reserve(size_t capacity)
         {
             if (capacity_ < capacity)
@@ -94,6 +99,20 @@ namespace Tungsten
             size_ = std::max(size_, offset + data.size());
         }
 
+        [[nodiscard]] GLenum target() const
+        {
+            return target_;
+        }
+
+        void set_target(GLenum target)
+        {
+            target_ = target;
+        }
+
+        [[nodiscard]] GLenum usage() const
+        {
+            return usage_;
+        }
     private:
         BufferHandle buffer_;
         GLenum target_;

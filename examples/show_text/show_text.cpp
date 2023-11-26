@@ -22,7 +22,7 @@ public:
         {
             second_ = current_second;
             text_ = "Jan Erik Breimo\nNatasha Barrett\nTime: " + std::to_string(second_);
-            text_renderer_.prepare_text(text_);
+            //text_renderer_.prepare_text(text_);
             redraw();
         }
     }
@@ -33,17 +33,18 @@ public:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         auto [w, h] = app.window_size();
         auto screen_size = Xyz::Vector2F(float(w), float(h));
-        auto size = text_renderer_.get_size() * 2.f / screen_size;
+        auto text = "Jan Erik Breimo\nNatasha Barrett\nTime: " + std::to_string(second_);
+        auto size = Tungsten::get_size(text, text_renderer_.font()) * 2.f / screen_size;
         text_renderer_.set_color({0xFF, 0, 0, 0xFF});
-        text_renderer_.draw_text({-size[0] / 2, -size[1] / 2}, screen_size);
+        text_renderer_.draw_text(text, {-size[0] / 2, -size[1] / 2}, screen_size);
         text_renderer_.set_color({0, 0xFF, 0, 0xFF});
-        text_renderer_.draw_text({-1.f, 1.f - size[1]}, screen_size);
+        text_renderer_.draw_text(text, {-1.f, 1.f - size[1]}, screen_size);
         text_renderer_.set_color({0, 0, 0xFF, 0xFF});
-        text_renderer_.draw_text({-1.f, -1.f}, screen_size);
+        text_renderer_.draw_text(text, {-1.f, -1.f}, screen_size);
         text_renderer_.set_color({0xFF, 0, 0xFF, 0xFF});
-        text_renderer_.draw_text({1.f - size[0], -1.f}, screen_size);
+        text_renderer_.draw_text(text, {1.f - size[0], -1.f}, screen_size);
         text_renderer_.set_color({0xFF, 0xFF, 0xFF, 0xFF});
-        text_renderer_.draw_text({1.f - size[0], 1.f - size[1]}, screen_size);
+        text_renderer_.draw_text(text, {1.f - size[0], 1.f - size[1]}, screen_size);
     }
 private:
     Tungsten::TextRenderer text_renderer_;

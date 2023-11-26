@@ -42,39 +42,4 @@ namespace Tungsten
     {
         draw_elements(mode, GL_UNSIGNED_SHORT, offset, count);
     }
-
-    void enable_vertex_attribute(GLuint location)
-    {
-        glEnableVertexAttribArray(location);
-        THROW_IF_GL_ERROR();
-    }
-
-    void disable_vertex_attribute(GLuint location)
-    {
-        glDisableVertexAttribArray(location);
-        THROW_IF_GL_ERROR();
-    }
-
-    void define_vertex_attribute_pointer(GLuint attribute_location,
-                                         GLint size,
-                                         GLenum type,
-                                         bool normalized,
-                                         GLsizei stride,
-                                         size_t offset)
-    {
-        glVertexAttribPointer(attribute_location, size, type,
-                              GLboolean(normalized ? 1 : 0),
-                              stride,
-                              reinterpret_cast<void*>(offset));
-        THROW_IF_GL_ERROR();
-    }
-
-    void define_vertex_attribute_float_pointer(GLuint attribute_location,
-                                               GLint size,
-                                               GLsizei stride,
-                                               size_t offset)
-    {
-        define_vertex_attribute_pointer(attribute_location, size, GL_FLOAT,
-                                        false, stride, offset);
-    }
 }

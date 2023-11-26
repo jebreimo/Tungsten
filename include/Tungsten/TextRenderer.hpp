@@ -13,6 +13,12 @@
 
 namespace Tungsten
 {
+    struct TextVertex
+    {
+        Xyz::Vector2F pos;
+        Xyz::Vector2F texture;
+    };
+
     class TextRenderer
     {
     public:
@@ -24,12 +30,14 @@ namespace Tungsten
         TextRenderer& operator=(const TextRenderer&) = delete;
         TextRenderer& operator=(TextRenderer&&) noexcept;
 
-        void prepare_text(std::string_view text);
+        [[nodiscard]] const Font& font() const;
+        //Text prepare_text(std::string_view text);
 
-        void draw_text(const Xyz::Vector2F& pos,
-                       const Xyz::Vector2F& screen_size) const;
+        void draw_text(std::string_view text,
+                       const Xyz::Vector2F& pos,
+                       const Xyz::Vector2F& screen_size);
 
-        [[nodiscard]] Xyz::Vector2F get_size() const;
+        //[[nodiscard]] Xyz::Vector2F get_size() const;
 
         [[nodiscard]] float line_gap() const;
 
@@ -47,11 +55,11 @@ namespace Tungsten
         Tungsten::TextureHandle texture_;
         const Font* font_;
         Yimage::Rgba8 color_;
-        Xyz::RectangleF text_rect_;
+        //Xyz::RectangleF text_rect_;
         float line_gap_ = 0.1;
     };
 
     [[nodiscard]] Xyz::Vector2F
     get_size(std::string_view text, const Font& font,
-             float line_separator = 0.1);
+             float line_gap = 0.1);
 }

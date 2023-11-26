@@ -76,20 +76,4 @@ namespace Tungsten
     {
         draw_elements_16(GL_TRIANGLE_STRIP, offset, count);
     }
-
-    void define_vertex_attribute_pointer(GLuint attribute_location,
-                                         GLint size,
-                                         GLenum type,
-                                         bool normalized,
-                                         GLsizei stride,
-                                         size_t offset = 0);
-
-    void define_vertex_attribute_float_pointer(GLuint attribute_location,
-                                               GLint size,
-                                               GLsizei stride,
-                                               size_t offset = 0);
-
-    void enable_vertex_attribute(GLuint location);
-
-    void disable_vertex_attribute(GLuint location);
 }

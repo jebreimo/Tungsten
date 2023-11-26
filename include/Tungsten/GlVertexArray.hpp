@@ -23,4 +23,25 @@ namespace Tungsten
     std::vector<VertexArrayHandle> generate_vertex_arrays(GLsizei count);
 
     void bind_vertex_array(GLuint vertex_array);
+
+    void define_vertex_attribute_pointer(GLuint location,
+                                         GLint size,
+                                         GLenum type,
+                                         bool normalized,
+                                         GLsizei stride,
+                                         size_t offset = 0);
+
+    void define_vertex_attribute_float_pointer(GLuint location,
+                                               GLint size,
+                                               GLsizei stride,
+                                               size_t offset = 0);
+
+    void define_vertex_attribute_int32_pointer(GLuint location,
+                                               GLint size,
+                                               GLsizei stride,
+                                               size_t offset = 0);
+
+    void enable_vertex_attribute(GLuint location);
+
+    void disable_vertex_attribute(GLuint location);
 }
