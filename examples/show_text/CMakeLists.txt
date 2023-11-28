@@ -7,6 +7,16 @@
 # ===========================================================================
 cmake_minimum_required(VERSION 3.15)
 
+set(CMAKE_CXX_STANDARD 20)
+
+include(FetchContent)
+
+FetchContent_Declare(yconvert
+    GIT_REPOSITORY "https://github.com/jebreimo/Yconvert.git"
+    GIT_TAG v0.2.3)
+
+FetchContent_MakeAvailable(yconvert)
+
 add_executable(show_text
     show_text.cpp
 )
@@ -14,4 +24,5 @@ add_executable(show_text
 target_link_libraries(show_text
     PRIVATE
         Tungsten::Tungsten
+        Yconvert::Yconvert
 )

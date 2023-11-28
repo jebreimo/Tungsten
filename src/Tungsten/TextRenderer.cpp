@@ -7,7 +7,6 @@
 //****************************************************************************
 #include "Tungsten/TextRenderer.hpp"
 
-#include <Yconvert/Convert.hpp>
 #include "Tungsten/ArrayBufferBuilder.hpp"
 #include "Tungsten/GlTextures.hpp"
 #include "Tungsten/GlVertices.hpp"
@@ -19,6 +18,12 @@ namespace Tungsten
 {
     namespace
     {
+        struct TextVertex
+        {
+            Xyz::Vector2F pos;
+            Xyz::Vector2F texture;
+        };
+
         void add_rectangle(ArrayBuffer<TextVertex>& buffer,
                            const Xyz::RectangleF& vertex_rect,
                            const Xyz::RectangleF& tex_rect)
@@ -42,26 +47,19 @@ namespace Tungsten
         std::pair<ArrayBuffer<TextVertex>, Xyz::RectangleF>
         make_text_array_buffer(
             const Font& font,
-            std::string_view text,
+            std::u32string_view text,
             float line_separator)
         {
             const auto& glyphs = font.glyphs;
             if (glyphs.empty() || text.empty())
                 return {};
 
-            auto chars = Yconvert::convert_to<std::u32string>(
-                text,
-                Yconvert::Encoding::UTF_8,
-                Yconvert::Encoding::UTF_32_NATIVE,
-                Yconvert::ErrorPolicy::REPLACE
-            );
-
             ArrayBuffer<TextVertex> buffer;
 
             unsigned lines = 0;
             float max_width = 0;
             Xyz::Vector2F pos;
-            for (const auto c: chars)
+            for (const auto c: text)
             {
                 if (c == '\n')
                 {
@@ -101,24 +99,17 @@ namespace Tungsten
 
     Xyz::RectangleF get_text_size(
         const Font& font,
-        std::string_view text,
+        std::u32string_view text,
         float line_separator)
     {
         const auto& glyphs = font.glyphs;
         if (glyphs.empty() || text.empty())
             return {};
 
-        auto chars = Yconvert::convert_to<std::u32string>(
-            text,
-            Yconvert::Encoding::UTF_8,
-            Yconvert::Encoding::UTF_32_NATIVE,
-            Yconvert::ErrorPolicy::REPLACE
-        );
-
         unsigned lines = 0;
         float max_width = 0;
         float width = 0;
-        for (char32_t c : chars)
+        for (char32_t c : text)
         {
             if (c == '\n')
             {
@@ -149,12 +140,12 @@ namespace Tungsten
     struct TextRenderer::Data
     {
         VertexArray<TextVertex> vertex_array;
+        Tungsten::TextureHandle texture;
         Detail::RenderTextShaderProgram program;
     };
 
     TextRenderer::TextRenderer(const Font& font)
-        : font_(&font),
-          color_(0xFFFFFFFF)
+        : font_(&font)
     {}
 
     TextRenderer::TextRenderer(TextRenderer&&) noexcept = default;
@@ -168,36 +159,19 @@ namespace Tungsten
         return *font_;
     }
 
-    //void TextRenderer::prepare_text(std::string_view text)
-    //{
-    //    if (!data_)
-    //    {
-    //        initialize(text);
-    //    }
-    //    else
-    //    {
-    //        auto [buffer, rect] = make_text_array_buffer(*font_, text, line_gap_);
-    //        set_buffers(data_->vertex_array, buffer);
-    //        text_rect_ = rect;
-    //    }
-    //}
-
-    //Xyz::Vector2F TextRenderer::get_size() const
-    //{
-    //    return text_rect_.size;
-    //}
-
-    void TextRenderer::draw_text(std::string_view text,
-                                 const Xyz::Vector2F& pos,
-                                 const Xyz::Vector2F& screen_size)
+    void TextRenderer::draw(std::u32string_view text,
+                            const Xyz::Vector2F& pos,
+                            const Xyz::Vector2F& screen_size,
+                            const TextProperties& properties)
     {
         if (!data_)
-            initialize(text);
+            initialize();
 
-        auto [buffer, rect] = make_text_array_buffer(*font_, text, line_gap_);
+        auto [buffer, rect] = make_text_array_buffer(*font_, text,
+                                                     properties.line_gap);
         set_buffers(data_->vertex_array, buffer);
 
-        data_->program.color.set(to_vector(color_));
+        data_->program.color.set(to_vector(properties.color));
         auto [w, h] = screen_size;
         auto adjusted_pos = pos - rect.origin * 2.0f / Xyz::Vector2F(w, h);
         data_->program.mvp_matrix.set(Xyz::translate4(adjusted_pos[0], adjusted_pos[1], 0.f)
@@ -205,35 +179,12 @@ namespace Tungsten
         draw_triangle_elements_16(0, GLsizei(data_->vertex_array.indexes.size()));
     }
 
-    float TextRenderer::line_gap() const
-    {
-        return line_gap_;
-    }
-
-    void TextRenderer::set_line_gap(float line_gap)
-    {
-        line_gap_ = line_gap;
-    }
-
-    const Yimage::Rgba8& TextRenderer::color() const
-    {
-        return color_;
-    }
-
-    void TextRenderer::set_color(const Yimage::Rgba8& color)
-    {
-        color_ = color;
-    }
-
-    void TextRenderer::initialize(std::string_view text)
+    void TextRenderer::initialize()
     {
         data_ = std::make_unique<Data>();
-        //auto [buffer, rect] = make_text_array_buffer(*font_, text, line_gap_);
-        //set_buffers(data_->vertex_array, buffer);
-        //text_rect_ = rect;
 
-        texture_ = generate_texture();
-        bind_texture(GL_TEXTURE_2D, texture_);
+        data_->texture = generate_texture();
+        bind_texture(GL_TEXTURE_2D, data_->texture);
 
         set_texture_min_filter(GL_TEXTURE_2D, GL_LINEAR);
         set_texture_mag_filter(GL_TEXTURE_2D, GL_LINEAR);
@@ -256,7 +207,7 @@ namespace Tungsten
         enable_vertex_attribute(data_->program.texture_coord);
     }
 
-    Xyz::Vector2F get_size(std::string_view text, const Font& font,
+    Xyz::Vector2F get_size(std::u32string_view text, const Font& font,
                            float line_gap)
     {
         return get_text_size(font, text, line_gap).size;

@@ -7,6 +7,9 @@
 //****************************************************************************
 #include <iostream>
 #include <Tungsten/Tungsten.hpp>
+#include <Yconvert/Convert.hpp>
+#include <thread>
+
 
 class ShowText : public Tungsten::EventLoop
 {
@@ -22,9 +25,9 @@ public:
         {
             second_ = current_second;
             text_ = "Jan Erik Breimo\nNatasha Barrett\nTime: " + std::to_string(second_);
-            //text_renderer_.prepare_text(text_);
             redraw();
         }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
     void on_draw(Tungsten::SdlApplication& app) override
@@ -33,18 +36,26 @@ public:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         auto [w, h] = app.window_size();
         auto screen_size = Xyz::Vector2F(float(w), float(h));
-        auto text = "Jan Erik Breimo\nNatasha Barrett\nTime: " + std::to_string(second_);
+        auto u8text = "Jan Erik Breimo\nNatasha Barrett\nTime: " + std::to_string(second_);
+
+        auto text = Yconvert::convert_to<std::u32string>(
+            u8text,
+            Yconvert::Encoding::UTF_8,
+            Yconvert::Encoding::UTF_32_NATIVE,
+            Yconvert::ErrorPolicy::REPLACE
+        );
+
         auto size = Tungsten::get_size(text, text_renderer_.font()) * 2.f / screen_size;
-        text_renderer_.set_color({0xFF, 0, 0, 0xFF});
-        text_renderer_.draw_text(text, {-size[0] / 2, -size[1] / 2}, screen_size);
-        text_renderer_.set_color({0, 0xFF, 0, 0xFF});
-        text_renderer_.draw_text(text, {-1.f, 1.f - size[1]}, screen_size);
-        text_renderer_.set_color({0, 0, 0xFF, 0xFF});
-        text_renderer_.draw_text(text, {-1.f, -1.f}, screen_size);
-        text_renderer_.set_color({0xFF, 0, 0xFF, 0xFF});
-        text_renderer_.draw_text(text, {1.f - size[0], -1.f}, screen_size);
-        text_renderer_.set_color({0xFF, 0xFF, 0xFF, 0xFF});
-        text_renderer_.draw_text(text, {1.f - size[0], 1.f - size[1]}, screen_size);
+        text_renderer_.draw(text, {-size[0] / 2, -size[1] / 2}, screen_size,
+                            {.color = {0xFF, 0, 0, 0xFF}});
+        text_renderer_.draw(text, {-1.f, 1.f - size[1]}, screen_size,
+                            {.color = {0, 0xFF, 0, 0xFF}});
+        text_renderer_.draw(text, {-1.f, -1.f}, screen_size,
+                            {.color = {0, 0, 0xFF, 0xFF}});
+        text_renderer_.draw(text, {1.f - size[0], -1.f}, screen_size,
+                            {.color = {0xFF, 0, 0xFF, 0xFF}});
+        text_renderer_.draw(text, {1.f - size[0], 1.f - size[1]},
+                            screen_size, {.color = {0xFF, 0xFF, 0xFF, 0xFF}});
     }
 private:
     Tungsten::TextRenderer text_renderer_;

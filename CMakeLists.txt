@@ -41,19 +41,11 @@ FetchContent_Declare(xyz
     GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
     GIT_TAG v0.2.91)
 
-FetchContent_Declare(yconvert
-    GIT_REPOSITORY "https://github.com/jebreimo/Yconvert.git"
-    GIT_TAG v0.2.3)
-
 FetchContent_Declare(yimage
     GIT_REPOSITORY "https://github.com/jebreimo/Yimage.git"
     GIT_TAG v0.1.7)
 
-FetchContent_Declare(ystring2
-    GIT_REPOSITORY "https://github.com/jebreimo/Ystring2.git"
-    GIT_TAG v2.1.2)
-
-FetchContent_MakeAvailable(argos xyz yconvert yimage ystring2)
+FetchContent_MakeAvailable(argos xyz yimage)
 
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -119,8 +111,6 @@ target_link_libraries(Tungsten
         Yimage::Yimage
     PRIVATE
         Argos
-        Yconvert::Yconvert
-        Ystring2::Ystring
 )
 
 add_library(Tungsten::Tungsten ALIAS Tungsten)

@@ -13,10 +13,10 @@
 
 namespace Tungsten
 {
-    struct TextVertex
+    struct TextProperties
     {
-        Xyz::Vector2F pos;
-        Xyz::Vector2F texture;
+        Yimage::Rgba8 color = Yimage::Rgba8(0xFFFFFFFF);
+        float line_gap = 0.1;
     };
 
     class TextRenderer
@@ -31,35 +31,20 @@ namespace Tungsten
         TextRenderer& operator=(TextRenderer&&) noexcept;
 
         [[nodiscard]] const Font& font() const;
-        //Text prepare_text(std::string_view text);
 
-        void draw_text(std::string_view text,
-                       const Xyz::Vector2F& pos,
-                       const Xyz::Vector2F& screen_size);
-
-        //[[nodiscard]] Xyz::Vector2F get_size() const;
-
-        [[nodiscard]] float line_gap() const;
-
-        void set_line_gap(float line_gap);
-
-        [[nodiscard]] const Yimage::Rgba8& color() const;
-
-        void set_color(const Yimage::Rgba8& color);
-
+        void draw(std::u32string_view text,
+                  const Xyz::Vector2F& pos,
+                  const Xyz::Vector2F& screen_size,
+                  const TextProperties& properties = {});
     private:
-        void initialize(std::string_view text);
+        void initialize();
 
         struct Data;
         std::unique_ptr<Data> data_;
-        Tungsten::TextureHandle texture_;
         const Font* font_;
-        Yimage::Rgba8 color_;
-        //Xyz::RectangleF text_rect_;
-        float line_gap_ = 0.1;
     };
 
     [[nodiscard]] Xyz::Vector2F
-    get_size(std::string_view text, const Font& font,
+    get_size(std::u32string_view text, const Font& font,
              float line_gap = 0.1);
 }
