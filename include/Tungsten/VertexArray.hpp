@@ -8,7 +8,6 @@
 #pragma once
 #include "Buffer.hpp"
 #include "GlVertexArray.hpp"
-#include "GlVertexArray.hpp"
 
 namespace Tungsten
 {
