@@ -31,24 +31,24 @@ namespace Tungsten
 
         void define_float_pointer(GLuint attribute_location,
                                   GLint size,
-                                  GLsizei stride,
                                   size_t offset = 0)
         {
             bind();
             vertexes.bind();
             define_vertex_attribute_float_pointer(attribute_location,
-                                                  size, stride, offset);
+                                                  size, sizeof(Element),
+                                                  offset);
         }
 
         void define_int32_pointer(GLuint attribute_location,
                                   GLint size,
-                                  GLsizei stride,
                                   size_t offset = 0)
         {
             bind();
             vertexes.bind();
             define_vertex_attribute_int32_pointer(attribute_location,
-                                                  size, stride, offset);
+                                                  size, sizeof(Element),
+                                                  offset);
         }
     private:
         VertexArrayHandle vertex_array_;
