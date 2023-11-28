@@ -200,10 +200,10 @@ namespace Tungsten
 
         use_program(data_->program.program);
         data_->vertex_array.define_float_pointer(
-            data_->program.position, 2, 4 * sizeof(float), 0);
+            data_->program.position, 2, 0);
         enable_vertex_attribute(data_->program.position);
         data_->vertex_array.define_float_pointer(
-            data_->program.texture_coord, 2, 4 * sizeof(float), 2 * sizeof(float));
+            data_->program.texture_coord, 2, 2 * sizeof(float));
         enable_vertex_attribute(data_->program.texture_coord);
     }
 
