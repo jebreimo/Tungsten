@@ -167,6 +167,8 @@ namespace Tungsten
         if (!data_)
             initialize();
 
+        use_program(data_->program.program);
+
         auto [buffer, rect] = make_text_array_buffer(*font_, text,
                                                      properties.line_gap);
         set_buffers(data_->vertex_array, buffer);
