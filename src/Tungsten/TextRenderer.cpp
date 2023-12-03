@@ -174,10 +174,11 @@ namespace Tungsten
         set_buffers(data_->vertex_array, buffer);
 
         data_->program.color.set(to_vector(properties.color));
-        auto [w, h] = screen_size;
-        auto adjusted_pos = pos - rect.origin * 2.0f / Xyz::Vector2F(w, h);
-        data_->program.mvp_matrix.set(Xyz::translate4(adjusted_pos[0], adjusted_pos[1], 0.f)
-                                      * Xyz::scale4(2.0f / w, 2.0f / h, 1.0f));
+        auto adjusted_pos = pos - rect.origin * 2.0f / screen_size;
+        auto [scale_x, scale_y] = 2.0f / screen_size;
+        data_->program.mvp_matrix.set(Xyz::translate4(adjusted_pos[0],
+                                                      adjusted_pos[1], 0.f)
+                                      * Xyz::scale4(scale_x, scale_y, 1.0f));
         draw_triangle_elements_16(0, GLsizei(data_->vertex_array.indexes.size()));
     }
 
