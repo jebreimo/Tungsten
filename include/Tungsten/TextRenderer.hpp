@@ -32,6 +32,10 @@ namespace Tungsten
 
         [[nodiscard]] const Font& font() const;
 
+        [[nodiscard]] bool auto_blend() const;
+
+        void set_auto_blend(bool value);
+
         void draw(std::u32string_view text,
                   const Xyz::Vector2F& pos,
                   const Xyz::Vector2F& screen_size,
@@ -41,7 +45,8 @@ namespace Tungsten
 
         struct Data;
         std::unique_ptr<Data> data_;
-        const Font* font_;
+        const Font* font_ = nullptr;
+        bool auto_blend_ = true;
     };
 
     [[nodiscard]] Xyz::Vector2F

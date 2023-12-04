@@ -18,12 +18,6 @@ public:
         : text_renderer_(Tungsten::FontManager::instance().default_font())
     {}
 
-    void on_startup(Tungsten::SdlApplication& app) override
-    {
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    }
-
     void on_update(Tungsten::SdlApplication& app) override
     {
         auto current_second = SDL_GetTicks() / 1000;

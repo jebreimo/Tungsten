@@ -159,6 +159,16 @@ namespace Tungsten
         return *font_;
     }
 
+    bool TextRenderer::auto_blend() const
+    {
+        return auto_blend_;
+    }
+
+    void TextRenderer::set_auto_blend(bool value)
+    {
+        auto_blend_ = value;
+    }
+
     void TextRenderer::draw(std::u32string_view text,
                             const Xyz::Vector2F& pos,
                             const Xyz::Vector2F& screen_size,
@@ -166,6 +176,14 @@ namespace Tungsten
     {
         if (!data_)
             initialize();
+
+        bool default_blend = glIsEnabled(GL_BLEND);
+        if (auto_blend_)
+        {
+            if (!default_blend)
+                glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
 
         use_program(data_->program.program);
 
@@ -180,6 +198,9 @@ namespace Tungsten
                                                       adjusted_pos[1], 0.f)
                                       * Xyz::scale4(scale_x, scale_y, 1.0f));
         draw_triangle_elements_16(0, GLsizei(data_->vertex_array.indexes.size()));
+
+        if (auto_blend_ && !default_blend)
+            glDisable(GL_BLEND);
     }
 
     void TextRenderer::initialize()
