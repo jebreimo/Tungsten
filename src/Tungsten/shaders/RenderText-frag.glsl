@@ -18,8 +18,8 @@ void main()
     highp float value = max(texCol.r, max(texCol.g, texCol.b));
     if (value == 0.0)
         discard;
-    gl_FragColor = vec4(u_TextColor.r * value,
-                        u_TextColor.g * value,
-                        u_TextColor.b * value,
+    gl_FragColor = vec4(u_TextColor.r,
+                        u_TextColor.g,
+                        u_TextColor.b,
                         u_TextColor.a * value);
 }

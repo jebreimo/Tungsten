@@ -18,6 +18,12 @@ public:
         : text_renderer_(Tungsten::FontManager::instance().default_font())
     {}
 
+    void on_startup(Tungsten::SdlApplication& app) override
+    {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+
     void on_update(Tungsten::SdlApplication& app) override
     {
         auto current_second = SDL_GetTicks() / 1000;
@@ -32,7 +38,7 @@ public:
 
     void on_draw(Tungsten::SdlApplication& app) override
     {
-        glClearColor(0, 0, 0, 1);
+        glClearColor(0.4, 0.6, 0.8, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         auto [w, h] = app.window_size();
         auto screen_size = Xyz::Vector2F(float(w), float(h));
