@@ -187,6 +187,8 @@ namespace Tungsten
 
         use_program(data_->program.program);
 
+        bind_texture(GL_TEXTURE_2D, data_->texture);
+
         auto [buffer, rect] = make_text_array_buffer(*font_, text,
                                                      properties.line_gap);
         set_buffers(data_->vertex_array, buffer);
