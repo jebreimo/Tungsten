@@ -23,29 +23,29 @@ namespace Tungsten
 }
 
 #ifdef _MSC_VER
-    #define _TUNGSTEN_THROW_3(file, line, msg) \
+    #define IMPL_TUNGSTEN_THROW_2(file, line, msg) \
         throw ::Tungsten::TungstenException(file "(" #line "): " msg)
 #else
-    #define _TUNGSTEN_THROW_3(file, line, msg) \
+    #define IMPL_TUNGSTEN_THROW_2(file, line, msg) \
         throw ::Tungsten::TungstenException(file ":" #line ": " msg)
 #endif
 
-#define _TUNGSTEN_THROW_2(file, line, msg) \
-    _TUNGSTEN_THROW_3(file, line, msg)
+#define IMPL_TUNGSTEN_THROW_1(file, line, msg) \
+    IMPL_TUNGSTEN_THROW_2(file, line, msg)
 
 #define TUNGSTEN_THROW(msg) \
-    _TUNGSTEN_THROW_2(__FILE__, __LINE__, msg)
+    IMPL_TUNGSTEN_THROW_1(__FILE__, __LINE__, msg)
 
 #define THROW_IF_GL_ERROR() \
     do { \
         auto my_gl_error = glGetError(); \
         if (!my_gl_error) \
             break; \
-        _TUNGSTEN_THROW_2(__FILE__, __LINE__, \
+        IMPL_TUNGSTEN_THROW_1(__FILE__, __LINE__, \
                           + std::string("[") + __func__ + "] " \
                           + get_gl_error_message(my_gl_error)); \
     } while (false)
 
 #define THROW_SDL_ERROR() \
-    _TUNGSTEN_THROW_2(__FILE__, __LINE__, \
+    IMPL_TUNGSTEN_THROW_1(__FILE__, __LINE__, \
                       + std::string("[") + __func__ + "] " + SDL_GetError())
