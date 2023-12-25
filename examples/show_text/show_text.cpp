@@ -6,9 +6,9 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #include <iostream>
+#include <thread>
 #include <Tungsten/Tungsten.hpp>
 #include <Yconvert/Convert.hpp>
-#include <thread>
 
 
 class ShowText : public Tungsten::EventLoop
@@ -24,7 +24,6 @@ public:
         if (current_second != second_)
         {
             second_ = current_second;
-            text_ = "Jan Erik Breimo\nNatasha Barrett\nTime: " + std::to_string(second_);
             redraw();
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -60,7 +59,6 @@ public:
 private:
     Tungsten::TextRenderer text_renderer_;
     uint32_t second_ = UINT32_MAX;
-    std::string text_;
 };
 
 int main(int argc, char* argv[])

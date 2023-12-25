@@ -28,6 +28,11 @@ namespace Tungsten
         WAIT_FOR_EVENTS
     };
 
+    struct SdlConfiguration
+    {
+        bool enable_touch_events = false;
+    };
+
     class SdlApplication
     {
     public:
@@ -36,11 +41,11 @@ namespace Tungsten
         SdlApplication(std::string name,
                        std::unique_ptr<EventLoop> event_loop);
 
-        SdlApplication(SdlApplication&&) = default;
+        SdlApplication(SdlApplication&&) noexcept = default;
 
         virtual ~SdlApplication();
 
-        SdlApplication& operator=(SdlApplication&&) = default;
+        SdlApplication& operator=(SdlApplication&&) noexcept = default;
 
         [[nodiscard]]
         const std::string& name() const;
@@ -51,7 +56,7 @@ namespace Tungsten
 
         void parse_command_line_options(int& argc, char**& argv);
 
-        void run();
+        void run(const SdlConfiguration& configuration = {});
 
         [[nodiscard]]
         bool is_running() const;

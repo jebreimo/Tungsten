@@ -135,4 +135,5 @@ tungsten_target_embed_shaders(Tungsten
 
 if (TUNGSTEN_BUILD_EXAMPLES)
     add_subdirectory(examples/show_text)
+    add_subdirectory(examples/touch_events)
 endif ()
