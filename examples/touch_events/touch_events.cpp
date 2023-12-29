@@ -11,13 +11,14 @@
 #include <Yconvert/Convert.hpp>
 #include "RingBuffer.hpp"
 
+#include "Debug.hpp"
+
 class EventLoop : public Tungsten::EventLoop
 {
 public:
     EventLoop()
         : text_renderer_(Tungsten::FontManager::instance().default_font())
-    {
-    }
+    {}
 
     bool on_event(Tungsten::SdlApplication& app, const SDL_Event& event) override
     {
@@ -51,6 +52,7 @@ public:
                 msg,
                 Yconvert::Encoding::UTF_8,
                 Yconvert::Encoding::UTF_32_NATIVE));
+            SDL_Log("%s", msg.c_str());
             redraw();
         }
         return true;

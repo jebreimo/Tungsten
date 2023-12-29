@@ -27,3 +27,16 @@ target_link_libraries(touch_events
         Tungsten::Tungsten
         Yconvert::Yconvert
 )
+
+if (EMSCRIPTEN)
+    target_link_options(touch_events
+        PRIVATE
+            -sALLOW_MEMORY_GROWTH=1
+            -sEXPORTED_FUNCTIONS=['_main']
+            -sEXPORTED_RUNTIME_METHODS=['ccall']
+            -sFORCE_FILESYSTEM=1
+    )
+    set(EMSCRIPTEN_TARGET_NAME touch_events)
+    configure_file(emscripten/index.html.in index.html)
+    configure_file(emscripten/index.css index.css)
+endif ()
