@@ -10,21 +10,44 @@
 
 namespace Tungsten
 {
+    GlVersionCode get_sdl_gl_version_code()
+    {
+        auto version = get_sdl_gl_version();
+        if (version.profile == SDL_GL_CONTEXT_PROFILE_ES)
+        {
+            if (version.major_version == 2)
+                return GlVersionCode::ES_2;
+            if (version.major_version == 3)
+                return GlVersionCode::ES_3;
+        }
+        else if (version.profile == SDL_GL_CONTEXT_PROFILE_CORE)
+        {
+            if (version.major_version == 3 && version.minor_version >= 1)
+                return GlVersionCode::CORE_3_1;
+            if (version.major_version == 4 && version.minor_version >= 1)
+                return GlVersionCode::CORE_4_1;
+        }
+        TUNGSTEN_THROW("Unsupported OpenGL version.");
+    }
+
     GlVersion make_gl_version(GlVersionCode version_code)
     {
         switch (version_code)
         {
-            #if defined(__EMSCRIPTEN__) || defined(__arm__)
+    #if defined(__EMSCRIPTEN__) || defined(__arm__)
         case GlVersionCode::ES_2:
         case GlVersionCode::CORE_3_1:
             return {SDL_GL_CONTEXT_PROFILE_ES, 2, 0};
-            #else
+        case GlVersionCode::ES_3:
+            return {SDL_GL_CONTEXT_PROFILE_ES, 3, 0};
+    #else
         case GlVersionCode::ES_2:
+        case GlVersionCode::ES_3:
         case GlVersionCode::CORE_3_1:
             return {SDL_GL_CONTEXT_PROFILE_CORE, 3, 1};
         case GlVersionCode::CORE_4_1:
             return {SDL_GL_CONTEXT_PROFILE_CORE, 4, 1};
-            #endif
+    #endif
         default:
             TUNGSTEN_THROW("Unsupported OpenGL version.");
         }

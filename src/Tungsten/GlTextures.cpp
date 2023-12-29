@@ -7,9 +7,42 @@
 //****************************************************************************
 #include "Tungsten/GlTextures.hpp"
 #include "Tungsten/TungstenException.hpp"
+#include "Tungsten/Environment.hpp"
 
 namespace Tungsten
 {
+    namespace
+    {
+        GLenum map_color_format(GLenum format)
+        {
+            switch (format)
+            {
+            case GL_RED:
+            case GL_R8:
+            case GL_LUMINANCE:
+                if constexpr (is_emscripten())
+                    return GL_LUMINANCE;
+                else
+                    return GL_RED;
+            case GL_RG:
+            case GL_RG8:
+            case GL_LUMINANCE_ALPHA:
+                if constexpr (is_emscripten())
+                    return GL_LUMINANCE_ALPHA;
+                else
+                    return GL_RG;
+            case GL_RGB:
+            case GL_RGB8:
+                return GL_RGB;
+            case GL_RGBA:
+            case GL_RGBA8:
+                return GL_RGBA;
+            default:
+                return format;
+            }
+        }
+    }
+
     void GlTextureDeleter::operator()(GLuint id) const
     {
         glDeleteTextures(1, &id);
@@ -45,7 +78,7 @@ namespace Tungsten
     std::vector<TextureHandle> generate_textures(GLsizei count)
     {
         if (count == 0)
-            return std::vector<TextureHandle>();
+            return {};
 
         auto ids = std::vector<GLuint>(size_t(count));
         glGenTextures(count, ids.data());
@@ -61,8 +94,9 @@ namespace Tungsten
                               GLsizei height, GLenum format,
                               GLenum type, const void* data)
     {
-        glTexImage2D(target, level, internal_format, width, height, 0,
-                     format, type, data);
+        glTexImage2D(target, level, GLint(map_color_format(internal_format)),
+                     width, height, 0,
+                     map_color_format(format), type, data);
         THROW_IF_GL_ERROR();
     }
 
@@ -94,7 +128,7 @@ namespace Tungsten
                                   GLenum type, const void* data)
     {
         glTexSubImage2D(target, level, x_offset, y_offset, width, height,
-                        format, type, data);
+                        map_color_format(format), type, data);
         THROW_IF_GL_ERROR();
     }
 }

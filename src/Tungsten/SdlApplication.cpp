@@ -329,7 +329,10 @@ namespace Tungsten
     {
         #ifdef __EMSCRIPTEN__
         if (mode == EventLoopMode::WAIT_FOR_EVENTS)
-            TUNGSTEN_THROW("Can't use WAIT_FOR_EVENTS with Emscripten.");
+        {
+            SDL_Log("Can't use WAIT_FOR_EVENTS with Emscripten.");
+            return;
+        }
         #endif
         event_loop_mode_ = mode;
     }

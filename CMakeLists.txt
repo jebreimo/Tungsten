@@ -100,6 +100,7 @@ add_library(Tungsten STATIC
     src/Tungsten/details/Monaco64.hpp
     include/Tungsten/VertexArray.hpp
     include/Tungsten/Buffer.hpp
+    include/Tungsten/Environment.hpp
 )
 
 target_link_libraries(Tungsten

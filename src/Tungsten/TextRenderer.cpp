@@ -218,7 +218,7 @@ namespace Tungsten
         set_texture_parameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         auto [format, type] = get_ogl_pixel_type(font_->image.pixel_type());
-        set_texture_image_2d(GL_TEXTURE_2D, 0, GL_RED,
+        set_texture_image_2d(GL_TEXTURE_2D, 0, GL_LUMINANCE,
                              GLsizei(font_->image.width()),
                              GLsizei(font_->image.height()),
                              format, type,

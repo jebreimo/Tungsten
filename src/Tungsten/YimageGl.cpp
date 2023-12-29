@@ -20,9 +20,9 @@ namespace Tungsten
         switch (type)
         {
         case Yimage::PixelType::MONO_8:
-            return {GL_RED, GL_UNSIGNED_BYTE};
+            return {GL_LUMINANCE, GL_UNSIGNED_BYTE};
         case Yimage::PixelType::MONO_ALPHA_8:
-            return {GL_RG, GL_UNSIGNED_BYTE};
+            return {GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE};
         case Yimage::PixelType::RGB_8:
             return {GL_RGB, GL_UNSIGNED_BYTE};
         case Yimage::PixelType::RGBA_8:

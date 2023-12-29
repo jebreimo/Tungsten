@@ -29,9 +29,14 @@ namespace Tungsten
     enum class GlVersionCode
     {
         ES_2,
+        ES_3,
         CORE_3_1,
-        CORE_4_1
+        CORE_4_1,
+        WEBGL_1 = ES_2,
+        WEBGL_2 = ES_3
     };
+
+    GlVersionCode get_sdl_gl_version_code();
 
     GlVersion make_gl_version(GlVersionCode version_code);
 
