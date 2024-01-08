@@ -20,6 +20,9 @@ FetchContent_MakeAvailable(yconvert)
 add_executable(touch_events
     touch_events.cpp
     RingBuffer.hpp
+    MultiGestureEventThrottler.cpp
+    MouseWheelEventThrottler.hpp
+    MouseWheelEventThrottler.cpp
 )
 
 target_link_libraries(touch_events
