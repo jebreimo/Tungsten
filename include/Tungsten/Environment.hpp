@@ -11,7 +11,7 @@ namespace Tungsten
 {
     constexpr bool is_emscripten()
     {
-    #ifdef EMSCRIPTEN
+    #ifdef __EMSCRIPTEN__
         return true;
     #else
         return false;
