@@ -263,8 +263,16 @@ namespace Tungsten
 
     void SdlApplication::emscripten_event_loop_step(void* arg)
     {
-        auto app = static_cast<SdlApplication*>(arg);
-        app->run_event_loop_step();
+        try
+        {
+            auto app = static_cast<SdlApplication*>(arg);
+            app->run_event_loop_step();
+        }
+        catch (const std::exception& ex)
+        {
+            SDL_Log("Exception: %s", ex.what());
+            emscripten_cancel_main_loop();
+        }
     }
 
     #else
