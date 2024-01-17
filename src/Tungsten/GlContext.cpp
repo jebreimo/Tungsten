@@ -30,7 +30,7 @@ namespace Tungsten
     {
     }
 
-    GlContext::GlContext(GlContext&& other)
+    GlContext::GlContext(GlContext&& other) noexcept
             : context_(other.context_)
     {
         other.context_ = nullptr;
@@ -42,7 +42,7 @@ namespace Tungsten
             SDL_GL_DeleteContext(context_);
     }
 
-    GlContext& GlContext::operator=(GlContext&& other)
+    GlContext& GlContext::operator=(GlContext&& other) noexcept
     {
         if (context_)
             SDL_GL_DeleteContext(context_);

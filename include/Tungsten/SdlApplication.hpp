@@ -7,9 +7,6 @@
 //****************************************************************************
 #pragma once
 #include <iosfwd>
-#include <memory>
-#include <vector>
-#include <GL/glew.h>
 #include "EventLoop.hpp"
 #include "GlContext.hpp"
 #include "WindowParameters.hpp"
@@ -28,9 +25,18 @@ namespace Tungsten
         WAIT_FOR_EVENTS
     };
 
+    enum class SwapInterval
+    {
+        IMMEDIATE = 0,
+        VSYNC = 1,
+        ADAPTIVE_VSYNC = -1,
+        ADAPTIVE_VSYNC_OR_VSYNC = -2
+    };
+
     struct SdlConfiguration
     {
         bool enable_touch_events = false;
+        bool enable_timers = false;
     };
 
     class SdlApplication
@@ -41,14 +47,13 @@ namespace Tungsten
         SdlApplication(std::string name,
                        std::unique_ptr<EventLoop> event_loop);
 
-        SdlApplication(SdlApplication&&) noexcept = default;
+        SdlApplication(SdlApplication&&) noexcept;
 
         virtual ~SdlApplication();
 
-        SdlApplication& operator=(SdlApplication&&) noexcept = default;
+        SdlApplication& operator=(SdlApplication&&) noexcept;
 
-        [[nodiscard]]
-        const std::string& name() const;
+        [[nodiscard]] const std::string& name() const;
 
         static void add_command_line_options(argos::ArgumentParser& parser);
 
@@ -58,54 +63,40 @@ namespace Tungsten
 
         void run(const SdlConfiguration& configuration = {});
 
-        [[nodiscard]]
-        bool is_running() const;
+        [[nodiscard]] bool is_running() const;
 
         void quit();
 
-        [[nodiscard]]
-        SDL_GLContext gl_context() const;
+        [[nodiscard]] SDL_GLContext gl_context() const;
 
-        [[nodiscard]]
-        int status() const;
+        [[nodiscard]] int status() const;
 
-        SdlApplication& set_swap_interval(int interval);
-
-        [[nodiscard]]
-        SDL_Window* window() const;
+        [[nodiscard]] SDL_Window* window() const;
 
         void set_window(SDL_Window* window);
 
-        [[nodiscard]]
-        std::pair<int, int> window_size() const;
+        [[nodiscard]] std::pair<int, int> window_size() const;
 
-        [[nodiscard]]
-        float aspect_ratio() const;
+        [[nodiscard]] const EventLoop* event_loop() const;
 
-        [[nodiscard]]
-        const EventLoop* event_loop() const;
+        [[nodiscard]] EventLoop* event_loop();
 
-        [[nodiscard]]
-        EventLoop* event_loop();
-
-        [[nodiscard]]
-        const WindowParameters& window_parameters() const;
+        [[nodiscard]] const WindowParameters& window_parameters() const;
 
         void set_window_parameters(const WindowParameters& params);
 
-        [[nodiscard]]
-        EventLoopMode event_loop_mode() const;
+        [[nodiscard]] EventLoopMode event_loop_mode() const;
 
         void set_event_loop_mode(EventLoopMode mode);
 
         [[nodiscard]]
         const EventLoop& callbacks() const;
 
-        EventLoop& callbacks();
+        [[nodiscard]] EventLoop& callbacks();
     protected:
         void set_status(int status);
 
-        bool process_event(const SDL_Event& event);
+        void process_event(const SDL_Event& event);
 
         void initialize(const WindowParameters& params);
 
@@ -119,13 +110,7 @@ namespace Tungsten
         static void emscripten_event_loop_step(void* arg);
         #endif
 
-        std::unique_ptr<EventLoop> event_loop_;
-        EventLoopMode event_loop_mode_ = EventLoopMode::UPDATE_CONTINUOUSLY;
-        std::string name_;
-        WindowParameters window_parameters_;
-        SDL_Window* window_ = nullptr;
-        GlContext gl_context_ = {};
-        int status_ = 0;
-        bool is_running_ = false;
+        struct Data;
+        std::unique_ptr<Data> data_;
     };
 }

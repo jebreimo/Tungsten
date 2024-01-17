@@ -10,7 +10,7 @@
 
 namespace Tungsten
 {
-    SdlSession::SdlSession(int flags)
+    SdlSession::SdlSession(uint32_t flags)
             : active_(SDL_Init(flags) == 0)
     {
         if (!active_)

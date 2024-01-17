@@ -23,13 +23,13 @@ namespace Tungsten
 
         GlContext(GlContext& other) = delete;
 
-        GlContext(GlContext&& other);
+        GlContext(GlContext&& other) noexcept;
 
         ~GlContext();
 
         GlContext& operator=(GlContext& other) = delete;
 
-        GlContext& operator=(GlContext&& other);
+        GlContext& operator=(GlContext&& other) noexcept;
 
         operator SDL_GLContext() const;
 

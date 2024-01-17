@@ -7,6 +7,9 @@
 //****************************************************************************
 #include "Tungsten/SdlApplication.hpp"
 
+#include <memory>
+#include <unordered_map>
+#include <GL/glew.h>
 #include <Argos/ArgumentParser.hpp>
 #include "Tungsten/EventLoop.hpp"
 #include "Tungsten/GlParameters.hpp"
@@ -59,23 +62,54 @@ namespace Tungsten
             if (configuration.enable_touch_events)
                 SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
         }
+
+        uint32_t get_sdl_init_flags(const SdlConfiguration& configuration)
+        {
+            uint32_t flags = SDL_INIT_VIDEO;
+            if (configuration.enable_timers)
+                flags |= SDL_INIT_TIMER;
+            return flags;
+        }
     }
+
+    struct SdlApplication::Data
+    {
+        Data(std::string name,
+             std::unique_ptr<EventLoop> event_loop)
+            : name(std::move(name)),
+              event_loop(std::move(event_loop))
+        {
+        }
+
+        std::string name;
+        std::unique_ptr<EventLoop> event_loop;
+        WindowParameters window_parameters;
+        EventLoopMode event_loop_mode = EventLoopMode::UPDATE_CONTINUOUSLY;
+        bool is_running = false;
+        int status = 0;
+        SDL_Window* window = nullptr;
+        GlContext gl_context;
+    };
 
     SdlApplication::SdlApplication() = default;
 
     SdlApplication::SdlApplication(
         std::string name,
         std::unique_ptr<EventLoop> event_loop)
-        : name_(std::move(name)),
-          event_loop_(std::move(event_loop)),
-          window_parameters_(get_default_window_parameters())
-    {}
+        : data_(std::make_unique<Data>(std::move(name), std::move(event_loop)))
+    {
+        data_->window_parameters = get_default_window_parameters();
+    }
+
+    SdlApplication::SdlApplication(SdlApplication&&) noexcept = default;
 
     SdlApplication::~SdlApplication() = default;
 
+    SdlApplication& SdlApplication::operator=(SdlApplication&&) noexcept = default;
+
     const std::string& SdlApplication::name() const
     {
-        return name_;
+        return data_->name;
     }
 
     void SdlApplication::add_command_line_options(argos::ArgumentParser& parser)
@@ -95,22 +129,21 @@ namespace Tungsten
 
     void SdlApplication::run(const SdlConfiguration& configuration)
     {
-        if (!event_loop_)
+        if (!data_->event_loop)
             TUNGSTEN_THROW("No eventloop.");
         apply_configuration(configuration);
-        SdlSession session(SDL_INIT_VIDEO);
-        SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
-        initialize(window_parameters_);
-        event_loop_->on_startup(*this);
-        is_running_ = true;
+        SdlSession session(get_sdl_init_flags(configuration));
+        initialize(data_->window_parameters);
+        data_->event_loop->on_startup(*this);
+        data_->is_running = true;
         run_event_loop();
-        is_running_ = false;
-        event_loop_->on_shutdown(*this);
+        data_->is_running = false;
+        data_->event_loop->on_shutdown(*this);
     }
 
     bool SdlApplication::is_running() const
     {
-        return is_running_;
+        return data_->is_running;
     }
 
     void SdlApplication::quit()
@@ -120,34 +153,27 @@ namespace Tungsten
 
     SDL_GLContext SdlApplication::gl_context() const
     {
-        return gl_context_;
+        return data_->gl_context;
     }
 
     int SdlApplication::status() const
     {
-        return status_;
+        return data_->status;
     }
 
     void SdlApplication::set_status(int status)
     {
-        status_ = status;
-    }
-
-    SdlApplication& SdlApplication::set_swap_interval(int interval)
-    {
-        if (SDL_GL_SetSwapInterval(interval) == -1)
-            THROW_SDL_ERROR();
-        return *this;
+        data_->status = status;
     }
 
     SDL_Window* SdlApplication::window() const
     {
-        return window_;
+        return data_->window;
     }
 
     void SdlApplication::set_window(SDL_Window* window)
     {
-        window_ = window;
+        data_->window = window;
     }
 
     std::pair<int, int> SdlApplication::window_size() const
@@ -160,15 +186,9 @@ namespace Tungsten
         return {w, h};
     }
 
-    float SdlApplication::aspect_ratio() const
+    void SdlApplication::process_event(const SDL_Event& event)
     {
-        auto [w, h] = window_size();
-        return float(w) / float(h);
-    }
-
-    bool SdlApplication::process_event(const SDL_Event& event)
-    {
-        if (!event_loop_->on_event(*this, event))
+        if (!data_->event_loop->on_event(*this, event))
         {
             switch (event.type)
             {
@@ -183,14 +203,13 @@ namespace Tungsten
                 if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
                 {
                     glViewport(0, 0, event.window.data1, event.window.data2);
-                    event_loop_->redraw();
+                    data_->event_loop->redraw();
                 }
                 break;
             default:
                 break;
             }
         }
-        return true;
     }
 
     void SdlApplication::initialize(const WindowParameters& params)
@@ -202,7 +221,7 @@ namespace Tungsten
 
         set_window(create_window(tmpWindowParams));
 
-        gl_context_ = GlContext::create(window());
+        data_->gl_context = GlContext::create(window());
 
         glewExperimental = GL_TRUE;
         glewInit();
@@ -228,7 +247,7 @@ namespace Tungsten
             size = {640, 480};
 
         SDL_Log("Create window with size %dx%d.", size.width, size.height);
-        auto window = SDL_CreateWindow(name_.c_str(),
+        auto window = SDL_CreateWindow(data_->name.c_str(),
                                        pos.x, pos.y,
                                        size.width, size.height,
                                        params.sdl_flags);
@@ -291,17 +310,17 @@ namespace Tungsten
         while (SDL_PollEvent(&event))
                 process_event(event);
 
-        event_loop_->on_update(*this);
+        data_->event_loop->on_update(*this);
 
-        if (event_loop_->should_redraw())
+        if (data_->event_loop->should_redraw())
         {
-            event_loop_->clear_redraw();
-            event_loop_->on_draw(*this);
+            data_->event_loop->clear_redraw();
+            data_->event_loop->on_draw(*this);
             SDL_GL_SwapWindow(window());
         }
 
-        if (event_loop_mode_ == EventLoopMode::WAIT_FOR_EVENTS
-            && !event_loop_->should_redraw())
+        if (data_->event_loop_mode == EventLoopMode::WAIT_FOR_EVENTS
+            && !data_->event_loop->should_redraw())
         {
             SDL_WaitEvent(&event);
             process_event(event);
@@ -310,27 +329,27 @@ namespace Tungsten
 
     const EventLoop* SdlApplication::event_loop() const
     {
-        return event_loop_.get();
+        return data_->event_loop.get();
     }
 
     EventLoop* SdlApplication::event_loop()
     {
-        return event_loop_.get();
+        return data_->event_loop.get();
     }
 
     const WindowParameters& SdlApplication::window_parameters() const
     {
-        return window_parameters_;
+        return data_->window_parameters;
     }
 
     void SdlApplication::set_window_parameters(const WindowParameters& params)
     {
-        window_parameters_ = params;
+        data_->window_parameters = params;
     }
 
     EventLoopMode SdlApplication::event_loop_mode() const
     {
-        return event_loop_mode_;
+        return data_->event_loop_mode;
     }
 
     void SdlApplication::set_event_loop_mode(EventLoopMode mode)
@@ -342,16 +361,36 @@ namespace Tungsten
             return;
         }
         #endif
-        event_loop_mode_ = mode;
+        data_->event_loop_mode = mode;
     }
 
     EventLoop& SdlApplication::callbacks()
     {
-        return *event_loop_;
+        return *data_->event_loop;
     }
 
     const EventLoop& SdlApplication::callbacks() const
     {
-        return *event_loop_;
+        return *data_->event_loop;
+    }
+
+    float aspect_ratio(const SdlApplication& app)
+    {
+        auto [w, h] = app.window_size();
+        return float(w) / float(h);
+    }
+
+    SwapInterval swap_interval(const SdlApplication&)
+    {
+        return SwapInterval(SDL_GL_GetSwapInterval());
+    }
+
+    void set_swap_interval(const SdlApplication&, SwapInterval interval)
+    {
+        auto result = SDL_GL_SetSwapInterval(int(interval));
+        if (result == -1 && interval == SwapInterval::ADAPTIVE_VSYNC_OR_VSYNC)
+            result = SDL_GL_SetSwapInterval(1);
+        if (result == -1)
+            THROW_SDL_ERROR();
     }
 }

@@ -15,7 +15,7 @@ namespace Tungsten
     class SdlSession
     {
     public:
-        explicit SdlSession(int flags);
+        explicit SdlSession(uint32_t flags);
 
         explicit SdlSession(SdlSession&& other);
 
