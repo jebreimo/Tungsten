@@ -14,6 +14,9 @@
 #include "Tungsten/EventLoop.hpp"
 #include "Tungsten/GlParameters.hpp"
 #include "Tungsten/TungstenException.hpp"
+#include "EventThrottlers/MouseWheelEventMerger.hpp"
+#include "EventThrottlers/MultiGestureEventMerger.hpp"
+#include "EventThrottlers/EventThrottler.hpp"
 #include "CommandLine.hpp"
 #include "SdlSession.hpp"
 
@@ -78,8 +81,7 @@ namespace Tungsten
              std::unique_ptr<EventLoop> event_loop)
             : name(std::move(name)),
               event_loop(std::move(event_loop))
-        {
-        }
+        {}
 
         std::string name;
         std::unique_ptr<EventLoop> event_loop;
@@ -89,6 +91,7 @@ namespace Tungsten
         int status = 0;
         SDL_Window* window = nullptr;
         GlContext gl_context;
+        std::unordered_map<SDL_EventType, EventThrottler> event_throttlers;
     };
 
     SdlApplication::SdlApplication() = default;
@@ -131,8 +134,8 @@ namespace Tungsten
     {
         if (!data_->event_loop)
             TUNGSTEN_THROW("No eventloop.");
-        apply_configuration(configuration);
         SdlSession session(get_sdl_init_flags(configuration));
+        apply_configuration(configuration);
         initialize(data_->window_parameters);
         data_->event_loop->on_startup(*this);
         data_->is_running = true;
@@ -149,6 +152,29 @@ namespace Tungsten
     void SdlApplication::quit()
     {
         set_status(1);
+    }
+
+    void SdlApplication::throttle_events(SDL_EventType event, uint32_t msecs)
+    {
+        if (msecs == 0)
+        {
+            data_->event_throttlers.erase(event);
+            return;
+        }
+
+        switch (event)
+        {
+        case SDL_MULTIGESTURE:
+            data_->event_throttlers[event] = EventThrottler(
+                std::make_unique<MultiGestureEventMerger>(), msecs);
+            break;
+        case SDL_MOUSEWHEEL:
+            data_->event_throttlers[event] = EventThrottler(
+                std::make_unique<MouseWheelEventMerger>(), msecs);
+            break;
+        default:
+            TUNGSTEN_THROW("Unsupported event type: " + std::to_string(event));
+        }
     }
 
     SDL_GLContext SdlApplication::gl_context() const
@@ -187,6 +213,26 @@ namespace Tungsten
     }
 
     void SdlApplication::process_event(const SDL_Event& event)
+    {
+        if (!data_->event_throttlers.empty())
+        {
+            auto it = data_->event_throttlers.find(SDL_EventType(event.type));
+            if (it != data_->event_throttlers.end())
+            {
+                auto& throttler = it->second;
+                if (!throttler.update(event))
+                {
+                    process_event_for_real(throttler.event(event.common.timestamp));
+                    throttler.clear();
+                    throttler.update(event);
+                }
+                return;
+            }
+        }
+        process_event_for_real(event);
+    }
+
+    void SdlApplication::process_event_for_real(const SDL_Event& event)
     {
         if (!data_->event_loop->on_event(*this, event))
         {
@@ -308,7 +354,20 @@ namespace Tungsten
     {
         SDL_Event event;
         while (SDL_PollEvent(&event))
-                process_event(event);
+            process_event(event);
+
+        if (!data_->event_throttlers.empty())
+        {
+            auto time = SDL_GetTicks();
+            for (auto& [_, throttler]: data_->event_throttlers)
+            {
+                if (throttler.is_due(time))
+                {
+                    process_event_for_real(throttler.event(SDL_GetTicks()));
+                    throttler.clear();
+                }
+            }
+        }
 
         data_->event_loop->on_update(*this);
 
@@ -319,11 +378,13 @@ namespace Tungsten
             SDL_GL_SwapWindow(window());
         }
 
-        if (data_->event_loop_mode == EventLoopMode::WAIT_FOR_EVENTS
-            && !data_->event_loop->should_redraw())
+        if (!data_->event_loop->should_redraw())
         {
-            SDL_WaitEvent(&event);
-            process_event(event);
+            if (data_->event_loop_mode == EventLoopMode::WAIT_FOR_EVENTS)
+            {
+                SDL_WaitEventTimeout(nullptr, 10);
+                process_event(event);
+            }
         }
     }
 
@@ -356,10 +417,7 @@ namespace Tungsten
     {
         #ifdef __EMSCRIPTEN__
         if (mode == EventLoopMode::WAIT_FOR_EVENTS)
-        {
-            SDL_Log("Can't use WAIT_FOR_EVENTS with Emscripten.");
             return;
-        }
         #endif
         data_->event_loop_mode = mode;
     }

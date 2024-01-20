@@ -14,66 +14,21 @@
 
 namespace Tungsten
 {
-    template <typename Event>
     class EventThrottler
     {
     public:
-        explicit EventThrottler(uint64_t interval_msecs = 100,
-                                EventMerger<Event> merger = {})
-            : interval_msecs_(interval_msecs),
-              merger_(std::move(merger))
-        {}
+        EventThrottler() noexcept = default;
 
-        bool update(const Event& event)
-        {
-            if (time_ == 0)
-            {
-                event_ = event;
-                time_ = event_.timestamp;
-            }
-            else if (!merger_.is_same_event(event))
-            {
-                return false;
-            }
-            accumulate(event);
-            return true;
-        }
+        EventThrottler(EventThrottler&&) noexcept = default;
 
-        [[nodiscard]] bool is_due(uint32_t time) const
-        {
-            return time_ != 0 && time - time_ >= interval_msecs_;
-        }
+        explicit EventThrottler(std::unique_ptr<EventMerger> merger,
+                                uint32_t interval_msecs = 100);
 
-        [[nodiscard]] const Event& event(uint32_t time)
-        {
-            merger_.update(event_);
-            event_.timestamp = time;
-            return event_;
-        }
-
-        void clear()
-        {
-            time_ = 0;
-        }
-
-    private:
-        Event event_ = {};
-        uint64_t time_ = 0;
-        uint64_t interval_msecs_ = 0;
-        EventMerger<Event> merger_;
-    };
-
-    class EventThrottler2
-    {
-        explicit EventThrottler2(uint64_t interval_msecs,
-                                 std::unique_ptr<EventMerger2> merger);
+        EventThrottler& operator=(EventThrottler&&) noexcept = default;
 
         bool update(const SDL_Event& event);
 
-        [[nodiscard]] bool is_due(uint32_t time) const
-        {
-            return time_ != 0 && time - time_ >= interval_msecs_;
-        }
+        [[nodiscard]] bool is_due(uint32_t time) const;
 
         [[nodiscard]] const SDL_Event& event(uint32_t time);
 
@@ -81,8 +36,8 @@ namespace Tungsten
 
     private:
         SDL_Event event_ = {};
-        uint64_t time_ = 0;
-        uint64_t interval_msecs_ = 0;
-        std::unique_ptr<EventMerger2> merger_;
+        uint32_t time_ = 0;
+        uint32_t interval_msecs_ = 0;
+        std::unique_ptr<EventMerger> merger_;
     };
 }

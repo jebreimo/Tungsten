@@ -43,7 +43,7 @@ namespace Chorasmia
             return *this;
         }
 
-        RingBufferIterator operator++(int)
+        const RingBufferIterator operator++(int)
         {
             auto result = *this;
             if (std::distance(first_, ++current_) == N + 1)
@@ -60,7 +60,7 @@ namespace Chorasmia
             return *this;
         }
 
-        RingBufferIterator operator--(int)
+        const RingBufferIterator operator--(int)
         {
             auto result = *this;
             if (first_ != current_)
@@ -82,6 +82,24 @@ namespace Chorasmia
             return a.current_ != b.current_ || a.first_ != b.first_;
         }
 
+        [[nodiscard]]
+        friend RingBufferIterator operator+(RingBufferIterator it, size_t n)
+        {
+            auto distance = std::distance(it.first_, it.current_);
+            auto offset = n < (N + 1 - distance) ? distance + n
+                                                 : n - (N + 1 - distance);
+            return RingBufferIterator(it.first_ + offset, it.first_);
+        }
+
+        [[nodiscard]]
+        friend RingBufferIterator operator-(RingBufferIterator it, size_t n)
+        {
+            auto distance = std::distance(it.first_, it.current_);
+            auto offset = n <= distance ? distance - n
+                                        : N + 1 - (n - distance);
+            return RingBufferIterator(it.first_ + offset, it.first_);
+        }
+
     private:
         const T* current_ = nullptr;
         const T* first_ = nullptr;
@@ -93,7 +111,7 @@ namespace Chorasmia
     public:
         using iterator = RingBufferIterator<T, N>;
 
-        void push(T value)
+        void push_back(T value)
         {
             auto index = (start_index_ + size_) % (N + 1);
             values_[index] = std::move(value);
@@ -101,6 +119,12 @@ namespace Chorasmia
                 start_index_ = (start_index_ + 1) % (N + 1);
             else
                 size_++;
+        }
+
+        void pop_back()
+        {
+            if (size_ != 0)
+                size_--;
         }
 
         [[nodiscard]]
@@ -171,7 +195,8 @@ namespace Chorasmia
         }
 
     private:
-        // Value number N+1 is a sentinel value marking the end og the buffer.
+        // Include one extra value in values_ to leave a gap between end()
+        // and begin(). Without this gap, begin() == end() when size_ == N.
         T values_[N + 1];
         size_t start_index_ = 0;
         size_t size_ = 0;

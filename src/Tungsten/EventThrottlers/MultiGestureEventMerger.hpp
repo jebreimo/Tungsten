@@ -6,21 +6,25 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include <SDL2/SDL_events.h>
+#include <SDL_events.h>
+#include "EventMerger.hpp"
 
 namespace Tungsten
 {
-    class EventMerger
+    class MultiGestureEventMerger : public EventMerger
     {
     public:
-        virtual ~EventMerger() = default;
-
         [[nodiscard]]
-        virtual bool can_update(const SDL_Event& event,
-                                const SDL_Event& new_event) const = 0;
+        bool can_update(const SDL_Event& event,
+                        const SDL_Event& new_event) const override;
 
-        virtual void update(SDL_Event& event, const SDL_Event& new_event) = 0;
+        void reset() override;
 
-        virtual void reset() = 0;
+        void update(SDL_Event& event, const SDL_Event& new_event) override;
+    private:
+        float theta_ = 0;
+        float abs_theta_ = 0;
+        float dist_ = 0;
+        float abs_dist_ = 0;
     };
 }

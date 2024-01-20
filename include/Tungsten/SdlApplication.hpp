@@ -55,10 +55,26 @@ namespace Tungsten
 
         [[nodiscard]] const std::string& name() const;
 
+        /**
+         * @brief Add the standard command line options to @a parser.
+         *
+         * Use this function if you want to add the standard Tungsten command
+         * line options to a custom command line parser.
+         */
         static void add_command_line_options(argos::ArgumentParser& parser);
 
+        /**
+         * @brief Read the standard command line options from @a args.
+         *
+         * Use this function if you want to use the standard Tungsten command
+         * line options with a custom command line parser.
+         */
         void read_command_line_options(const argos::ParsedArguments& args);
 
+        /**
+         * @brief Parse the standard command line options from @a argc and
+         *     @a argv.
+         */
         void parse_command_line_options(int& argc, char**& argv);
 
         void run(const SdlConfiguration& configuration = {});
@@ -66,6 +82,8 @@ namespace Tungsten
         [[nodiscard]] bool is_running() const;
 
         void quit();
+
+        void throttle_events(SDL_EventType event, uint32_t msecs);
 
         [[nodiscard]] SDL_GLContext gl_context() const;
 
@@ -89,14 +107,15 @@ namespace Tungsten
 
         void set_event_loop_mode(EventLoopMode mode);
 
-        [[nodiscard]]
-        const EventLoop& callbacks() const;
+        [[nodiscard]] const EventLoop& callbacks() const;
 
         [[nodiscard]] EventLoop& callbacks();
     protected:
         void set_status(int status);
 
         void process_event(const SDL_Event& event);
+
+        void process_event_for_real(const SDL_Event& event);
 
         void initialize(const WindowParameters& params);
 
@@ -113,4 +132,10 @@ namespace Tungsten
         struct Data;
         std::unique_ptr<Data> data_;
     };
+
+    [[nodiscard]] float aspect_ratio(const SdlApplication& app);
+
+    [[nodiscard]] SwapInterval swap_interval(SdlApplication& app);
+
+    void set_swap_interval(const SdlApplication& app, SwapInterval interval);
 }

@@ -101,6 +101,13 @@ add_library(Tungsten STATIC
     include/Tungsten/VertexArray.hpp
     include/Tungsten/Buffer.hpp
     include/Tungsten/Environment.hpp
+    src/Tungsten/EventThrottlers/EventThrottler.cpp
+    src/Tungsten/EventThrottlers/EventThrottler.hpp
+    src/Tungsten/EventThrottlers/EventMerger.hpp
+    src/Tungsten/EventThrottlers/MultiGestureEventMerger.cpp
+    src/Tungsten/EventThrottlers/MultiGestureEventMerger.hpp
+    src/Tungsten/EventThrottlers/MouseWheelEventMerger.cpp
+    src/Tungsten/EventThrottlers/MouseWheelEventMerger.hpp
 )
 
 target_link_libraries(Tungsten

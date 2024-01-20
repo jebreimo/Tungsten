@@ -9,12 +9,13 @@
 
 namespace Tungsten
 {
-    EventThrottler2::EventThrottler2(uint64_t interval_msecs, std::unique_ptr<EventMerger2> merger)
+    EventThrottler::EventThrottler(std::unique_ptr<EventMerger> merger,
+                                   uint32_t interval_msecs)
         : interval_msecs_(interval_msecs),
           merger_(std::move(merger))
     {}
 
-    bool EventThrottler2::update(const SDL_Event& event)
+    bool EventThrottler::update(const SDL_Event& event)
     {
         if (time_ == 0)
         {
@@ -29,14 +30,18 @@ namespace Tungsten
         return true;
     }
 
-    const SDL_Event& EventThrottler2::event(uint32_t time)
+    bool EventThrottler::is_due(uint32_t time) const
     {
-        update(event_);
+        return time_ != 0 && time - time_ >= interval_msecs_;
+    }
+
+    const SDL_Event& EventThrottler::event(uint32_t time)
+    {
         event_.common.timestamp = time;
         return event_;
     }
 
-    void EventThrottler2::clear()
+    void EventThrottler::clear()
     {
         time_ = 0;
     }

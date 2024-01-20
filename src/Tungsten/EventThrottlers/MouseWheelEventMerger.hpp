@@ -1,26 +1,25 @@
 //****************************************************************************
 // Copyright © 2024 Jan Erik Breimo. All rights reserved.
-// Created by Jan Erik Breimo on 2024-01-12.
+// Created by Jan Erik Breimo on 2024-01-13.
 //
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include <SDL2/SDL_events.h>
+#include "EventMerger.hpp"
 
 namespace Tungsten
 {
-    class EventMerger
+    class MouseWheelEventMerger : public EventMerger
     {
     public:
-        virtual ~EventMerger() = default;
-
         [[nodiscard]]
-        virtual bool can_update(const SDL_Event& event,
-                                const SDL_Event& new_event) const = 0;
+        bool can_update(const SDL_Event& old_event,
+                        const SDL_Event& new_event) const override;
 
-        virtual void update(SDL_Event& event, const SDL_Event& new_event) = 0;
+        void update(SDL_Event& old_event,
+                    const SDL_Event& new_event) override;
 
-        virtual void reset() = 0;
+        void reset() override;
     };
 }

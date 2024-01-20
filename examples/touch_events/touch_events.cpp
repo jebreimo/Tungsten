@@ -9,9 +9,8 @@
 #include <thread>
 #include <Tungsten/Tungsten.hpp>
 #include <Yconvert/Convert.hpp>
-#include "MouseWheelEventThrottler.hpp"
-#include "MultiGestureEventThrottler.hpp"
 #include "RingBuffer.hpp"
+#include "../show_text/Debug.hpp"
 
 namespace
 {
@@ -28,22 +27,29 @@ class EventLoop : public Tungsten::EventLoop
 {
 public:
     EventLoop()
-        : text_renderer_(Tungsten::FontManager::instance().default_font()),
-          multi_gesture_throttler_(250)
+        : text_renderer_(Tungsten::FontManager::instance().default_font())
     {}
+
+    void on_startup(Tungsten::SdlApplication& app) override
+    {
+        app.throttle_events(SDL_MULTIGESTURE, 200);
+        app.throttle_events(SDL_MOUSEWHEEL, 100);
+        set_swap_interval(app, Tungsten::SwapInterval::ADAPTIVE_VSYNC_OR_VSYNC);
+    }
 
     void on_multi_gesture(Tungsten::SdlApplication& app,
                           const SDL_MultiGestureEvent& event)
     {
+        JEB_CHECKPOINT();
         if (event.numFingers == 2)
         {
             std::ostringstream ss;
-            if (event.dDist > 0.1)
+            if (event.dDist > 0)
                 ss << "zoom in: " << event.dDist << " " << event.x << " " << event.y;
-            else if (event.dDist < -0.1)
+            else if (event.dDist < 0)
                 ss << "zoom out: " << event.dDist << " " << event.x << " " << event.y;
             if (auto str = ss.str(); !str.empty())
-                texts_.push(u8_to_u32(str));
+                texts_.push_back(u8_to_u32(str));
         }
         redraw();
     }
@@ -51,15 +57,16 @@ public:
     void on_mouse_wheel(Tungsten::SdlApplication& app,
                         const SDL_MouseWheelEvent& event)
     {
+        JEB_CHECKPOINT();
         std::ostringstream ss;
         ss << "wheel: " << event.preciseX << " " << event.preciseY;
-        texts_.push(u8_to_u32(ss.str()));
+        texts_.push_back(u8_to_u32(ss.str()));
         redraw();
     }
 
     bool on_event(Tungsten::SdlApplication& app, const SDL_Event& event) override
     {
-        has_event_ = true;
+        JEB_CHECKPOINT();
         std::string msg;
         switch (event.type)
         {
@@ -73,30 +80,10 @@ public:
         //    msg = "SDL_FINGERMOTION";
         //    break;
         case SDL_MULTIGESTURE:
-            if (!multi_gesture_throttler_.update(event.mgesture))
-            {
-                on_multi_gesture(app, multi_gesture_throttler_.event());
-                multi_gesture_throttler_.clear();
-                multi_gesture_throttler_.update(event.mgesture);
-            }
-            else if (multi_gesture_throttler_.has_event(event.mgesture.timestamp))
-            {
-                on_multi_gesture(app, multi_gesture_throttler_.event());
-                multi_gesture_throttler_.clear();
-            }
+            on_multi_gesture(app, event.mgesture);
            break;
         case SDL_MOUSEWHEEL:
-            if (!mouse_wheel_throttler_.update(event.wheel))
-            {
-                on_mouse_wheel(app, mouse_wheel_throttler_.event());
-                mouse_wheel_throttler_.clear();
-                mouse_wheel_throttler_.update(event.wheel);
-            }
-            else if (mouse_wheel_throttler_.has_event(event.wheel.timestamp))
-            {
-                on_mouse_wheel(app, mouse_wheel_throttler_.event());
-                mouse_wheel_throttler_.clear();
-            }
+            on_mouse_wheel(app, event.wheel);
             break;
         //case SDL_MOUSEBUTTONDOWN:
         //    msg = "SDL_MOUSEBUTTONDOWN";
@@ -109,50 +96,30 @@ public:
         }
         //if (!msg.empty())
         //{
-        //    texts_.push(u8_to_u32(msg));
+        //    texts_.push_back(u8_to_u32(msg));
         //    SDL_Log("%s", msg.c_str());
         //    redraw();
         //}
         return true;
     }
 
-    void on_update(Tungsten::SdlApplication& app) override
-    {
-        if (multi_gesture_throttler_.has_event(SDL_GetTicks()))
-        {
-            on_multi_gesture(app, multi_gesture_throttler_.event());
-            multi_gesture_throttler_.clear();
-            has_event_ = true;
-        }
-        if (mouse_wheel_throttler_.has_event(SDL_GetTicks()))
-        {
-            on_mouse_wheel(app, mouse_wheel_throttler_.event());
-            mouse_wheel_throttler_.clear();
-            has_event_ = true;
-        }
-
-        if (!has_event_)
-        {
-            #ifndef __EMSCRIPTEN__
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            #endif
-        }
-        has_event_ = false;
-    }
-
     void on_draw(Tungsten::SdlApplication& app) override
     {
+        JEB_CHECKPOINT();
         glClearColor(0.4, 0.6, 0.8, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         auto screen_size = Xyz::Vector2F(app.window_size());
 
-        for (size_t i = 0; i < texts_.size(); ++i)
+        auto line_height = text_renderer_.font().max_glyph.size[1];
+        auto lines = std::min(texts_.size(), size_t(screen_size[1] / line_height));
+        int i = 0;
+        for (auto it = texts_.end() - lines; it != texts_.end(); ++it)
         {
-            auto text = texts_[i];
+            auto& text = *it;
             auto size = Tungsten::get_size(text, text_renderer_.font()) * 2.f
                         / screen_size;
             text_renderer_.draw(text,
-                                {-1.0f, 1.0f - size[1] * float(i + 1)},
+                                {-1.0f, 1.0f - size[1] * float(++i)},
                                 screen_size,
                                 {.color = {0xFF, 0xFF, 0xFF, 0xFF}});
         }
@@ -160,10 +127,7 @@ public:
 
 private:
     Tungsten::TextRenderer text_renderer_;
-    Chorasmia::RingBuffer<std::u32string, 10> texts_;
-    MouseWheelEventThrottler mouse_wheel_throttler_;
-    MultiGestureEventThrottler multi_gesture_throttler_;
-    bool has_event_ = false;
+    Chorasmia::RingBuffer<std::u32string, 100> texts_;
 };
 
 int main(int argc, char* argv[])
@@ -173,6 +137,7 @@ int main(int argc, char* argv[])
         Tungsten::SdlApplication app("ShowText",
                                      std::make_unique<EventLoop>());
         app.parse_command_line_options(argc, argv);
+        app.set_event_loop_mode(Tungsten::EventLoopMode::WAIT_FOR_EVENTS);
         app.run({.enable_touch_events = true});
     }
     catch (std::exception& ex)
