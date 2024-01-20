@@ -6,6 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #include "MouseWheelEventMerger.hpp"
+#include <cmath>
 
 namespace Tungsten
 {
@@ -21,6 +22,8 @@ namespace Tungsten
     {
         old_event.wheel.preciseX += new_event.wheel.preciseX;
         old_event.wheel.preciseY += new_event.wheel.preciseY;
+        old_event.wheel.x = int32_t(std::round(old_event.wheel.preciseX));
+        old_event.wheel.y = int32_t(std::round(old_event.wheel.preciseY));
     }
 
     void MouseWheelEventMerger::reset()

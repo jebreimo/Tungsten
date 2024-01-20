@@ -44,5 +44,6 @@ namespace Tungsten
     void EventThrottler::clear()
     {
         time_ = 0;
+        merger_->reset();
     }
 }

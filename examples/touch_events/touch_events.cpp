@@ -33,7 +33,7 @@ public:
     void on_startup(Tungsten::SdlApplication& app) override
     {
         app.throttle_events(SDL_MULTIGESTURE, 200);
-        app.throttle_events(SDL_MOUSEWHEEL, 100);
+        app.throttle_events(SDL_MOUSEWHEEL, 200);
         set_swap_interval(app, Tungsten::SwapInterval::ADAPTIVE_VSYNC_OR_VSYNC);
     }
 
@@ -59,14 +59,14 @@ public:
     {
         JEB_CHECKPOINT();
         std::ostringstream ss;
-        ss << "wheel: " << event.preciseX << " " << event.preciseY;
+        ss << "wheel: " << event.preciseX << " " << event.preciseY << " "
+           << event.x << " " << event.y;
         texts_.push_back(u8_to_u32(ss.str()));
         redraw();
     }
 
     bool on_event(Tungsten::SdlApplication& app, const SDL_Event& event) override
     {
-        JEB_CHECKPOINT();
         std::string msg;
         switch (event.type)
         {
