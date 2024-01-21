@@ -12,7 +12,7 @@
 #include "Tungsten/GlVertices.hpp"
 #include "Tungsten/YimageGl.hpp"
 #include "Tungsten/VertexArray.hpp"
-#include "Tungsten/details/RenderTextShaderProgram.hpp"
+#include "Tungsten/TextRenderer/RenderTextShaderProgram.hpp"
 
 namespace Tungsten
 {

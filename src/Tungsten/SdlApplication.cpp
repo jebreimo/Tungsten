@@ -59,20 +59,6 @@ namespace Tungsten
         }
 
         #endif
-
-        void apply_configuration(const SdlConfiguration& configuration)
-        {
-            if (configuration.enable_touch_events)
-                SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
-        }
-
-        uint32_t get_sdl_init_flags(const SdlConfiguration& configuration)
-        {
-            uint32_t flags = SDL_INIT_VIDEO;
-            if (configuration.enable_timers)
-                flags |= SDL_INIT_TIMER;
-            return flags;
-        }
     }
 
     struct SdlApplication::Data
@@ -135,7 +121,7 @@ namespace Tungsten
         if (!data_->event_loop)
             TUNGSTEN_THROW("No eventloop.");
         SdlSession session(get_sdl_init_flags(configuration));
-        apply_configuration(configuration);
+        configure_sdl(session, configuration);
         initialize(data_->window_parameters);
         data_->event_loop->on_startup(*this);
         data_->is_running = true;

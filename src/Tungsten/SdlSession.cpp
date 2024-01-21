@@ -6,6 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #include "Tungsten/SdlSession.hpp"
+#include "Tungsten/TungstenException.hpp"
 #include <stdexcept>
 
 namespace Tungsten
@@ -17,7 +18,7 @@ namespace Tungsten
             throw std::runtime_error(SDL_GetError());
     }
 
-    SdlSession::SdlSession(SdlSession&& other)
+    SdlSession::SdlSession(SdlSession&& other) noexcept
             : active_(other.active_)
     {
         other.active_ = false;
@@ -36,5 +37,27 @@ namespace Tungsten
         active_ = other.active_;
         other.active_ = false;
         return *this;
+    }
+
+    bool SdlSession::is_active() const
+    {
+        return active_;
+    }
+
+    void configure_sdl(const SdlSession& session,
+                       const SdlConfiguration& configuration)
+    {
+        if (!session.is_active())
+            TUNGSTEN_THROW("SDL is not initialized.");
+        if (configuration.enable_touch_events)
+            SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
+    }
+
+    uint32_t get_sdl_init_flags(const SdlConfiguration& configuration)
+    {
+        uint32_t flags = SDL_INIT_VIDEO;
+        if (configuration.enable_timers)
+            flags |= SDL_INIT_TIMER;
+        return flags;
     }
 }

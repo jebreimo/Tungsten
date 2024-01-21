@@ -54,6 +54,11 @@ find_package(SDL2 REQUIRED)
 add_library(Tungsten STATIC
     include/Tungsten/ArrayBuffer.hpp
     include/Tungsten/ArrayBufferBuilder.hpp
+    include/Tungsten/Buffer.hpp
+    include/Tungsten/Environment.hpp
+    include/Tungsten/Font.hpp
+    include/Tungsten/FontManager.hpp
+    include/Tungsten/FontManager.hpp
     include/Tungsten/GlBuffer.hpp
     include/Tungsten/GlContext.hpp
     include/Tungsten/GlHandle.hpp
@@ -64,14 +69,26 @@ add_library(Tungsten STATIC
     include/Tungsten/GlVertexArray.hpp
     include/Tungsten/GlVertices.hpp
     include/Tungsten/SdlApplication.hpp
+    include/Tungsten/SdlConfiguration.hpp
     include/Tungsten/ShaderProgramBuilder.hpp
     include/Tungsten/ShaderTools.hpp
+    include/Tungsten/TextRenderer.hpp
     include/Tungsten/Tungsten.hpp
     include/Tungsten/TungstenException.hpp
     include/Tungsten/Uniform.hpp
+    include/Tungsten/VertexArray.hpp
     include/Tungsten/WindowParameters.hpp
+    include/Tungsten/YimageGl.hpp
     src/Tungsten/CommandLine.cpp
     src/Tungsten/CommandLine.hpp
+    src/Tungsten/EventThrottlers/EventMerger.hpp
+    src/Tungsten/EventThrottlers/EventThrottler.cpp
+    src/Tungsten/EventThrottlers/EventThrottler.hpp
+    src/Tungsten/EventThrottlers/MouseWheelEventMerger.cpp
+    src/Tungsten/EventThrottlers/MouseWheelEventMerger.hpp
+    src/Tungsten/EventThrottlers/MultiGestureEventMerger.cpp
+    src/Tungsten/EventThrottlers/MultiGestureEventMerger.hpp
+    src/Tungsten/FontManager.cpp
     src/Tungsten/GlBuffer.cpp
     src/Tungsten/GlContext.cpp
     src/Tungsten/GlParameters.cpp
@@ -81,33 +98,17 @@ add_library(Tungsten STATIC
     src/Tungsten/GlVertexArray.cpp
     src/Tungsten/GlVertices.cpp
     src/Tungsten/SdlApplication.cpp
-    src/Tungsten/SdlSession.hpp
     src/Tungsten/SdlSession.cpp
+    src/Tungsten/SdlSession.hpp
     src/Tungsten/ShaderProgramBuilder.cpp
     src/Tungsten/ShaderTools.cpp
+    src/Tungsten/TextRenderer.cpp
+    src/Tungsten/TextRenderer/Monaco64.hpp
+    src/Tungsten/TextRenderer/RenderTextShaderProgram.cpp
+    src/Tungsten/TextRenderer/RenderTextShaderProgram.hpp
     src/Tungsten/TungstenException.cpp
     src/Tungsten/Uniform.cpp
-    include/Tungsten/Font.hpp
-    src/Tungsten/TextRenderer.cpp
-    include/Tungsten/TextRenderer.hpp
-    include/Tungsten/YimageGl.hpp
     src/Tungsten/YimageGl.cpp
-    src/Tungsten/details/RenderTextShaderProgram.cpp
-    src/Tungsten/details/RenderTextShaderProgram.hpp
-    src/Tungsten/FontManager.cpp
-    include/Tungsten/FontManager.hpp
-    include/Tungsten/FontManager.hpp
-    src/Tungsten/details/Monaco64.hpp
-    include/Tungsten/VertexArray.hpp
-    include/Tungsten/Buffer.hpp
-    include/Tungsten/Environment.hpp
-    src/Tungsten/EventThrottlers/EventThrottler.cpp
-    src/Tungsten/EventThrottlers/EventThrottler.hpp
-    src/Tungsten/EventThrottlers/EventMerger.hpp
-    src/Tungsten/EventThrottlers/MultiGestureEventMerger.cpp
-    src/Tungsten/EventThrottlers/MultiGestureEventMerger.hpp
-    src/Tungsten/EventThrottlers/MouseWheelEventMerger.cpp
-    src/Tungsten/EventThrottlers/MouseWheelEventMerger.hpp
 )
 
 target_link_libraries(Tungsten
@@ -137,8 +138,8 @@ include(TungstenTargetEmbedShaders)
 
 tungsten_target_embed_shaders(Tungsten
     FILES
-        src/Tungsten/shaders/RenderText-frag.glsl
-        src/Tungsten/shaders/RenderText-vert.glsl
+    src/Tungsten/Shaders/RenderText-frag.glsl
+    src/Tungsten/Shaders/RenderText-vert.glsl
 )
 
 if (TUNGSTEN_BUILD_EXAMPLES)

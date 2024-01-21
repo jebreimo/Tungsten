@@ -9,6 +9,7 @@
 #include <iosfwd>
 #include "EventLoop.hpp"
 #include "GlContext.hpp"
+#include "SdlConfiguration.hpp"
 #include "WindowParameters.hpp"
 
 namespace argos
@@ -31,12 +32,6 @@ namespace Tungsten
         VSYNC = 1,
         ADAPTIVE_VSYNC = -1,
         ADAPTIVE_VSYNC_OR_VSYNC = -2
-    };
-
-    struct SdlConfiguration
-    {
-        bool enable_touch_events = false;
-        bool enable_timers = false;
     };
 
     class SdlApplication
