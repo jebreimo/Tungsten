@@ -6,7 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include <SDL2/SDL_events.h>
+#include <SDL_events.h>
 
 namespace Tungsten
 {

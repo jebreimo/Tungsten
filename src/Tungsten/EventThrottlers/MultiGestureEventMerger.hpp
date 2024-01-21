@@ -6,7 +6,6 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include <SDL_events.h>
 #include "EventMerger.hpp"
 
 namespace Tungsten
