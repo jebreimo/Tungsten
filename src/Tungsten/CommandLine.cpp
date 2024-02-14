@@ -204,5 +204,6 @@ namespace Tungsten
         add_command_line_options(parser);
         auto args = parser.parse(argc, argv);
         read_command_line_options(args, app);
+        args.filter_parsed_arguments(argc, argv);
     }
 }
