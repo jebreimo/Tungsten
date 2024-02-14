@@ -32,8 +32,8 @@ public:
 
     void on_startup(Tungsten::SdlApplication& app) override
     {
-        app.throttle_events(SDL_MULTIGESTURE, 200);
-        app.throttle_events(SDL_MOUSEWHEEL, 200);
+        app.throttle_events(SDL_MULTIGESTURE, 50);
+        app.throttle_events(SDL_MOUSEWHEEL, 50);
         set_swap_interval(app, Tungsten::SwapInterval::ADAPTIVE_VSYNC_OR_VSYNC);
     }
 
@@ -70,36 +70,15 @@ public:
         std::string msg;
         switch (event.type)
         {
-        //case SDL_FINGERDOWN:
-        //    msg = "SDL_FINGERDOWN";
-        //    break;
-        //case SDL_FINGERUP:
-        //    msg = "SDL_FINGERUP";
-        //    break;
-        //case SDL_FINGERMOTION:
-        //    msg = "SDL_FINGERMOTION";
-        //    break;
         case SDL_MULTIGESTURE:
             on_multi_gesture(app, event.mgesture);
            break;
         case SDL_MOUSEWHEEL:
             on_mouse_wheel(app, event.wheel);
             break;
-        //case SDL_MOUSEBUTTONDOWN:
-        //    msg = "SDL_MOUSEBUTTONDOWN";
-        //    break;
-        //case SDL_MOUSEBUTTONUP:
-        //    msg = "SDL_MOUSEBUTTONUP";
-        //    break;
         default:
             return false;
         }
-        //if (!msg.empty())
-        //{
-        //    texts_.push_back(u8_to_u32(msg));
-        //    SDL_Log("%s", msg.c_str());
-        //    redraw();
-        //}
         return true;
     }
 
