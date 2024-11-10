@@ -5,7 +5,7 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#version 410
+#version 300 es
 
 layout (location = 0) out vec4 color;
 

@@ -101,6 +101,10 @@ add_library(Tungsten STATIC
     src/Tungsten/SdlSession.cpp
     src/Tungsten/SdlSession.hpp
     src/Tungsten/ShaderProgramBuilder.cpp
+    src/Tungsten/ShaderPrograms/GouraudShaderProgram.cpp
+    src/Tungsten/ShaderPrograms/GouraudShaderProgram.hpp
+    src/Tungsten/ShaderPrograms/PhongShaderProgram.cpp
+    src/Tungsten/ShaderPrograms/PhongShaderProgram.hpp
     src/Tungsten/ShaderTools.cpp
     src/Tungsten/TextRenderer.cpp
     src/Tungsten/TextRenderer/Monaco64.hpp
@@ -138,8 +142,12 @@ include(TungstenTargetEmbedShaders)
 
 tungsten_target_embed_shaders(Tungsten
     FILES
-    src/Tungsten/Shaders/RenderText-frag.glsl
-    src/Tungsten/Shaders/RenderText-vert.glsl
+        src/Tungsten/Shaders/Gouraud-frag.glsl
+        src/Tungsten/Shaders/Gouraud-vert.glsl
+        src/Tungsten/Shaders/Phong-frag.glsl
+        src/Tungsten/Shaders/Phong-vert.glsl
+        src/Tungsten/Shaders/RenderText-frag.glsl
+        src/Tungsten/Shaders/RenderText-vert.glsl
 )
 
 if (TUNGSTEN_BUILD_EXAMPLES)
