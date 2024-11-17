@@ -134,6 +134,7 @@ namespace Tungsten
     {
         using namespace argos;
         parser.allow_abbreviated_options(true)
+            .current_section("DISPLAY OPTIONS")
             .add(Option{"--windowpos"}.argument("<X>,<Y>")
                      .help("Set the window position (top left corner)."))
             .add(Option{"--windowsize"}.argument("<HOR>x<VER>")
