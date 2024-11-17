@@ -26,19 +26,16 @@ namespace
 class EventLoop : public Tungsten::EventLoop
 {
 public:
-    EventLoop()
-        : text_renderer_(Tungsten::FontManager::instance().default_font())
-    {}
-
-    void on_startup(Tungsten::SdlApplication& app) override
+    explicit EventLoop(Tungsten::SdlApplication& app)
+        : Tungsten::EventLoop(app),
+          text_renderer_(Tungsten::FontManager::instance().default_font())
     {
-        app.throttle_events(SDL_MULTIGESTURE, 50);
-        app.throttle_events(SDL_MOUSEWHEEL, 50);
-        set_swap_interval(app, Tungsten::SwapInterval::ADAPTIVE_VSYNC_OR_VSYNC);
+        application().throttle_events(SDL_MULTIGESTURE, 50);
+        application().throttle_events(SDL_MOUSEWHEEL, 50);
+        set_swap_interval(application(), Tungsten::SwapInterval::ADAPTIVE_VSYNC_OR_VSYNC);
     }
 
-    void on_multi_gesture(Tungsten::SdlApplication& app,
-                          const SDL_MultiGestureEvent& event)
+    void on_multi_gesture(const SDL_MultiGestureEvent& event)
     {
         JEB_CHECKPOINT();
         if (event.numFingers == 2)
@@ -54,8 +51,7 @@ public:
         redraw();
     }
 
-    void on_mouse_wheel(Tungsten::SdlApplication& app,
-                        const SDL_MouseWheelEvent& event)
+    void on_mouse_wheel(const SDL_MouseWheelEvent& event)
     {
         JEB_CHECKPOINT();
         std::ostringstream ss;
@@ -65,16 +61,16 @@ public:
         redraw();
     }
 
-    bool on_event(Tungsten::SdlApplication& app, const SDL_Event& event) override
+    bool on_event(const SDL_Event& event) override
     {
         std::string msg;
         switch (event.type)
         {
         case SDL_MULTIGESTURE:
-            on_multi_gesture(app, event.mgesture);
+            on_multi_gesture(event.mgesture);
            break;
         case SDL_MOUSEWHEEL:
-            on_mouse_wheel(app, event.wheel);
+            on_mouse_wheel(event.wheel);
             break;
         default:
             return false;
@@ -82,12 +78,12 @@ public:
         return true;
     }
 
-    void on_draw(Tungsten::SdlApplication& app) override
+    void on_draw() override
     {
         JEB_CHECKPOINT();
         glClearColor(0.4, 0.6, 0.8, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        auto screen_size = Xyz::Vector2F(app.window_size());
+        auto screen_size = Xyz::Vector2F(application().window_size());
 
         auto line_height = text_renderer_.font().max_glyph.size[1];
         auto lines = std::min(texts_.size(), size_t(screen_size[1] / line_height));
@@ -113,11 +109,10 @@ int main(int argc, char* argv[])
 {
     try
     {
-        Tungsten::SdlApplication app("ShowText",
-                                     std::make_unique<EventLoop>());
+        Tungsten::SdlApplication app("ShowText");
         app.parse_command_line_options(argc, argv);
         app.set_event_loop_mode(Tungsten::EventLoopMode::WAIT_FOR_EVENTS);
-        app.run({.enable_touch_events = true});
+        app.run<EventLoop>();
     }
     catch (std::exception& ex)
     {

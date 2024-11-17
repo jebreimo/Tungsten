@@ -8,8 +8,7 @@
 #pragma once
 #include <iosfwd>
 #include "EventLoop.hpp"
-#include "GlContext.hpp"
-#include "SdlConfiguration.hpp"
+#include "SdlSession.hpp"
 #include "WindowParameters.hpp"
 
 namespace argos
@@ -34,13 +33,15 @@ namespace Tungsten
         ADAPTIVE_VSYNC_OR_VSYNC = -2
     };
 
+    template <typename T>
+    concept DerivedFromEventLoop = std::is_base_of_v<EventLoop, T>;
+
     class SdlApplication
     {
     public:
         SdlApplication();
 
-        SdlApplication(std::string name,
-                       std::unique_ptr<EventLoop> event_loop);
+        explicit SdlApplication(std::string name);
 
         SdlApplication(SdlApplication&&) noexcept;
 
@@ -72,7 +73,13 @@ namespace Tungsten
          */
         void parse_command_line_options(int& argc, char**& argv);
 
-        void run(const SdlConfiguration& configuration = {});
+        template <DerivedFromEventLoop EventLoopT, typename ...Args>
+        void run(Args&&... args)
+        {
+            SdlSession session = make_sdl_session();
+            EventLoopT event_loop(*this, std::forward<Args>(args)...);
+            run_event_loop(session, event_loop);
+        }
 
         [[nodiscard]] bool is_running() const;
 
@@ -102,6 +109,14 @@ namespace Tungsten
 
         void set_event_loop_mode(EventLoopMode mode);
 
+        [[nodiscard]] bool touch_events_enabled() const;
+
+        void set_touch_events_enabled(bool value);
+
+        [[nodiscard]] bool sdl_timers_enabled() const;
+
+        void set_sdl_timers_enabled(bool value);
+
         [[nodiscard]] const EventLoop& callbacks() const;
 
         [[nodiscard]] EventLoop& callbacks();
@@ -116,9 +131,13 @@ namespace Tungsten
 
         SDL_Window* create_window(const WindowParameters& params);
     private:
+        void run_event_loop(SdlSession& session, EventLoop& event_loop);
+
         void run_event_loop();
 
         void run_event_loop_step();
+
+        [[nodiscard]] SdlSession make_sdl_session();
 
         #ifdef __EMSCRIPTEN__
         static void emscripten_event_loop_step(void* arg);
@@ -130,7 +149,7 @@ namespace Tungsten
 
     [[nodiscard]] float aspect_ratio(const SdlApplication& app);
 
-    [[nodiscard]] SwapInterval swap_interval(SdlApplication& app);
+    [[nodiscard]] SwapInterval swap_interval(const SdlApplication& app);
 
     void set_swap_interval(const SdlApplication& app, SwapInterval interval);
 }

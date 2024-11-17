@@ -12,13 +12,13 @@
 #include <GL/glew.h>
 #include <Argos/ArgumentParser.hpp>
 #include "Tungsten/EventLoop.hpp"
+#include "Tungsten/GlContext.hpp"
 #include "Tungsten/GlParameters.hpp"
 #include "Tungsten/TungstenException.hpp"
 #include "EventThrottlers/MouseWheelEventMerger.hpp"
 #include "EventThrottlers/MultiGestureEventMerger.hpp"
 #include "EventThrottlers/EventThrottler.hpp"
 #include "CommandLine.hpp"
-#include "SdlSession.hpp"
 
 #ifdef __EMSCRIPTEN__
     #include <emscripten.h>
@@ -63,29 +63,28 @@ namespace Tungsten
 
     struct SdlApplication::Data
     {
-        Data(std::string name,
-             std::unique_ptr<EventLoop> event_loop)
-            : name(std::move(name)),
-              event_loop(std::move(event_loop))
+        explicit Data(std::string name)
+            : name(std::move(name))
         {}
 
+        EventLoop* event_loop = nullptr;
+        SdlSession* session = nullptr;
+
         std::string name;
-        std::unique_ptr<EventLoop> event_loop;
         WindowParameters window_parameters;
         EventLoopMode event_loop_mode = EventLoopMode::UPDATE_CONTINUOUSLY;
-        bool is_running = false;
         int status = 0;
         SDL_Window* window = nullptr;
         GlContext gl_context;
         std::unordered_map<SDL_EventType, EventThrottler> event_throttlers;
+        bool enable_touch_events = false;
+        bool enable_timers = false;
     };
 
     SdlApplication::SdlApplication() = default;
 
-    SdlApplication::SdlApplication(
-        std::string name,
-        std::unique_ptr<EventLoop> event_loop)
-        : data_(std::make_unique<Data>(std::move(name), std::move(event_loop)))
+    SdlApplication::SdlApplication(std::string name)
+        : data_(std::make_unique<Data>(std::move(name)))
     {
         data_->window_parameters = get_default_window_parameters();
     }
@@ -116,23 +115,9 @@ namespace Tungsten
         Tungsten::parse_command_line_options(argc, argv, *this);
     }
 
-    void SdlApplication::run(const SdlConfiguration& configuration)
-    {
-        if (!data_->event_loop)
-            TUNGSTEN_THROW("No eventloop.");
-        SdlSession session(get_sdl_init_flags(configuration));
-        configure_sdl(session, configuration);
-        initialize(data_->window_parameters);
-        data_->event_loop->on_startup(*this);
-        data_->is_running = true;
-        run_event_loop();
-        data_->is_running = false;
-        data_->event_loop->on_shutdown(*this);
-    }
-
     bool SdlApplication::is_running() const
     {
-        return data_->is_running;
+        return data_->event_loop != nullptr;
     }
 
     void SdlApplication::quit()
@@ -220,7 +205,7 @@ namespace Tungsten
 
     void SdlApplication::process_event_for_real(const SDL_Event& event)
     {
-        if (!data_->event_loop->on_event(*this, event))
+        if (!data_->event_loop->on_event(event))
         {
             switch (event.type)
             {
@@ -301,7 +286,24 @@ namespace Tungsten
         return window;
     }
 
-    #ifdef __EMSCRIPTEN__
+    void SdlApplication::run_event_loop(SdlSession& session, EventLoop& event_loop)
+    {
+        data_->session = &session;
+        data_->event_loop = &event_loop;
+        try
+        {
+            run_event_loop();
+            data_->session = nullptr;
+            data_->event_loop = nullptr;
+        }
+        catch (...)
+        {
+            data_->session = nullptr;
+            data_->event_loop = nullptr;
+        }
+    }
+
+#ifdef __EMSCRIPTEN__
 
     void SdlApplication::run_event_loop()
     {
@@ -344,7 +346,7 @@ namespace Tungsten
 
         if (!data_->event_throttlers.empty())
         {
-            auto time = SDL_GetTicks();
+            const auto time = SDL_GetTicks();
             for (auto& [_, throttler]: data_->event_throttlers)
             {
                 if (throttler.is_due(time))
@@ -355,33 +357,30 @@ namespace Tungsten
             }
         }
 
-        data_->event_loop->on_update(*this);
+        data_->event_loop->on_update();
 
         if (data_->event_loop->should_redraw())
         {
             data_->event_loop->clear_redraw();
-            data_->event_loop->on_draw(*this);
+            data_->event_loop->on_draw();
             SDL_GL_SwapWindow(window());
         }
 
-        if (!data_->event_loop->should_redraw())
+        if (!data_->event_loop->should_redraw()
+            && data_->event_loop_mode == EventLoopMode::WAIT_FOR_EVENTS)
         {
-            if (data_->event_loop_mode == EventLoopMode::WAIT_FOR_EVENTS)
-            {
-                SDL_WaitEventTimeout(nullptr, 10);
-                process_event(event);
-            }
+            SDL_WaitEventTimeout(nullptr, 10);
         }
     }
 
     const EventLoop* SdlApplication::event_loop() const
     {
-        return data_->event_loop.get();
+        return data_->event_loop;
     }
 
     EventLoop* SdlApplication::event_loop()
     {
-        return data_->event_loop.get();
+        return data_->event_loop;
     }
 
     const WindowParameters& SdlApplication::window_parameters() const
@@ -408,6 +407,30 @@ namespace Tungsten
         data_->event_loop_mode = mode;
     }
 
+    bool SdlApplication::touch_events_enabled() const
+    {
+        return data_->enable_touch_events;
+    }
+
+    void SdlApplication::set_touch_events_enabled(bool value)
+    {
+        data_->enable_touch_events = value;
+        if (data_->session)
+            data_->session->set_touch_events_enabled(value);
+    }
+
+    bool SdlApplication::sdl_timers_enabled() const
+    {
+        return data_->enable_timers;
+    }
+
+    void SdlApplication::set_sdl_timers_enabled(bool value)
+    {
+        if (is_running())
+            TUNGSTEN_THROW("Can not change SDL timers while the application is running.");
+        data_->enable_timers = value;
+    }
+
     EventLoop& SdlApplication::callbacks()
     {
         return *data_->event_loop;
@@ -416,6 +439,17 @@ namespace Tungsten
     const EventLoop& SdlApplication::callbacks() const
     {
         return *data_->event_loop;
+    }
+
+    SdlSession SdlApplication::make_sdl_session()
+    {
+        uint32_t flags = SDL_INIT_VIDEO | SDL_INIT_EVENTS;
+        if (data_->enable_timers)
+            flags |= SDL_INIT_TIMER;
+        SdlSession session(flags);
+        session.set_touch_events_enabled(data_->enable_touch_events);
+        initialize(data_->window_parameters);
+        return session;
     }
 
     float aspect_ratio(const SdlApplication& app)

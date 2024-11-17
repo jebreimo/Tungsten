@@ -6,11 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include <cstdint>
-#include <string>
-#include <GL/glew.h>
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_opengl.h>
 
 namespace Tungsten
 {

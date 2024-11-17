@@ -18,7 +18,6 @@ namespace Tungsten
             .add_shader(ShaderType::VERTEX, Phong_vert)
             .add_shader(ShaderType::FRAGMENT, Phong_frag)
             .build();
-        program = create_program();
 
         position_attr = get_vertex_attribute(program, "a_position");
         normal_attr = get_vertex_attribute(program, "a_normal");

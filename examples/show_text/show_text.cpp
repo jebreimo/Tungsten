@@ -14,11 +14,12 @@
 class ShowText : public Tungsten::EventLoop
 {
 public:
-    explicit ShowText()
-        : text_renderer_(Tungsten::FontManager::instance().default_font())
+    explicit ShowText(Tungsten::SdlApplication& app)
+        : EventLoop(app),
+          text_renderer_(Tungsten::FontManager::instance().default_font())
     {}
 
-    void on_update(Tungsten::SdlApplication& app) override
+    void on_update() override
     {
         auto current_second = SDL_GetTicks() / 1000;
         if (current_second != second_)
@@ -29,11 +30,11 @@ public:
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
-    void on_draw(Tungsten::SdlApplication& app) override
+    void on_draw() override
     {
         glClearColor(0.4, 0.6, 0.8, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        auto [w, h] = app.window_size();
+        auto [w, h] = application().window_size();
         auto screen_size = Xyz::Vector2F(float(w), float(h));
         auto u8text = "Jan Erik Breimo\nNatasha Barrett\nTime: " + std::to_string(second_);
 
@@ -65,9 +66,9 @@ int main(int argc, char* argv[])
 {
     try
     {
-        Tungsten::SdlApplication app("ShowText", std::make_unique<ShowText>());
+        Tungsten::SdlApplication app("ShowText");
         app.parse_command_line_options(argc, argv);
-        app.run();
+        app.run<ShowText>();
     }
     catch (std::exception& ex)
     {

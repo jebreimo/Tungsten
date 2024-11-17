@@ -8,7 +8,6 @@
 #pragma once
 #include <cstdint>
 #include <string>
-#include <SDL2/SDL.h>
 #include "Tungsten/SdlConfiguration.hpp"
 
 namespace Tungsten
@@ -18,20 +17,24 @@ namespace Tungsten
     public:
         explicit SdlSession(uint32_t flags);
 
+        SdlSession(const SdlSession& other) = delete;
+
         SdlSession(SdlSession&& other) noexcept;
 
         ~SdlSession();
+
+        SdlSession& operator=(const SdlSession& other) = delete;
 
         SdlSession& operator=(SdlSession&& other) noexcept;
 
         [[nodiscard]]
         bool is_active() const;
+
+        [[nodiscard]]
+        bool touch_events_enabled() const;
+
+        void set_touch_events_enabled(bool enabled);
     private:
         int active_;
     };
-
-    void configure_sdl(const SdlSession& session,
-                       const SdlConfiguration& configuration);
-
-    uint32_t get_sdl_init_flags(const SdlConfiguration& configuration);
 }

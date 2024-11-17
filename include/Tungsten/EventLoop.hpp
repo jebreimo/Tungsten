@@ -14,24 +14,23 @@ namespace Tungsten
 
     class EventLoop
     {
+    protected:
+        explicit EventLoop(SdlApplication& application)
+            : application_(&application)
+        {}
+
     public:
         virtual ~EventLoop() = default;
 
-        virtual void on_startup(SdlApplication& app)
-        {}
-
-        virtual bool on_event(SdlApplication& app, const SDL_Event& event)
+        virtual bool on_event(const SDL_Event& event)
         {
             return false;
         }
 
-        virtual void on_update(SdlApplication& app)
+        virtual void on_update()
         {}
 
-        virtual void on_draw(SdlApplication& app)
-        {}
-
-        virtual void on_shutdown(SdlApplication& app)
+        virtual void on_draw()
         {}
 
         void redraw()
@@ -50,7 +49,13 @@ namespace Tungsten
             return redraw_;
         }
 
+        [[nodiscard]]
+        SdlApplication& application() const
+        {
+            return *application_;
+        }
     private:
         bool redraw_ = true;
+        SdlApplication* application_ = nullptr;
     };
 }

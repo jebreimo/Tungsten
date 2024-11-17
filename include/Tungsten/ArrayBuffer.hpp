@@ -15,7 +15,6 @@ namespace Tungsten
     template <typename ItemType>
     struct ArrayBuffer
     {
-    public:
         std::vector<ItemType> vertexes;
         std::vector<uint16_t> indexes;
     };
@@ -25,10 +24,10 @@ namespace Tungsten
                      const ArrayBuffer<Item>& array,
                      GLenum usage = GL_STATIC_DRAW)
     {
-        Tungsten::bind_buffer(GL_ARRAY_BUFFER, array_buffer);
+        bind_buffer(GL_ARRAY_BUFFER, array_buffer);
         auto [v_buf, v_size] = array.array_buffer();
         Tungsten::set_buffer_data(GL_ARRAY_BUFFER, v_size, v_buf, usage);
-        Tungsten::bind_buffer(GL_ELEMENT_ARRAY_BUFFER, element_array_buffer);
+        bind_buffer(GL_ELEMENT_ARRAY_BUFFER, element_array_buffer);
         auto [i_buf, i_size] = array.index_buffer();
         Tungsten::set_buffer_data(GL_ELEMENT_ARRAY_BUFFER, i_size, i_buf, usage);
     }
