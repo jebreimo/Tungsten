@@ -300,6 +300,7 @@ namespace Tungsten
         {
             data_->session = nullptr;
             data_->event_loop = nullptr;
+            throw;
         }
     }
 
