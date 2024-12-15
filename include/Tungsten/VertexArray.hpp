@@ -38,6 +38,7 @@ namespace Tungsten
             define_vertex_attribute_float_pointer(attribute_location,
                                                   size, sizeof(Element),
                                                   offset);
+            Tungsten::enable_vertex_attribute(attribute_location);
         }
 
         void define_int32_pointer(GLuint attribute_location,
@@ -49,6 +50,7 @@ namespace Tungsten
             define_vertex_attribute_int32_pointer(attribute_location,
                                                   size, sizeof(Element),
                                                   offset);
+            Tungsten::enable_vertex_attribute(attribute_location);
         }
     private:
         VertexArrayHandle vertex_array_;
