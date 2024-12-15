@@ -25,6 +25,8 @@ namespace Tungsten
 
     std::vector<BufferHandle> generate_buffers(GLsizei count);
 
+    void generate_buffers(std::span<BufferHandle> buffers);
+
     void set_buffer_data(GLenum target, GLsizeiptr size,
                          const GLvoid* data, GLenum usage);
 

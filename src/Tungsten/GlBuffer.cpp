@@ -44,6 +44,15 @@ namespace Tungsten
         return result;
     }
 
+    void generate_buffers(std::span<BufferHandle> buffers)
+    {
+        auto ids = std::vector<GLuint>(size_t(buffers.size()));
+        glGenBuffers(GLsizei(ids.size()), ids.data());
+        THROW_IF_GL_ERROR();
+        for (size_t i = 0; i < ids.size(); ++i)
+            buffers[i] = BufferHandle(ids[i]);
+    }
+
     void set_buffer_data(GLenum target, GLsizeiptr size, const GLvoid* data,
                          GLenum usage)
     {

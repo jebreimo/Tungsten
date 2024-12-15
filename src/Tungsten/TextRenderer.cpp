@@ -187,7 +187,7 @@ namespace Tungsten
 
         use_program(data_->program.program);
 
-        bind_texture(GL_TEXTURE_2D, data_->texture);
+        ActiveTexture texture(0, GL_TEXTURE_2D, data_->texture);
 
         auto [buffer, rect] = make_text_array_buffer(*font_, text,
                                                      properties.line_gap);
@@ -210,21 +210,23 @@ namespace Tungsten
         data_ = std::make_unique<Data>();
 
         data_->texture = generate_texture();
-        bind_texture(GL_TEXTURE_2D, data_->texture);
+        ActiveTexture texture(0, GL_TEXTURE_2D, data_->texture);
 
-        set_texture_min_filter(GL_TEXTURE_2D, GL_LINEAR);
-        set_texture_mag_filter(GL_TEXTURE_2D, GL_LINEAR);
-        set_texture_parameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        set_texture_parameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        texture.set_min_filter(GL_LINEAR);
+        texture.set_mag_filter(GL_LINEAR);
+        texture.set_wrap_s(GL_CLAMP_TO_EDGE);
+        texture.set_wrap_t(GL_CLAMP_TO_EDGE);
 
         auto [format, type] = get_ogl_pixel_type(font_->image.pixel_type());
-        set_texture_image_2d(GL_TEXTURE_2D, 0, GL_LUMINANCE,
+        texture.set_image_2d(0, GL_LUMINANCE,
                              GLsizei(font_->image.width()),
                              GLsizei(font_->image.height()),
                              format, type,
                              font_->image.data());
 
         use_program(data_->program.program);
+        data_->program.texture.set(texture.unit());
+
         data_->vertex_array.define_float_pointer(
             data_->program.position, 2, 0);
         enable_vertex_attribute(data_->program.position);

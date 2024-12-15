@@ -61,6 +61,7 @@ add_library(Tungsten STATIC
     include/Tungsten/FontManager.hpp
     include/Tungsten/GlBuffer.hpp
     include/Tungsten/GlContext.hpp
+    include/Tungsten/GlFrameBuffers.hpp
     include/Tungsten/GlHandle.hpp
     include/Tungsten/GlParameters.hpp
     include/Tungsten/GlProgram.hpp
@@ -91,6 +92,7 @@ add_library(Tungsten STATIC
     src/Tungsten/FontManager.cpp
     src/Tungsten/GlBuffer.cpp
     src/Tungsten/GlContext.cpp
+    src/Tungsten/GlFrameBuffers.cpp
     src/Tungsten/GlParameters.cpp
     src/Tungsten/GlProgram.cpp
     src/Tungsten/GlShader.cpp
@@ -152,5 +154,6 @@ tungsten_target_embed_shaders(Tungsten
 
 if (TUNGSTEN_BUILD_EXAMPLES)
     add_subdirectory(examples/show_text)
+    add_subdirectory(examples/spinning_something)
     add_subdirectory(examples/touch_events)
 endif ()

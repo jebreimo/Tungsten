@@ -219,6 +219,7 @@ namespace Tungsten
             case SDL_WINDOWEVENT:
                 if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
                 {
+                    glFinish();
                     glViewport(0, 0, event.window.data1, event.window.data2);
                     data_->event_loop->redraw();
                 }

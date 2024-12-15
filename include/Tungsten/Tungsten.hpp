@@ -10,6 +10,7 @@
 #include "ArrayBufferBuilder.hpp"
 #include "FontManager.hpp"
 #include "GlBuffer.hpp"
+#include "GlFrameBuffers.hpp"
 #include "GlProgram.hpp"
 #include "GlTextures.hpp"
 #include "GlVertices.hpp"
