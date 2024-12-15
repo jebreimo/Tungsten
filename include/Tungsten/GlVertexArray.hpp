@@ -36,6 +36,11 @@ namespace Tungsten
                                                GLsizei stride,
                                                size_t offset = 0);
 
+    void define_vertex_attribute_int16_pointer(GLuint location,
+                                               GLint size,
+                                               GLsizei stride,
+                                               size_t offset = 0);
+
     void define_vertex_attribute_int32_pointer(GLuint location,
                                                GLint size,
                                                GLsizei stride,
