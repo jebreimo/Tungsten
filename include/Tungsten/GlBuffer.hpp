@@ -7,25 +7,22 @@
 //****************************************************************************
 #pragma once
 #include <span>
-#include <vector>
 #include "GlHandle.hpp"
 
 namespace Tungsten
 {
-    struct GlBufferDeleter
+    struct BufferDeleter
     {
         void operator()(GLuint id) const;
     };
 
-    using BufferHandle = GlHandle<GlBufferDeleter>;
-
-    void bind_buffer(GLenum target, GLuint buffer);
+    using BufferHandle = GlHandle<BufferDeleter>;
 
     BufferHandle generate_buffer();
 
-    std::vector<BufferHandle> generate_buffers(GLsizei count);
-
     void generate_buffers(std::span<BufferHandle> buffers);
+
+    void bind_buffer(GLenum target, GLuint buffer);
 
     void set_buffer_data(GLenum target, GLsizeiptr size,
                          const GLvoid* data, GLenum usage);

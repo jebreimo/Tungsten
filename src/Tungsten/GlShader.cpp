@@ -10,7 +10,7 @@
 
 namespace Tungsten
 {
-    void GlShaderDeleter::operator()(GLuint id) const
+    void ShaderDeleter::operator()(GLuint id) const
     {
         glDeleteShader(id);
         THROW_IF_GL_ERROR();

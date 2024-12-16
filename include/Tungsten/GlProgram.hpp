@@ -6,18 +6,17 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include <vector>
 #include "GlShader.hpp"
 #include "Uniform.hpp"
 
 namespace Tungsten
 {
-    struct GlProgramDeleter
+    struct ProgramDeleter
     {
         void operator()(GLuint id) const;
     };
 
-    using ProgramHandle = GlHandle<GlProgramDeleter>;
+    using ProgramHandle = GlHandle<ProgramDeleter>;
 
     ProgramHandle create_program();
 

@@ -10,7 +10,7 @@
 
 namespace Tungsten
 {
-    void GlProgramDeleter::operator()(GLuint id) const
+    void ProgramDeleter::operator()(GLuint id) const
     {
         glDeleteProgram(id);
         THROW_IF_GL_ERROR();

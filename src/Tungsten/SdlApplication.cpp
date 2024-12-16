@@ -173,7 +173,7 @@ namespace Tungsten
         data_->window = window;
     }
 
-    std::pair<int, int> SdlApplication::window_size() const
+    Size2D SdlApplication::window_size() const
     {
         if (!window())
             TUNGSTEN_THROW("window is NULL!");

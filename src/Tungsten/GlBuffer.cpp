@@ -10,15 +10,9 @@
 
 namespace Tungsten
 {
-    void GlBufferDeleter::operator()(GLuint id) const
+    void BufferDeleter::operator()(GLuint id) const
     {
         glDeleteBuffers(1, &id);
-        THROW_IF_GL_ERROR();
-    }
-
-    void bind_buffer(GLenum target, GLuint buffer)
-    {
-        glBindBuffer(target, buffer);
         THROW_IF_GL_ERROR();
     }
 
@@ -30,20 +24,6 @@ namespace Tungsten
         return BufferHandle(id);
     }
 
-    std::vector<BufferHandle> generate_buffers(GLsizei count)
-    {
-        if (count == 0)
-            return {};
-
-        auto ids = std::vector<GLuint>(size_t(count));
-        glGenBuffers(count, ids.data());
-        THROW_IF_GL_ERROR();
-        auto result = std::vector<BufferHandle>();
-        for (auto id : ids)
-            result.emplace_back(id);
-        return result;
-    }
-
     void generate_buffers(std::span<BufferHandle> buffers)
     {
         auto ids = std::vector<GLuint>(size_t(buffers.size()));
@@ -51,6 +31,12 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
         for (size_t i = 0; i < ids.size(); ++i)
             buffers[i] = BufferHandle(ids[i]);
+    }
+
+    void bind_buffer(GLenum target, GLuint buffer)
+    {
+        glBindBuffer(target, buffer);
+        THROW_IF_GL_ERROR();
     }
 
     void set_buffer_data(GLenum target, GLsizeiptr size, const GLvoid* data,

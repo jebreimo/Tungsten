@@ -6,7 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include <vector>
+#include <span>
 #include "GlHandle.hpp"
 
 namespace Tungsten
@@ -20,7 +20,7 @@ namespace Tungsten
 
     VertexArrayHandle generate_vertex_array();
 
-    std::vector<VertexArrayHandle> generate_vertex_arrays(GLsizei count);
+    void generate_vertex_arrays(std::span<VertexArrayHandle> vertex_arrays);
 
     void bind_vertex_array(GLuint vertex_array);
 

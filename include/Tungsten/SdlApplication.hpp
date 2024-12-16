@@ -9,6 +9,7 @@
 #include <iosfwd>
 #include "EventLoop.hpp"
 #include "SdlSession.hpp"
+#include "Types.hpp"
 #include "WindowParameters.hpp"
 
 namespace argos
@@ -95,7 +96,7 @@ namespace Tungsten
 
         void set_window(SDL_Window* window);
 
-        [[nodiscard]] std::pair<int, int> window_size() const;
+        [[nodiscard]] Size2D window_size() const;
 
         [[nodiscard]] const EventLoop* event_loop() const;
 

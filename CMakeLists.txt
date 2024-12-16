@@ -61,12 +61,12 @@ add_library(Tungsten STATIC
     include/Tungsten/FontManager.hpp
     include/Tungsten/GlBuffer.hpp
     include/Tungsten/GlContext.hpp
-    include/Tungsten/GlFrameBuffers.hpp
+    include/Tungsten/GlFramebuffer.hpp
     include/Tungsten/GlHandle.hpp
     include/Tungsten/GlParameters.hpp
     include/Tungsten/GlProgram.hpp
     include/Tungsten/GlShader.hpp
-    include/Tungsten/GlTextures.hpp
+    include/Tungsten/GlTexture.hpp
     include/Tungsten/GlVertexArray.hpp
     include/Tungsten/GlVertices.hpp
     include/Tungsten/SdlApplication.hpp
@@ -92,11 +92,11 @@ add_library(Tungsten STATIC
     src/Tungsten/FontManager.cpp
     src/Tungsten/GlBuffer.cpp
     src/Tungsten/GlContext.cpp
-    src/Tungsten/GlFrameBuffers.cpp
+    src/Tungsten/GlFramebuffer.cpp
     src/Tungsten/GlParameters.cpp
     src/Tungsten/GlProgram.cpp
     src/Tungsten/GlShader.cpp
-    src/Tungsten/GlTextures.cpp
+    src/Tungsten/GlTexture.cpp
     src/Tungsten/GlVertexArray.cpp
     src/Tungsten/GlVertices.cpp
     src/Tungsten/SdlApplication.cpp

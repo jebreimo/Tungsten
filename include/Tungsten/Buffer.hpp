@@ -18,10 +18,11 @@ namespace Tungsten
             : buffer_(generate_buffer()),
               target_(target),
               usage_(usage)
-        {}
+        {
+        }
 
-        Buffer(std::span <T> data, GLenum target,
-                 GLenum usage = GL_STATIC_DRAW)
+        Buffer(std::span<T> data, GLenum target,
+               GLenum usage = GL_STATIC_DRAW)
             : buffer_(generate_buffer()),
               target_(target),
               usage_(usage)
@@ -113,6 +114,7 @@ namespace Tungsten
         {
             return usage_;
         }
+
     private:
         BufferHandle buffer_;
         GLenum target_;

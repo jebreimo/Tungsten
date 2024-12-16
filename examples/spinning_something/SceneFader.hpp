@@ -6,19 +6,17 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include <Tungsten/Types.hpp>
 #include <Xyz/Vector.hpp>
-#include "Tungsten/GlFrameBuffers.hpp"
-#include "Tungsten/GlTextures.hpp"
-#include "Tungsten/VertexArray.hpp"
 
 class SceneFader
 {
 public:
-    explicit SceneFader(std::pair<int, int> window_size);
+    explicit SceneFader(Tungsten::Size2D window_size);
 
     ~SceneFader();
 
-    void set_window_size(std::pair<int, int> window_size);
+    void set_window_size(Tungsten::Size2D window_size);
 
     void set_fadeout(float fadeout);
 

@@ -12,12 +12,12 @@
 
 namespace Tungsten
 {
-    struct GlShaderDeleter
+    struct ShaderDeleter
     {
         void operator()(GLuint id) const;
     };
 
-    using ShaderHandle = GlHandle<GlShaderDeleter>;
+    using ShaderHandle = GlHandle<ShaderDeleter>;
 
     void compile_shader(GLuint shader_id);
 

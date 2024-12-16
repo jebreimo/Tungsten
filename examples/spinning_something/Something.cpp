@@ -39,6 +39,7 @@ public:
             fader_.set_window_size({event.window.data1, event.window.data2});
             return true;
         }
+        return false;
     }
 
     void on_draw() override
@@ -62,8 +63,6 @@ private:
     Shape2DRenderer renderer_;
     SceneFader fader_;
     Shape2D rectangle_;
-    // Tungsten::FrameBufferHandle frame_buffer_;
-    // Tungsten::TextureHandle texture_;
 };
 
 int main(int argc, char* argv[])

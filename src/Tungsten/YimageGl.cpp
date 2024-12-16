@@ -15,7 +15,7 @@
 
 namespace Tungsten
 {
-    std::pair<int, int> get_ogl_pixel_type(Yimage::PixelType type)
+    TextureSourceFormat get_ogl_pixel_type(Yimage::PixelType type)
     {
         switch (type)
         {

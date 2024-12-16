@@ -6,10 +6,8 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include <unordered_map>
 #include "Font.hpp"
-#include "GlBuffer.hpp"
-#include "GlTextures.hpp"
+#include "Types.hpp"
 
 namespace Tungsten
 {
@@ -42,6 +40,8 @@ namespace Tungsten
                   const TextProperties& properties = {});
     private:
         void initialize();
+
+        Size2D image_size() const;
 
         struct Data;
         std::unique_ptr<Data> data_;

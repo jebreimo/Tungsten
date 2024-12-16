@@ -25,9 +25,9 @@ namespace Tungsten
 
         ShaderProgramBuilder& add_shader(ShaderType type, const std::string& src);
 
-        Tungsten::ProgramHandle build();
+        ProgramHandle build();
 
     private:
-        Tungsten::ProgramHandle program_;
+        ProgramHandle program_;
     };
 }

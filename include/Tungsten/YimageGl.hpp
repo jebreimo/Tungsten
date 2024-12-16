@@ -9,11 +9,12 @@
 #include <utility>
 #include "Xyz/Vector.hpp"
 #include "Yimage/Image.hpp"
+#include <Tungsten/Types.hpp>
 
 namespace Tungsten
 {
     [[nodiscard]]
-    std::pair<int, int> get_ogl_pixel_type(Yimage::PixelType type);
+    TextureSourceFormat get_ogl_pixel_type(Yimage::PixelType type);
 
     [[nodiscard]]
     Yimage::Image read_image(const std::string& file_name);

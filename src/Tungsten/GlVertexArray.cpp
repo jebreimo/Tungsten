@@ -24,18 +24,13 @@ namespace Tungsten
         return VertexArrayHandle(id);
     }
 
-    std::vector<VertexArrayHandle> generate_vertex_arrays(GLsizei count)
+    void generate_vertex_arrays(std::span<VertexArrayHandle> vertex_arrays)
     {
-        if (count == 0)
-            return {};
-
-        auto ids = std::vector<GLuint>(size_t(count));
-        glGenVertexArrays(count, ids.data());
+        auto ids = std::vector<GLuint>(vertex_arrays.size());
+        glGenVertexArrays(static_cast<GLsizei>(ids.size()), ids.data());
         THROW_IF_GL_ERROR();
-        auto result = std::vector<VertexArrayHandle>();
-        for (auto id : ids)
-            result.emplace_back(id);
-        return result;
+        for (size_t i = 0; i < ids.size(); ++i)
+            vertex_arrays[i] = VertexArrayHandle(ids[i]);
     }
 
     void bind_vertex_array(GLuint vertex_array)

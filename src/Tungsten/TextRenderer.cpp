@@ -8,7 +8,7 @@
 #include "Tungsten/TextRenderer.hpp"
 
 #include "Tungsten/ArrayBufferBuilder.hpp"
-#include "Tungsten/GlTextures.hpp"
+#include "Tungsten/GlTexture.hpp"
 #include "Tungsten/GlVertices.hpp"
 #include "Tungsten/YimageGl.hpp"
 #include "Tungsten/VertexArray.hpp"
@@ -30,14 +30,22 @@ namespace Tungsten
         {
             ArrayBufferBuilder<TextVertex> builder(buffer);
             builder.reserve_vertexes(4);
-            builder.add_vertex({get_bottom_left(vertex_rect),
-                                get_bottom_left(tex_rect)});
-            builder.add_vertex({get_bottom_right(vertex_rect),
-                                get_bottom_right(tex_rect)});
-            builder.add_vertex({get_top_left(vertex_rect),
-                                get_top_left(tex_rect)});
-            builder.add_vertex({get_top_right(vertex_rect),
-                                get_top_right(tex_rect)});
+            builder.add_vertex({
+                get_bottom_left(vertex_rect),
+                get_bottom_left(tex_rect)
+            });
+            builder.add_vertex({
+                get_bottom_right(vertex_rect),
+                get_bottom_right(tex_rect)
+            });
+            builder.add_vertex({
+                get_top_left(vertex_rect),
+                get_top_left(tex_rect)
+            });
+            builder.add_vertex({
+                get_top_right(vertex_rect),
+                get_top_right(tex_rect)
+            });
             builder.reserve_indexes(6);
             builder.add_indexes(0, 1, 2);
             builder.add_indexes(2, 1, 3);
@@ -59,7 +67,7 @@ namespace Tungsten
             unsigned lines = 0;
             float max_width = 0;
             Xyz::Vector2F pos;
-            for (const auto c: text)
+            for (const auto c : text)
             {
                 if (c == '\n')
                 {
@@ -132,21 +140,24 @@ namespace Tungsten
         if (width > 0)
             ++lines;
         max_width = std::max(max_width, width);
-        auto height = (float(lines) * (1 + line_separator) - line_separator) * font.max_glyph.size[1];
-        auto y = font.max_glyph.origin[1] - float(lines - 1) * (1 + line_separator) * font.max_glyph.size[1];
+        auto height = (float(lines) * (1 + line_separator) - line_separator)
+                      * font.max_glyph.size[1];
+        auto y = font.max_glyph.origin[1] - float(lines - 1) * (1 + line_separator)
+                 * font.max_glyph.size[1];
         return {{font.max_glyph.origin[0], y}, {max_width, height}};
     }
 
     struct TextRenderer::Data
     {
         VertexArray<TextVertex> vertex_array;
-        Tungsten::TextureHandle texture;
+        TextureHandle texture;
         Detail::RenderTextShaderProgram program;
     };
 
     TextRenderer::TextRenderer(const Font& font)
         : font_(&font)
-    {}
+    {
+    }
 
     TextRenderer::TextRenderer(TextRenderer&&) noexcept = default;
 
@@ -187,7 +198,8 @@ namespace Tungsten
 
         use_program(data_->program.program);
 
-        ActiveTexture texture(0, GL_TEXTURE_2D, data_->texture);
+        activate_texture_unit(0);
+        bind_texture(GL_TEXTURE_2D, data_->texture);
 
         auto [buffer, rect] = make_text_array_buffer(*font_, text,
                                                      properties.line_gap);
@@ -210,22 +222,22 @@ namespace Tungsten
         data_ = std::make_unique<Data>();
 
         data_->texture = generate_texture();
-        ActiveTexture texture(0, GL_TEXTURE_2D, data_->texture);
 
-        texture.set_min_filter(GL_LINEAR);
-        texture.set_mag_filter(GL_LINEAR);
-        texture.set_wrap_s(GL_CLAMP_TO_EDGE);
-        texture.set_wrap_t(GL_CLAMP_TO_EDGE);
+        activate_texture_unit(0);
+        bind_texture(GL_TEXTURE_2D, data_->texture);
 
-        auto [format, type] = get_ogl_pixel_type(font_->image.pixel_type());
-        texture.set_image_2d(0, GL_LUMINANCE,
-                             GLsizei(font_->image.width()),
-                             GLsizei(font_->image.height()),
-                             format, type,
+        set_min_filter(GL_TEXTURE_2D,GL_LINEAR);
+        set_mag_filter(GL_TEXTURE_2D,GL_LINEAR);
+        set_wrap_s(GL_TEXTURE_2D,GL_CLAMP_TO_EDGE);
+        set_wrap_t(GL_TEXTURE_2D,GL_CLAMP_TO_EDGE);
+
+        set_texture_image_2d(GL_TEXTURE_2D, 0, GL_LUMINANCE,
+                             image_size(),
+                             get_ogl_pixel_type(font_->image.pixel_type()),
                              font_->image.data());
 
         use_program(data_->program.program);
-        data_->program.texture.set(texture.unit());
+        data_->program.texture.set(0);
 
         data_->vertex_array.define_float_pointer(
             data_->program.position, 2, 0);
@@ -233,6 +245,11 @@ namespace Tungsten
         data_->vertex_array.define_float_pointer(
             data_->program.texture_coord, 2, 2 * sizeof(float));
         enable_vertex_attribute(data_->program.texture_coord);
+    }
+
+    Size2D TextRenderer::image_size() const
+    {
+        return {GLsizei(font_->image.width()), GLsizei(font_->image.height())};
     }
 
     Xyz::Vector2F get_size(std::u32string_view text, const Font& font,
