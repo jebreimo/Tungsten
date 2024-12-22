@@ -18,9 +18,7 @@ public:
 
     void set_window_size(Tungsten::Size2D window_size);
 
-    void set_fadeout(float fadeout);
-
-    void prepare_scene();
+    void draw_previous_scene(float fadeout);
 
     void render_scene();
 private:

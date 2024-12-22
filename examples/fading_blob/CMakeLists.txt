@@ -9,15 +9,15 @@ cmake_minimum_required(VERSION 3.25)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(spinning_something
+add_executable(fading_blob
     Shape2D.cpp
     Shape2D.hpp
-    Something.cpp
+    fading_blob.cpp
     SceneFader.cpp
     SceneFader.hpp
 )
 
-target_link_libraries(spinning_something
+target_link_libraries(fading_blob
     PRIVATE
         Tungsten::Tungsten
 )

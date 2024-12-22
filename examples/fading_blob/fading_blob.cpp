@@ -10,10 +10,10 @@
 #include "Shape2D.hpp"
 #include "SceneFader.hpp"
 
-class Something : public Tungsten::EventLoop
+class fading_blob : public Tungsten::EventLoop
 {
 public:
-    explicit Something(Tungsten::SdlApplication& app)
+    explicit fading_blob(Tungsten::SdlApplication& app)
         : EventLoop(app),
           fader_(app.window_size())
     {
@@ -44,7 +44,7 @@ public:
 
     void on_draw() override
     {
-        fader_.prepare_scene();
+        fader_.draw_previous_scene(0.97);
 
         float angle = std::fmod(static_cast<float>(SDL_GetTicks()) * 0.001f, 2 * Xyz::Constants<float>::PI);
         renderer_.set_model_view_matrix(
@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
     {
         Tungsten::SdlApplication app("Something");
         app.parse_command_line_options(argc, argv);
-        app.run<Something>();
+        app.run<fading_blob>();
     }
     catch (std::exception& ex)
     {

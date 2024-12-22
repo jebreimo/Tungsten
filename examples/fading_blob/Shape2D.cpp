@@ -41,7 +41,6 @@ public:
         projection_matrix = Tungsten::get_uniform<Xyz::Matrix3F>(program, "u_projection_matrix");
         color = Tungsten::get_uniform<Xyz::Vector4F>(program, "u_color");
         z = Tungsten::get_uniform<float>(program, "u_z");
-        // point_size = Tungsten::get_uniform<float>(program, "u_point_size");
     }
 
     Tungsten::ProgramHandle program;
@@ -125,10 +124,8 @@ void Shape2DRenderer::draw(const Shape2D& shape)
     shape.vertex_array().bind();
     Tungsten::use_program(program_->program);
     program_->color.set(shape.color());
-    // program_->model_view_matrix.set(m);
     program_->model_view_matrix.set(model_view_matrix_);
     program_->projection_matrix.set(projection_matrix_);
-    // program_->projection_matrix.set(Xyz::Matrix3F::identity());
     program_->z.set(0);
     Tungsten::draw_triangle_elements_16(0, 6);
 }
