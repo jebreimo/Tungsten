@@ -44,7 +44,7 @@ namespace Tungsten
         case GlVersionCode::ES_2:
         case GlVersionCode::ES_3:
         case GlVersionCode::CORE_3_1:
-            return {SDL_GL_CONTEXT_PROFILE_CORE, 3, 1};
+            return {SDL_GL_CONTEXT_PROFILE_CORE, 3, 3};
         case GlVersionCode::CORE_4_1:
             return {SDL_GL_CONTEXT_PROFILE_CORE, 4, 1};
     #endif
@@ -106,7 +106,7 @@ namespace Tungsten
         if (params.version)
             set_sdl_gl_version(params.version);
         else
-            set_sdl_gl_version(make_gl_version(GlVersionCode::ES_2));
+            set_sdl_gl_version(make_gl_version(GlVersionCode::ES_3));
 
         if (params.multi_sampling)
             set_sdl_gl_multi_sampling(params.multi_sampling);
