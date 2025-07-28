@@ -11,26 +11,26 @@
 
 namespace Tungsten
 {
-    struct Size2D
+    struct Size2I
     {
         GLsizei width;
         GLsizei height;
     };
 
     template <typename T>
-    Xyz::Vector<T, 2> to_vector2(const Size2D& size)
+    Xyz::Vector<T, 2> to_vector2(const Size2I& size)
     {
         return {T(size.width), T(size.height)};
     }
 
-    struct Position2D
+    struct Position2I
     {
         GLint x;
         GLint y;
     };
 
     template <typename T>
-    Xyz::Vector<T, 2> to_vector2(const Position2D& size)
+    Xyz::Vector<T, 2> to_vector2(const Position2I& size)
     {
         return {T(size.x), T(size.y)};
     }

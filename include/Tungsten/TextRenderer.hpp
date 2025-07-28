@@ -41,7 +41,7 @@ namespace Tungsten
     private:
         void initialize();
 
-        Size2D image_size() const;
+        Size2I image_size() const;
 
         struct Data;
         std::unique_ptr<Data> data_;

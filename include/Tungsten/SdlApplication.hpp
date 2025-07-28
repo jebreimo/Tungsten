@@ -96,7 +96,7 @@ namespace Tungsten
 
         void set_window(SDL_Window* window);
 
-        [[nodiscard]] Size2D window_size() const;
+        [[nodiscard]] Size2I window_size() const;
 
         [[nodiscard]] const EventLoop* event_loop() const;
 

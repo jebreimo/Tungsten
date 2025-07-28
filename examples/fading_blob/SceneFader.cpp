@@ -76,7 +76,7 @@ namespace
 class SceneFader::SceneFaderImpl
 {
 public:
-    explicit SceneFaderImpl(Tungsten::Size2D window_size)
+    explicit SceneFaderImpl(Tungsten::Size2I window_size)
     {
         frame_buffer_ = Tungsten::generate_framebuffer();
 
@@ -97,7 +97,7 @@ public:
         vertex_array_.define_float_pointer(program_.tex_position_attr, 2, 2 * sizeof(float));
     }
 
-    void set_window_size(Tungsten::Size2D size)
+    void set_window_size(Tungsten::Size2I size)
     {
         for (auto& texture : textures_)
         {
@@ -149,14 +149,14 @@ private:
     int index_ = 0;
 };
 
-SceneFader::SceneFader(Tungsten::Size2D window_size)
+SceneFader::SceneFader(Tungsten::Size2I window_size)
     : impl_(std::make_unique<SceneFaderImpl>(window_size))
 {
 }
 
 SceneFader::~SceneFader() = default;
 
-void SceneFader::set_window_size(Tungsten::Size2D window_size)
+void SceneFader::set_window_size(Tungsten::Size2I window_size)
 {
     impl_->set_window_size(window_size);
 }

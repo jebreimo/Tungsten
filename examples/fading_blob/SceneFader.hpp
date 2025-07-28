@@ -12,11 +12,11 @@
 class SceneFader
 {
 public:
-    explicit SceneFader(Tungsten::Size2D window_size);
+    explicit SceneFader(Tungsten::Size2I window_size);
 
     ~SceneFader();
 
-    void set_window_size(Tungsten::Size2D window_size);
+    void set_window_size(Tungsten::Size2I window_size);
 
     void draw_previous_scene(float fadeout);
 

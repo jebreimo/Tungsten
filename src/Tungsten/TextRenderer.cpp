@@ -247,7 +247,7 @@ namespace Tungsten
         enable_vertex_attribute(data_->program.texture_coord);
     }
 
-    Size2D TextRenderer::image_size() const
+    Size2I TextRenderer::image_size() const
     {
         return {GLsizei(font_->image.width()), GLsizei(font_->image.height())};
     }

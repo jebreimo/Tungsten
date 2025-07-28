@@ -38,23 +38,23 @@ namespace Tungsten
 
     void set_texture_image_2d(GLenum target, GLint level,
                               GLint internal_format,
-                              Size2D size,
+                              Size2I size,
                               TextureSourceFormat format,
                               const void* data = nullptr);
 
     void set_texture_storage_2d(GLenum target, GLint levels,
                                 GLint internal_format,
-                                Size2D size);
+                                Size2I size);
 
     void set_texture_sub_image_2d(GLenum target, GLint level,
-                                  Position2D offset, Size2D size,
+                                  Position2I offset, Size2I size,
                                   TextureSourceFormat format,
                                   const void* data);
 
     void copy_texture_sub_image_2d(GLenum target, GLint level,
-                                   Position2D offset,
-                                   Position2D position,
-                                   Size2D size);
+                                   Position2I offset,
+                                   Position2I position,
+                                   Size2I size);
 
     void generate_mip_map(GLenum target);
 

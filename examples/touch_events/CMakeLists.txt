@@ -13,7 +13,7 @@ include(FetchContent)
 
 FetchContent_Declare(yconvert
     GIT_REPOSITORY "https://github.com/jebreimo/Yconvert.git"
-    GIT_TAG v0.2.3)
+    GIT_TAG v0.4.1)
 
 FetchContent_MakeAvailable(yconvert)
 
