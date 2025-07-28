@@ -16,8 +16,8 @@ namespace Tungsten
 {
     struct Glyph
     {
-        Xyz::RectangleF tex_rect;
-        Xyz::RectangleF glyph_rect;
+        Xyz::Rectangle2F tex_rect;
+        Xyz::Rectangle2F glyph_rect;
         float advance = 0.0;
     };
 
@@ -47,7 +47,7 @@ namespace Tungsten
     struct Font
     {
         Font(FontId identifier,
-             const Xyz::RectangleF& max_glyph,
+             const Xyz::Rectangle2F& max_glyph,
              std::unordered_map<char32_t, Glyph> glyphs,
              Yimage::Image  image)
             : identifier{std::move(identifier)},
@@ -57,7 +57,7 @@ namespace Tungsten
         {}
 
         FontId identifier;
-        Xyz::RectangleF max_glyph;
+        Xyz::Rectangle2F max_glyph;
         std::unordered_map<char32_t, Glyph> glyphs;
         Yimage::Image image;
     };

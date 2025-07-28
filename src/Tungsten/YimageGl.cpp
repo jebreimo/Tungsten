@@ -48,14 +48,14 @@ namespace Tungsten
     Yimage::Image read_image(const std::string& file_name)
     {
         auto image = Yimage::read_image(file_name);
-        flip_vertically(image);
+        flip_vertically(image.mutable_view());
         return image;
     }
 
     Yimage::Image read_image(const void* buffer, size_t size)
     {
         auto image = Yimage::read_image(buffer, size);
-        flip_vertically(image);
+        flip_vertically(image.mutable_view());
         return image;
     }
 

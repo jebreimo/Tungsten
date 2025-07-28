@@ -25,26 +25,26 @@ namespace Tungsten
         };
 
         void add_rectangle(ArrayBuffer<TextVertex>& buffer,
-                           const Xyz::RectangleF& vertex_rect,
-                           const Xyz::RectangleF& tex_rect)
+                           const Xyz::Rectangle2F& vertex_rect,
+                           const Xyz::Rectangle2F& tex_rect)
         {
             ArrayBufferBuilder<TextVertex> builder(buffer);
             builder.reserve_vertexes(4);
             builder.add_vertex({
-                get_bottom_left(vertex_rect),
-                get_bottom_left(tex_rect)
+                vertex_rect[0],
+                tex_rect[0]
             });
             builder.add_vertex({
-                get_bottom_right(vertex_rect),
-                get_bottom_right(tex_rect)
+                vertex_rect[1],
+                tex_rect[1]
             });
             builder.add_vertex({
-                get_top_left(vertex_rect),
-                get_top_left(tex_rect)
+                vertex_rect[3],
+                tex_rect[3]
             });
             builder.add_vertex({
-                get_top_right(vertex_rect),
-                get_top_right(tex_rect)
+                vertex_rect[2],
+                tex_rect[2]
             });
             builder.reserve_indexes(6);
             builder.add_indexes(0, 1, 2);
@@ -52,7 +52,7 @@ namespace Tungsten
         }
 
         [[nodiscard]]
-        std::pair<ArrayBuffer<TextVertex>, Xyz::RectangleF>
+        std::pair<ArrayBuffer<TextVertex>, Xyz::Rectangle2F>
         make_text_array_buffer(
             const Font& font,
             std::u32string_view text,
@@ -87,8 +87,10 @@ namespace Tungsten
                 auto& glyph = it->second;
                 if (!is_empty(glyph.glyph_rect))
                 {
+                    auto glyph_rect = glyph.glyph_rect;
+                    glyph_rect.placement.origin += pos;
                     add_rectangle(buffer,
-                                  offset(glyph.glyph_rect, pos),
+                                  glyph_rect,
                                   glyph.tex_rect);
                 }
                 pos[0] += glyph.advance;
@@ -98,14 +100,14 @@ namespace Tungsten
             max_width = std::max(max_width, pos[0]);
             auto height =
                 (float(lines) * (1 + line_separator) - line_separator) * font.max_glyph.size[1];
-            auto y = font.max_glyph.origin[1]
+            auto y = font.max_glyph.placement.origin.y()
                      - float(lines - 1) * (1 + line_separator) * font.max_glyph.size[1];
-            Xyz::RectangleF rect({font.max_glyph.origin[0], y}, {max_width, height});
+            Xyz::Rectangle2F rect({{font.max_glyph.placement.origin.x(), y}}, {max_width, height});
             return {buffer, rect};
         }
     }
 
-    Xyz::RectangleF get_text_size(
+    Xyz::Rectangle2F get_text_size(
         const Font& font,
         std::u32string_view text,
         float line_separator)
@@ -142,9 +144,9 @@ namespace Tungsten
         max_width = std::max(max_width, width);
         auto height = (float(lines) * (1 + line_separator) - line_separator)
                       * font.max_glyph.size[1];
-        auto y = font.max_glyph.origin[1] - float(lines - 1) * (1 + line_separator)
+        auto y = font.max_glyph.placement.origin.y() - float(lines - 1) * (1 + line_separator)
                  * font.max_glyph.size[1];
-        return {{font.max_glyph.origin[0], y}, {max_width, height}};
+        return {{{font.max_glyph.placement.origin.x(), y}}, {max_width, height}};
     }
 
     struct TextRenderer::Data
@@ -206,11 +208,11 @@ namespace Tungsten
         set_buffers(data_->vertex_array, buffer);
 
         data_->program.color.set(to_vector(properties.color));
-        auto adjusted_pos = pos - rect.origin * 2.0f / screen_size;
+        auto adjusted_pos = pos - rect.placement.origin * 2.0f / screen_size;
         auto [scale_x, scale_y] = 2.0f / screen_size;
-        data_->program.mvp_matrix.set(Xyz::translate4(adjusted_pos[0],
-                                                      adjusted_pos[1], 0.f)
-                                      * Xyz::scale4(scale_x, scale_y, 1.0f));
+        using namespace Xyz::affine;
+        data_->program.mvp_matrix.set(translate3(adjusted_pos[0], adjusted_pos[1], 0.f)
+                                      * scale3(scale_x, scale_y, 1.0f));
         draw_triangle_elements_16(0, GLsizei(data_->vertex_array.indexes.size()));
 
         if (auto_blend_ && !default_blend)

@@ -39,11 +39,11 @@ FetchContent_Declare(argos
 
 FetchContent_Declare(xyz
     GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
-    GIT_TAG v0.3.2)
+    GIT_TAG v0.8.2)
 
 FetchContent_Declare(yimage
     GIT_REPOSITORY "https://github.com/jebreimo/Yimage.git"
-    GIT_TAG v0.1.7)
+    GIT_TAG v0.2.4)
 
 FetchContent_MakeAvailable(argos xyz yimage)
 
@@ -109,6 +109,7 @@ add_library(Tungsten STATIC
     src/Tungsten/ShaderPrograms/PhongShaderProgram.hpp
     src/Tungsten/ShaderTools.cpp
     src/Tungsten/TextRenderer.cpp
+    src/Tungsten/TextRenderer/Monaco32.hpp
     src/Tungsten/TextRenderer/Monaco64.hpp
     src/Tungsten/TextRenderer/RenderTextShaderProgram.cpp
     src/Tungsten/TextRenderer/RenderTextShaderProgram.hpp
