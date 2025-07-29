@@ -7,7 +7,7 @@
 ##****************************************************************************
 cmake_minimum_required(VERSION 3.15)
 
-project(Tungsten VERSION 0.6.0)
+project(Tungsten VERSION 0.6.1)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -35,7 +35,7 @@ include(FetchContent)
 
 FetchContent_Declare(argos
     GIT_REPOSITORY "https://github.com/jebreimo/Argos.git"
-    GIT_TAG v1.6)
+    GIT_TAG v1.7.2)
 
 FetchContent_Declare(xyz
     GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
@@ -71,6 +71,7 @@ add_library(Tungsten STATIC
     include/Tungsten/GlVertices.hpp
     include/Tungsten/SdlApplication.hpp
     include/Tungsten/SdlConfiguration.hpp
+    include/Tungsten/SdlSession.hpp
     include/Tungsten/ShaderProgramBuilder.hpp
     include/Tungsten/ShaderTools.hpp
     include/Tungsten/TextRenderer.hpp
@@ -101,7 +102,6 @@ add_library(Tungsten STATIC
     src/Tungsten/GlVertices.cpp
     src/Tungsten/SdlApplication.cpp
     src/Tungsten/SdlSession.cpp
-    include/Tungsten/SdlSession.hpp
     src/Tungsten/ShaderProgramBuilder.cpp
     src/Tungsten/ShaderPrograms/GouraudShaderProgram.cpp
     src/Tungsten/ShaderPrograms/GouraudShaderProgram.hpp

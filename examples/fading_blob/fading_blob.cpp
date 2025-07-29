@@ -48,9 +48,9 @@ public:
 
         float angle = std::fmod(static_cast<float>(SDL_GetTicks()) * 0.001f, 2 * Xyz::Constants<float>::PI);
         renderer_.set_model_view_matrix(
-            Xyz::rotate3(angle)
-            * Xyz::translate3(0.5f, 0.f)
-            * Xyz::scale3(0.2f, 0.2f)
+            Xyz::affine::rotate2(angle)
+            * Xyz::affine::translate2(0.5f, 0.f)
+            * Xyz::affine::scale2(0.2f, 0.2f)
             );
         renderer_.draw(rectangle_);
 
