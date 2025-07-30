@@ -31,8 +31,7 @@ public:
 
     bool on_event(const SDL_Event& event) override
     {
-        if (event.type == SDL_WINDOWEVENT
-            && event.window.event == SDL_WINDOWEVENT_RESIZED)
+        if (event.type == SDL_EVENT_WINDOW_RESIZED)
         {
             glFinish();
             glViewport(0, 0, event.window.data1, event.window.data2);

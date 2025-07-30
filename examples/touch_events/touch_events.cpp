@@ -30,24 +30,26 @@ public:
         : Tungsten::EventLoop(app),
           text_renderer_(Tungsten::FontManager::instance().default_font())
     {
-        application().throttle_events(SDL_MULTIGESTURE, 50);
-        application().throttle_events(SDL_MOUSEWHEEL, 50);
         set_swap_interval(application(), Tungsten::SwapInterval::ADAPTIVE_VSYNC_OR_VSYNC);
     }
 
-    void on_multi_gesture(const SDL_MultiGestureEvent& event)
+    void on_finger_event(const SDL_TouchFingerEvent& event)
     {
         JEB_CHECKPOINT();
-        if (event.numFingers == 2)
+        std::ostringstream ss;
+        switch (event.type)
         {
-            std::ostringstream ss;
-            if (event.dDist > 0)
-                ss << "zoom in: " << event.dDist << " " << event.x << " " << event.y;
-            else if (event.dDist < 0)
-                ss << "zoom out: " << event.dDist << " " << event.x << " " << event.y;
-            if (auto str = ss.str(); !str.empty())
-                texts_.push_back(u8_to_u32(str));
+        case SDL_EVENT_FINGER_DOWN: ss << "finger down: "; break;
+        case SDL_EVENT_FINGER_UP: ss << "finger up: "; break;
+        case SDL_EVENT_FINGER_MOTION: ss << "finger motion: "; break;
+        case SDL_EVENT_FINGER_CANCELED: ss << "finger canceled: "; break;
+        default: ss << "unknown: "; break;
         }
+        ss << "id " << event.fingerID << " " << event.x << " " << event.y
+            << " " << event.dx << " " << event.dy
+            << " " << event.pressure;
+        if (auto str = ss.str(); !str.empty())
+            texts_.push_back(u8_to_u32(str));
         redraw();
     }
 
@@ -55,8 +57,10 @@ public:
     {
         JEB_CHECKPOINT();
         std::ostringstream ss;
-        ss << "wheel: " << event.preciseX << " " << event.preciseY << " "
-           << event.x << " " << event.y;
+        ss << "wheel: " << event.x << " " << event.y;
+#if SDL_VERSION_ATLEAST(3, 2, 12)
+        ss << " " << event.integer_x << " " << event.integer_y;
+#endif
         texts_.push_back(u8_to_u32(ss.str()));
         redraw();
     }
@@ -66,10 +70,13 @@ public:
         std::string msg;
         switch (event.type)
         {
-        case SDL_MULTIGESTURE:
-            on_multi_gesture(event.mgesture);
-           break;
-        case SDL_MOUSEWHEEL:
+        case SDL_EVENT_FINGER_DOWN:
+        case SDL_EVENT_FINGER_UP:
+        case SDL_EVENT_FINGER_MOTION:
+        case SDL_EVENT_FINGER_CANCELED:
+            on_finger_event(event.tfinger);
+            break;
+        case SDL_EVENT_MOUSE_WHEEL:
             on_mouse_wheel(event.wheel);
             break;
         default:

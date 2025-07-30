@@ -49,7 +49,7 @@ FetchContent_MakeAvailable(argos xyz yimage)
 
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
-find_package(SDL2 REQUIRED)
+find_package(SDL3 REQUIRED)
 
 add_library(Tungsten STATIC
     include/Tungsten/ArrayBuffer.hpp
@@ -83,13 +83,6 @@ add_library(Tungsten STATIC
     include/Tungsten/YimageGl.hpp
     src/Tungsten/CommandLine.cpp
     src/Tungsten/CommandLine.hpp
-    src/Tungsten/EventThrottlers/EventMerger.hpp
-    src/Tungsten/EventThrottlers/EventThrottler.cpp
-    src/Tungsten/EventThrottlers/EventThrottler.hpp
-    src/Tungsten/EventThrottlers/MouseWheelEventMerger.cpp
-    src/Tungsten/EventThrottlers/MouseWheelEventMerger.hpp
-    src/Tungsten/EventThrottlers/MultiGestureEventMerger.cpp
-    src/Tungsten/EventThrottlers/MultiGestureEventMerger.hpp
     src/Tungsten/FontManager.cpp
     src/Tungsten/GlBuffer.cpp
     src/Tungsten/GlContext.cpp
@@ -116,13 +109,15 @@ add_library(Tungsten STATIC
     src/Tungsten/TungstenException.cpp
     src/Tungsten/Uniform.cpp
     src/Tungsten/YimageGl.cpp
+    include/Tungsten/SdlDisplay.cpp
+    include/Tungsten/SdlDisplay.hpp
 )
 
 target_link_libraries(Tungsten
     PUBLIC
         GLEW::GLEW
         OpenGL::GL
-        SDL2::SDL2
+        SDL3::SDL3
         Xyz::Xyz
         Yimage::Yimage
     PRIVATE

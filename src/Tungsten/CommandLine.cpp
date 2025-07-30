@@ -8,10 +8,12 @@
 #include "CommandLine.hpp"
 
 #include <iostream>
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include <Argos/ArgumentParser.hpp>
 #include <Tungsten/SdlSession.hpp>
 #include <Tungsten/SdlApplication.hpp>
+
+#include "Tungsten/SdlDisplay.hpp"
 
 namespace Tungsten
 {
@@ -22,45 +24,45 @@ namespace Tungsten
             switch (format)
             {
             case SDL_PIXELFORMAT_ABGR1555:
-                return "ABGR1555";
+                return "ABGR_1555";
             case SDL_PIXELFORMAT_ABGR4444:
-                return "ABGR4444";
+                return "ABGR_4444";
             case SDL_PIXELFORMAT_ABGR8888:
-                return "ABGR8888";
+                return "ABGR_8888";
             case SDL_PIXELFORMAT_ARGB1555:
-                return "ARGB1555";
+                return "ARGB_1555";
             case SDL_PIXELFORMAT_ARGB2101010:
-                return "ARGB2101010";
+                return "ARGB_2101010";
             case SDL_PIXELFORMAT_ARGB4444:
-                return "ARGB4444";
+                return "ARGB_4444";
             case SDL_PIXELFORMAT_ARGB8888:
-                return "ARGB8888";
+                return "ARGB_8888";
             case SDL_PIXELFORMAT_BGR24:
-                return "BGR24";
-            case SDL_PIXELFORMAT_BGR555:
-                return "BGR555";
+                return "BGR_24";
+            case SDL_PIXELFORMAT_XBGR1555:
+                return "XBGR_1555";
             case SDL_PIXELFORMAT_BGR565:
-                return "BGR565";
-            case SDL_PIXELFORMAT_BGR888:
-                return "BGR888";
+                return "BGR_565";
+            case SDL_PIXELFORMAT_XBGR8888:
+                return "XBGR_8888";
             case SDL_PIXELFORMAT_BGRA4444:
-                return "BGRA4444";
+                return "BGRA_4444";
             case SDL_PIXELFORMAT_BGRA5551:
-                return "BGRA5551";
+                return "BGRA_5551";
             case SDL_PIXELFORMAT_BGRA8888:
-                return "BGRA8888";
+                return "BGRA_8888";
             case SDL_PIXELFORMAT_BGRX8888:
-                return "BGRX8888";
+                return "BGRX_8888";
             case SDL_PIXELFORMAT_INDEX1LSB:
-                return "INDEX1LSB";
+                return "INDEX_1_LSB";
             case SDL_PIXELFORMAT_INDEX1MSB:
-                return "INDEX1MSB";
+                return "INDEX_1_MSB";
             case SDL_PIXELFORMAT_INDEX4LSB:
-                return "INDEX4LSB";
+                return "INDEX_4_LSB";
             case SDL_PIXELFORMAT_INDEX4MSB:
-                return "INDEX4MSB";
+                return "INDEX_4_MSB";
             case SDL_PIXELFORMAT_INDEX8:
-                return "INDEX8";
+                return "INDEX_8";
             case SDL_PIXELFORMAT_IYUV:
                 return "IYUV";
             case SDL_PIXELFORMAT_NV12:
@@ -68,25 +70,25 @@ namespace Tungsten
             case SDL_PIXELFORMAT_NV21:
                 return "NV21";
             case SDL_PIXELFORMAT_RGB24:
-                return "RGB24";
+                return "RGB_24";
             case SDL_PIXELFORMAT_RGB332:
-                return "RGB332";
-            case SDL_PIXELFORMAT_RGB444:
-                return "RGB444";
-            case SDL_PIXELFORMAT_RGB555:
-                return "RGB555";
+                return "RGB_332";
+            case SDL_PIXELFORMAT_XRGB4444:
+                return "XRGB_4444";
+            case SDL_PIXELFORMAT_XRGB1555:
+                return "XRGB_1555";
             case SDL_PIXELFORMAT_RGB565:
-                return "RGB565";
-            case SDL_PIXELFORMAT_RGB888:
-                return "RGB888";
+                return "RGB_565";
+            case SDL_PIXELFORMAT_XRGB8888:
+                return "XRGB_8888";
             case SDL_PIXELFORMAT_RGBA4444:
-                return "RGBA4444";
+                return "RGBA_4444";
             case SDL_PIXELFORMAT_RGBA5551:
-                return "RGBA5551";
+                return "RGBA_5551";
             case SDL_PIXELFORMAT_RGBA8888:
-                return "RGBA8888";
+                return "RGBA_8888";
             case SDL_PIXELFORMAT_RGBX8888:
-                return "RGBX8888";
+                return "RGBX_8888";
             case SDL_PIXELFORMAT_UYVY:
                 return "UYVY";
             case SDL_PIXELFORMAT_YUY2:
@@ -101,12 +103,12 @@ namespace Tungsten
         }
 
         void print_display_mode(std::ostream& stream,
-                                int display_index,
+                                SDL_DisplayID display_id,
                                 int mode_index,
                                 const SDL_DisplayMode& mode)
         {
-            stream << "Mode " << display_index
-                   << ":" << mode_index
+            stream << "display " << display_id
+                   << " mode " << mode_index
                    << "  " << get_pixel_format_name(mode.format)
                    << " " << mode.w << "x" << mode.h
                    << " " << mode.refresh_rate << "Hz\n";
@@ -114,18 +116,17 @@ namespace Tungsten
 
         void print_display_modes(std::ostream& stream)
         {
-            int num_displays = SDL_GetNumVideoDisplays();
-            for (int d = 0; d < num_displays; ++d)
+            int num_displays = 0;
+            const auto display_ids = get_sdl_display_ids();
+            for (auto id = display_ids.get(); *id; ++id)
             {
-                if (auto name = SDL_GetDisplayName(d))
-                    stream << "Display " << d << ": " << name << "\n";
-                int num_modes = SDL_GetNumDisplayModes(d);
-                for (int m = 0; m < num_modes; ++m)
-                {
-                    SDL_DisplayMode mode = {};
-                    if (SDL_GetDisplayMode(d, m, &mode) == 0)
-                        print_display_mode(stream, d, m, mode);
-                }
+                if (const auto name = SDL_GetDisplayName(*id))
+                    stream << "Display " << *id << ": " << name << "\n";
+
+                auto modes = get_sdl_display_modes(*id);
+                int n = 0;
+                for (const auto* mode_ptr = modes.get(); *mode_ptr; ++mode_ptr)
+                    print_display_mode(stream, *id, n++, **mode_ptr);
             }
         }
     }
@@ -172,7 +173,7 @@ namespace Tungsten
         {
             if (mode_arg.as_string() == "F")
             {
-                wp.sdl_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+                wp.sdl_flags |= SDL_WINDOW_FULLSCREEN;
             }
             else if (mode_arg.as_string() != "W")
             {

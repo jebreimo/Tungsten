@@ -8,13 +8,13 @@
 #include "Tungsten/SdlSession.hpp"
 
 #include <stdexcept>
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
 {
     SdlSession::SdlSession(uint32_t flags)
-            : active_(SDL_Init(flags) == 0)
+            : active_(SDL_Init(flags))
     {
         if (!active_)
             throw std::runtime_error(SDL_GetError());
@@ -46,13 +46,16 @@ namespace Tungsten
         return active_;
     }
 
+    // ReSharper disable once CppMemberFunctionMayBeStatic
     bool SdlSession::touch_events_enabled() const
     {
         return strcmp(SDL_GetHint(SDL_HINT_MOUSE_TOUCH_EVENTS), "1") == 0;
     }
 
+    // ReSharper disable once CppMemberFunctionMayBeStatic
     void SdlSession::set_touch_events_enabled(bool enabled)
     {
-        SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, enabled ? "1" : "0");
+        if (!SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, enabled ? "1" : "0"))
+            THROW_SDL_ERROR();
     }
 }

@@ -7,18 +7,16 @@
 //****************************************************************************
 #include "Tungsten/SdlApplication.hpp"
 
+#include <iostream>
 #include <memory>
-#include <unordered_map>
 #include <GL/glew.h>
 #include <Argos/ArgumentParser.hpp>
 #include "Tungsten/EventLoop.hpp"
 #include "Tungsten/GlContext.hpp"
 #include "Tungsten/GlParameters.hpp"
 #include "Tungsten/TungstenException.hpp"
-#include "EventThrottlers/MouseWheelEventMerger.hpp"
-#include "EventThrottlers/MultiGestureEventMerger.hpp"
-#include "EventThrottlers/EventThrottler.hpp"
 #include "CommandLine.hpp"
+#include "Tungsten/SdlDisplay.hpp"
 
 #ifdef __EMSCRIPTEN__
     #include <emscripten.h>
@@ -28,7 +26,7 @@ namespace Tungsten
 {
     namespace
     {
-        #ifdef __EMSCRIPTEN__
+#ifdef __EMSCRIPTEN__
 
         EM_JS(int, canvas_get_width, (),
         {
@@ -51,21 +49,22 @@ namespace Tungsten
             return params;
         }
 
-        #else
+#else
 
         WindowParameters get_default_window_parameters()
         {
             return {};
         }
 
-        #endif
+#endif
     }
 
     struct SdlApplication::Data
     {
         explicit Data(std::string name)
             : name(std::move(name))
-        {}
+        {
+        }
 
         EventLoop* event_loop = nullptr;
         SdlSession* session = nullptr;
@@ -76,9 +75,7 @@ namespace Tungsten
         int status = 0;
         SDL_Window* window = nullptr;
         GlContext gl_context;
-        std::unordered_map<SDL_EventType, EventThrottler> event_throttlers;
         bool enable_touch_events = false;
-        bool enable_timers = false;
     };
 
     SdlApplication::SdlApplication() = default;
@@ -125,29 +122,6 @@ namespace Tungsten
         set_status(1);
     }
 
-    void SdlApplication::throttle_events(SDL_EventType event, uint32_t msecs)
-    {
-        if (msecs == 0)
-        {
-            data_->event_throttlers.erase(event);
-            return;
-        }
-
-        switch (event)
-        {
-        case SDL_MULTIGESTURE:
-            data_->event_throttlers[event] = EventThrottler(
-                std::make_unique<MultiGestureEventMerger>(), msecs);
-            break;
-        case SDL_MOUSEWHEEL:
-            data_->event_throttlers[event] = EventThrottler(
-                std::make_unique<MouseWheelEventMerger>(), msecs);
-            break;
-        default:
-            TUNGSTEN_THROW("Unsupported event type: " + std::to_string(event));
-        }
-    }
-
     SDL_GLContext SdlApplication::gl_context() const
     {
         return data_->gl_context;
@@ -179,50 +153,28 @@ namespace Tungsten
             TUNGSTEN_THROW("window is NULL!");
 
         int w = 0, h = 0;
-        SDL_GL_GetDrawableSize(window(), &w, &h);
+        SDL_GetWindowSizeInPixels(window(), &w, &h);
         return {w, h};
     }
 
     void SdlApplication::process_event(const SDL_Event& event)
     {
-        if (!data_->event_throttlers.empty())
-        {
-            auto it = data_->event_throttlers.find(SDL_EventType(event.type));
-            if (it != data_->event_throttlers.end())
-            {
-                auto& throttler = it->second;
-                if (!throttler.update(event))
-                {
-                    process_event_for_real(throttler.event(event.common.timestamp));
-                    throttler.clear();
-                    throttler.update(event);
-                }
-                return;
-            }
-        }
-        process_event_for_real(event);
-    }
-
-    void SdlApplication::process_event_for_real(const SDL_Event& event)
-    {
         if (!data_->event_loop->on_event(event))
         {
             switch (event.type)
             {
-            case SDL_QUIT:
+            case SDL_EVENT_QUIT:
                 quit();
                 break;
-            case SDL_KEYUP:
-                if (event.key.keysym.sym == SDLK_ESCAPE)
+            case SDL_EVENT_KEY_UP:
+                if (event.key.key == SDLK_ESCAPE)
                     quit();
                 break;
-            case SDL_WINDOWEVENT:
-                if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
-                {
-                    glFinish();
-                    glViewport(0, 0, event.window.data1, event.window.data2);
-                    data_->event_loop->redraw();
-                }
+            case SDL_EVENT_WINDOW_RESIZED:
+                glFinish();
+                SDL_Log("Window resized");
+                glViewport(0, 0, event.window.data1, event.window.data2);
+                data_->event_loop->redraw();
                 break;
             default:
                 break;
@@ -245,42 +197,39 @@ namespace Tungsten
         glewInit();
     }
 
-    SDL_Window*
-    SdlApplication::create_window(const WindowParameters& params)
+    SDL_Window* SdlApplication::create_window(const WindowParameters& params)
     {
-        const auto& pos = params.window_pos;
+        SdlDisplayModesPtr display_modes;
+        const SDL_DisplayMode* mode = nullptr;
+
         auto size = params.window_size;
+
         if (params.full_screen_mode)
         {
-            SDL_DisplayMode modeInfo = {};
-            if (SDL_GetDisplayMode(params.full_screen_mode.display,
-                                   params.full_screen_mode.mode,
-                                   &modeInfo) >= 0)
-            {
-                size = {modeInfo.w, modeInfo.h};
-            }
+            display_modes = get_sdl_display_modes(params.full_screen_mode.display);
+            mode = get_sdl_display_mode(display_modes.get(), params.full_screen_mode.mode);
+            size = {mode->w, mode->h};
         }
 
         if (!size)
             size = {640, 480};
 
         SDL_Log("Create window with size %dx%d.", size.width, size.height);
-        auto window = SDL_CreateWindow(data_->name.c_str(),
-                                       pos.x, pos.y,
-                                       size.width, size.height,
-                                       params.sdl_flags);
+        auto* window = SDL_CreateWindow(data_->name.c_str(),
+                                        size.width, size.height,
+                                        params.sdl_flags);
+        if (window == nullptr)
+            THROW_SDL_ERROR();
 
-        if (params.full_screen_mode && params.sdl_flags)
+        if (params.full_screen_mode)
         {
-            SDL_DisplayMode mode;
-            if (SDL_GetDisplayMode(params.full_screen_mode.display,
-                                   params.full_screen_mode.mode,
-                                   &mode) >= 0)
+            SDL_Log("Set fullscreen mode: %d:%d.",
+                    params.full_screen_mode.display,
+                    params.full_screen_mode.mode);
+            if (!SDL_SetWindowFullscreenMode(window, mode)
+                || !SDL_SetWindowFullscreen(window, true))
             {
-                SDL_Log("Set fullscreen mode: %d:%d.",
-                        params.full_screen_mode.display,
-                        params.full_screen_mode.mode);
-                SDL_SetWindowDisplayMode(window, &mode);
+                THROW_SDL_ERROR();
             }
         }
 
@@ -330,7 +279,7 @@ namespace Tungsten
         }
     }
 
-    #else
+#else
 
     void SdlApplication::run_event_loop()
     {
@@ -338,26 +287,13 @@ namespace Tungsten
             run_event_loop_step();
     }
 
-    #endif
+#endif
 
     void SdlApplication::run_event_loop_step()
     {
         SDL_Event event;
         while (SDL_PollEvent(&event))
             process_event(event);
-
-        if (!data_->event_throttlers.empty())
-        {
-            const auto time = SDL_GetTicks();
-            for (auto& [_, throttler]: data_->event_throttlers)
-            {
-                if (throttler.is_due(time))
-                {
-                    process_event_for_real(throttler.event(SDL_GetTicks()));
-                    throttler.clear();
-                }
-            }
-        }
 
         data_->event_loop->on_update();
 
@@ -402,10 +338,10 @@ namespace Tungsten
 
     void SdlApplication::set_event_loop_mode(EventLoopMode mode)
     {
-        #ifdef __EMSCRIPTEN__
+#ifdef __EMSCRIPTEN__
         if (mode == EventLoopMode::WAIT_FOR_EVENTS)
             return;
-        #endif
+#endif
         data_->event_loop_mode = mode;
     }
 
@@ -421,18 +357,6 @@ namespace Tungsten
             data_->session->set_touch_events_enabled(value);
     }
 
-    bool SdlApplication::sdl_timers_enabled() const
-    {
-        return data_->enable_timers;
-    }
-
-    void SdlApplication::set_sdl_timers_enabled(bool value)
-    {
-        if (is_running())
-            TUNGSTEN_THROW("Can not change SDL timers while the application is running.");
-        data_->enable_timers = value;
-    }
-
     EventLoop& SdlApplication::callbacks()
     {
         return *data_->event_loop;
@@ -445,9 +369,7 @@ namespace Tungsten
 
     SdlSession SdlApplication::make_sdl_session()
     {
-        uint32_t flags = SDL_INIT_VIDEO | SDL_INIT_EVENTS;
-        if (data_->enable_timers)
-            flags |= SDL_INIT_TIMER;
+        constexpr uint32_t flags = SDL_INIT_VIDEO | SDL_INIT_EVENTS;
         SdlSession session(flags);
         session.set_touch_events_enabled(data_->enable_touch_events);
         initialize(data_->window_parameters);
@@ -462,15 +384,40 @@ namespace Tungsten
 
     SwapInterval swap_interval(const SdlApplication&)
     {
-        return SwapInterval(SDL_GL_GetSwapInterval());
+        int result = 0;
+        if (!SDL_GL_GetSwapInterval(&result))
+            THROW_SDL_ERROR();
+        return SwapInterval(result);
     }
 
     void set_swap_interval(const SdlApplication&, SwapInterval interval)
     {
         auto result = SDL_GL_SetSwapInterval(int(interval));
-        if (result == -1 && interval == SwapInterval::ADAPTIVE_VSYNC_OR_VSYNC)
+        if (!result && interval == SwapInterval::ADAPTIVE_VSYNC_OR_VSYNC)
             result = SDL_GL_SetSwapInterval(1);
-        if (result == -1)
+        if (!result)
             THROW_SDL_ERROR();
+    }
+
+    void print_exception_recursive(const std::exception& e, int level) // NOLINT(*-no-recursion)
+    {
+        // Copied from https://cppreference.com/w/cpp/error/rethrow_if_nested.html
+        std::cerr << std::string(level, ' ') << "exception: " << e.what() << '\n';
+        try
+        {
+            std::rethrow_if_nested(e);
+        }
+        catch (const std::exception& nestedException)
+        {
+            print_exception_recursive(nestedException, level + 1);
+        }
+        catch (...)
+        {
+        }
+    }
+
+    void print_exception(const std::exception& e) // NOLINT(*-no-recursion)
+    {
+        print_exception_recursive(e, 0);
     }
 }

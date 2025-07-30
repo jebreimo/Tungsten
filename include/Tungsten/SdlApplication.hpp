@@ -86,8 +86,6 @@ namespace Tungsten
 
         void quit();
 
-        void throttle_events(SDL_EventType event, uint32_t msecs);
-
         [[nodiscard]] SDL_GLContext gl_context() const;
 
         [[nodiscard]] int status() const;
@@ -114,10 +112,6 @@ namespace Tungsten
 
         void set_touch_events_enabled(bool value);
 
-        [[nodiscard]] bool sdl_timers_enabled() const;
-
-        void set_sdl_timers_enabled(bool value);
-
         [[nodiscard]] const EventLoop& callbacks() const;
 
         [[nodiscard]] EventLoop& callbacks();
@@ -125,8 +119,6 @@ namespace Tungsten
         void set_status(int status);
 
         void process_event(const SDL_Event& event);
-
-        void process_event_for_real(const SDL_Event& event);
 
         void initialize(const WindowParameters& params);
 
@@ -153,4 +145,13 @@ namespace Tungsten
     [[nodiscard]] SwapInterval swap_interval(const SdlApplication& app);
 
     void set_swap_interval(const SdlApplication& app, SwapInterval interval);
+
+    /**
+     * @brief Prints the given exception to the standard error stream.
+     *
+     * This is a convenience function that prints nested exceptions.
+     *
+     * @param e an exception to print
+     */
+    void print_exception(const std::exception& e);
 }

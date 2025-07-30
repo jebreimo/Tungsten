@@ -47,7 +47,7 @@ namespace Tungsten
 
         explicit operator bool() const
         {
-            return display >= 0 && mode >= 0;
+            return display > 0 && mode >= 0;
         }
 
         int display = -1;
@@ -58,7 +58,6 @@ namespace Tungsten
     struct WindowParameters
     {
         WindowSize window_size;
-        WindowPos window_pos;
         FullScreenMode full_screen_mode;
         GlParamaters gl_parameters;
         uint32_t sdl_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
