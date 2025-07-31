@@ -71,6 +71,7 @@ add_library(Tungsten STATIC
     include/Tungsten/GlVertices.hpp
     include/Tungsten/SdlApplication.hpp
     include/Tungsten/SdlConfiguration.hpp
+    include/Tungsten/SdlDisplay.hpp
     include/Tungsten/SdlSession.hpp
     include/Tungsten/ShaderProgramBuilder.hpp
     include/Tungsten/ShaderTools.hpp
@@ -79,6 +80,7 @@ add_library(Tungsten STATIC
     include/Tungsten/TungstenException.hpp
     include/Tungsten/Uniform.hpp
     include/Tungsten/VertexArray.hpp
+    include/Tungsten/VertexArrayBuilder.hpp
     include/Tungsten/WindowParameters.hpp
     include/Tungsten/YimageGl.hpp
     src/Tungsten/CommandLine.cpp
@@ -94,6 +96,7 @@ add_library(Tungsten STATIC
     src/Tungsten/GlVertexArray.cpp
     src/Tungsten/GlVertices.cpp
     src/Tungsten/SdlApplication.cpp
+    src/Tungsten/SdlDisplay.cpp
     src/Tungsten/SdlSession.cpp
     src/Tungsten/ShaderProgramBuilder.cpp
     src/Tungsten/ShaderPrograms/GouraudShaderProgram.cpp
@@ -109,9 +112,6 @@ add_library(Tungsten STATIC
     src/Tungsten/TungstenException.cpp
     src/Tungsten/Uniform.cpp
     src/Tungsten/YimageGl.cpp
-    include/Tungsten/SdlDisplay.cpp
-    include/Tungsten/SdlDisplay.hpp
-    include/Tungsten/VertexArrayBuilder.hpp
 )
 
 target_link_libraries(Tungsten

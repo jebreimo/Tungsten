@@ -5,9 +5,9 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "SdlDisplay.hpp"
+#include "../../include/Tungsten/SdlDisplay.hpp"
 
-#include "TungstenException.hpp"
+#include "../../include/Tungsten/TungstenException.hpp"
 
 namespace Tungsten
 {
