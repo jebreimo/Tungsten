@@ -14,6 +14,8 @@ namespace Tungsten
     class Buffer
     {
     public:
+        Buffer() = default;
+
         explicit Buffer(GLenum target, GLenum usage = GL_STATIC_DRAW)
             : buffer_(generate_buffer()),
               target_(target),
@@ -117,8 +119,8 @@ namespace Tungsten
 
     private:
         BufferHandle buffer_;
-        GLenum target_;
-        GLenum usage_;
+        GLenum target_ = 0;
+        GLenum usage_ = 0;
         size_t size_ = 0;
         size_t capacity_ = 0;
     };

@@ -12,6 +12,7 @@
 #include "Tungsten/GlTexture.hpp"
 #include "Tungsten/GlVertices.hpp"
 #include "Tungsten/ShaderProgramBuilder.hpp"
+#include "Tungsten/VertexArrayBuilder.hpp"
 
 namespace
 {
@@ -91,10 +92,11 @@ public:
             .add_vertex({{-1, 1}, {0, 1}});
         builder.add_indexes(0, 1, 2)
             .add_indexes(0, 2, 3);
+        vertex_array_ = Tungsten::VertexArrayBuilder<TextureFaderVertex>()
+            .add_float(program_.position_attr, 2)
+            .add_float(program_.tex_position_attr, 2)
+            .build();
         Tungsten::set_buffers(vertex_array_, buffer);
-        vertex_array_.bind();
-        vertex_array_.define_float_pointer(program_.position_attr, 2, 0);
-        vertex_array_.define_float_pointer(program_.tex_position_attr, 2, 2 * sizeof(float));
     }
 
     void set_window_size(Tungsten::Size2I size)

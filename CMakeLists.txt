@@ -7,7 +7,7 @@
 ##****************************************************************************
 cmake_minimum_required(VERSION 3.15)
 
-project(Tungsten VERSION 0.6.1)
+project(Tungsten VERSION 0.6.2)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -111,6 +111,7 @@ add_library(Tungsten STATIC
     src/Tungsten/YimageGl.cpp
     include/Tungsten/SdlDisplay.cpp
     include/Tungsten/SdlDisplay.hpp
+    include/Tungsten/VertexArrayBuilder.hpp
 )
 
 target_link_libraries(Tungsten

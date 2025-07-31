@@ -116,14 +116,14 @@ int main(int argc, char* argv[])
 {
     try
     {
-        Tungsten::SdlApplication app("ShowText");
+        Tungsten::SdlApplication app("touch_events");
         app.parse_command_line_options(argc, argv);
         app.set_event_loop_mode(Tungsten::EventLoopMode::WAIT_FOR_EVENTS);
         app.run<EventLoop>();
     }
     catch (std::exception& ex)
     {
-        std::cout << ex.what() << "\n";
+        Tungsten::print_exception(ex);
         return 1;
     }
     return 0;

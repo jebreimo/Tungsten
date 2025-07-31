@@ -54,9 +54,9 @@ namespace Tungsten
     void define_vertex_attribute_pointer(GLuint location,
                                          GLint size,
                                          GLenum type,
-                                         bool normalized,
                                          GLsizei stride,
-                                         size_t offset)
+                                         size_t offset,
+                                         bool normalized)
     {
         glVertexAttribPointer(location, size, type,
                               GLboolean(normalized ? 1 : 0),
@@ -71,7 +71,7 @@ namespace Tungsten
                                                size_t offset)
     {
         define_vertex_attribute_pointer(location, size, GL_FLOAT,
-                                        false, stride, offset);
+                                        stride, offset);
     }
 
     void define_vertex_attribute_int16_pointer(GLuint location,
@@ -80,7 +80,7 @@ namespace Tungsten
                                                size_t offset)
     {
         define_vertex_attribute_pointer(location, size, GL_SHORT,
-                                        false, stride, offset);
+                                        stride, offset);
     }
 
     void define_vertex_attribute_int32_pointer(GLuint location,
@@ -89,6 +89,35 @@ namespace Tungsten
                                                size_t offset)
     {
         define_vertex_attribute_pointer(location, size, GL_INT,
-                                        false, stride, offset);
+                                        stride, offset);
+    }
+
+    GLsizei get_size_of_type(GLenum type)
+    {
+        switch (type)
+        {
+        case GL_BYTE:
+        case GL_UNSIGNED_BYTE:
+            return sizeof(GLubyte);
+        case GL_SHORT:
+            return sizeof(GLshort);
+        case GL_UNSIGNED_SHORT:
+            return sizeof(GLushort);
+        case GL_INT:
+            return sizeof(GLint);
+        case GL_UNSIGNED_INT:
+            return sizeof(GLuint);
+        case GL_FLOAT:
+            return sizeof(GLfloat);
+        case GL_DOUBLE:
+            return sizeof(GLdouble);
+        default:
+            TUNGSTEN_THROW("Unknown type in get_size_of_type: " + std::to_string(type));
+        }
+    }
+
+    bool is_float_type(GLenum type)
+    {
+        return type == GL_FLOAT || type == GL_DOUBLE;
     }
 }

@@ -12,6 +12,7 @@
 #include "Tungsten/GlVertices.hpp"
 #include "Tungsten/YimageGl.hpp"
 #include "Tungsten/VertexArray.hpp"
+#include "Tungsten/VertexArrayBuilder.hpp"
 #include "Tungsten/TextRenderer/RenderTextShaderProgram.hpp"
 
 namespace Tungsten
@@ -240,13 +241,10 @@ namespace Tungsten
 
         use_program(data_->program.program);
         data_->program.texture.set(0);
-
-        data_->vertex_array.define_float_pointer(
-            data_->program.position, 2, 0);
-        enable_vertex_attribute(data_->program.position);
-        data_->vertex_array.define_float_pointer(
-            data_->program.texture_coord, 2, 2 * sizeof(float));
-        enable_vertex_attribute(data_->program.texture_coord);
+        data_->vertex_array = VertexArrayBuilder<TextVertex>()
+            .add_float(data_->program.position, 2)
+            .add_float(data_->program.texture_coord, 2)
+            .build();
     }
 
     Size2I TextRenderer::image_size() const

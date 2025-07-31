@@ -6,8 +6,6 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include <vector>
-#include <GL/glew.h>
 #include "ArrayBuffer.hpp"
 
 namespace Tungsten

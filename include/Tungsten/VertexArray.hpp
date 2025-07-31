@@ -18,40 +18,31 @@ namespace Tungsten
         Buffer<Element> vertexes;
         Buffer<uint16_t> indexes;
 
-        VertexArray()
-            : vertexes(GL_ARRAY_BUFFER),
-              indexes(GL_ELEMENT_ARRAY_BUFFER),
-              vertex_array_(generate_vertex_array())
-        {}
+        VertexArray() = default;
+
+        static VertexArray create(GLenum usage = GL_STATIC_DRAW)
+        {
+            VertexArray array;
+            array.vertex_array_ = generate_vertex_array();
+            array.vertexes = Buffer<Element>(GL_ARRAY_BUFFER, usage);
+            array.indexes = Buffer<uint16_t>(GL_ELEMENT_ARRAY_BUFFER, usage);
+            return array;
+        }
+
+        static VertexArray create_and_bind(GLenum usage = GL_STATIC_DRAW)
+        {
+            VertexArray array = create(usage);
+            array.bind();
+            array.vertexes.bind();
+            array.indexes.bind();
+            return array;
+        }
 
         void bind() const
         {
             bind_vertex_array(vertex_array_);
         }
 
-        void define_float_pointer(GLuint attribute_location,
-                                  GLint size,
-                                  size_t offset = 0)
-        {
-            bind();
-            vertexes.bind();
-            define_vertex_attribute_float_pointer(attribute_location,
-                                                  size, sizeof(Element),
-                                                  offset);
-            Tungsten::enable_vertex_attribute(attribute_location);
-        }
-
-        void define_int32_pointer(GLuint attribute_location,
-                                  GLint size,
-                                  size_t offset = 0)
-        {
-            bind();
-            vertexes.bind();
-            define_vertex_attribute_int32_pointer(attribute_location,
-                                                  size, sizeof(Element),
-                                                  offset);
-            Tungsten::enable_vertex_attribute(attribute_location);
-        }
     private:
         VertexArrayHandle vertex_array_;
     };

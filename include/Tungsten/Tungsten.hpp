@@ -20,5 +20,5 @@
 #include "TungstenException.hpp"
 #include "Types.hpp"
 #include "Uniform.hpp"
-#include "VertexArray.hpp"
+#include "VertexArrayBuilder.hpp"
 #include "YimageGl.hpp"

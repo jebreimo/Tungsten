@@ -27,9 +27,9 @@ namespace Tungsten
     void define_vertex_attribute_pointer(GLuint location,
                                          GLint size,
                                          GLenum type,
-                                         bool normalized,
                                          GLsizei stride,
-                                         size_t offset = 0);
+                                         size_t offset = 0,
+                                         bool normalized = false);
 
     void define_vertex_attribute_float_pointer(GLuint location,
                                                GLint size,
@@ -49,4 +49,6 @@ namespace Tungsten
     void enable_vertex_attribute(GLuint location);
 
     void disable_vertex_attribute(GLuint location);
+
+    GLsizei get_size_of_type(GLenum type);
 }

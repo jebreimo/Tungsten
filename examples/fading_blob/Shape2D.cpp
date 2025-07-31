@@ -9,6 +9,7 @@
 
 #include "Tungsten/GlVertices.hpp"
 #include "Tungsten/ShaderProgramBuilder.hpp"
+#include "Tungsten/VertexArrayBuilder.hpp"
 
 class Shape2DRenderer::Basic2DProgram
 {
@@ -99,13 +100,13 @@ Shape2DRenderer& Shape2DRenderer::operator=(Shape2DRenderer&& rhs) noexcept
     return *this;
 }
 
-Shape2D Shape2DRenderer::create_shape(const Buffer& buffer, const Xyz::Vector4F& color)
+Shape2D Shape2DRenderer::create_shape(const Buffer& buffer, const Xyz::Vector4F& color) const
 {
-    Tungsten::VertexArray<Xyz::Vector2F> vertex_array;
-    set_buffers(vertex_array, buffer);
     Tungsten::use_program(program_->program);
-    vertex_array.define_float_pointer(program_->position_attr, 2, 0);
-    Tungsten::enable_vertex_attribute(program_->position_attr);
+    auto vertex_array = Tungsten::VertexArrayBuilder<Xyz::Vector2F>()
+        .add_float(program_->position_attr, 2)
+        .build();
+    set_buffers(vertex_array, buffer);
     return {std::move(vertex_array), color};
 }
 

@@ -22,6 +22,8 @@ namespace Tungsten
             : id_(id)
         {}
 
+        GlHandle(const GlHandle&) = delete;
+
         GlHandle(GlHandle&& other) noexcept
             : id_(other.id_)
         {
@@ -32,6 +34,8 @@ namespace Tungsten
         {
             reset();
         }
+
+        GlHandle& operator=(const GlHandle&) = delete;
 
         GlHandle& operator=(GlHandle&& other) noexcept
         {

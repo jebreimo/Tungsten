@@ -46,7 +46,7 @@ public:
     Shape2DRenderer& operator=(Shape2DRenderer&&) noexcept;
 
     Shape2D create_shape(const Buffer& buffer,
-                         const Xyz::Vector4F& color = {1, 1, 1, 1});
+                         const Xyz::Vector4F& color = {1, 1, 1, 1}) const;
 
     void set_model_view_matrix(const Xyz::Matrix3F& matrix);
 
