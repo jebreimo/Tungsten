@@ -32,10 +32,8 @@ namespace Tungsten
                     return GL_LUMINANCE_ALPHA;
                 else
                     return GL_RG;
-            case GL_RGB:
             case GL_RGB8:
                 return GL_RGB;
-            case GL_RGBA:
             case GL_RGBA8:
                 return GL_RGBA;
             default:
