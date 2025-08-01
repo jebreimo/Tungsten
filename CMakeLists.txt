@@ -7,7 +7,7 @@
 ##****************************************************************************
 cmake_minimum_required(VERSION 3.15)
 
-project(Tungsten VERSION 0.7.1)
+project(Tungsten VERSION 0.7.2)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -70,7 +70,6 @@ add_library(Tungsten STATIC
     include/Tungsten/GlVertexArray.hpp
     include/Tungsten/GlVertices.hpp
     include/Tungsten/SdlApplication.hpp
-    include/Tungsten/SdlConfiguration.hpp
     include/Tungsten/SdlDisplay.hpp
     include/Tungsten/SdlSession.hpp
     include/Tungsten/ShaderProgramBuilder.hpp

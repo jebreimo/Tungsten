@@ -8,7 +8,6 @@
 #pragma once
 #include <cstdint>
 #include <string>
-#include "Tungsten/SdlConfiguration.hpp"
 
 namespace Tungsten
 {
