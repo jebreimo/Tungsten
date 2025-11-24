@@ -7,6 +7,7 @@
 //****************************************************************************
 #pragma once
 #include <iosfwd>
+#include <memory>
 #include "EventLoop.hpp"
 #include "SdlSession.hpp"
 #include "Types.hpp"

@@ -7,6 +7,7 @@
 //****************************************************************************
 #include "Tungsten/ShaderProgramBuilder.hpp"
 #include "Tungsten/ShaderTools.hpp"
+#include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
 {
@@ -23,6 +24,9 @@ namespace Tungsten
             case ShaderType::COMPUTE:
                 return GL_COMPUTE_SHADER;
             }
+
+            TUNGSTEN_THROW("Unknown ShaderType: "
+                + std::to_string(static_cast<int>(type)));
         }
     }
 

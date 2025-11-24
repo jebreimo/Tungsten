@@ -7,6 +7,7 @@
 //****************************************************************************
 #include "Tungsten/GlFramebuffer.hpp"
 
+#include <vector>
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten

@@ -7,6 +7,7 @@
 //****************************************************************************
 #include "Tungsten/GlTexture.hpp"
 
+#include <vector>
 #include "Tungsten/Environment.hpp"
 #include "Tungsten/TungstenException.hpp"
 

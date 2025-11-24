@@ -6,6 +6,8 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #include "Tungsten/GlBuffer.hpp"
+
+#include <vector>
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten

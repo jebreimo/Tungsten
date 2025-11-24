@@ -6,6 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include <memory>
 #include <Xyz/Matrix.hpp>
 
 #include "Tungsten/ArrayBuffer.hpp"
