@@ -13,8 +13,8 @@ namespace Tungsten
 {
     struct Size2I
     {
-        GLsizei width;
-        GLsizei height;
+        int32_t width;
+        int32_t height;
     };
 
     template <typename T>
@@ -25,8 +25,8 @@ namespace Tungsten
 
     struct Position2I
     {
-        GLint x;
-        GLint y;
+        int32_t x;
+        int32_t y;
     };
 
     template <typename T>
@@ -34,6 +34,19 @@ namespace Tungsten
     {
         return {T(size.x), T(size.y)};
     }
+
+    enum class TextureFormat
+    {
+        R,
+        RGB,
+        RGBA
+    };
+
+    enum class TextureType
+    {
+        UNSIGNED_BYTE,
+        FLOAT
+    };
 
     struct TextureSourceFormat
     {
