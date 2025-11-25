@@ -15,7 +15,7 @@ namespace Tungsten
 {
     struct TextureDeleter
     {
-        void operator()(GLuint id) const;
+        void operator()(uint32_t id) const;
     };
 
     using TextureHandle = GlHandle<TextureDeleter>;
@@ -24,34 +24,34 @@ namespace Tungsten
 
     void generate_textures(std::span<TextureHandle> textures);
 
-    void activate_texture_unit(GLint unit);
+    void activate_texture_unit(int32_t unit);
 
-    void bind_texture(GLenum target, GLuint texture);
+    void bind_texture(GLenum target, uint32_t texture);
 
-    [[nodiscard]] GLint active_texture_unit();
+    [[nodiscard]] int32_t active_texture_unit();
 
-    [[nodiscard]] GLuint bound_texture(GLenum target);
+    [[nodiscard]] uint32_t bound_texture(GLenum target);
 
     constexpr TextureSourceFormat RGB_TEXTURE = {GL_RGB, GL_UNSIGNED_BYTE};
     constexpr TextureSourceFormat RGBA_TEXTURE = {GL_RGBA, GL_UNSIGNED_BYTE};
     constexpr TextureSourceFormat LUMINANCE_TEXTURE = {GL_LUMINANCE, GL_UNSIGNED_BYTE};
 
-    void set_texture_image_2d(GLenum target, GLint level,
-                              GLint internal_format,
+    void set_texture_image_2d(GLenum target, int32_t level,
+                              int32_t internal_format,
                               Size2I size,
                               TextureSourceFormat format,
                               const void* data = nullptr);
 
-    void set_texture_storage_2d(GLenum target, GLint levels,
-                                GLint internal_format,
+    void set_texture_storage_2d(GLenum target, int32_t levels,
+                                int32_t internal_format,
                                 Size2I size);
 
-    void set_texture_sub_image_2d(GLenum target, GLint level,
+    void set_texture_sub_image_2d(GLenum target, int32_t level,
                                   Position2I offset, Size2I size,
                                   TextureSourceFormat format,
                                   const void* data);
 
-    void copy_texture_sub_image_2d(GLenum target, GLint level,
+    void copy_texture_sub_image_2d(GLenum target, int32_t level,
                                    Position2I offset,
                                    Position2I position,
                                    Size2I size);
@@ -59,32 +59,32 @@ namespace Tungsten
     void generate_mip_map(GLenum target);
 
     [[nodiscard]]
-    GLfloat get_texture_float_parameter(GLenum target, GLenum pname);
+    float get_texture_float_parameter(GLenum target, GLenum pname);
 
-    void set_texture_float_parameter(GLenum target, GLenum pname, GLfloat param);
-
-    [[nodiscard]]
-    GLint get_texture_int_parameter(GLenum target, GLenum pname);
-
-    void set_texture_int_parameter(GLenum target, GLenum pname, GLint param);
+    void set_texture_float_parameter(GLenum target, GLenum pname, float param);
 
     [[nodiscard]]
-    GLint get_mag_filter(GLenum target);
+    int32_t get_texture_int_parameter(GLenum target, GLenum pname);
 
-    void set_mag_filter(GLenum target, GLint param);
-
-    [[nodiscard]]
-    GLint get_min_filter(GLenum target);
-
-    void set_min_filter(GLenum target, GLint param);
+    void set_texture_int_parameter(GLenum target, GLenum pname, int32_t param);
 
     [[nodiscard]]
-    GLint get_wrap_s(GLenum target);
+    int32_t get_mag_filter(GLenum target);
 
-    void set_wrap_s(GLenum target, GLint param);
+    void set_mag_filter(GLenum target, int32_t param);
 
     [[nodiscard]]
-    GLint get_wrap_t(GLenum target);
+    int32_t get_min_filter(GLenum target);
 
-    void set_wrap_t(GLenum target, GLint param);
+    void set_min_filter(GLenum target, int32_t param);
+
+    [[nodiscard]]
+    int32_t get_wrap_s(GLenum target);
+
+    void set_wrap_s(GLenum target, int32_t param);
+
+    [[nodiscard]]
+    int32_t get_wrap_t(GLenum target);
+
+    void set_wrap_t(GLenum target, int32_t param);
 }

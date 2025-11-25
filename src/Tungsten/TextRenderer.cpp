@@ -214,7 +214,7 @@ namespace Tungsten
         using namespace Xyz::affine;
         data_->program.mvp_matrix.set(translate3(adjusted_pos[0], adjusted_pos[1], 0.f)
                                       * scale3(scale_x, scale_y, 1.0f));
-        draw_triangle_elements_16(0, GLsizei(data_->vertex_array.indexes.size()));
+        draw_triangle_elements_16(0, int32_t(data_->vertex_array.indexes.size()));
 
         if (auto_blend_ && !default_blend)
             glDisable(GL_BLEND);
@@ -249,7 +249,7 @@ namespace Tungsten
 
     Size2I TextRenderer::image_size() const
     {
-        return {GLsizei(font_->image.width()), GLsizei(font_->image.height())};
+        return {int32_t(font_->image.width()), int32_t(font_->image.height())};
     }
 
     Xyz::Vector2F get_size(std::u32string_view text, const Font& font,

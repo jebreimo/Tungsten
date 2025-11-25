@@ -20,7 +20,7 @@ namespace Tungsten
     };
 
     template <typename Item>
-    void set_buffers(GLuint array_buffer, GLuint element_array_buffer,
+    void set_buffers(uint32_t array_buffer, uint32_t element_array_buffer,
                      const ArrayBuffer<Item>& array,
                      GLenum usage = GL_STATIC_DRAW)
     {

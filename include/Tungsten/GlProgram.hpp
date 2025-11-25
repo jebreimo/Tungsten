@@ -13,26 +13,26 @@ namespace Tungsten
 {
     struct ProgramDeleter
     {
-        void operator()(GLuint id) const;
+        void operator()(uint32_t id) const;
     };
 
     using ProgramHandle = GlHandle<ProgramDeleter>;
 
     ProgramHandle create_program();
 
-    void attach_shader(GLuint program_id, GLuint shader_id);
+    void attach_shader(uint32_t program_id, uint32_t shader_id);
 
-    GLuint get_vertex_attribute(GLuint program_id, const std::string& name);
+    uint32_t get_vertex_attribute(uint32_t program_id, const std::string& name);
 
-    GLint get_uniform_location(GLuint program_id, const char* name);
+    int32_t get_uniform_location(uint32_t program_id, const char* name);
 
     template <typename T>
-    Uniform<T> get_uniform(GLuint program_id, const char* name)
+    Uniform<T> get_uniform(uint32_t program_id, const char* name)
     {
         return Uniform<T>(get_uniform_location(program_id, name));
     }
 
-    void link_program(GLuint program_id);
+    void link_program(uint32_t program_id);
 
-    void use_program(GLuint program_id);
+    void use_program(uint32_t program_id);
 }

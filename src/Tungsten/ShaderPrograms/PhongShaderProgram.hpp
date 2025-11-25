@@ -25,7 +25,7 @@ namespace Tungsten
         Uniform<Xyz::Vector3F> specular_albedo;
         Uniform<float> specular_power;
 
-        GLuint position_attr;
-        GLuint normal_attr;
+        uint32_t position_attr;
+        uint32_t normal_attr;
     };
 }

@@ -12,7 +12,7 @@
 
 namespace Tungsten
 {
-    void GlVertexArrayDeleter::operator()(GLuint id) const
+    void GlVertexArrayDeleter::operator()(uint32_t id) const
     {
         glDeleteVertexArrays(1, &id);
         THROW_IF_GL_ERROR();
@@ -20,7 +20,7 @@ namespace Tungsten
 
     VertexArrayHandle generate_vertex_array()
     {
-        GLuint id;
+        uint32_t id;
         glGenVertexArrays(1, &id);
         THROW_IF_GL_ERROR();
         return VertexArrayHandle(id);
@@ -28,35 +28,35 @@ namespace Tungsten
 
     void generate_vertex_arrays(std::span<VertexArrayHandle> vertex_arrays)
     {
-        auto ids = std::vector<GLuint>(vertex_arrays.size());
-        glGenVertexArrays(static_cast<GLsizei>(ids.size()), ids.data());
+        auto ids = std::vector<uint32_t>(vertex_arrays.size());
+        glGenVertexArrays(static_cast<int32_t>(ids.size()), ids.data());
         THROW_IF_GL_ERROR();
         for (size_t i = 0; i < ids.size(); ++i)
             vertex_arrays[i] = VertexArrayHandle(ids[i]);
     }
 
-    void bind_vertex_array(GLuint vertex_array)
+    void bind_vertex_array(uint32_t vertex_array)
     {
         glBindVertexArray(vertex_array);
         THROW_IF_GL_ERROR();
     }
 
-    void enable_vertex_attribute(GLuint location)
+    void enable_vertex_attribute(uint32_t location)
     {
         glEnableVertexAttribArray(location);
         THROW_IF_GL_ERROR();
     }
 
-    void disable_vertex_attribute(GLuint location)
+    void disable_vertex_attribute(uint32_t location)
     {
         glDisableVertexAttribArray(location);
         THROW_IF_GL_ERROR();
     }
 
-    void define_vertex_attribute_pointer(GLuint location,
-                                         GLint size,
+    void define_vertex_attribute_pointer(uint32_t location,
+                                         int32_t size,
                                          GLenum type,
-                                         GLsizei stride,
+                                         int32_t stride,
                                          size_t offset,
                                          bool normalized)
     {
@@ -67,38 +67,39 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
-    void define_vertex_attribute_float_pointer(GLuint location,
-                                               GLint size,
-                                               GLsizei stride,
+    void define_vertex_attribute_float_pointer(uint32_t location,
+                                               int32_t size,
+                                               int32_t stride,
                                                size_t offset)
     {
         define_vertex_attribute_pointer(location, size, GL_FLOAT,
                                         stride, offset);
     }
 
-    void define_vertex_attribute_int16_pointer(GLuint location,
-                                               GLint size,
-                                               GLsizei stride,
+    void define_vertex_attribute_int16_pointer(uint32_t location,
+                                               int32_t size,
+                                               int32_t stride,
                                                size_t offset)
     {
         define_vertex_attribute_pointer(location, size, GL_SHORT,
                                         stride, offset);
     }
 
-    void define_vertex_attribute_int32_pointer(GLuint location,
-                                               GLint size,
-                                               GLsizei stride,
+    void define_vertex_attribute_int32_pointer(uint32_t location,
+                                               int32_t size,
+                                               int32_t stride,
                                                size_t offset)
     {
         define_vertex_attribute_pointer(location, size, GL_INT,
                                         stride, offset);
     }
 
-    GLsizei get_size_of_type(GLenum type)
+    int32_t get_size_of_type(GLenum type)
     {
         switch (type)
         {
         case GL_BYTE:
+            return sizeof(GLbyte);
         case GL_UNSIGNED_BYTE:
             return sizeof(GLubyte);
         case GL_SHORT:

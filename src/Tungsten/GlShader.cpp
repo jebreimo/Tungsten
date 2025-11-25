@@ -10,13 +10,13 @@
 
 namespace Tungsten
 {
-    void ShaderDeleter::operator()(GLuint id) const
+    void ShaderDeleter::operator()(uint32_t id) const
     {
         glDeleteShader(id);
         THROW_IF_GL_ERROR();
     }
 
-    void compile_shader(GLuint shader_id)
+    void compile_shader(uint32_t shader_id)
     {
         glCompileShader(shader_id);
         THROW_IF_GL_ERROR();
@@ -24,29 +24,29 @@ namespace Tungsten
             TUNGSTEN_THROW(+ get_shader_info_log(shader_id));
     }
 
-    ShaderHandle create_shader(GLuint shader_type)
+    ShaderHandle create_shader(uint32_t shader_type)
     {
         auto id = glCreateShader(shader_type);
         THROW_IF_GL_ERROR();
         return ShaderHandle(id);
     }
 
-    bool get_shader_compile_status(GLuint shader_id)
+    bool get_shader_compile_status(uint32_t shader_id)
     {
-        GLint result = 0;
+        int32_t result = 0;
         glGetShaderiv(shader_id, GL_COMPILE_STATUS, &result);
         THROW_IF_GL_ERROR();
         return result == GL_TRUE;
     }
 
-    GLint get_shader_info_log_length(GLuint shader_id)
+    int32_t get_shader_info_log_length(uint32_t shader_id)
     {
-        GLint size;
+        int32_t size;
         glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &size);
         return size;
     }
 
-    std::string get_shader_info_log(GLuint shader_id)
+    std::string get_shader_info_log(uint32_t shader_id)
     {
         auto size = get_shader_info_log_length(shader_id);
         std::string result(size, '\0');
@@ -54,9 +54,9 @@ namespace Tungsten
         return result;
     }
 
-    void set_shader_source(GLuint shader_id, const std::string& source)
+    void set_shader_source(uint32_t shader_id, const std::string& source)
     {
-        auto length = (GLint)source.size();
+        auto length = (int32_t)source.size();
         auto str = source.c_str();
         glShaderSource(shader_id, 1, &str, &length);
         THROW_IF_GL_ERROR();

@@ -13,7 +13,7 @@ namespace Tungsten
 {
     struct BufferDeleter
     {
-        void operator()(GLuint id) const;
+        void operator()(uint32_t id) const;
     };
 
     using BufferHandle = GlHandle<BufferDeleter>;
@@ -22,24 +22,24 @@ namespace Tungsten
 
     void generate_buffers(std::span<BufferHandle> buffers);
 
-    void bind_buffer(GLenum target, GLuint buffer);
+    void bind_buffer(GLenum target, uint32_t buffer);
 
-    void set_buffer_data(GLenum target, GLsizeiptr size,
-                         const GLvoid* data, GLenum usage);
+    void set_buffer_data(GLenum target, ptrdiff_t size,
+                         const void* data, GLenum usage);
 
-    void set_buffer_subdata(GLenum target, GLintptr offset,
-                            GLsizeiptr size, const GLvoid* data);
+    void set_buffer_subdata(GLenum target, ptrdiff_t offset,
+                            ptrdiff_t size, const void* data);
 
-    void set_element_array_buffer(GLuint buffer_id,
-                                  GLsizeiptr value_count,
+    void set_element_array_buffer(uint32_t buffer_id,
+                                  ptrdiff_t value_count,
                                   const uint16_t* values,
                                   GLenum usage);
 
     [[nodiscard]]
-    bool is_buffer(GLuint buffer);
+    bool is_buffer(uint32_t buffer);
 
     [[nodiscard]]
-    GLsizei get_buffer_size(GLenum target);
+    int32_t get_buffer_size(GLenum target);
 
     [[nodiscard]]
     GLenum get_buffer_usage(GLenum target);

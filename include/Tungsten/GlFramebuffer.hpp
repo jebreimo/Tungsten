@@ -13,7 +13,7 @@ namespace Tungsten
 {
     struct FramebufferDeleter
     {
-        void operator()(GLuint id) const;
+        void operator()(uint32_t id) const;
     };
 
     using FramebufferHandle = GlHandle<FramebufferDeleter>;
@@ -22,15 +22,15 @@ namespace Tungsten
 
     void generate_framebuffers(std::span<FramebufferHandle> frame_buffers);
 
-    void bind_framebuffer(GLenum target, GLuint frame_buffer);
+    void bind_framebuffer(GLenum target, uint32_t frame_buffer);
 
-    GLuint bound_framebuffer(GLenum target);
+    uint32_t bound_framebuffer(GLenum target);
 
     void framebuffer_texture_2d(GLenum target,
                                 GLenum attachment,
                                 GLenum tex_target,
-                                GLuint texture,
-                                GLint level = 0);
+                                uint32_t texture,
+                                int32_t level = 0);
 
     [[nodiscard]]
     GLenum check_framebuffer_status(GLenum target);

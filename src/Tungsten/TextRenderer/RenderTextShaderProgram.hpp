@@ -22,10 +22,10 @@ namespace Tungsten::Detail
         Tungsten::ProgramHandle program;
 
         Tungsten::Uniform<Xyz::Matrix4F> mvp_matrix;
-        Tungsten::Uniform<GLint> texture;
+        Tungsten::Uniform<int32_t> texture;
         Tungsten::Uniform<Xyz::Vector4F> color;
 
-        GLuint position;
-        GLuint texture_coord;
+        uint32_t position;
+        uint32_t texture_coord;
     };
 }

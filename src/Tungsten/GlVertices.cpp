@@ -12,7 +12,7 @@ namespace Tungsten
 {
     namespace
     {
-        GLsizei get_type_size(GLenum type)
+        int32_t get_type_size(GLenum type)
         {
             switch (type)
             {
@@ -26,19 +26,19 @@ namespace Tungsten
         }
     }
 
-    void draw_array(GLenum mode, GLsizei offset, GLsizei count)
+    void draw_array(GLenum mode, int32_t offset, int32_t count)
     {
-        glDrawArrays(mode, GLint(offset), count);
+        glDrawArrays(mode, int32_t(offset), count);
     }
 
-    void draw_elements(GLenum mode, GLenum type, GLsizei offset, GLsizei count)
+    void draw_elements(GLenum mode, GLenum type, int32_t offset, int32_t count)
     {
         intptr_t tmp_offset = offset * get_type_size(type);
         glDrawElements(mode, count, type, reinterpret_cast<void*>(tmp_offset));
         THROW_IF_GL_ERROR();
     }
 
-    void draw_elements_16(GLenum mode, GLsizei offset, GLsizei count)
+    void draw_elements_16(GLenum mode, int32_t offset, int32_t count)
     {
         draw_elements(mode, GL_UNSIGNED_SHORT, offset, count);
     }

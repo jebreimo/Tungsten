@@ -10,7 +10,7 @@
 
 namespace Tungsten
 {
-    void ProgramDeleter::operator()(GLuint id) const
+    void ProgramDeleter::operator()(uint32_t id) const
     {
         glDeleteProgram(id);
         THROW_IF_GL_ERROR();
@@ -23,42 +23,42 @@ namespace Tungsten
         return ProgramHandle(id);
     }
 
-    void attach_shader(GLuint program_id, GLuint shader_id)
+    void attach_shader(uint32_t program_id, uint32_t shader_id)
     {
         glAttachShader(program_id, shader_id);
         THROW_IF_GL_ERROR();
     }
 
-    GLuint get_vertex_attribute(GLuint program_id, const std::string& name)
+    uint32_t get_vertex_attribute(uint32_t program_id, const std::string& name)
     {
         auto attrLoc = glGetAttribLocation(program_id, name.c_str());
         THROW_IF_GL_ERROR();
-        return GLuint(attrLoc);
+        return uint32_t(attrLoc);
     }
 
-    GLint get_uniform_location(GLuint program_id, const char* name)
+    int32_t get_uniform_location(uint32_t program_id, const char* name)
     {
         auto result = glGetUniformLocation(program_id, name);
         THROW_IF_GL_ERROR();
         return result;
     }
 
-    bool get_program_link_status(GLuint program_id)
+    bool get_program_link_status(uint32_t program_id)
     {
-        GLint result = 0;
+        int32_t result = 0;
         glGetProgramiv(program_id, GL_LINK_STATUS, &result);
         THROW_IF_GL_ERROR();
         return result == GL_TRUE;
     }
 
-    GLint get_program_info_log_length(GLuint program_id)
+    int32_t get_program_info_log_length(uint32_t program_id)
     {
-        GLint size;
+        int32_t size;
         glGetProgramiv(program_id, GL_INFO_LOG_LENGTH, &size);
         return size;
     }
 
-    std::string get_program_info_log(GLuint program_id)
+    std::string get_program_info_log(uint32_t program_id)
     {
         auto size = get_program_info_log_length(program_id);
         std::string result(size, '\0');
@@ -66,7 +66,7 @@ namespace Tungsten
         return result;
     }
 
-    void link_program(GLuint program_id)
+    void link_program(uint32_t program_id)
     {
         glLinkProgram(program_id);
         THROW_IF_GL_ERROR();
@@ -74,7 +74,7 @@ namespace Tungsten
             TUNGSTEN_THROW(+ get_program_info_log(program_id));
     }
 
-    void use_program(GLuint program_id)
+    void use_program(uint32_t program_id)
     {
         glUseProgram(program_id);
         THROW_IF_GL_ERROR();

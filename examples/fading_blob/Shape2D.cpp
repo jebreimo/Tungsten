@@ -52,7 +52,7 @@ public:
     Tungsten::Uniform<float> z;
     Tungsten::Uniform<float> point_size;
 
-    GLuint position_attr;
+    uint32_t position_attr;
 };
 
 Shape2D::Shape2D(Tungsten::VertexArray<Xyz::Vector2F> vertex_array,

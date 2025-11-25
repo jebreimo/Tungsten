@@ -11,29 +11,8 @@
 
 namespace Tungsten
 {
-    struct Size2I
-    {
-        int32_t width;
-        int32_t height;
-    };
-
-    template <typename T>
-    Xyz::Vector<T, 2> to_vector2(const Size2I& size)
-    {
-        return {T(size.width), T(size.height)};
-    }
-
-    struct Position2I
-    {
-        int32_t x;
-        int32_t y;
-    };
-
-    template <typename T>
-    Xyz::Vector<T, 2> to_vector2(const Position2I& size)
-    {
-        return {T(size.x), T(size.y)};
-    }
+    using Size2I = Xyz::Vector2I;
+    using Position2I = Xyz::Vector2I;
 
     enum class TextureFormat
     {

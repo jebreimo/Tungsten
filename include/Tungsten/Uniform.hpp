@@ -11,41 +11,41 @@
 
 namespace Tungsten
 {
-    void set_uniform(GLint location, GLint val1);
+    void set_uniform(int32_t location, int32_t val1);
 
-    void set_uniform(GLint location, GLint val1, GLint val2);
+    void set_uniform(int32_t location, int32_t val1, int32_t val2);
 
-    void set_uniform(GLint location, GLint val1, GLint val2, GLint val3);
+    void set_uniform(int32_t location, int32_t val1, int32_t val2, int32_t val3);
 
-    void set_uniform(GLint location, GLint val1, GLint val2,
-                     GLint val3, GLint val4);
+    void set_uniform(int32_t location, int32_t val1, int32_t val2,
+                     int32_t val3, int32_t val4);
 
-    void set_uniform(GLint location, float val1);
+    void set_uniform(int32_t location, float val1);
 
-    void set_uniform(GLint location, float val1, float val2);
+    void set_uniform(int32_t location, float val1, float val2);
 
-    void set_uniform(GLint location, float val1, float val2, float val3);
+    void set_uniform(int32_t location, float val1, float val2, float val3);
 
-    void set_uniform(GLint location, float val1, float val2,
+    void set_uniform(int32_t location, float val1, float val2,
                      float val3, float val4);
 
-    void set_uniform(GLint location, const Xyz::Vector2I& vec);
+    void set_uniform(int32_t location, const Xyz::Vector2I& vec);
 
-    void set_uniform(GLint location, const Xyz::Vector3I& vec);
+    void set_uniform(int32_t location, const Xyz::Vector3I& vec);
 
-    void set_uniform(GLint location, const Xyz::Vector4I& vec);
+    void set_uniform(int32_t location, const Xyz::Vector4I& vec);
 
-    void set_uniform(GLint location, const Xyz::Vector2F& vec);
+    void set_uniform(int32_t location, const Xyz::Vector2F& vec);
 
-    void set_uniform(GLint location, const Xyz::Vector3F& vec);
+    void set_uniform(int32_t location, const Xyz::Vector3F& vec);
 
-    void set_uniform(GLint location, const Xyz::Vector4F& vec);
+    void set_uniform(int32_t location, const Xyz::Vector4F& vec);
 
-    void set_uniform(GLint location, Xyz::Matrix2F mat, bool transpose = true);
+    void set_uniform(int32_t location, Xyz::Matrix2F mat, bool transpose = true);
 
-    void set_uniform(GLint location, Xyz::Matrix3F mat, bool transpose = true);
+    void set_uniform(int32_t location, Xyz::Matrix3F mat, bool transpose = true);
 
-    void set_uniform(GLint location, Xyz::Matrix4F mat, bool transpose = true);
+    void set_uniform(int32_t location, Xyz::Matrix4F mat, bool transpose = true);
 
     template <typename T>
     class Uniform
@@ -55,7 +55,7 @@ namespace Tungsten
                 : location_(-1)
         {}
 
-        explicit Uniform(GLint location)
+        explicit Uniform(int32_t location)
                 : location_(location)
         {}
 
@@ -64,6 +64,6 @@ namespace Tungsten
             set_uniform(location_, value);
         }
     private:
-        GLint location_;
+        int32_t location_;
     };
 }

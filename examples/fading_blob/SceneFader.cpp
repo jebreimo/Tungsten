@@ -55,15 +55,15 @@ namespace
 
             position_attr = get_vertex_attribute(program, "a_position");
             tex_position_attr = get_vertex_attribute(program, "a_tex_position");
-            texture = Tungsten::get_uniform<GLint>(program, "u_texture");
+            texture = Tungsten::get_uniform<int32_t>(program, "u_texture");
             color_delta = Tungsten::get_uniform<Xyz::Vector3F>(program, "u_color_delta");
         }
 
         Tungsten::ProgramHandle program;
 
-        GLuint position_attr;
-        GLuint tex_position_attr;
-        Tungsten::Uniform<GLint> texture;
+        uint32_t position_attr;
+        uint32_t tex_position_attr;
+        Tungsten::Uniform<int32_t> texture;
         Tungsten::Uniform<Xyz::Vector3F> color_delta;
     };
 

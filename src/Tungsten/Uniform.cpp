@@ -11,93 +11,93 @@
 
 namespace Tungsten
 {
-    void set_uniform(GLint location, GLint val1)
+    void set_uniform(int32_t location, int32_t val1)
     {
         glUniform1i(location, val1);
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, GLint val1, GLint val2)
+    void set_uniform(int32_t location, int32_t val1, int32_t val2)
     {
         glUniform2i(location, val1, val2);
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, GLint val1, GLint val2, GLint val3)
+    void set_uniform(int32_t location, int32_t val1, int32_t val2, int32_t val3)
     {
         glUniform3i(location, val1, val2, val3);
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, GLint val1, GLint val2,
-                     GLint val3, GLint val4)
+    void set_uniform(int32_t location, int32_t val1, int32_t val2,
+                     int32_t val3, int32_t val4)
     {
         glUniform4i(location, val1, val2, val3, val4);
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, float val1)
+    void set_uniform(int32_t location, float val1)
     {
         glUniform1f(location, val1);
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, float val1, float val2)
+    void set_uniform(int32_t location, float val1, float val2)
     {
         glUniform2f(location, val1, val2);
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, float val1, float val2, float val3)
+    void set_uniform(int32_t location, float val1, float val2, float val3)
     {
         glUniform3f(location, val1, val2, val3);
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, float val1, float val2,
+    void set_uniform(int32_t location, float val1, float val2,
                      float val3, float val4)
     {
         glUniform4f(location, val1, val2, val3, val4);
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, const Xyz::Vector2I& vec)
+    void set_uniform(int32_t location, const Xyz::Vector2I& vec)
     {
         glUniform2iv(location, 1, vec.values);
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, const Xyz::Vector3I& vec)
+    void set_uniform(int32_t location, const Xyz::Vector3I& vec)
     {
         glUniform3iv(location, 1, vec.values);
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, const Xyz::Vector4I& vec)
+    void set_uniform(int32_t location, const Xyz::Vector4I& vec)
     {
         glUniform4iv(location, 1, vec.values);
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, const Xyz::Vector2F& vec)
+    void set_uniform(int32_t location, const Xyz::Vector2F& vec)
     {
         glUniform2fv(location, 1, vec.values);
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, const Xyz::Vector3F& vec)
+    void set_uniform(int32_t location, const Xyz::Vector3F& vec)
     {
         glUniform3fv(location, 1, vec.values);
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, const Xyz::Vector4F& vec)
+    void set_uniform(int32_t location, const Xyz::Vector4F& vec)
     {
         glUniform4fv(location, 1, vec.values);
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, Xyz::Matrix2F mat, bool transpose)
+    void set_uniform(int32_t location, Xyz::Matrix2F mat, bool transpose)
     {
         if (transpose)
             Xyz::transpose_inplace(mat);
@@ -105,7 +105,7 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, Xyz::Matrix3F mat, bool transpose)
+    void set_uniform(int32_t location, Xyz::Matrix3F mat, bool transpose)
     {
         if (transpose)
             Xyz::transpose_inplace(mat);
@@ -113,7 +113,7 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
-    void set_uniform(GLint location, Xyz::Matrix4F mat, bool transpose)
+    void set_uniform(int32_t location, Xyz::Matrix4F mat, bool transpose)
     {
         if (transpose)
             Xyz::transpose_inplace(mat);

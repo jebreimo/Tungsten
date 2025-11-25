@@ -82,7 +82,7 @@ namespace Tungsten
             }
         }
 
-        void set_data(std::span<const T> data, GLsizei offset)
+        void set_data(std::span<const T> data, int32_t offset)
         {
             if (offset == 0)
             {

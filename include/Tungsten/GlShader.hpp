@@ -14,20 +14,20 @@ namespace Tungsten
 {
     struct ShaderDeleter
     {
-        void operator()(GLuint id) const;
+        void operator()(uint32_t id) const;
     };
 
     using ShaderHandle = GlHandle<ShaderDeleter>;
 
-    void compile_shader(GLuint shader_id);
+    void compile_shader(uint32_t shader_id);
 
-    ShaderHandle create_shader(GLuint shader_type);
+    ShaderHandle create_shader(uint32_t shader_type);
 
-    void set_shader_source(GLuint shader_id, const std::string& source);
+    void set_shader_source(uint32_t shader_id, const std::string& source);
 
-    bool get_shader_compile_status(GLuint shader_id);
+    bool get_shader_compile_status(uint32_t shader_id);
 
-    std::string get_shader_info_log(GLuint shader_id);
+    std::string get_shader_info_log(uint32_t shader_id);
 
-    GLint get_shader_info_log_length(GLuint shader_id);
+    int32_t get_shader_info_log_length(uint32_t shader_id);
 }

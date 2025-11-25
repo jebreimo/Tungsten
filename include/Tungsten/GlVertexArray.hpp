@@ -13,7 +13,7 @@ namespace Tungsten
 {
     struct GlVertexArrayDeleter
     {
-        void operator()(GLuint id) const;
+        void operator()(uint32_t id) const;
     };
 
     using VertexArrayHandle = GlHandle<GlVertexArrayDeleter>;
@@ -22,33 +22,33 @@ namespace Tungsten
 
     void generate_vertex_arrays(std::span<VertexArrayHandle> vertex_arrays);
 
-    void bind_vertex_array(GLuint vertex_array);
+    void bind_vertex_array(uint32_t vertex_array);
 
-    void define_vertex_attribute_pointer(GLuint location,
-                                         GLint size,
+    void define_vertex_attribute_pointer(uint32_t location,
+                                         int32_t size,
                                          GLenum type,
-                                         GLsizei stride,
+                                         int32_t stride,
                                          size_t offset = 0,
                                          bool normalized = false);
 
-    void define_vertex_attribute_float_pointer(GLuint location,
-                                               GLint size,
-                                               GLsizei stride,
+    void define_vertex_attribute_float_pointer(uint32_t location,
+                                               int32_t size,
+                                               int32_t stride,
                                                size_t offset = 0);
 
-    void define_vertex_attribute_int16_pointer(GLuint location,
-                                               GLint size,
-                                               GLsizei stride,
+    void define_vertex_attribute_int16_pointer(uint32_t location,
+                                               int32_t size,
+                                               int32_t stride,
                                                size_t offset = 0);
 
-    void define_vertex_attribute_int32_pointer(GLuint location,
-                                               GLint size,
-                                               GLsizei stride,
+    void define_vertex_attribute_int32_pointer(uint32_t location,
+                                               int32_t size,
+                                               int32_t stride,
                                                size_t offset = 0);
 
-    void enable_vertex_attribute(GLuint location);
+    void enable_vertex_attribute(uint32_t location);
 
-    void disable_vertex_attribute(GLuint location);
+    void disable_vertex_attribute(uint32_t location);
 
-    GLsizei get_size_of_type(GLenum type);
+    int32_t get_size_of_type(GLenum type);
 }

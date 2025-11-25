@@ -12,14 +12,14 @@
 
 namespace Tungsten
 {
-    void FramebufferDeleter::operator()(GLuint id) const
+    void FramebufferDeleter::operator()(uint32_t id) const
     {
         glDeleteFramebuffers(1, &id);
     }
 
     FramebufferHandle generate_framebuffer()
     {
-        GLuint id;
+        uint32_t id;
         glGenFramebuffers(1, &id);
         THROW_IF_GL_ERROR();
         return FramebufferHandle(id);
@@ -27,14 +27,14 @@ namespace Tungsten
 
     void generates(std::span<FramebufferHandle> frame_buffers)
     {
-        auto ids = std::vector<GLuint>(frame_buffers.size());
-        glGenFramebuffers(static_cast<GLsizei>(ids.size()), ids.data());
+        auto ids = std::vector<uint32_t>(frame_buffers.size());
+        glGenFramebuffers(static_cast<int32_t>(ids.size()), ids.data());
         THROW_IF_GL_ERROR();
         for (size_t i = 0; i < ids.size(); ++i)
             frame_buffers[i] = FramebufferHandle(ids[i]);
     }
 
-    void bind_framebuffer(GLenum target, GLuint frame_buffer)
+    void bind_framebuffer(GLenum target, uint32_t frame_buffer)
     {
         glBindFramebuffer(target, frame_buffer);
         THROW_IF_GL_ERROR();
@@ -43,8 +43,8 @@ namespace Tungsten
     void framebuffer_texture_2d(GLenum target,
                                 GLenum attachment,
                                 GLenum tex_target,
-                                GLuint texture,
-                                GLint level)
+                                uint32_t texture,
+                                int32_t level)
     {
         glFramebufferTexture2D(target, attachment, tex_target, texture, level);
         THROW_IF_GL_ERROR();

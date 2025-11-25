@@ -18,7 +18,7 @@ namespace Tungsten
             : id_()
         {}
 
-        explicit GlHandle(GLuint id)
+        explicit GlHandle(uint32_t id)
             : id_(id)
         {}
 
@@ -44,25 +44,25 @@ namespace Tungsten
             return *this;
         }
 
-        operator GLuint() const
+        operator uint32_t() const
         {
             return id_;
         }
 
-        void reset(GLuint id = 0)
+        void reset(uint32_t id = 0)
         {
             if (id_)
                 Deleter()(id_);
             id_ = id;
         }
 
-        GLuint release()
+        uint32_t release()
         {
             auto id = id_;
             id_ = 0;
             return id;
         }
     private:
-        GLuint id_;
+        uint32_t id_;
     };
 }

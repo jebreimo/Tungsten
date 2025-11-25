@@ -15,19 +15,19 @@ namespace Tungsten
     class VertexArrayBuilder
     {
     public:
-        VertexArrayBuilder& add_float(GLuint attribute_location, GLint count)
+        VertexArrayBuilder& add_float(uint32_t attribute_location, int32_t count)
         {
             definitions_.push_back({attribute_location, count, GL_FLOAT});
             return *this;
         }
 
-        VertexArrayBuilder& add_int16(GLuint attribute_location, GLint count)
+        VertexArrayBuilder& add_int16(uint32_t attribute_location, int32_t count)
         {
             definitions_.push_back({attribute_location, count, GL_SHORT});
             return *this;
         }
 
-        VertexArrayBuilder& add_int32(GLuint attribute_location, GLint count)
+        VertexArrayBuilder& add_int32(uint32_t attribute_location, int32_t count)
         {
             definitions_.push_back({attribute_location, count, GL_INT});
             return *this;
@@ -54,8 +54,8 @@ namespace Tungsten
     private:
         struct Definition
         {
-            GLuint location;
-            GLsizei count;
+            uint32_t location;
+            int32_t count;
             GLenum type;
         };
 

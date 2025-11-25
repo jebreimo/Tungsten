@@ -74,7 +74,7 @@ namespace Tungsten
         }
     }
 
-    void TextureDeleter::operator()(GLuint id) const
+    void TextureDeleter::operator()(uint32_t id) const
     {
         glDeleteTextures(1, &id);
         THROW_IF_GL_ERROR();
@@ -82,7 +82,7 @@ namespace Tungsten
 
     TextureHandle generate_texture()
     {
-        GLuint id;
+        uint32_t id;
         glGenTextures(1, &id);
         THROW_IF_GL_ERROR();
         return TextureHandle(id);
@@ -90,79 +90,79 @@ namespace Tungsten
 
     void generate_textures(std::span<TextureHandle> textures)
     {
-        auto ids = std::vector<GLuint>(textures.size());
-        glGenTextures(static_cast<GLsizei>(ids.size()), ids.data());
+        auto ids = std::vector<uint32_t>(textures.size());
+        glGenTextures(static_cast<int32_t>(ids.size()), ids.data());
         THROW_IF_GL_ERROR();
         for (size_t i = 0; i < ids.size(); ++i)
             textures[i] = TextureHandle(ids[i]);
     }
 
-    void activate_texture_unit(GLint unit)
+    void activate_texture_unit(int32_t unit)
     {
         glActiveTexture(GL_TEXTURE0 + unit);
         THROW_IF_GL_ERROR();
     }
 
-    void bind_texture(GLenum target, GLuint texture)
+    void bind_texture(GLenum target, uint32_t texture)
     {
         glBindTexture(target, texture);
         THROW_IF_GL_ERROR();
     }
 
-    GLint active_texture_unit()
+    int32_t active_texture_unit()
     {
-        GLint result;
+        int32_t result;
         glGetIntegerv(GL_ACTIVE_TEXTURE, &result);
         THROW_IF_GL_ERROR();
         return result - GL_TEXTURE0;
     }
 
-    GLuint bound_texture(GLenum target)
+    uint32_t bound_texture(GLenum target)
     {
-        GLint result;
+        int32_t result;
         glGetIntegerv(map_texture_binding(target), &result);
         THROW_IF_GL_ERROR();
-        return static_cast<GLuint>(result);
+        return static_cast<uint32_t>(result);
     }
 
-    void set_texture_image_2d(GLenum target, GLint level,
-                              GLint internal_format,
+    void set_texture_image_2d(GLenum target, int32_t level,
+                              int32_t internal_format,
                               Size2I size,
                               TextureSourceFormat format,
                               const void* data)
     {
         glTexImage2D(target, level,
-                     static_cast<GLint>(map_color_format(internal_format)),
-                     size.width, size.height, 0,
+                     static_cast<int32_t>(map_color_format(internal_format)),
+                     size.x(), size.y(), 0,
                      map_color_format(format.format), format.type, data);
         THROW_IF_GL_ERROR();
     }
 
-    void set_texture_storage_2d(GLenum target, GLint levels, GLint internal_format, Size2I size)
+    void set_texture_storage_2d(GLenum target, int32_t levels, int32_t internal_format, Size2I size)
     {
         glTexStorage2D(target, levels,
-                       static_cast<GLint>(map_color_format(internal_format)),
-                       size.width, size.height);
+                       static_cast<int32_t>(map_color_format(internal_format)),
+                       size.x(), size.y());
         THROW_IF_GL_ERROR();
     }
 
-    void set_texture_sub_image_2d(GLenum target, GLint level,
+    void set_texture_sub_image_2d(GLenum target, int32_t level,
                                   Position2I offset,
                                   Size2I size,
                                   TextureSourceFormat format,
                                   const void* data)
     {
         glTexSubImage2D(target, level,
-                        offset.x, offset.y, size.width, size.height,
+                        offset.x(), offset.y(), size.x(), size.y(),
                         map_color_format(format.format), format.type, data);
         THROW_IF_GL_ERROR();
     }
 
-    void copy_texture_sub_image_2d(GLenum target, GLint level, Position2I offset,
+    void copy_texture_sub_image_2d(GLenum target, int32_t level, Position2I offset,
                                    Position2I position, Size2I size)
     {
-        glCopyTexSubImage2D(target, level, position.x, position.y,
-                            offset.x, offset.y, size.width, size.height);
+        glCopyTexSubImage2D(target, level, position.x(), position.y(),
+                            offset.x(), offset.y(), size.x(), size.y());
         THROW_IF_GL_ERROR();
     }
 
@@ -172,72 +172,72 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
-    GLfloat get_texture_float_parameter(GLenum target, GLenum pname)
+    float get_texture_float_parameter(GLenum target, GLenum pname)
     {
-        GLfloat result;
+        float result;
         glGetTexParameterfv(target, pname, &result);
         THROW_IF_GL_ERROR();
         return result;
     }
 
     void set_texture_float_parameter(GLenum target, GLenum pname,
-                                     GLfloat param)
+                                     float param)
     {
         glTexParameterf(target, pname, param);
         THROW_IF_GL_ERROR();
     }
 
-    GLint get_texture_int_parameter(GLenum target, GLenum pname)
+    int32_t get_texture_int_parameter(GLenum target, GLenum pname)
     {
-        GLint result;
+        int32_t result;
         glGetTexParameteriv(target, pname, &result);
         THROW_IF_GL_ERROR();
         return result;
     }
 
     void set_texture_int_parameter(GLenum target, GLenum pname,
-                                   GLint param)
+                                   int32_t param)
     {
         glTexParameteri(target, pname, param);
         THROW_IF_GL_ERROR();
     }
 
-    GLint get_mag_filter(GLenum target)
+    int32_t get_mag_filter(GLenum target)
     {
         return get_texture_int_parameter(target, GL_TEXTURE_MAG_FILTER);
     }
 
-    void set_mag_filter(GLenum target, GLint param)
+    void set_mag_filter(GLenum target, int32_t param)
     {
         set_texture_int_parameter(target, GL_TEXTURE_MAG_FILTER, param);
     }
 
-    GLint get_min_filter(GLenum target)
+    int32_t get_min_filter(GLenum target)
     {
         return get_texture_int_parameter(target, GL_TEXTURE_MIN_FILTER);
     }
 
-    void set_min_filter(GLenum target, GLint param)
+    void set_min_filter(GLenum target, int32_t param)
     {
         set_texture_int_parameter(target, GL_TEXTURE_MIN_FILTER, param);
     }
 
-    GLint get_wrap_s(GLenum target)
+    int32_t get_wrap_s(GLenum target)
     {
         return get_texture_int_parameter(target, GL_TEXTURE_WRAP_S);
     }
 
-    void set_wrap_s(GLenum target, GLint param)
+    void set_wrap_s(GLenum target, int32_t param)
     {
         set_texture_int_parameter(target, GL_TEXTURE_WRAP_S, param);
     }
 
-    GLint get_wrap_t(GLenum target)
+    int32_t get_wrap_t(GLenum target)
     {
         return get_texture_int_parameter(target, GL_TEXTURE_WRAP_T);
     }
 
-    void set_wrap_t(GLenum target, GLint param)
+    void set_wrap_t(GLenum target, int32_t param)
     {
         set_texture_int_parameter(target, GL_TEXTURE_WRAP_T, param);
     }
