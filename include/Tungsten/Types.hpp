@@ -23,13 +23,31 @@ namespace Tungsten
 
     enum class TextureType
     {
-        UNSIGNED_BYTE,
+        UINT8,
         FLOAT
     };
 
     struct TextureSourceFormat
     {
-        GLenum format;
-        GLenum type;
+        TextureFormat format;
+        TextureType type;
+    };
+
+    enum class AttributeType
+    {
+        INT8,
+        UINT8,
+        INT16,
+        UINT16,
+        INT32,
+        UINT32,
+        FLOAT,
+        DOUBLE
+    };
+
+    enum class BufferUsage
+    {
+        STATIC_DRAW,
+        DYNAMIC_DRAW
     };
 }

@@ -13,36 +13,35 @@
 #include <Yimage/ImageAlgorithms.hpp>
 #include <Yimage/ReadImage.hpp>
 
+#include "Tungsten/TungstenException.hpp"
+
 namespace Tungsten
 {
     TextureSourceFormat get_ogl_pixel_type(Yimage::PixelType type)
     {
         switch (type)
         {
-        case Yimage::PixelType::MONO_8:
-            return {GL_LUMINANCE, GL_UNSIGNED_BYTE};
-        case Yimage::PixelType::MONO_ALPHA_8:
-            return {GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE};
-        case Yimage::PixelType::RGB_8:
-            return {GL_RGB, GL_UNSIGNED_BYTE};
-        case Yimage::PixelType::RGBA_8:
-            return {GL_RGBA, GL_UNSIGNED_BYTE};
-        case Yimage::PixelType::MONO_1:
-        case Yimage::PixelType::MONO_2:
-        case Yimage::PixelType::MONO_4:
-        case Yimage::PixelType::MONO_16:
-        case Yimage::PixelType::ALPHA_MONO_8:
-        case Yimage::PixelType::ALPHA_MONO_16:
-        case Yimage::PixelType::MONO_ALPHA_16:
-        case Yimage::PixelType::RGB_16:
-        case Yimage::PixelType::ARGB_8:
-        case Yimage::PixelType::ARGB_16:
-        case Yimage::PixelType::RGBA_16:
-        default:
-            break;
+            case Yimage::PixelType::MONO_8:
+                return {TextureFormat::R, TextureType::UINT8};
+            case Yimage::PixelType::RGB_8:
+                return {TextureFormat::RGB, TextureType::UINT8};
+            case Yimage::PixelType::RGBA_8:
+                return {TextureFormat::RGBA, TextureType::UINT8};
+            case Yimage::PixelType::MONO_ALPHA_8:
+            case Yimage::PixelType::MONO_1:
+            case Yimage::PixelType::MONO_2:
+            case Yimage::PixelType::MONO_4:
+            case Yimage::PixelType::MONO_16:
+            case Yimage::PixelType::ALPHA_MONO_8:
+            case Yimage::PixelType::ALPHA_MONO_16:
+            case Yimage::PixelType::MONO_ALPHA_16:
+            case Yimage::PixelType::RGB_16:
+            case Yimage::PixelType::ARGB_8:
+            case Yimage::PixelType::ARGB_16:
+            case Yimage::PixelType::RGBA_16:
+            default:
+                TUNGSTEN_THROW("Unsupported pixel format: " + std::to_string(int(type)));
         }
-        throw std::runtime_error("GLES has no corresponding pixel format: "
-                                 + std::to_string(int(type)));
     }
 
     Yimage::Image read_image(const std::string& file_name)

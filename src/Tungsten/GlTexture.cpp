@@ -42,6 +42,41 @@ namespace Tungsten
             }
         }
 
+        GLenum get_ogl_color_format(TextureFormat format)
+        {
+            switch (format)
+            {
+            case TextureFormat::R:
+                if constexpr (is_emscripten())
+                    return GL_LUMINANCE;
+                else
+                    return GL_RED;
+            case TextureFormat::RGB:
+                return GL_RGB;
+            case TextureFormat::RGBA:
+                return GL_RGBA;
+            default:
+                TUNGSTEN_THROW("Unsupported texture format: " + std::to_string(static_cast<int>(format)));
+            }
+        }
+
+        GLenum get_ogl_internal_format(TextureFormat format)
+        {
+            return get_ogl_color_format(format);
+        }
+
+        GLenum get_ogl_type(TextureType type)
+        {
+            switch (type)
+            {
+            case TextureType::UINT8:
+                    return GL_UNSIGNED_BYTE;
+            case TextureType::FLOAT:
+                return GL_FLOAT;
+            default:
+                TUNGSTEN_THROW("Unsupported texture type: " + std::to_string(static_cast<int>(type)));
+            }
+        }
         GLenum map_texture_binding(GLenum target)
         {
             switch (target)
@@ -134,7 +169,7 @@ namespace Tungsten
         glTexImage2D(target, level,
                      static_cast<int32_t>(map_color_format(internal_format)),
                      size.x(), size.y(), 0,
-                     map_color_format(format.format), format.type, data);
+                     get_ogl_color_format(format.format), get_ogl_type(format.type), data);
         THROW_IF_GL_ERROR();
     }
 
@@ -154,7 +189,7 @@ namespace Tungsten
     {
         glTexSubImage2D(target, level,
                         offset.x(), offset.y(), size.x(), size.y(),
-                        map_color_format(format.format), format.type, data);
+                        get_ogl_color_format(format.format), get_ogl_type(format.type), data);
         THROW_IF_GL_ERROR();
     }
 

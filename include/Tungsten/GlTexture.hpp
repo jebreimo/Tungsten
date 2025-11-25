@@ -32,9 +32,8 @@ namespace Tungsten
 
     [[nodiscard]] uint32_t bound_texture(GLenum target);
 
-    constexpr TextureSourceFormat RGB_TEXTURE = {GL_RGB, GL_UNSIGNED_BYTE};
-    constexpr TextureSourceFormat RGBA_TEXTURE = {GL_RGBA, GL_UNSIGNED_BYTE};
-    constexpr TextureSourceFormat LUMINANCE_TEXTURE = {GL_LUMINANCE, GL_UNSIGNED_BYTE};
+    constexpr TextureSourceFormat RGB_TEXTURE = {TextureFormat::RGB, TextureType::UINT8};
+    constexpr TextureSourceFormat RGBA_TEXTURE = {TextureFormat::RGBA, TextureType::UINT8};
 
     void set_texture_image_2d(GLenum target, int32_t level,
                               int32_t internal_format,
