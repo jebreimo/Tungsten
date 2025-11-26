@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include "GlHandle.hpp"
+#include "Types.hpp"
 
 namespace Tungsten
 {
@@ -21,7 +22,7 @@ namespace Tungsten
 
     void compile_shader(uint32_t shader_id);
 
-    ShaderHandle create_shader(uint32_t shader_type);
+    ShaderHandle create_shader(ShaderType shader_type);
 
     void set_shader_source(uint32_t shader_id, const std::string& source);
 

@@ -11,40 +11,21 @@
 
 namespace Tungsten
 {
-    namespace
-    {
-        GLenum to_gl_type(ShaderType type)
-        {
-            switch (type)
-            {
-            case ShaderType::VERTEX:
-                return GL_VERTEX_SHADER;
-            case ShaderType::FRAGMENT:
-                return GL_FRAGMENT_SHADER;
-            case ShaderType::COMPUTE:
-                return GL_COMPUTE_SHADER;
-            }
-
-            TUNGSTEN_THROW("Unknown ShaderType: "
-                + std::to_string(static_cast<int>(type)));
-        }
-    }
-
     ShaderProgramBuilder::ShaderProgramBuilder()
-        : program_(Tungsten::create_program())
+        : program_(create_program())
     {}
 
     ShaderProgramBuilder&
     ShaderProgramBuilder::add_shader(ShaderType type, const std::string& src)
     {
-        auto shader = Tungsten::create_shader(to_gl_type(type), src);
-        Tungsten::attach_shader(program_, shader);
+        auto shader = create_shader(type, src);
+        attach_shader(program_, shader);
         return *this;
     }
 
-    Tungsten::ProgramHandle ShaderProgramBuilder::build()
+    ProgramHandle ShaderProgramBuilder::build()
     {
-        Tungsten::link_program(program_);
+        link_program(program_);
         return std::move(program_);
     }
 }

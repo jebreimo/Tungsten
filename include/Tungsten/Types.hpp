@@ -108,4 +108,22 @@ namespace Tungsten
         SWIZZLE_B,
         SWIZZLE_A,
     };
+
+    enum class TopologyType
+    {
+        POINTS,
+        LINES,
+        LINE_STRIP,
+        LINE_LOOP,
+        TRIANGLES,
+        TRIANGLE_STRIP,
+        TRIANGLE_FAN
+    };
+
+    enum class ShaderType
+    {
+        VERTEX,
+        FRAGMENT,
+        COMPUTE
+    };
 }

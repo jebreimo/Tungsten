@@ -20,4 +20,6 @@ namespace Tungsten
     GLenum to_ogl_texture_format(TextureFormat format);
     GLenum to_ogl_texture_value_type(TextureValueType type);
     GLenum to_ogl_texture_parameter(TextureParameter parameter);
+    GLenum to_ogl_draw_mode(TopologyType topology);
+    GLenum to_ogl_shader_type(ShaderType type);
 }

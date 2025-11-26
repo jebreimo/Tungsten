@@ -12,9 +12,9 @@ namespace Tungsten
 {
     std::string read_shader(const std::string& path);
 
-    ShaderHandle create_shader(uint32_t shader_type,
+    ShaderHandle create_shader(ShaderType shader_type,
                                const std::string& source_code);
 
-    ShaderHandle read_and_compile_shader(uint32_t shader_type,
+    ShaderHandle read_and_compile_shader(ShaderType shader_type,
                                          const std::string& path);
 }

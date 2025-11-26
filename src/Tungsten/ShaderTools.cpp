@@ -39,16 +39,16 @@ namespace Tungsten
         return read_file(path);
     }
 
-    Tungsten::ShaderHandle create_shader(uint32_t shader_type,
+    Tungsten::ShaderHandle create_shader(ShaderType shader_type,
                                          const std::string& source_code)
     {
-        auto shader = Tungsten::create_shader(shader_type);
-        Tungsten::set_shader_source(shader, source_code);
-        Tungsten::compile_shader(shader);
+        auto shader = create_shader(shader_type);
+        set_shader_source(shader, source_code);
+        compile_shader(shader);
         return shader;
     }
 
-    Tungsten::ShaderHandle read_and_compile_shader(uint32_t shader_type,
+    Tungsten::ShaderHandle read_and_compile_shader(ShaderType shader_type,
                                                    const std::string& path)
     {
         auto source = read_shader(path);

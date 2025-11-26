@@ -8,16 +8,10 @@
 #pragma once
 #include <string>
 #include "GlProgram.hpp"
+#include "Types.hpp"
 
 namespace Tungsten
 {
-    enum class ShaderType
-    {
-        VERTEX,
-        FRAGMENT,
-        COMPUTE
-    };
-
     class ShaderProgramBuilder
     {
     public:

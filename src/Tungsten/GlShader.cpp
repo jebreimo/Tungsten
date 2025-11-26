@@ -6,6 +6,8 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #include "Tungsten/GlShader.hpp"
+
+#include "GlTypeConversion.h"
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
@@ -24,9 +26,9 @@ namespace Tungsten
             TUNGSTEN_THROW(+ get_shader_info_log(shader_id));
     }
 
-    ShaderHandle create_shader(uint32_t shader_type)
+    ShaderHandle create_shader(ShaderType shader_type)
     {
-        auto id = glCreateShader(shader_type);
+        auto id = glCreateShader(to_ogl_shader_type(shader_type));
         THROW_IF_GL_ERROR();
         return ShaderHandle(id);
     }

@@ -148,4 +148,35 @@ namespace Tungsten
         default: TUNGSTEN_THROW("Unsupported texture parameter: " + std::to_string(static_cast<int>(parameter)));
         }
     }
+
+    GLenum to_ogl_draw_mode(TopologyType topology)
+    {
+        switch (topology)
+        {
+        case TopologyType::POINTS: return GL_POINTS;
+        case TopologyType::LINES: return GL_LINES;
+        case TopologyType::LINE_STRIP: return GL_LINE_STRIP;
+        case TopologyType::LINE_LOOP: return GL_LINE_LOOP;
+        case TopologyType::TRIANGLES: return GL_TRIANGLES;
+        case TopologyType::TRIANGLE_FAN: return GL_TRIANGLE_FAN;
+        case TopologyType::TRIANGLE_STRIP: return GL_TRIANGLE_STRIP;
+        default: TUNGSTEN_THROW("Unsupported draw mode: " + std::to_string(static_cast<int>(topology)));
+        }
+    }
+
+    GLenum to_ogl_shader_type(ShaderType type)
+    {
+        switch (type)
+        {
+        case ShaderType::VERTEX:
+            return GL_VERTEX_SHADER;
+        case ShaderType::FRAGMENT:
+            return GL_FRAGMENT_SHADER;
+        case ShaderType::COMPUTE:
+            return GL_COMPUTE_SHADER;
+        default:
+            TUNGSTEN_THROW("Unknown ShaderType: "
+                + std::to_string(static_cast<int>(type)));
+        }
+    }
 }
