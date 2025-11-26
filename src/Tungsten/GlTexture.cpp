@@ -151,73 +151,73 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
-    float get_texture_float_parameter(TextureTarget target, GLenum pname)
+    float get_texture_float_parameter(TextureTarget target, TextureParameter pname)
     {
         float result;
-        glGetTexParameterfv(to_ogl_texture_target(target), pname, &result);
+        glGetTexParameterfv(to_ogl_texture_target(target), to_ogl_texture_parameter(pname), &result);
         THROW_IF_GL_ERROR();
         return result;
     }
 
-    void set_texture_float_parameter(TextureTarget target, GLenum pname,
+    void set_texture_float_parameter(TextureTarget target, TextureParameter pname,
                                      float param)
     {
-        glTexParameterf(to_ogl_texture_target(target), pname, param);
+        glTexParameterf(to_ogl_texture_target(target), to_ogl_texture_parameter(pname), param);
         THROW_IF_GL_ERROR();
     }
 
-    int32_t get_texture_int_parameter(TextureTarget target, GLenum pname)
+    int32_t get_texture_int_parameter(TextureTarget target, TextureParameter pname)
     {
         int32_t result;
-        glGetTexParameteriv(to_ogl_texture_target(target), pname, &result);
+        glGetTexParameteriv(to_ogl_texture_target(target), to_ogl_texture_parameter(pname), &result);
         THROW_IF_GL_ERROR();
         return result;
     }
 
-    void set_texture_int_parameter(TextureTarget target, GLenum pname,
+    void set_texture_int_parameter(TextureTarget target, TextureParameter pname,
                                    int32_t param)
     {
-        glTexParameteri(to_ogl_texture_target(target), pname, param);
+        glTexParameteri(to_ogl_texture_target(target), to_ogl_texture_parameter(pname), param);
         THROW_IF_GL_ERROR();
     }
 
     int32_t get_mag_filter(TextureTarget target)
     {
-        return get_texture_int_parameter(target, GL_TEXTURE_MAG_FILTER);
+        return get_texture_int_parameter(target, TextureParameter::MAG_FILTER);
     }
 
     void set_mag_filter(TextureTarget target, int32_t param)
     {
-        set_texture_int_parameter(target, GL_TEXTURE_MAG_FILTER, param);
+        set_texture_int_parameter(target, TextureParameter::MAG_FILTER, param);
     }
 
     int32_t get_min_filter(TextureTarget target)
     {
-        return get_texture_int_parameter(target, GL_TEXTURE_MIN_FILTER);
+        return get_texture_int_parameter(target, TextureParameter::MIN_FILTER);
     }
 
     void set_min_filter(TextureTarget target, int32_t param)
     {
-        set_texture_int_parameter(target, GL_TEXTURE_MIN_FILTER, param);
+        set_texture_int_parameter(target, TextureParameter::MIN_FILTER, param);
     }
 
     int32_t get_wrap_s(TextureTarget target)
     {
-        return get_texture_int_parameter(target, GL_TEXTURE_WRAP_S);
+        return get_texture_int_parameter(target, TextureParameter::WRAP_S);
     }
 
     void set_wrap_s(TextureTarget target, int32_t param)
     {
-        set_texture_int_parameter(target, GL_TEXTURE_WRAP_S, param);
+        set_texture_int_parameter(target, TextureParameter::WRAP_S, param);
     }
 
     int32_t get_wrap_t(TextureTarget target)
     {
-        return get_texture_int_parameter(target, GL_TEXTURE_WRAP_T);
+        return get_texture_int_parameter(target, TextureParameter::WRAP_T);
     }
 
     void set_wrap_t(TextureTarget target, int32_t param)
     {
-        set_texture_int_parameter(target, GL_TEXTURE_WRAP_T, param);
+        set_texture_int_parameter(target, TextureParameter::WRAP_T, param);
     }
 }

@@ -57,14 +57,14 @@ namespace Tungsten
     void generate_mip_map(TextureTarget target);
 
     [[nodiscard]]
-    float get_texture_float_parameter(TextureTarget target, GLenum pname);
+    float get_texture_float_parameter(TextureTarget target, TextureParameter pname);
 
-    void set_texture_float_parameter(TextureTarget target, GLenum pname, float param);
+    void set_texture_float_parameter(TextureTarget target, TextureParameter pname, float param);
 
     [[nodiscard]]
-    int32_t get_texture_int_parameter(TextureTarget target, GLenum pname);
+    int32_t get_texture_int_parameter(TextureTarget target, TextureParameter pname);
 
-    void set_texture_int_parameter(TextureTarget target, GLenum pname, int32_t param);
+    void set_texture_int_parameter(TextureTarget target, TextureParameter pname, int32_t param);
 
     [[nodiscard]]
     int32_t get_mag_filter(TextureTarget target);

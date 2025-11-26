@@ -89,4 +89,23 @@ namespace Tungsten
         CUBE_MAP_NEGATIVE_Y,
         CUBE_MAP_NEGATIVE_Z,
     };
+
+    enum class TextureParameter
+    {
+        BASE_LEVEL,
+        MAX_LEVEL,
+        MIN_FILTER,
+        MAG_FILTER,
+        WRAP_S,
+        WRAP_T,
+        WRAP_R,
+        COMPARE_MODE,
+        COMPARE_FUNC,
+        MIN_LOD,
+        MAX_LOD,
+        SWIZZLE_R,
+        SWIZZLE_G,
+        SWIZZLE_B,
+        SWIZZLE_A,
+    };
 }

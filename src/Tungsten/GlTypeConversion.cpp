@@ -125,4 +125,27 @@ namespace Tungsten
             TUNGSTEN_THROW("Unsupported texture type: " + std::to_string(static_cast<int>(type)));
         }
     }
+
+    GLenum to_ogl_texture_parameter(TextureParameter parameter)
+    {
+        switch (parameter)
+        {
+        case TextureParameter::BASE_LEVEL: return GL_TEXTURE_BASE_LEVEL;
+        case TextureParameter::MAX_LEVEL: return GL_TEXTURE_MAX_LEVEL;
+        case TextureParameter::MIN_FILTER: return GL_TEXTURE_MIN_FILTER;
+        case TextureParameter::MAG_FILTER: return GL_TEXTURE_MAG_FILTER;
+        case TextureParameter::WRAP_S: return GL_TEXTURE_WRAP_S;
+        case TextureParameter::WRAP_T: return GL_TEXTURE_WRAP_T;
+        case TextureParameter::WRAP_R: return GL_TEXTURE_WRAP_R;
+        case TextureParameter::COMPARE_MODE: return GL_TEXTURE_COMPARE_MODE;
+        case TextureParameter::COMPARE_FUNC: return GL_TEXTURE_COMPARE_FUNC;
+        case TextureParameter::MIN_LOD: return GL_TEXTURE_MIN_LOD;
+        case TextureParameter::MAX_LOD: return GL_TEXTURE_MAX_LOD;
+        case TextureParameter::SWIZZLE_R: return GL_TEXTURE_SWIZZLE_R;
+        case TextureParameter::SWIZZLE_G: return GL_TEXTURE_SWIZZLE_G;
+        case TextureParameter::SWIZZLE_B: return GL_TEXTURE_SWIZZLE_B;
+        case TextureParameter::SWIZZLE_A: return GL_TEXTURE_SWIZZLE_A;
+        default: TUNGSTEN_THROW("Unsupported texture parameter: " + std::to_string(static_cast<int>(parameter)));
+        }
+    }
 }
