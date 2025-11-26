@@ -90,7 +90,7 @@ public:
         JEB_CHECKPOINT();
         glClearColor(0.4, 0.6, 0.8, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        auto screen_size = to_vector2<float>(application().window_size());
+        auto screen_size = vector_cast<float>(application().window_size());
 
         auto line_height = text_renderer_.font().max_glyph.size[1];
         auto lines = std::min(texts_.size(), size_t(screen_size[1] / line_height));
