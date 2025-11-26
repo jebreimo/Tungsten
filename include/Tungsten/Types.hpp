@@ -56,4 +56,11 @@ namespace Tungsten
         STATIC_DRAW,
         DYNAMIC_DRAW
     };
+
+    enum class FramebufferTarget
+    {
+        FRAMEBUFFER,
+        DRAW,
+        READ
+    };
 }

@@ -8,6 +8,7 @@
 #pragma once
 #include <span>
 #include "GlHandle.hpp"
+#include "Types.hpp"
 
 namespace Tungsten
 {
@@ -22,18 +23,18 @@ namespace Tungsten
 
     void generate_framebuffers(std::span<FramebufferHandle> frame_buffers);
 
-    void bind_framebuffer(GLenum target, uint32_t frame_buffer);
+    void bind_framebuffer(FramebufferTarget target, uint32_t frame_buffer);
 
-    uint32_t bound_framebuffer(GLenum target);
+    uint32_t bound_framebuffer(FramebufferTarget target);
 
-    void framebuffer_texture_2d(GLenum target,
+    void framebuffer_texture_2d(FramebufferTarget target,
                                 GLenum attachment,
                                 GLenum tex_target,
                                 uint32_t texture,
                                 int32_t level = 0);
 
     [[nodiscard]]
-    GLenum check_framebuffer_status(GLenum target);
+    GLenum check_framebuffer_status(FramebufferTarget target);
 
-    void assert_framebuffer_complete(GLenum target);
+    void assert_framebuffer_complete(FramebufferTarget target);
 }

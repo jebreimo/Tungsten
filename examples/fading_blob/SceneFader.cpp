@@ -113,8 +113,8 @@ public:
 
     void draw_previous_scene(float fadeout)
     {
-        Tungsten::bind_framebuffer(GL_DRAW_FRAMEBUFFER, frame_buffer_);
-        Tungsten::framebuffer_texture_2d(GL_DRAW_FRAMEBUFFER,
+        Tungsten::bind_framebuffer(Tungsten::FramebufferTarget::FRAMEBUFFER, frame_buffer_);
+        Tungsten::framebuffer_texture_2d(Tungsten::FramebufferTarget::FRAMEBUFFER,
                                          GL_COLOR_ATTACHMENT0,
                                          GL_TEXTURE_2D,
                                          textures_[index_]);
@@ -130,7 +130,7 @@ public:
 
     void render_scene()
     {
-        Tungsten::bind_framebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        Tungsten::bind_framebuffer(Tungsten::FramebufferTarget::FRAMEBUFFER, 0);
         Tungsten::activate_texture_unit(0);
         Tungsten::bind_texture(GL_TEXTURE_2D, textures_[1 - index_]);
         use_program(program_.program);
