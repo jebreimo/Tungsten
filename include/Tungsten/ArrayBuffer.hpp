@@ -22,20 +22,19 @@ namespace Tungsten
     template <typename Item>
     void set_buffers(uint32_t array_buffer, uint32_t element_array_buffer,
                      const ArrayBuffer<Item>& array,
-                     GLenum usage = GL_STATIC_DRAW)
+                     BufferUsage usage = BufferUsage::STATIC_DRAW)
     {
-        bind_buffer(GL_ARRAY_BUFFER, array_buffer);
+        bind_buffer(BufferTarget::ARRAY, array_buffer);
         auto [v_buf, v_size] = array.array_buffer();
-        Tungsten::set_buffer_data(GL_ARRAY_BUFFER, v_size, v_buf, usage);
-        bind_buffer(GL_ELEMENT_ARRAY_BUFFER, element_array_buffer);
+        Tungsten::set_buffer_data(BufferTarget::ARRAY, v_size, v_buf, usage);
+        bind_buffer(BufferTarget::ELEMENT_ARRAY, element_array_buffer);
         auto [i_buf, i_size] = array.index_buffer();
-        Tungsten::set_buffer_data(GL_ELEMENT_ARRAY_BUFFER, i_size, i_buf, usage);
+        Tungsten::set_buffer_data(BufferTarget::ELEMENT_ARRAY, i_size, i_buf, usage);
     }
 
     template <typename Item>
     void set_buffers(VertexArray<Item>& vertex_array,
-                     const ArrayBuffer<Item>& array,
-                     GLenum usage = GL_STATIC_DRAW)
+                     const ArrayBuffer<Item>& array)
     {
         vertex_array.bind();
         vertex_array.vertexes.set_data(array.vertexes);

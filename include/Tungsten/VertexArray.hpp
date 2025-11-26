@@ -24,8 +24,8 @@ namespace Tungsten
         {
             VertexArray array;
             array.vertex_array_ = generate_vertex_array();
-            array.vertexes = Buffer<Element>(GL_ARRAY_BUFFER, usage);
-            array.indexes = Buffer<uint16_t>(GL_ELEMENT_ARRAY_BUFFER, usage);
+            array.vertexes = Buffer<Element>(BufferTarget::ARRAY, usage);
+            array.indexes = Buffer<uint16_t>(BufferTarget::ELEMENT_ARRAY, usage);
             return array;
         }
 

@@ -16,14 +16,14 @@ namespace Tungsten
     public:
         Buffer() = default;
 
-        explicit Buffer(GLenum target, BufferUsage usage = BufferUsage::STATIC_DRAW)
+        explicit Buffer(BufferTarget target, BufferUsage usage = BufferUsage::STATIC_DRAW)
             : buffer_(generate_buffer()),
               target_(target),
               usage_(usage)
         {
         }
 
-        Buffer(std::span<T> data, GLenum target,
+        Buffer(std::span<T> data, BufferTarget target,
                BufferUsage usage = BufferUsage::STATIC_DRAW)
             : buffer_(generate_buffer()),
               target_(target),
@@ -102,12 +102,12 @@ namespace Tungsten
             size_ = std::max(size_, offset + data.size());
         }
 
-        [[nodiscard]] GLenum target() const
+        [[nodiscard]] BufferTarget target() const
         {
             return target_;
         }
 
-        void set_target(GLenum target)
+        void set_target(BufferTarget target)
         {
             target_ = target;
         }
@@ -119,7 +119,7 @@ namespace Tungsten
 
     private:
         BufferHandle buffer_;
-        GLenum target_ = 0;
+        BufferTarget target_ = BufferTarget::ARRAY;
         BufferUsage usage_ = BufferUsage::STATIC_DRAW;
         size_t size_ = 0;
         size_t capacity_ = 0;

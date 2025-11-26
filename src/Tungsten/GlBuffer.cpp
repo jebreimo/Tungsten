@@ -12,6 +12,17 @@
 
 namespace Tungsten
 {
+    GLenum to_ogl_buffer_target(BufferTarget target)
+    {
+        switch (target)
+        {
+        case BufferTarget::ARRAY: return GL_ARRAY_BUFFER;
+        case BufferTarget::ELEMENT_ARRAY: return GL_ELEMENT_ARRAY_BUFFER;
+        default:
+            TUNGSTEN_THROW("Unsupported buffer target: " + std::to_string(static_cast<int>(target)));
+        }
+    }
+
     GLenum to_ogl_buffer_usage(BufferUsage usage)
     {
         switch (usage)
@@ -57,23 +68,23 @@ namespace Tungsten
             buffers[i] = BufferHandle(ids[i]);
     }
 
-    void bind_buffer(GLenum target, uint32_t buffer)
+    void bind_buffer(BufferTarget target, uint32_t buffer)
     {
-        glBindBuffer(target, buffer);
+        glBindBuffer(to_ogl_buffer_target(target), buffer);
         THROW_IF_GL_ERROR();
     }
 
-    void set_buffer_data(GLenum target, ptrdiff_t size, const void* data,
+    void set_buffer_data(BufferTarget target, ptrdiff_t size, const void* data,
                          BufferUsage usage)
     {
-        glBufferData(target, size, data, to_ogl_buffer_usage(usage));
+        glBufferData(to_ogl_buffer_target(target), size, data, to_ogl_buffer_usage(usage));
         THROW_IF_GL_ERROR();
     }
 
-    void set_buffer_subdata(GLenum target, ptrdiff_t offset,
+    void set_buffer_subdata(BufferTarget target, ptrdiff_t offset,
                             ptrdiff_t size, const void* data)
     {
-        glBufferSubData(target, offset, size, data);
+        glBufferSubData(to_ogl_buffer_target(target), offset, size, data);
         THROW_IF_GL_ERROR();
     }
 
@@ -82,8 +93,8 @@ namespace Tungsten
                                   const uint16_t* values,
                                   BufferUsage usage)
     {
-        bind_buffer(GL_ELEMENT_ARRAY_BUFFER, buffer_id);
-        set_buffer_data(GL_ELEMENT_ARRAY_BUFFER,
+        bind_buffer(BufferTarget::ELEMENT_ARRAY, buffer_id);
+        set_buffer_data(BufferTarget::ELEMENT_ARRAY,
                         ptrdiff_t(value_count * sizeof(uint16_t)),
                         values,
                         usage);
@@ -94,18 +105,18 @@ namespace Tungsten
         return glIsBuffer(buffer) != 0;
     }
 
-    int32_t get_buffer_size(GLenum target)
+    int32_t get_buffer_size(BufferTarget target)
     {
         int32_t size;
-        glGetBufferParameteriv(target, GL_BUFFER_SIZE, &size);
+        glGetBufferParameteriv(to_ogl_buffer_target(target), GL_BUFFER_SIZE, &size);
         THROW_IF_GL_ERROR();
         return size;
     }
 
-    BufferUsage get_buffer_usage(GLenum target)
+    BufferUsage get_buffer_usage(BufferTarget target)
     {
         int32_t usage;
-        glGetBufferParameteriv(target, GL_BUFFER_USAGE, &usage);
+        glGetBufferParameteriv(to_ogl_buffer_target(target), GL_BUFFER_USAGE, &usage);
         THROW_IF_GL_ERROR();
         return from_ogl_buffer_usage(usage);
     }

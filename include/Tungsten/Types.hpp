@@ -45,6 +45,12 @@ namespace Tungsten
         DOUBLE
     };
 
+    enum class BufferTarget
+    {
+        ARRAY,
+        ELEMENT_ARRAY
+    };
+
     enum class BufferUsage
     {
         STATIC_DRAW,
