@@ -62,7 +62,7 @@ namespace Tungsten
     {
         auto size = get_program_info_log_length(program_id);
         std::string result(size, '\0');
-        glGetProgramInfoLog(program_id, size, &size, &result[0]);
+        glGetProgramInfoLog(program_id, size, &size, result.data());
         return result;
     }
 

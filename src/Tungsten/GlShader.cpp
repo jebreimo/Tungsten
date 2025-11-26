@@ -28,7 +28,7 @@ namespace Tungsten
 
     ShaderHandle create_shader(ShaderType shader_type)
     {
-        auto id = glCreateShader(to_ogl_shader_type(shader_type));
+        const auto id = glCreateShader(to_ogl_shader_type(shader_type));
         THROW_IF_GL_ERROR();
         return ShaderHandle(id);
     }
@@ -52,14 +52,14 @@ namespace Tungsten
     {
         auto size = get_shader_info_log_length(shader_id);
         std::string result(size, '\0');
-        glGetShaderInfoLog(shader_id, size, &size, &result[0]);
+        glGetShaderInfoLog(shader_id, size, &size, result.data());
         return result;
     }
 
     void set_shader_source(uint32_t shader_id, const std::string& source)
     {
-        auto length = (int32_t)source.size();
-        auto str = source.c_str();
+        const auto length = static_cast<int32_t>(source.size());
+        const auto str = source.c_str();
         glShaderSource(shader_id, 1, &str, &length);
         THROW_IF_GL_ERROR();
     }
