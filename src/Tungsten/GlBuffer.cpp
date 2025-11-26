@@ -12,6 +12,28 @@
 
 namespace Tungsten
 {
+    GLenum to_ogl_buffer_usage(BufferUsage usage)
+    {
+        switch (usage)
+        {
+        case BufferUsage::STATIC_DRAW: return GL_STATIC_DRAW;
+        case BufferUsage::DYNAMIC_DRAW: return GL_DYNAMIC_DRAW;
+        default:
+            TUNGSTEN_THROW("Unsupported buffer usage: " + std::to_string(static_cast<int>(usage)));
+        }
+    }
+
+    BufferUsage from_ogl_buffer_usage(GLenum usage)
+    {
+        switch (usage)
+        {
+        case GL_STATIC_DRAW: return BufferUsage::STATIC_DRAW;
+        case GL_DYNAMIC_DRAW: return BufferUsage::DYNAMIC_DRAW;
+        default:
+            TUNGSTEN_THROW("Unsupported buffer usage: " + std::to_string(static_cast<int>(usage)));
+        }
+    }
+
     void BufferDeleter::operator()(uint32_t id) const
     {
         glDeleteBuffers(1, &id);
@@ -42,9 +64,9 @@ namespace Tungsten
     }
 
     void set_buffer_data(GLenum target, ptrdiff_t size, const void* data,
-                         GLenum usage)
+                         BufferUsage usage)
     {
-        glBufferData(target, size, data, usage);
+        glBufferData(target, size, data, to_ogl_buffer_usage(usage));
         THROW_IF_GL_ERROR();
     }
 
@@ -58,7 +80,7 @@ namespace Tungsten
     void set_element_array_buffer(uint32_t buffer_id,
                                   ptrdiff_t value_count,
                                   const uint16_t* values,
-                                  GLenum usage)
+                                  BufferUsage usage)
     {
         bind_buffer(GL_ELEMENT_ARRAY_BUFFER, buffer_id);
         set_buffer_data(GL_ELEMENT_ARRAY_BUFFER,
@@ -80,11 +102,11 @@ namespace Tungsten
         return size;
     }
 
-    GLenum get_buffer_usage(GLenum target)
+    BufferUsage get_buffer_usage(GLenum target)
     {
         int32_t usage;
         glGetBufferParameteriv(target, GL_BUFFER_USAGE, &usage);
         THROW_IF_GL_ERROR();
-        return GLenum(usage);
+        return from_ogl_buffer_usage(usage);
     }
 }

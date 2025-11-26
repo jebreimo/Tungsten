@@ -16,7 +16,7 @@ namespace Tungsten
     public:
         Buffer() = default;
 
-        explicit Buffer(GLenum target, GLenum usage = GL_STATIC_DRAW)
+        explicit Buffer(GLenum target, BufferUsage usage = BufferUsage::STATIC_DRAW)
             : buffer_(generate_buffer()),
               target_(target),
               usage_(usage)
@@ -24,7 +24,7 @@ namespace Tungsten
         }
 
         Buffer(std::span<T> data, GLenum target,
-               GLenum usage = GL_STATIC_DRAW)
+               BufferUsage usage = BufferUsage::STATIC_DRAW)
             : buffer_(generate_buffer()),
               target_(target),
               usage_(usage)
@@ -112,7 +112,7 @@ namespace Tungsten
             target_ = target;
         }
 
-        [[nodiscard]] GLenum usage() const
+        [[nodiscard]] BufferUsage usage() const
         {
             return usage_;
         }
@@ -120,7 +120,7 @@ namespace Tungsten
     private:
         BufferHandle buffer_;
         GLenum target_ = 0;
-        GLenum usage_ = 0;
+        BufferUsage usage_ = BufferUsage::STATIC_DRAW;
         size_t size_ = 0;
         size_t capacity_ = 0;
     };

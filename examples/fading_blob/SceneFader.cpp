@@ -104,7 +104,7 @@ public:
         for (auto& texture : textures_)
         {
             Tungsten::bind_texture(GL_TEXTURE_2D, texture);
-            Tungsten::set_texture_image_2d(GL_TEXTURE_2D, 0, GL_RGB, size,
+            Tungsten::set_texture_image_2d(GL_TEXTURE_2D, 0, size,
                                            Tungsten::RGB_TEXTURE);
             Tungsten::set_min_filter(GL_TEXTURE_2D, GL_LINEAR);
             Tungsten::set_mag_filter(GL_TEXTURE_2D, GL_LINEAR);

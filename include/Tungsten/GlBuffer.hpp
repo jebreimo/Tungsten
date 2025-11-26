@@ -8,6 +8,7 @@
 #pragma once
 #include <span>
 #include "GlHandle.hpp"
+#include "Types.hpp"
 
 namespace Tungsten
 {
@@ -25,7 +26,7 @@ namespace Tungsten
     void bind_buffer(GLenum target, uint32_t buffer);
 
     void set_buffer_data(GLenum target, ptrdiff_t size,
-                         const void* data, GLenum usage);
+                         const void* data, BufferUsage usage);
 
     void set_buffer_subdata(GLenum target, ptrdiff_t offset,
                             ptrdiff_t size, const void* data);
@@ -33,7 +34,7 @@ namespace Tungsten
     void set_element_array_buffer(uint32_t buffer_id,
                                   ptrdiff_t value_count,
                                   const uint16_t* values,
-                                  GLenum usage);
+                                  BufferUsage usage);
 
     [[nodiscard]]
     bool is_buffer(uint32_t buffer);
@@ -42,5 +43,5 @@ namespace Tungsten
     int32_t get_buffer_size(GLenum target);
 
     [[nodiscard]]
-    GLenum get_buffer_usage(GLenum target);
+    BufferUsage get_buffer_usage(GLenum target);
 }

@@ -36,13 +36,12 @@ namespace Tungsten
     constexpr TextureSourceFormat RGBA_TEXTURE = {TextureFormat::RGBA, TextureType::UINT8};
 
     void set_texture_image_2d(GLenum target, int32_t level,
-                              int32_t internal_format,
                               Size2I size,
                               TextureSourceFormat format,
                               const void* data = nullptr);
 
     void set_texture_storage_2d(GLenum target, int32_t levels,
-                                int32_t internal_format,
+                                TextureFormat format,
                                 Size2I size);
 
     void set_texture_sub_image_2d(GLenum target, int32_t level,

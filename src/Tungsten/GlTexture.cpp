@@ -42,7 +42,7 @@ namespace Tungsten
             }
         }
 
-        GLenum get_ogl_color_format(TextureFormat format)
+        GLenum to_ogl_color_format(TextureFormat format)
         {
             switch (format)
             {
@@ -60,9 +60,9 @@ namespace Tungsten
             }
         }
 
-        GLenum get_ogl_internal_format(TextureFormat format)
+        GLenum to_ogl_internal_format(TextureFormat format)
         {
-            return get_ogl_color_format(format);
+            return to_ogl_color_format(format);
         }
 
         GLenum get_ogl_type(TextureType type)
@@ -77,6 +77,7 @@ namespace Tungsten
                 TUNGSTEN_THROW("Unsupported texture type: " + std::to_string(static_cast<int>(type)));
             }
         }
+
         GLenum map_texture_binding(GLenum target)
         {
             switch (target)
@@ -161,22 +162,21 @@ namespace Tungsten
     }
 
     void set_texture_image_2d(GLenum target, int32_t level,
-                              int32_t internal_format,
                               Size2I size,
                               TextureSourceFormat format,
                               const void* data)
     {
         glTexImage2D(target, level,
-                     static_cast<int32_t>(map_color_format(internal_format)),
+                     to_ogl_internal_format(format.format),
                      size.x(), size.y(), 0,
-                     get_ogl_color_format(format.format), get_ogl_type(format.type), data);
+                     to_ogl_color_format(format.format), get_ogl_type(format.type), data);
         THROW_IF_GL_ERROR();
     }
 
-    void set_texture_storage_2d(GLenum target, int32_t levels, int32_t internal_format, Size2I size)
+    void set_texture_storage_2d(GLenum target, int32_t levels, TextureFormat format, Size2I size)
     {
         glTexStorage2D(target, levels,
-                       static_cast<int32_t>(map_color_format(internal_format)),
+                       to_ogl_internal_format(format),
                        size.x(), size.y());
         THROW_IF_GL_ERROR();
     }
@@ -189,7 +189,7 @@ namespace Tungsten
     {
         glTexSubImage2D(target, level,
                         offset.x(), offset.y(), size.x(), size.y(),
-                        get_ogl_color_format(format.format), get_ogl_type(format.type), data);
+                        to_ogl_color_format(format.format), get_ogl_type(format.type), data);
         THROW_IF_GL_ERROR();
     }
 

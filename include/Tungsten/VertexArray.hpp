@@ -20,7 +20,7 @@ namespace Tungsten
 
         VertexArray() = default;
 
-        static VertexArray create(GLenum usage = GL_STATIC_DRAW)
+        static VertexArray create(BufferUsage usage = BufferUsage::STATIC_DRAW)
         {
             VertexArray array;
             array.vertex_array_ = generate_vertex_array();
@@ -29,7 +29,7 @@ namespace Tungsten
             return array;
         }
 
-        static VertexArray create_and_bind(GLenum usage = GL_STATIC_DRAW)
+        static VertexArray create_and_bind(BufferUsage usage = BufferUsage::STATIC_DRAW)
         {
             VertexArray array = create(usage);
             array.bind();
