@@ -111,9 +111,10 @@ add_library(Tungsten STATIC
     src/Tungsten/TungstenException.cpp
     src/Tungsten/Uniform.cpp
     src/Tungsten/YimageGl.cpp
-        src/Tungsten/OpenGlWrapper.h
+        src/Tungsten/IOpenGlWrapper.h
         src/Tungsten/GlTypeConversion.cpp
         src/Tungsten/GlTypeConversion.h
+        src/Tungsten/OpenGlWrapper.h
 )
 
 target_link_libraries(Tungsten
