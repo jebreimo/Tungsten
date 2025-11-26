@@ -63,4 +63,11 @@ namespace Tungsten
         DRAW,
         READ
     };
+
+    enum class FrameBufferAttachment
+    {
+        COLOR0,
+        DEPTH,
+        STENCIL
+    };
 }

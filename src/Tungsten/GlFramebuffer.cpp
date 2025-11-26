@@ -24,6 +24,17 @@ namespace Tungsten
         }
     }
 
+    GLenum to_ogl_framebuffer_attachment(FrameBufferAttachment attachment)
+    {
+        switch (attachment)
+        {
+        case FrameBufferAttachment::COLOR0: return GL_COLOR_ATTACHMENT0;
+        case FrameBufferAttachment::DEPTH: return GL_DEPTH_ATTACHMENT;
+        case FrameBufferAttachment::STENCIL: return GL_STENCIL_ATTACHMENT;
+        default: TUNGSTEN_THROW("Unsupported framebuffer attachment: " + std::to_string(static_cast<int>(attachment)));
+        }
+    }
+
     void FramebufferDeleter::operator()(uint32_t id) const
     {
         glDeleteFramebuffers(1, &id);
@@ -53,12 +64,14 @@ namespace Tungsten
     }
 
     void framebuffer_texture_2d(FramebufferTarget target,
-                                GLenum attachment,
+                                FrameBufferAttachment attachment,
                                 GLenum tex_target,
                                 uint32_t texture,
                                 int32_t level)
     {
-        glFramebufferTexture2D(to_ogl_framebuffer_target(target), attachment, tex_target, texture, level);
+        glFramebufferTexture2D(to_ogl_framebuffer_target(target),
+                               to_ogl_framebuffer_attachment(attachment),
+                               tex_target, texture, level);
         THROW_IF_GL_ERROR();
     }
 

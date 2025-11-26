@@ -28,7 +28,7 @@ namespace Tungsten
     uint32_t bound_framebuffer(FramebufferTarget target);
 
     void framebuffer_texture_2d(FramebufferTarget target,
-                                GLenum attachment,
+                                FrameBufferAttachment attachment,
                                 GLenum tex_target,
                                 uint32_t texture,
                                 int32_t level = 0);

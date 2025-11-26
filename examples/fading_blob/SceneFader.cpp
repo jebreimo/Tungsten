@@ -115,7 +115,7 @@ public:
     {
         Tungsten::bind_framebuffer(Tungsten::FramebufferTarget::FRAMEBUFFER, frame_buffer_);
         Tungsten::framebuffer_texture_2d(Tungsten::FramebufferTarget::FRAMEBUFFER,
-                                         GL_COLOR_ATTACHMENT0,
+                                         Tungsten::FrameBufferAttachment::COLOR0,
                                          GL_TEXTURE_2D,
                                          textures_[index_]);
 
