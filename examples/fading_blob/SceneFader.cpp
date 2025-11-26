@@ -103,11 +103,11 @@ public:
     {
         for (auto& texture : textures_)
         {
-            Tungsten::bind_texture(GL_TEXTURE_2D, texture);
-            Tungsten::set_texture_image_2d(GL_TEXTURE_2D, 0, size,
+            Tungsten::bind_texture(Tungsten::TextureTarget::TEXTURE_2D, texture);
+            Tungsten::set_texture_image_2d(Tungsten::TextureTarget2D::TEXTURE_2D, 0, size,
                                            Tungsten::RGB_TEXTURE);
-            Tungsten::set_min_filter(GL_TEXTURE_2D, GL_LINEAR);
-            Tungsten::set_mag_filter(GL_TEXTURE_2D, GL_LINEAR);
+            Tungsten::set_min_filter(Tungsten::TextureTarget::TEXTURE_2D, GL_LINEAR);
+            Tungsten::set_mag_filter(Tungsten::TextureTarget::TEXTURE_2D, GL_LINEAR);
         }
     }
 
@@ -116,11 +116,11 @@ public:
         Tungsten::bind_framebuffer(Tungsten::FramebufferTarget::FRAMEBUFFER, frame_buffer_);
         Tungsten::framebuffer_texture_2d(Tungsten::FramebufferTarget::FRAMEBUFFER,
                                          Tungsten::FrameBufferAttachment::COLOR0,
-                                         GL_TEXTURE_2D,
+                                         Tungsten::TextureTarget2D::TEXTURE_2D,
                                          textures_[index_]);
 
         Tungsten::activate_texture_unit(0);
-        Tungsten::bind_texture(GL_TEXTURE_2D, textures_[1 - index_]);
+        Tungsten::bind_texture(Tungsten::TextureTarget::TEXTURE_2D, textures_[1 - index_]);
         use_program(program_.program);
         program_.texture.set(0);
         program_.color_delta.set({-1.f / 256.f, -1.f / 256.f, -1.f / 256.f});
@@ -132,7 +132,7 @@ public:
     {
         Tungsten::bind_framebuffer(Tungsten::FramebufferTarget::FRAMEBUFFER, 0);
         Tungsten::activate_texture_unit(0);
-        Tungsten::bind_texture(GL_TEXTURE_2D, textures_[1 - index_]);
+        Tungsten::bind_texture(Tungsten::TextureTarget::TEXTURE_2D, textures_[1 - index_]);
         use_program(program_.program);
         program_.texture.set(0);
         program_.color_delta.set({0.f, 0.f, 0.f});

@@ -8,43 +8,12 @@
 #include "Tungsten/GlBuffer.hpp"
 
 #include <vector>
+
+#include "GlTypeConversion.h"
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
 {
-    GLenum to_ogl_buffer_target(BufferTarget target)
-    {
-        switch (target)
-        {
-        case BufferTarget::ARRAY: return GL_ARRAY_BUFFER;
-        case BufferTarget::ELEMENT_ARRAY: return GL_ELEMENT_ARRAY_BUFFER;
-        default:
-            TUNGSTEN_THROW("Unsupported buffer target: " + std::to_string(static_cast<int>(target)));
-        }
-    }
-
-    GLenum to_ogl_buffer_usage(BufferUsage usage)
-    {
-        switch (usage)
-        {
-        case BufferUsage::STATIC_DRAW: return GL_STATIC_DRAW;
-        case BufferUsage::DYNAMIC_DRAW: return GL_DYNAMIC_DRAW;
-        default:
-            TUNGSTEN_THROW("Unsupported buffer usage: " + std::to_string(static_cast<int>(usage)));
-        }
-    }
-
-    BufferUsage from_ogl_buffer_usage(GLenum usage)
-    {
-        switch (usage)
-        {
-        case GL_STATIC_DRAW: return BufferUsage::STATIC_DRAW;
-        case GL_DYNAMIC_DRAW: return BufferUsage::DYNAMIC_DRAW;
-        default:
-            TUNGSTEN_THROW("Unsupported buffer usage: " + std::to_string(static_cast<int>(usage)));
-        }
-    }
-
     void BufferDeleter::operator()(uint32_t id) const
     {
         glDeleteBuffers(1, &id);

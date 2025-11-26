@@ -21,7 +21,7 @@ namespace Tungsten
         RGBA
     };
 
-    enum class TextureType
+    enum class TextureValueType
     {
         UINT8,
         FLOAT
@@ -30,7 +30,7 @@ namespace Tungsten
     struct TextureSourceFormat
     {
         TextureFormat format;
-        TextureType type;
+        TextureValueType type;
     };
 
     enum class AttributeType
@@ -69,5 +69,24 @@ namespace Tungsten
         COLOR0,
         DEPTH,
         STENCIL
+    };
+
+    enum class TextureTarget
+    {
+        TEXTURE_2D,
+        CUBE_MAP,
+        TEXTURE_3D,
+        ARRAY_2D
+    };
+
+    enum class TextureTarget2D
+    {
+        TEXTURE_2D,
+        CUBE_MAP_POSITIVE_X,
+        CUBE_MAP_POSITIVE_Y,
+        CUBE_MAP_POSITIVE_Z,
+        CUBE_MAP_NEGATIVE_X,
+        CUBE_MAP_NEGATIVE_Y,
+        CUBE_MAP_NEGATIVE_Z,
     };
 }

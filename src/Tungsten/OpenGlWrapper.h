@@ -7,7 +7,7 @@
 //****************************************************************************
 #pragma once
 
-namespace
+namespace Tungsten
 {
     class OpenGlWrapper
     {

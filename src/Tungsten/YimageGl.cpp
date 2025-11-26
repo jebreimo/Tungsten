@@ -22,11 +22,11 @@ namespace Tungsten
         switch (type)
         {
             case Yimage::PixelType::MONO_8:
-                return {TextureFormat::R, TextureType::UINT8};
+                return {TextureFormat::R, TextureValueType::UINT8};
             case Yimage::PixelType::RGB_8:
-                return {TextureFormat::RGB, TextureType::UINT8};
+                return {TextureFormat::RGB, TextureValueType::UINT8};
             case Yimage::PixelType::RGBA_8:
-                return {TextureFormat::RGBA, TextureType::UINT8};
+                return {TextureFormat::RGBA, TextureValueType::UINT8};
             case Yimage::PixelType::MONO_ALPHA_8:
             case Yimage::PixelType::MONO_1:
             case Yimage::PixelType::MONO_2:

@@ -202,7 +202,7 @@ namespace Tungsten
         use_program(data_->program.program);
 
         activate_texture_unit(0);
-        bind_texture(GL_TEXTURE_2D, data_->texture);
+        bind_texture(TextureTarget::TEXTURE_2D, data_->texture);
 
         auto [buffer, rect] = make_text_array_buffer(*font_, text,
                                                      properties.line_gap);
@@ -227,14 +227,14 @@ namespace Tungsten
         data_->texture = generate_texture();
 
         activate_texture_unit(0);
-        bind_texture(GL_TEXTURE_2D, data_->texture);
+        bind_texture(TextureTarget::TEXTURE_2D, data_->texture);
 
-        set_min_filter(GL_TEXTURE_2D,GL_LINEAR);
-        set_mag_filter(GL_TEXTURE_2D,GL_LINEAR);
-        set_wrap_s(GL_TEXTURE_2D,GL_CLAMP_TO_EDGE);
-        set_wrap_t(GL_TEXTURE_2D,GL_CLAMP_TO_EDGE);
+        set_min_filter(TextureTarget::TEXTURE_2D,GL_LINEAR);
+        set_mag_filter(TextureTarget::TEXTURE_2D,GL_LINEAR);
+        set_wrap_s(TextureTarget::TEXTURE_2D,GL_CLAMP_TO_EDGE);
+        set_wrap_t(TextureTarget::TEXTURE_2D,GL_CLAMP_TO_EDGE);
 
-        set_texture_image_2d(GL_TEXTURE_2D, 0,
+        set_texture_image_2d(TextureTarget2D::TEXTURE_2D, 0,
                              image_size(),
                              get_ogl_pixel_type(font_->image.pixel_type()),
                              font_->image.data());
