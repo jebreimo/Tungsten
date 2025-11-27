@@ -9,8 +9,8 @@
 
 #include <vector>
 
-#include "GlTypeConversion.h"
-#include "Tungsten/IOglWrapper.h"
+#include "GlTypeConversion.hpp"
+#include "Tungsten/IOglWrapper.hpp"
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten

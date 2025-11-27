@@ -9,7 +9,7 @@
 
 #include <vector>
 
-#include "GlTypeConversion.h"
+#include "GlTypeConversion.hpp"
 #include "Tungsten/Environment.hpp"
 #include "Tungsten/TungstenException.hpp"
 

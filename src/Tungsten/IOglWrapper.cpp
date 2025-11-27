@@ -5,9 +5,9 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/IOglWrapper.h"
+#include "Tungsten/IOglWrapper.hpp"
 
-#include "OglWrapper.h"
+#include "OglWrapper.hpp"
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten

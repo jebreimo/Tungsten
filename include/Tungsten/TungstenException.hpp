@@ -10,7 +10,7 @@
 #include <string>
 #include <GL/glew.h>
 #include <SDL3/SDL.h>
-#include "IOglWrapper.h"
+#include "IOglWrapper.hpp"
 
 namespace Tungsten
 {

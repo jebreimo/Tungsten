@@ -5,7 +5,7 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "GlTypeConversion.h"
+#include "GlTypeConversion.hpp"
 
 #include "Tungsten/Environment.hpp"
 #include "Tungsten/TungstenException.hpp"
