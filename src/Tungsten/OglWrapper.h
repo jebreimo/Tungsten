@@ -6,12 +6,12 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include "IOpenGlWrapper.h"
+#include "Tungsten/IOglWrapper.h"
 #include <GL/glew.h>
 
 namespace Tungsten
 {
-    class OpenGlWrapper final : public IOpenGlWrapper
+    class OglWrapper final : public IOglWrapper
     {
     public:
         void activeTexture(GLenum texture) override

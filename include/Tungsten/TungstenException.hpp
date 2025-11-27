@@ -10,6 +10,7 @@
 #include <string>
 #include <GL/glew.h>
 #include <SDL3/SDL.h>
+#include "IOglWrapper.h"
 
 namespace Tungsten
 {
@@ -41,7 +42,7 @@ namespace Tungsten
 
 #define THROW_IF_GL_ERROR() \
     do { \
-        auto my_gl_error = glGetError(); \
+        auto my_gl_error = getOglWrapper()->getError(); \
         if (!my_gl_error) \
             break; \
         throw IMPL_TUNGSTEN_EXCEPTION_1(__FILE__, __LINE__, \

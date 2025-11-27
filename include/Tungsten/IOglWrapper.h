@@ -7,6 +7,7 @@
 //****************************************************************************
 #pragma once
 #include <cstddef>
+#include <memory>
 
 using GLenum = unsigned int;
 using GLuint = unsigned int;
@@ -22,10 +23,10 @@ using GLfloat = float;
 
 namespace Tungsten
 {
-    class IOpenGlWrapper
+    class IOglWrapper
     {
     public:
-        virtual ~IOpenGlWrapper() = default;
+        virtual ~IOglWrapper() = default;
 
         virtual void activeTexture(GLenum texture) = 0;
 
@@ -187,4 +188,16 @@ namespace Tungsten
 
         virtual void viewport(GLint x, GLint y, GLsizei width, GLsizei height) = 0;
     };
+
+    enum class StandardOglWrapper
+    {
+        DEFAULT,
+        TRACING
+    };
+
+    IOglWrapper* getOglWrapper();
+
+    std::unique_ptr<IOglWrapper> setOglWrapper(std::unique_ptr<IOglWrapper> wrapper);
+
+    std::unique_ptr<IOglWrapper> setOglWrapper(StandardOglWrapper wrapperType);
 }
