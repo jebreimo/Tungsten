@@ -11,392 +11,392 @@
 
 namespace Tungsten
 {
-    class OpenGlWrapper : public IOpenGlWrapper
+    class OpenGlWrapper final : public IOpenGlWrapper
     {
     public:
-        void glActiveTexture(GLenum texture) override
+        void activeTexture(GLenum texture) override
         {
-            ::glActiveTexture(texture);
+            glActiveTexture(texture);
         }
 
-        void glAttachShader(GLuint program, GLuint shader) override
+        void attachShader(GLuint program, GLuint shader) override
         {
-            ::glAttachShader(program, shader);
+            glAttachShader(program, shader);
         }
 
-        void glBindBuffer(GLenum target, GLuint buffer) override
+        void bindBuffer(GLenum target, GLuint buffer) override
         {
-            ::glBindBuffer(target, buffer);
+            glBindBuffer(target, buffer);
         }
 
-        void glBindFramebuffer(GLenum target, GLuint framebuffer) override
+        void bindFramebuffer(GLenum target, GLuint framebuffer) override
         {
-            ::glBindFramebuffer(target, framebuffer);
+            glBindFramebuffer(target, framebuffer);
         }
 
-        void glBindTexture(GLenum target, GLuint texture) override
+        void bindTexture(GLenum target, GLuint texture) override
         {
-            ::glBindTexture(target, texture);
+            glBindTexture(target, texture);
         }
 
-        void glBindVertexArray(GLuint array) override
+        void bindVertexArray(GLuint array) override
         {
-            ::glBindVertexArray(array);
+            glBindVertexArray(array);
         }
 
-        void glBlendFunc(GLenum sFactor, GLenum dFactor) override
+        void blendFunc(GLenum sFactor, GLenum dFactor) override
         {
-            ::glBlendFunc(sFactor, dFactor);
+            glBlendFunc(sFactor, dFactor);
         }
 
-        void glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage) override
+        void bufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage) override
         {
-            ::glBufferData(target, size, data, usage);
+            glBufferData(target, size, data, usage);
         }
 
-        void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void *data) override
+        void bufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void *data) override
         {
-            ::glBufferSubData(target, offset, size, data);
+            glBufferSubData(target, offset, size, data);
         }
 
-        GLenum glCheckFramebufferStatus(GLenum target) override
+        GLenum checkFramebufferStatus(GLenum target) override
         {
-            ::glCheckFramebufferStatus(target);
+            return glCheckFramebufferStatus(target);
         }
 
-        void glClear(GLbitfield mask) override
+        void clear(GLbitfield mask) override
         {
-            ::glClear(mask);
+            glClear(mask);
         }
 
-        void glClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha) override
+        void clearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha) override
         {
-            ::glClearColor(red, green, blue, alpha);
+            glClearColor(red, green, blue, alpha);
         }
 
-        void glCompileShader(GLuint shader) override
+        void compileShader(GLuint shader) override
         {
-            ::glCompileShader(shader);
+            glCompileShader(shader);
         }
 
-        void glCopyTexSubImage2D(GLenum target, GLint level, GLint xOffset, GLint yOffset, GLint x, GLint y, GLsizei width, GLsizei height) override
+        void copyTexSubImage2D(GLenum target, GLint level, GLint xOffset, GLint yOffset, GLint x, GLint y, GLsizei width, GLsizei height) override
         {
-            ::glCopyTexSubImage2D(target, level, xOffset, yOffset, x, y, width, height);
+            glCopyTexSubImage2D(target, level, xOffset, yOffset, x, y, width, height);
         }
 
-        GLuint glCreateProgram() override
+        GLuint createProgram() override
         {
-            ::glCreateProgram();
+            return glCreateProgram();
         }
 
-        GLuint glCreateShader(GLenum type) override
+        GLuint createShader(GLenum type) override
         {
-            ::glCreateShader(type);
+            return glCreateShader(type);
         }
 
-        void glDeleteBuffers(GLsizei n, const GLuint *buffers) override
+        void deleteBuffers(GLsizei n, const GLuint *buffers) override
         {
-            ::glDeleteBuffers(n, buffers);
+            glDeleteBuffers(n, buffers);
         }
 
-        void glDeleteFramebuffers(GLsizei n, const GLuint *framebuffers) override
+        void deleteFramebuffers(GLsizei n, const GLuint *framebuffers) override
         {
-            ::glDeleteFramebuffers(n, framebuffers);
+            glDeleteFramebuffers(n, framebuffers);
         }
 
-        void glDeleteProgram(GLuint program) override
+        void deleteProgram(GLuint program) override
         {
-            ::glDeleteProgram(program);
+            glDeleteProgram(program);
         }
 
-        void glDeleteShader(GLuint shader) override
+        void deleteShader(GLuint shader) override
         {
-            ::glDeleteShader(shader);
+            glDeleteShader(shader);
         }
 
-        void glDeleteTextures(GLsizei n, const GLuint *textures) override
+        void deleteTextures(GLsizei n, const GLuint *textures) override
         {
-            ::glDeleteTextures(n, textures);
+            glDeleteTextures(n, textures);
         }
 
-        void glDeleteVertexArrays(GLsizei n, const GLuint *arrays) override
+        void deleteVertexArrays(GLsizei n, const GLuint *arrays) override
         {
-            ::glDeleteVertexArrays(n, arrays);
+            glDeleteVertexArrays(n, arrays);
         }
 
-        void glDisable(GLenum cap) override
+        void disable(GLenum cap) override
         {
-            ::glDisable(cap);
+            glDisable(cap);
         }
 
-        void glDisableVertexAttribArray(GLuint index) override
+        void disableVertexAttribArray(GLuint index) override
         {
-            ::glDisableVertexAttribArray(index);
+            glDisableVertexAttribArray(index);
         }
 
-        void glDrawArrays(GLenum mode, GLint first, GLsizei count) override
+        void drawArrays(GLenum mode, GLint first, GLsizei count) override
         {
-            ::glDrawArrays(mode, first, count);
+            glDrawArrays(mode, first, count);
         }
 
-        void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void *indices) override
+        void drawElements(GLenum mode, GLsizei count, GLenum type, const void *indices) override
         {
-            ::glDrawElements(mode, count, type, indices);
+            glDrawElements(mode, count, type, indices);
         }
 
-        void glEnable(GLenum cap) override
+        void enable(GLenum cap) override
         {
-            ::glEnable(cap);
+            glEnable(cap);
         }
 
-        void glEnableVertexAttribArray(GLuint index) override
+        void enableVertexAttribArray(GLuint index) override
         {
-            ::glEnableVertexAttribArray(index);
+            glEnableVertexAttribArray(index);
         }
 
-        void glFinish() override
+        void finish() override
         {
-            ::glFinish();
+            glFinish();
         }
 
-        void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum texTarget, GLuint texture, GLint level) override
+        void framebufferTexture2D(GLenum target, GLenum attachment, GLenum texTarget, GLuint texture, GLint level) override
         {
-            ::glFramebufferTexture2D(target, attachment, texTarget, texture, level);
+            glFramebufferTexture2D(target, attachment, texTarget, texture, level);
         }
 
-        void glGenBuffers(GLsizei n, GLuint *buffers) override
+        void genBuffers(GLsizei n, GLuint *buffers) override
         {
-            ::glGenBuffers(n, buffers);
+            glGenBuffers(n, buffers);
         }
 
-        void glGenerateMipmap(GLenum target) override
+        void generateMipmap(GLenum target) override
         {
-            ::glGenerateMipmap(target);
+            glGenerateMipmap(target);
         }
 
-        void glGenFramebuffers(GLsizei n, GLuint *framebuffers) override
+        void genFramebuffers(GLsizei n, GLuint *framebuffers) override
         {
-            ::glGenFramebuffers(n, framebuffers);
+            glGenFramebuffers(n, framebuffers);
         }
 
-        void glGenTextures(GLsizei n, GLuint *textures) override
+        void genTextures(GLsizei n, GLuint *textures) override
         {
-            ::glGenTextures(n, textures);
+            glGenTextures(n, textures);
         }
 
-        void glGenVertexArrays(GLsizei n, GLuint *arrays) override
+        void genVertexArrays(GLsizei n, GLuint *arrays) override
         {
-            ::glGenVertexArrays(n, arrays);
+            glGenVertexArrays(n, arrays);
         }
 
-        GLint glGetAttribLocation(GLuint program, const GLchar *name) override
+        GLint getAttribLocation(GLuint program, const GLchar *name) override
         {
-            ::glGetAttribLocation(program, name);
+            return glGetAttribLocation(program, name);
         }
 
-        void glGetBufferParameteriv(GLenum target, GLenum pname, GLint *params) override
+        void getBufferParameteriv(GLenum target, GLenum pname, GLint *params) override
         {
-            ::glGetBufferParameteriv(target, pname, params);
+            glGetBufferParameteriv(target, pname, params);
         }
 
-        GLenum glGetError() override
+        GLenum getError() override
         {
-            return ::glGetError();
+            return glGetError();
         }
 
-        void glGetIntegerv(GLenum pname, GLint *params) override
+        void getIntegerv(GLenum pname, GLint *params) override
         {
-            ::glGetIntegerv(pname, params);
+            glGetIntegerv(pname, params);
         }
 
-        void glGetProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog) override
+        void getProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog) override
         {
-            ::glGetProgramInfoLog(program, bufSize, length, infoLog);
+            glGetProgramInfoLog(program, bufSize, length, infoLog);
         }
 
-        void glGetProgramiv(GLuint program, GLenum pname, GLint *param) override
+        void getProgramiv(GLuint program, GLenum pname, GLint *param) override
         {
-            ::glGetProgramiv(program, pname, param);
+            glGetProgramiv(program, pname, param);
         }
 
-        void glGetShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog) override
+        void getShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog) override
         {
-            ::glGetShaderInfoLog(shader, bufSize, length, infoLog);
+            glGetShaderInfoLog(shader, bufSize, length, infoLog);
         }
 
-        void glGetShaderiv(GLuint shader, GLenum pname, GLint *param) override
+        void getShaderiv(GLuint shader, GLenum pname, GLint *param) override
         {
-            ::glGetShaderiv(shader, pname, param);
+            glGetShaderiv(shader, pname, param);
         }
 
-        void glGetTexParameterfv(GLenum target, GLenum pname, GLfloat *params) override
+        void getTexParameterfv(GLenum target, GLenum pname, GLfloat *params) override
         {
-            ::glGetTexParameterfv(target, pname, params);
+            glGetTexParameterfv(target, pname, params);
         }
 
-        void glGetTexParameteriv(GLenum target, GLenum pname, GLint *params) override
+        void getTexParameteriv(GLenum target, GLenum pname, GLint *params) override
         {
-            ::glGetTexParameteriv(target, pname, params);
+            glGetTexParameteriv(target, pname, params);
         }
 
-        GLint glGetUniformLocation(GLuint program, const GLchar *name) override
+        GLint getUniformLocation(GLuint program, const GLchar *name) override
         {
-            ::glGetUniformLocation(program, name);
+            return glGetUniformLocation(program, name);
         }
 
-        GLboolean glIsBuffer(GLuint buffer) override
+        GLboolean isBuffer(GLuint buffer) override
         {
-            ::glIsBuffer(buffer);
+            return glIsBuffer(buffer);
         }
 
-        GLboolean glIsEnabled(GLenum cap) override
+        GLboolean isEnabled(GLenum cap) override
         {
-            return ::glIsEnabled(cap);
+            return glIsEnabled(cap);
         }
 
-        void glLinkProgram(GLuint program) override
+        void linkProgram(GLuint program) override
         {
-            ::glLinkProgram(program);
+            glLinkProgram(program);
         }
 
-        void glShaderSource(GLuint shader, GLsizei count, const GLchar * const *string, const GLint *length) override
+        void shaderSource(GLuint shader, GLsizei count, const GLchar * const *string, const GLint *length) override
         {
-            ::glShaderSource(shader, count, string, length);
+            glShaderSource(shader, count, string, length);
         }
 
-        void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels) override
+        void texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels) override
         {
-            ::glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
+            glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
         }
 
-        void glTexParameterf(GLenum target, GLenum pname, GLfloat param) override
+        void texParameterf(GLenum target, GLenum pname, GLfloat param) override
         {
-            ::glTexParameterf(target, pname, param);
+            glTexParameterf(target, pname, param);
         }
 
-        void glTexParameteri(GLenum target, GLenum pname, GLint param) override
+        void texParameteri(GLenum target, GLenum pname, GLint param) override
         {
-            ::glTexParameteri(target, pname, param);
+            glTexParameteri(target, pname, param);
         }
 
-        void glTexStorage2D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height) override
+        void texStorage2D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height) override
         {
-            ::glTexStorage2D(target, levels, internalformat, width, height);
+            glTexStorage2D(target, levels, internalformat, width, height);
         }
 
-        void glTexSubImage2D(GLenum target, GLint level, GLint xOffset, GLint yOffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels) override
+        void texSubImage2D(GLenum target, GLint level, GLint xOffset, GLint yOffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels) override
         {
-            ::glTexSubImage2D(target, level, xOffset, yOffset, width, height, format, type, pixels);
+            glTexSubImage2D(target, level, xOffset, yOffset, width, height, format, type, pixels);
         }
 
-        void glUniform1f(GLint location, GLfloat v0) override
+        void uniform1f(GLint location, GLfloat v0) override
         {
-            ::glUniform1f(location, v0);
+            glUniform1f(location, v0);
         }
 
-        void glUniform1i(GLint location, GLint v0) override
+        void uniform1i(GLint location, GLint v0) override
         {
-            ::glUniform1i(location, v0);
+            glUniform1i(location, v0);
         }
 
-        void glUniform1fv(GLint location, GLsizei count, GLfloat *value) override
+        void uniform1fv(GLint location, GLsizei count, GLfloat *value) override
         {
-            ::glUniform1fv(location, count, value);
+            glUniform1fv(location, count, value);
         }
 
-        void glUniform1iv(GLint location, GLsizei count, GLint *value) override
+        void uniform1iv(GLint location, GLsizei count, GLint *value) override
         {
-            ::glUniform1iv(location, count, value);
+            glUniform1iv(location, count, value);
         }
 
-        void glUniform2f(GLint location, GLfloat v0, GLfloat v1) override
+        void uniform2f(GLint location, GLfloat v0, GLfloat v1) override
         {
-            ::glUniform2f(location, v0, v1);
+            glUniform2f(location, v0, v1);
         }
 
-        void glUniform2i(GLint location, GLint v0, GLint v1) override
+        void uniform2i(GLint location, GLint v0, GLint v1) override
         {
-            ::glUniform2i(location, v0, v1);
+            glUniform2i(location, v0, v1);
         }
 
-        void glUniform2fv(GLint location, GLsizei count, GLfloat *value) override
+        void uniform2fv(GLint location, GLsizei count, GLfloat *value) override
         {
-            ::glUniform2fv(location, count, value);
+            glUniform2fv(location, count, value);
         }
 
-        void glUniform2iv(GLint location, GLsizei count, GLint *value) override
+        void uniform2iv(GLint location, GLsizei count, GLint *value) override
         {
-            ::glUniform2iv(location, count, value);
+            glUniform2iv(location, count, value);
         }
 
-        void glUniform3f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2) override
+        void uniform3f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2) override
         {
-            ::glUniform3f(location, v0, v1, v2);
+            glUniform3f(location, v0, v1, v2);
         }
 
-        void glUniform3i(GLint location, GLint v0, GLint v1, GLint v2) override
+        void uniform3i(GLint location, GLint v0, GLint v1, GLint v2) override
         {
-            ::glUniform3i(location, v0, v1, v2);
+            glUniform3i(location, v0, v1, v2);
         }
 
-        void glUniform3fv(GLint location, GLsizei count, GLfloat *value) override
+        void uniform3fv(GLint location, GLsizei count, GLfloat *value) override
         {
-            ::glUniform3fv(location, count, value);
+            glUniform3fv(location, count, value);
         }
 
-        void glUniform3iv(GLint location, GLsizei count, GLint *value) override
+        void uniform3iv(GLint location, GLsizei count, GLint *value) override
         {
-            ::glUniform3iv(location, count, value);
+            glUniform3iv(location, count, value);
         }
 
-        void glUniform4f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3) override
+        void uniform4f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3) override
         {
-            ::glUniform4f(location, v0, v1, v2, v3);
+            glUniform4f(location, v0, v1, v2, v3);
         }
 
-        void glUniform4i(GLint location, GLint v0, GLint v1, GLint v2, GLint v3) override
+        void uniform4i(GLint location, GLint v0, GLint v1, GLint v2, GLint v3) override
         {
-            ::glUniform4i(location, v0, v1, v2, v3);
+            glUniform4i(location, v0, v1, v2, v3);
         }
 
-        void glUniform4fv(GLint location, GLsizei count, GLfloat *value) override
+        void uniform4fv(GLint location, GLsizei count, GLfloat *value) override
         {
-            ::glUniform4fv(location, count, value);
+            glUniform4fv(location, count, value);
         }
 
-        void glUniform4iv(GLint location, GLsizei count, GLint *value) override
+        void uniform4iv(GLint location, GLsizei count, GLint *value) override
         {
-            ::glUniform4iv(location, count, value);
+            glUniform4iv(location, count, value);
         }
 
-        void glUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) override
+        void uniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) override
         {
-            ::glUniformMatrix2fv(location, count, transpose, value);
+            glUniformMatrix2fv(location, count, transpose, value);
         }
 
-        void glUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) override
+        void uniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) override
         {
-            ::glUniformMatrix3fv(location, count, transpose, value);
+            glUniformMatrix3fv(location, count, transpose, value);
         }
 
-        void glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) override
+        void uniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) override
         {
-            ::glUniformMatrix4fv(location, count, transpose, value);
+            glUniformMatrix4fv(location, count, transpose, value);
         }
 
-        void glUseProgram(GLuint program) override
+        void useProgram(GLuint program) override
         {
-            ::glUseProgram(program);
+            glUseProgram(program);
         }
 
-        void glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer) override
+        void vertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer) override
         {
-            ::glVertexAttribPointer(index, size, type, normalized, stride, pointer);
+            glVertexAttribPointer(index, size, type, normalized, stride, pointer);
         }
 
-        void glViewport(GLint x, GLint y, GLsizei width, GLsizei height) override
+        void viewport(GLint x, GLint y, GLsizei width, GLsizei height) override
         {
-            ::glViewport(x, y, width, height);
+            glViewport(x, y, width, height);
         }
     };
 }
