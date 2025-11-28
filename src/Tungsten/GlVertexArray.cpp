@@ -14,14 +14,14 @@ namespace Tungsten
 {
     void GlVertexArrayDeleter::operator()(uint32_t id) const
     {
-        glDeleteVertexArrays(1, &id);
+        get_ogl_wrapper().deleteVertexArrays(1, &id);
         THROW_IF_GL_ERROR();
     }
 
     VertexArrayHandle generate_vertex_array()
     {
         uint32_t id;
-        glGenVertexArrays(1, &id);
+        get_ogl_wrapper().genVertexArrays(1, &id);
         THROW_IF_GL_ERROR();
         return VertexArrayHandle(id);
     }
@@ -29,7 +29,7 @@ namespace Tungsten
     void generate_vertex_arrays(std::span<VertexArrayHandle> vertex_arrays)
     {
         auto ids = std::vector<uint32_t>(vertex_arrays.size());
-        glGenVertexArrays(static_cast<int32_t>(ids.size()), ids.data());
+        get_ogl_wrapper().genVertexArrays(static_cast<int32_t>(ids.size()), ids.data());
         THROW_IF_GL_ERROR();
         for (size_t i = 0; i < ids.size(); ++i)
             vertex_arrays[i] = VertexArrayHandle(ids[i]);
@@ -37,19 +37,19 @@ namespace Tungsten
 
     void bind_vertex_array(uint32_t vertex_array)
     {
-        glBindVertexArray(vertex_array);
+        get_ogl_wrapper().bindVertexArray(vertex_array);
         THROW_IF_GL_ERROR();
     }
 
     void enable_vertex_attribute(uint32_t location)
     {
-        glEnableVertexAttribArray(location);
+        get_ogl_wrapper().enableVertexAttribArray(location);
         THROW_IF_GL_ERROR();
     }
 
     void disable_vertex_attribute(uint32_t location)
     {
-        glDisableVertexAttribArray(location);
+        get_ogl_wrapper().disableVertexAttribArray(location);
         THROW_IF_GL_ERROR();
     }
 
@@ -60,7 +60,7 @@ namespace Tungsten
                                          size_t offset,
                                          bool normalized)
     {
-        glVertexAttribPointer(location, size, type,
+        get_ogl_wrapper().vertexAttribPointer(location, size, type,
                               GLboolean(normalized ? 1 : 0),
                               stride,
                               reinterpret_cast<void*>(offset));

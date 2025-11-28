@@ -14,13 +14,13 @@ namespace Tungsten
 {
     void ShaderDeleter::operator()(uint32_t id) const
     {
-        glDeleteShader(id);
+        get_ogl_wrapper().deleteShader(id);
         THROW_IF_GL_ERROR();
     }
 
     void compile_shader(uint32_t shader_id)
     {
-        glCompileShader(shader_id);
+        get_ogl_wrapper().compileShader(shader_id);
         THROW_IF_GL_ERROR();
         if (!get_shader_compile_status(shader_id))
             TUNGSTEN_THROW(+ get_shader_info_log(shader_id));
@@ -28,7 +28,7 @@ namespace Tungsten
 
     ShaderHandle create_shader(ShaderType shader_type)
     {
-        const auto id = glCreateShader(to_ogl_shader_type(shader_type));
+        const auto id = get_ogl_wrapper().createShader(to_ogl_shader_type(shader_type));
         THROW_IF_GL_ERROR();
         return ShaderHandle(id);
     }
@@ -36,7 +36,7 @@ namespace Tungsten
     bool get_shader_compile_status(uint32_t shader_id)
     {
         int32_t result = 0;
-        glGetShaderiv(shader_id, GL_COMPILE_STATUS, &result);
+        get_ogl_wrapper().getShaderiv(shader_id, GL_COMPILE_STATUS, &result);
         THROW_IF_GL_ERROR();
         return result == GL_TRUE;
     }
@@ -44,7 +44,7 @@ namespace Tungsten
     int32_t get_shader_info_log_length(uint32_t shader_id)
     {
         int32_t size;
-        glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &size);
+        get_ogl_wrapper().getShaderiv(shader_id, GL_INFO_LOG_LENGTH, &size);
         return size;
     }
 
@@ -52,7 +52,7 @@ namespace Tungsten
     {
         auto size = get_shader_info_log_length(shader_id);
         std::string result(size, '\0');
-        glGetShaderInfoLog(shader_id, size, &size, result.data());
+        get_ogl_wrapper().getShaderInfoLog(shader_id, size, &size, result.data());
         return result;
     }
 
@@ -60,7 +60,7 @@ namespace Tungsten
     {
         const auto length = static_cast<int32_t>(source.size());
         const auto str = source.c_str();
-        glShaderSource(shader_id, 1, &str, &length);
+        get_ogl_wrapper().shaderSource(shader_id, 1, &str, &length);
         THROW_IF_GL_ERROR();
     }
 }

@@ -22,7 +22,7 @@ namespace Tungsten
         case GL_OUT_OF_MEMORY: return "Out of memory.";
         case GL_STACK_UNDERFLOW: return "Stack underflow.";
         case GL_STACK_OVERFLOW: return "Stack overflow.";
-        default: return "Unknown error.";
+        default: return "Unknown OpenGL error.";
         }
     }
 }

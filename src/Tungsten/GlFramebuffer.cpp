@@ -16,13 +16,13 @@ namespace Tungsten
 {
     void FramebufferDeleter::operator()(uint32_t id) const
     {
-        glDeleteFramebuffers(1, &id);
+        get_ogl_wrapper().deleteFramebuffers(1, &id);
     }
 
     FramebufferHandle generate_framebuffer()
     {
         uint32_t id;
-        glGenFramebuffers(1, &id);
+        get_ogl_wrapper().genFramebuffers(1, &id);
         THROW_IF_GL_ERROR();
         return FramebufferHandle(id);
     }
@@ -30,7 +30,7 @@ namespace Tungsten
     void generates(std::span<FramebufferHandle> frame_buffers)
     {
         auto ids = std::vector<uint32_t>(frame_buffers.size());
-        glGenFramebuffers(static_cast<int32_t>(ids.size()), ids.data());
+        get_ogl_wrapper().genFramebuffers(static_cast<int32_t>(ids.size()), ids.data());
         THROW_IF_GL_ERROR();
         for (size_t i = 0; i < ids.size(); ++i)
             frame_buffers[i] = FramebufferHandle(ids[i]);
@@ -38,7 +38,7 @@ namespace Tungsten
 
     void bind_framebuffer(FramebufferTarget target, uint32_t frame_buffer)
     {
-        glBindFramebuffer(to_ogl_framebuffer_target(target), frame_buffer);
+        get_ogl_wrapper().bindFramebuffer(to_ogl_framebuffer_target(target), frame_buffer);
         THROW_IF_GL_ERROR();
     }
 
@@ -48,7 +48,7 @@ namespace Tungsten
                                 uint32_t texture,
                                 int32_t level)
     {
-        glFramebufferTexture2D(to_ogl_framebuffer_target(target),
+        get_ogl_wrapper().framebufferTexture2D(to_ogl_framebuffer_target(target),
                                to_ogl_framebuffer_attachment(attachment),
                                to_ogl_texture_target_2d(tex_target), texture, level);
         THROW_IF_GL_ERROR();
@@ -56,7 +56,7 @@ namespace Tungsten
 
     GLenum check_framebuffer_status(FramebufferTarget target)
     {
-        auto result = glCheckFramebufferStatus(to_ogl_framebuffer_target(target));
+        auto result = get_ogl_wrapper().checkFramebufferStatus(to_ogl_framebuffer_target(target));
         THROW_IF_GL_ERROR();
         return result;
     }

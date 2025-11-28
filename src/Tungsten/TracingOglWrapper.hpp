@@ -1,11 +1,14 @@
 //****************************************************************************
 // Copyright © 2025 Jan Erik Breimo. All rights reserved.
-// Created by Jan Erik Breimo on 2025-11-26.
+// Created by Jan Erik Breimo on 2025-11-28.
 //
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include <format>
+#include <iostream>
+
 #include "Tungsten/IOglWrapper.hpp"
 #include <GL/glew.h>
 
@@ -14,395 +17,485 @@ namespace Tungsten
     class TracingOglWrapper final : public IOglWrapper
     {
     public:
-        std::unique_ptr<IOglWrapper> ogl_;
-
-        TracingOglWrapper(std::unique_ptr<IOglWrapper> wrapped)
-            : ogl_(std::move(wrapped))
-        {}
+        template<class... Args>
+        void log(std::format_string<Args...> fmt, Args&&... args)
+        {
+            auto str = std::vformat(fmt.get(), std::make_format_args(args...));
+            std::clog << str << std::endl;
+        }
 
         void activeTexture(GLenum texture) override
         {
-            glActiveTexture(texture);
+            log("glActiveTexture({})", texture);
+            wrapper->activeTexture(texture);
         }
 
         void attachShader(GLuint program, GLuint shader) override
         {
-            glAttachShader(program, shader);
+            log("glAttachShader({}, {})", program, shader);
+            wrapper->attachShader(program, shader);
         }
 
         void bindBuffer(GLenum target, GLuint buffer) override
         {
-            glBindBuffer(target, buffer);
+            log("glBindBuffer({}, {})", target, buffer);
+            wrapper->bindBuffer(target, buffer);
         }
 
         void bindFramebuffer(GLenum target, GLuint framebuffer) override
         {
-            glBindFramebuffer(target, framebuffer);
+            log("glBindFramebuffer({}, {})", target, framebuffer);
+            wrapper->bindFramebuffer(target, framebuffer);
         }
 
         void bindTexture(GLenum target, GLuint texture) override
         {
-            glBindTexture(target, texture);
+            log("glBindTexture({}, {})", target, texture);
+            wrapper->bindTexture(target, texture);
         }
 
         void bindVertexArray(GLuint array) override
         {
-            glBindVertexArray(array);
+            log("glBindVertexArray({})", array);
+            wrapper->bindVertexArray(array);
         }
 
         void blendFunc(GLenum sFactor, GLenum dFactor) override
         {
-            glBlendFunc(sFactor, dFactor);
+            log("glBlendFunc({}, {})", sFactor, dFactor);
+            wrapper->blendFunc(sFactor, dFactor);
         }
 
-        void bufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage) override
+        void bufferData(GLenum target, GLsizeiptr size, const void* data, GLenum usage) override
         {
-            glBufferData(target, size, data, usage);
+            log("glBufferData({}, {}, {}, {})", target, size, static_cast<const void*>(data), usage);
+            wrapper->bufferData(target, size, data, usage);
         }
 
-        void bufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void *data) override
+        void bufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void* data) override
         {
-            glBufferSubData(target, offset, size, data);
+            log("glBufferSubData({}, {}, {}, {})", target, offset, size, static_cast<const void*>(data));
+            wrapper->bufferSubData(target, offset, size, data);
         }
 
         GLenum checkFramebufferStatus(GLenum target) override
         {
+            log("glCheckFramebufferStatus({})", target);
             return glCheckFramebufferStatus(target);
         }
 
         void clear(GLbitfield mask) override
         {
-            glClear(mask);
+            log("glClear({})", mask);
+            wrapper->clear(mask);
         }
 
         void clearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha) override
         {
-            glClearColor(red, green, blue, alpha);
+            log("glClearColor({}, {}, {}, {})", red, green, blue, alpha);
+            wrapper->clearColor(red, green, blue, alpha);
         }
 
         void compileShader(GLuint shader) override
         {
-            glCompileShader(shader);
+            log("glCompileShader({})", shader);
+            wrapper->compileShader(shader);
         }
 
-        void copyTexSubImage2D(GLenum target, GLint level, GLint xOffset, GLint yOffset, GLint x, GLint y, GLsizei width, GLsizei height) override
+        void copyTexSubImage2D(GLenum target, GLint level, GLint xOffset, GLint yOffset, GLint x, GLint y,
+                               GLsizei width, GLsizei height) override
         {
-            glCopyTexSubImage2D(target, level, xOffset, yOffset, x, y, width, height);
+            log("glCopyTexSubImage2D({}, {}, {}, {}, {}, {}, {}, {})", target, level, xOffset, yOffset, x, y, width,
+                height);
+            wrapper->copyTexSubImage2D(target, level, xOffset, yOffset, x, y, width, height);
         }
 
         GLuint createProgram() override
         {
+            log("glCreateProgram()");
             return glCreateProgram();
         }
 
         GLuint createShader(GLenum type) override
         {
+            log("glCreateShader({})", type);
             return glCreateShader(type);
         }
 
-        void deleteBuffers(GLsizei n, const GLuint *buffers) override
+        void deleteBuffers(GLsizei n, const GLuint* buffers) override
         {
-            glDeleteBuffers(n, buffers);
+            log("glDeleteBuffers({}, {})", n, static_cast<const void*>(buffers));
+            wrapper->deleteBuffers(n, buffers);
         }
 
-        void deleteFramebuffers(GLsizei n, const GLuint *framebuffers) override
+        void deleteFramebuffers(GLsizei n, const GLuint* framebuffers) override
         {
-            glDeleteFramebuffers(n, framebuffers);
+            log("glDeleteFramebuffers({}, {})", n, static_cast<const void*>(framebuffers));
+            wrapper->deleteFramebuffers(n, framebuffers);
         }
 
         void deleteProgram(GLuint program) override
         {
-            glDeleteProgram(program);
+            log("glDeleteProgram({})", program);
+            wrapper->deleteProgram(program);
         }
 
         void deleteShader(GLuint shader) override
         {
-            glDeleteShader(shader);
+            log("glDeleteShader({})", shader);
+            wrapper->deleteShader(shader);
         }
 
-        void deleteTextures(GLsizei n, const GLuint *textures) override
+        void deleteTextures(GLsizei n, const GLuint* textures) override
         {
-            glDeleteTextures(n, textures);
+            log("glDeleteTextures({}, {})", n, static_cast<const void*>(textures));
+            wrapper->deleteTextures(n, textures);
         }
 
-        void deleteVertexArrays(GLsizei n, const GLuint *arrays) override
+        void deleteVertexArrays(GLsizei n, const GLuint* arrays) override
         {
-            glDeleteVertexArrays(n, arrays);
+            log("glDeleteVertexArrays({}, {})", n, static_cast<const void*>(arrays));
+            wrapper->deleteVertexArrays(n, arrays);
         }
 
         void disable(GLenum cap) override
         {
-            glDisable(cap);
+            log("glDisable({})", cap);
+            wrapper->disable(cap);
         }
 
         void disableVertexAttribArray(GLuint index) override
         {
-            glDisableVertexAttribArray(index);
+            log("glDisableVertexAttribArray({})", index);
+            wrapper->disableVertexAttribArray(index);
         }
 
         void drawArrays(GLenum mode, GLint first, GLsizei count) override
         {
-            glDrawArrays(mode, first, count);
+            log("glDrawArrays({}, {}, {})", mode, first, count);
+            wrapper->drawArrays(mode, first, count);
         }
 
-        void drawElements(GLenum mode, GLsizei count, GLenum type, const void *indices) override
+        void drawElements(GLenum mode, GLsizei count, GLenum type, const void* indices) override
         {
-            glDrawElements(mode, count, type, indices);
+            log("glDrawElements({}, {}, {}, {})", mode, count, type, static_cast<const void*>(indices));
+            wrapper->drawElements(mode, count, type, indices);
         }
 
         void enable(GLenum cap) override
         {
-            glEnable(cap);
+            log("glEnable({})", cap);
+            wrapper->enable(cap);
         }
 
         void enableVertexAttribArray(GLuint index) override
         {
-            glEnableVertexAttribArray(index);
+            log("glEnableVertexAttribArray({})", index);
+            wrapper->enableVertexAttribArray(index);
         }
 
         void finish() override
         {
-            glFinish();
+            log("glFinish()");
+            wrapper->finish();
         }
 
-        void framebufferTexture2D(GLenum target, GLenum attachment, GLenum texTarget, GLuint texture, GLint level) override
+        void framebufferTexture2D(GLenum target, GLenum attachment, GLenum texTarget, GLuint texture,
+                                  GLint level) override
         {
-            glFramebufferTexture2D(target, attachment, texTarget, texture, level);
+            log("glFramebufferTexture2D({}, {}, {}, {}, {})", target, attachment, texTarget, texture, level);
+            wrapper->framebufferTexture2D(target, attachment, texTarget, texture, level);
         }
 
-        void genBuffers(GLsizei n, GLuint *buffers) override
+        void genBuffers(GLsizei n, GLuint* buffers) override
         {
-            glGenBuffers(n, buffers);
+            log("glGenBuffers({}, {})", n, static_cast<const void*>(buffers));
+            wrapper->genBuffers(n, buffers);
         }
 
         void generateMipmap(GLenum target) override
         {
-            glGenerateMipmap(target);
+            log("glGenerateMipmap({})", target);
+            wrapper->generateMipmap(target);
         }
 
-        void genFramebuffers(GLsizei n, GLuint *framebuffers) override
+        void genFramebuffers(GLsizei n, GLuint* framebuffers) override
         {
-            glGenFramebuffers(n, framebuffers);
+            log("glGenFramebuffers({}, {})", n, static_cast<const void*>(framebuffers));
+            wrapper->genFramebuffers(n, framebuffers);
         }
 
-        void genTextures(GLsizei n, GLuint *textures) override
+        void genTextures(GLsizei n, GLuint* textures) override
         {
-            glGenTextures(n, textures);
+            log("glGenTextures({}, {})", n, static_cast<const void*>(textures));
+            wrapper->genTextures(n, textures);
         }
 
-        void genVertexArrays(GLsizei n, GLuint *arrays) override
+        void genVertexArrays(GLsizei n, GLuint* arrays) override
         {
-            glGenVertexArrays(n, arrays);
+            log("glGenVertexArrays({}, {})", n, static_cast<const void*>(arrays));
+            wrapper->genVertexArrays(n, arrays);
         }
 
-        GLint getAttribLocation(GLuint program, const GLchar *name) override
+        GLint getAttribLocation(GLuint program, const GLchar* name) override
         {
+            log("glGetAttribLocation({}, {})", program, std::string_view(name));
             return glGetAttribLocation(program, name);
         }
 
-        void getBufferParameteriv(GLenum target, GLenum pname, GLint *params) override
+        void getBufferParameteriv(GLenum target, GLenum pname, GLint* params) override
         {
-            glGetBufferParameteriv(target, pname, params);
+            log("glGetBufferParameteriv({}, {}, {})", target, pname, static_cast<const void*>(params));
+            wrapper->getBufferParameteriv(target, pname, params);
         }
 
         GLenum getError() override
         {
-            return glGetError();
+            auto error = glGetError();
+            if (error != GL_NO_ERROR)
+                log("glGetError() -> {}", error);
+            return error;
         }
 
-        void getIntegerv(GLenum pname, GLint *params) override
+        void getIntegerv(GLenum pname, GLint* params) override
         {
-            glGetIntegerv(pname, params);
+            log("glGetIntegerv({}, {})", pname, static_cast<const void*>(params));
+            wrapper->getIntegerv(pname, params);
         }
 
-        void getProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog) override
+        void getProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei* length, GLchar* infoLog) override
         {
-            glGetProgramInfoLog(program, bufSize, length, infoLog);
+            log("glGetProgramInfoLog({}, {}, {}, {})", program, bufSize, static_cast<const void*>(length), static_cast<const void*>(infoLog));
+            wrapper->getProgramInfoLog(program, bufSize, length, infoLog);
         }
 
-        void getProgramiv(GLuint program, GLenum pname, GLint *param) override
+        void getProgramiv(GLuint program, GLenum pname, GLint* param) override
         {
-            glGetProgramiv(program, pname, param);
+            log("glGetProgramiv({}, {}, {})", program, pname, static_cast<const void*>(param));
+            wrapper->getProgramiv(program, pname, param);
         }
 
-        void getShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog) override
+        void getShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei* length, GLchar* infoLog) override
         {
-            glGetShaderInfoLog(shader, bufSize, length, infoLog);
+            log("glGetShaderInfoLog({}, {}, {}, {})", shader, bufSize, static_cast<const void*>(length), static_cast<const void*>(infoLog));
+            wrapper->getShaderInfoLog(shader, bufSize, length, infoLog);
         }
 
-        void getShaderiv(GLuint shader, GLenum pname, GLint *param) override
+        void getShaderiv(GLuint shader, GLenum pname, GLint* param) override
         {
-            glGetShaderiv(shader, pname, param);
+            log("glGetShaderiv({}, {}, {})", shader, pname, static_cast<const void*>(param));
+            wrapper->getShaderiv(shader, pname, param);
         }
 
-        void getTexParameterfv(GLenum target, GLenum pname, GLfloat *params) override
+        void getTexParameterfv(GLenum target, GLenum pname, GLfloat* params) override
         {
-            glGetTexParameterfv(target, pname, params);
+            log("glGetTexParameterfv({}, {}, {})", target, pname, static_cast<const void*>(params));
+            wrapper->getTexParameterfv(target, pname, params);
         }
 
-        void getTexParameteriv(GLenum target, GLenum pname, GLint *params) override
+        void getTexParameteriv(GLenum target, GLenum pname, GLint* params) override
         {
-            glGetTexParameteriv(target, pname, params);
+            log("glGetTexParameteriv({}, {}, {})", target, pname, static_cast<const void*>(params));
+            wrapper->getTexParameteriv(target, pname, params);
         }
 
-        GLint getUniformLocation(GLuint program, const GLchar *name) override
+        GLint getUniformLocation(GLuint program, const GLchar* name) override
         {
+            log("glGetUniformLocation({}, {})", program, std::string_view(name));
             return glGetUniformLocation(program, name);
         }
 
         GLboolean isBuffer(GLuint buffer) override
         {
+            log("glIsBuffer(buffer)");
             return glIsBuffer(buffer);
         }
 
         GLboolean isEnabled(GLenum cap) override
         {
+            log("glIsEnabled(cap)");
             return glIsEnabled(cap);
         }
 
         void linkProgram(GLuint program) override
         {
-            glLinkProgram(program);
+            log("glLinkProgram({})", program);
+            wrapper->linkProgram(program);
         }
 
-        void shaderSource(GLuint shader, GLsizei count, const GLchar * const *string, const GLint *length) override
+        void shaderSource(GLuint shader, GLsizei count, const GLchar* const * string, const GLint* length) override
         {
-            glShaderSource(shader, count, string, length);
+            log("glShaderSource({}, {}, \"{}\")", shader, count, std::string_view(*string, *length));
+            wrapper->shaderSource(shader, count, string, length);
         }
 
-        void texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels) override
+        void texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border,
+                        GLenum format, GLenum type, const void* pixels) override
         {
-            glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
+            log("glTexImage2D({}, {}, {}, {}, {}, {}, {}, {}, {})", target, level, internalformat, width, height,
+                border, format, type, static_cast<const void*>(pixels));
+            wrapper->texImage2D(target, level, internalformat, width, height, border, format, type, pixels);
         }
 
         void texParameterf(GLenum target, GLenum pname, GLfloat param) override
         {
-            glTexParameterf(target, pname, param);
+            log("glTexParameterf({}, {}, {})", target, pname, param);
+            wrapper->texParameterf(target, pname, param);
         }
 
         void texParameteri(GLenum target, GLenum pname, GLint param) override
         {
-            glTexParameteri(target, pname, param);
+            log("glTexParameteri({}, {}, {})", target, pname, param);
+            wrapper->texParameteri(target, pname, param);
         }
 
         void texStorage2D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height) override
         {
-            glTexStorage2D(target, levels, internalformat, width, height);
+            log("glTexStorage2D({}, {}, {}, {}, {})", target, levels, internalformat, width, height);
+            wrapper->texStorage2D(target, levels, internalformat, width, height);
         }
 
-        void texSubImage2D(GLenum target, GLint level, GLint xOffset, GLint yOffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels) override
+        void texSubImage2D(GLenum target, GLint level, GLint xOffset, GLint yOffset, GLsizei width, GLsizei height,
+                           GLenum format, GLenum type, const void* pixels) override
         {
-            glTexSubImage2D(target, level, xOffset, yOffset, width, height, format, type, pixels);
+            log("glTexSubImage2D({}, {}, {}, {}, {}, {}, {}, {}, {})", target, level, xOffset, yOffset, width, height,
+                format, type, static_cast<const void*>(pixels));
+            wrapper->texSubImage2D(target, level, xOffset, yOffset, width, height, format, type, pixels);
         }
 
         void uniform1f(GLint location, GLfloat v0) override
         {
-            glUniform1f(location, v0);
+            log("glUniform1f({}, {})", location, v0);
+            wrapper->uniform1f(location, v0);
         }
 
         void uniform1i(GLint location, GLint v0) override
         {
-            glUniform1i(location, v0);
+            log("glUniform1i({}, {})", location, v0);
+            wrapper->uniform1i(location, v0);
         }
 
-        void uniform1fv(GLint location, GLsizei count, GLfloat *value) override
+        void uniform1fv(GLint location, GLsizei count, const GLfloat* value) override
         {
-            glUniform1fv(location, count, value);
+            log("glUniform1fv({}, {}, {})", location, count, static_cast<const void*>(value));
+            wrapper->uniform1fv(location, count, value);
         }
 
-        void uniform1iv(GLint location, GLsizei count, GLint *value) override
+        void uniform1iv(GLint location, GLsizei count, const GLint* value) override
         {
-            glUniform1iv(location, count, value);
+            log("glUniform1iv({}, {}, {})", location, count, static_cast<const void*>(value));
+            wrapper->uniform1iv(location, count, value);
         }
 
         void uniform2f(GLint location, GLfloat v0, GLfloat v1) override
         {
-            glUniform2f(location, v0, v1);
+            log("glUniform2f({}, {}, {})", location, v0, v1);
+            wrapper->uniform2f(location, v0, v1);
         }
 
         void uniform2i(GLint location, GLint v0, GLint v1) override
         {
-            glUniform2i(location, v0, v1);
+            log("glUniform2i({}, {}, {})", location, v0, v1);
+            wrapper->uniform2i(location, v0, v1);
         }
 
-        void uniform2fv(GLint location, GLsizei count, GLfloat *value) override
+        void uniform2fv(GLint location, GLsizei count, const GLfloat* value) override
         {
-            glUniform2fv(location, count, value);
+            log("glUniform2fv({}, {}, {})", location, count, static_cast<const void*>(value));
+            wrapper->uniform2fv(location, count, value);
         }
 
-        void uniform2iv(GLint location, GLsizei count, GLint *value) override
+        void uniform2iv(GLint location, GLsizei count, const GLint* value) override
         {
-            glUniform2iv(location, count, value);
+            log("glUniform2iv({}, {}, {})", location, count, static_cast<const void*>(value));
+            wrapper->uniform2iv(location, count, value);
         }
 
         void uniform3f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2) override
         {
-            glUniform3f(location, v0, v1, v2);
+            log("glUniform3f({}, {}, {}, {})", location, v0, v1, v2);
+            wrapper->uniform3f(location, v0, v1, v2);
         }
 
         void uniform3i(GLint location, GLint v0, GLint v1, GLint v2) override
         {
-            glUniform3i(location, v0, v1, v2);
+            log("glUniform3i({}, {}, {}, {})", location, v0, v1, v2);
+            wrapper->uniform3i(location, v0, v1, v2);
         }
 
-        void uniform3fv(GLint location, GLsizei count, GLfloat *value) override
+        void uniform3fv(GLint location, GLsizei count, const GLfloat* value) override
         {
-            glUniform3fv(location, count, value);
+            log("glUniform3fv({}, {}, {})", location, count, static_cast<const void*>(value));
+            wrapper->uniform3fv(location, count, value);
         }
 
-        void uniform3iv(GLint location, GLsizei count, GLint *value) override
+        void uniform3iv(GLint location, GLsizei count, const GLint* value) override
         {
-            glUniform3iv(location, count, value);
+            log("glUniform3iv({}, {}, {})", location, count, static_cast<const void*>(value));
+            wrapper->uniform3iv(location, count, value);
         }
 
         void uniform4f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3) override
         {
-            glUniform4f(location, v0, v1, v2, v3);
+            log("glUniform4f({}, {}, {}, {}, {})", location, v0, v1, v2, v3);
+            wrapper->uniform4f(location, v0, v1, v2, v3);
         }
 
         void uniform4i(GLint location, GLint v0, GLint v1, GLint v2, GLint v3) override
         {
-            glUniform4i(location, v0, v1, v2, v3);
+            log("glUniform4i({}, {}, {}, {}, {})", location, v0, v1, v2, v3);
+            wrapper->uniform4i(location, v0, v1, v2, v3);
         }
 
-        void uniform4fv(GLint location, GLsizei count, GLfloat *value) override
+        void uniform4fv(GLint location, GLsizei count, const GLfloat* value) override
         {
-            glUniform4fv(location, count, value);
+            log("glUniform4fv({}, {}, {})", location, count, static_cast<const void*>(value));
+            wrapper->uniform4fv(location, count, value);
         }
 
-        void uniform4iv(GLint location, GLsizei count, GLint *value) override
+        void uniform4iv(GLint location, GLsizei count, const GLint* value) override
         {
-            glUniform4iv(location, count, value);
+            log("glUniform4iv({}, {}, {})", location, count, static_cast<const void*>(value));
+            wrapper->uniform4iv(location, count, value);
         }
 
-        void uniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) override
+        void uniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) override
         {
-            glUniformMatrix2fv(location, count, transpose, value);
+            log("glUniformMatrix2fv({}, {}, {}, {})", location, count, transpose, static_cast<const void*>(value));
+            wrapper->uniformMatrix2fv(location, count, transpose, value);
         }
 
-        void uniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) override
+        void uniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) override
         {
-            glUniformMatrix3fv(location, count, transpose, value);
+            log("glUniformMatrix3fv({}, {}, {}, {})", location, count, transpose, static_cast<const void*>(value));
+            wrapper->uniformMatrix3fv(location, count, transpose, value);
         }
 
-        void uniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) override
+        void uniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) override
         {
-            glUniformMatrix4fv(location, count, transpose, value);
+            log("glUniformMatrix4fv({}, {}, {}, {})", location, count, transpose, static_cast<const void*>(value));
+            wrapper->uniformMatrix4fv(location, count, transpose, value);
         }
 
         void useProgram(GLuint program) override
         {
-            glUseProgram(program);
+            log("glUseProgram({})", program);
+            wrapper->useProgram(program);
         }
 
-        void vertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer) override
+        void vertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride,
+                                 const void* pointer) override
         {
-            glVertexAttribPointer(index, size, type, normalized, stride, pointer);
+            log("glVertexAttribPointer({}, {}, {}, {}, {}, {})", index, size, type, normalized, stride, static_cast<const void*>(pointer));
+            wrapper->vertexAttribPointer(index, size, type, normalized, stride, pointer);
         }
 
         void viewport(GLint x, GLint y, GLsizei width, GLsizei height) override
         {
-            glViewport(x, y, width, height);
+            log("glViewport({}, {}, {}, {})", x, y, width, height);
+            wrapper->viewport(x, y, width, height);
         }
+
+        IOglWrapper* wrapper = nullptr;
     };
 }

@@ -171,9 +171,9 @@ namespace Tungsten
                     quit();
                 break;
             case SDL_EVENT_WINDOW_RESIZED:
-                glFinish();
+                get_ogl_wrapper().finish();
                 SDL_Log("Window resized");
-                glViewport(0, 0, event.window.data1, event.window.data2);
+                get_ogl_wrapper().viewport(0, 0, event.window.data1, event.window.data2);
                 data_->event_loop->redraw();
                 break;
             default:

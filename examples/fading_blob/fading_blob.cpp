@@ -26,7 +26,7 @@ public:
         builder.add_indexes(0, 1, 2)
             .add_indexes(0, 2, 3);
         rectangle_ = renderer_.create_shape(buffer);
-        set_swap_interval(app, Tungsten::SwapInterval::VSYNC);
+        // set_swap_interval(app, Tungsten::SwapInterval::VSYNC);
     }
 
     bool on_event(const SDL_Event& event) override
@@ -70,6 +70,7 @@ int main(int argc, char* argv[])
     {
         Tungsten::SdlApplication app("Something");
         app.parse_command_line_options(argc, argv);
+        Tungsten::set_ogl_tracing_enabled(true);
         app.run<fading_blob>();
     }
     catch (std::exception& ex)

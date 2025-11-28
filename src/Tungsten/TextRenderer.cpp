@@ -191,12 +191,12 @@ namespace Tungsten
         if (!data_)
             initialize();
 
-        bool default_blend = glIsEnabled(GL_BLEND);
+        bool default_blend = get_ogl_wrapper().isEnabled(GL_BLEND);
         if (auto_blend_)
         {
             if (!default_blend)
-                glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                get_ogl_wrapper().enable(GL_BLEND);
+            get_ogl_wrapper().blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
 
         use_program(data_->program.program);
@@ -217,7 +217,7 @@ namespace Tungsten
         draw_triangle_elements_16(0, int32_t(data_->vertex_array.indexes.size()));
 
         if (auto_blend_ && !default_blend)
-            glDisable(GL_BLEND);
+            get_ogl_wrapper().disable(GL_BLEND);
     }
 
     void TextRenderer::initialize()
