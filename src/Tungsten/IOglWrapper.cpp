@@ -14,38 +14,38 @@ namespace Tungsten
 {
     namespace
     {
-        std::unique_ptr<IOglWrapper> wrapper_;
+        OglWrapper ogl_wrapper;
+        IOglWrapper* raw_wrapper_ = &ogl_wrapper;
+        std::unique_ptr<IOglWrapper> custom_wrapper_;
     }
 
-    IOglWrapper* getOglWrapper()
+    IOglWrapper& getOglWrapper()
     {
-        if (!wrapper_)
-            wrapper_ = std::make_unique<OglWrapper>();
-        return wrapper_.get();
+        return *raw_wrapper_;
     }
 
-    std::unique_ptr<IOglWrapper> setOglWrapper(std::unique_ptr<IOglWrapper> wrapper)
+    std::unique_ptr<IOglWrapper> setCustomOglWrapper(std::unique_ptr<IOglWrapper> wrapper)
     {
-        auto oldWrapper = std::move(wrapper_);
-        wrapper_ = std::move(wrapper);
+        auto oldWrapper = std::move(custom_wrapper_);
+        custom_wrapper_ = std::move(wrapper);
+        if (!custom_wrapper_)
+            raw_wrapper_ = &ogl_wrapper;
         return oldWrapper;
     }
 
     std::unique_ptr<IOglWrapper> setOglWrapper(StandardOglWrapper wrapperType)
     {
-        std::unique_ptr<IOglWrapper> wrapper = std::make_unique<OglWrapper>();
+        std::unique_ptr<IOglWrapper> oldWrapper;
         switch (wrapperType)
         {
-        case StandardOglWrapper::DEFAULT:
-            wrapper = std::make_unique<OglWrapper>();
-            break;
+            case StandardOglWrapper::DEFAULT:
+            raw_wrapper_ = &ogl_wrapper;
+            return std::move(custom_wrapper_);
         // case OpenGlWrappers::TRACING:
         //     wrapper = std::make_unique<TracingOpenGlWrapper>();
         //     break;
         default:
             TUNGSTEN_THROW("Invalid OpenGL wrapper type!");
         }
-        wrapper_.swap(wrapper);
-        return wrapper;
     }
 }

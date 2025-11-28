@@ -195,9 +195,11 @@ namespace Tungsten
         TRACING
     };
 
-    IOglWrapper* getOglWrapper();
+    IOglWrapper& getOglWrapper();
 
-    std::unique_ptr<IOglWrapper> setOglWrapper(std::unique_ptr<IOglWrapper> wrapper);
+    std::unique_ptr<IOglWrapper> setStandardOglWrapper(StandardOglWrapper wrapperType);
 
-    std::unique_ptr<IOglWrapper> setOglWrapper(StandardOglWrapper wrapperType);
+    std::unique_ptr<IOglWrapper> getCustomOglWrapper();
+
+    std::unique_ptr<IOglWrapper> setCustomOglWrapper(std::unique_ptr<IOglWrapper> wrapper);
 }

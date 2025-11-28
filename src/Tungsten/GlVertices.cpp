@@ -7,7 +7,7 @@
 //****************************************************************************
 #include "Tungsten/GlVertices.hpp"
 
-#include "GlTypeConversion.h"
+#include "GlTypeConversion.hpp"
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
