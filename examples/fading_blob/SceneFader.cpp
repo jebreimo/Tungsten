@@ -106,8 +106,8 @@ public:
             Tungsten::bind_texture(Tungsten::TextureTarget::TEXTURE_2D, texture);
             Tungsten::set_texture_image_2d(Tungsten::TextureTarget2D::TEXTURE_2D, 0, size,
                                            Tungsten::RGB_TEXTURE);
-            Tungsten::set_min_filter(Tungsten::TextureTarget::TEXTURE_2D, GL_LINEAR);
-            Tungsten::set_mag_filter(Tungsten::TextureTarget::TEXTURE_2D, GL_LINEAR);
+            Tungsten::set_min_filter(Tungsten::TextureTarget::TEXTURE_2D, Tungsten::TextureMinFilter::LINEAR);
+            Tungsten::set_mag_filter(Tungsten::TextureTarget::TEXTURE_2D, Tungsten::TextureMagFilter::LINEAR);
         }
     }
 

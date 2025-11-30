@@ -8,6 +8,8 @@
 #include "Tungsten/GlVertexArray.hpp"
 
 #include <vector>
+
+#include "GlTypeConversion.hpp"
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
@@ -55,15 +57,16 @@ namespace Tungsten
 
     void define_vertex_attribute_pointer(uint32_t location,
                                          int32_t size,
-                                         GLenum type,
+                                         VertexAttributeType type,
                                          int32_t stride,
                                          size_t offset,
                                          bool normalized)
     {
-        get_ogl_wrapper().vertexAttribPointer(location, size, type,
-                              GLboolean(normalized ? 1 : 0),
-                              stride,
-                              reinterpret_cast<void*>(offset));
+        get_ogl_wrapper().vertexAttribPointer(location, size,
+                                              to_ogl_vertex_attribute_type(type),
+                                              GLboolean(normalized ? 1 : 0),
+                                              stride,
+                                              reinterpret_cast<void*>(offset));
         THROW_IF_GL_ERROR();
     }
 
@@ -72,7 +75,7 @@ namespace Tungsten
                                                int32_t stride,
                                                size_t offset)
     {
-        define_vertex_attribute_pointer(location, size, GL_FLOAT,
+        define_vertex_attribute_pointer(location, size, VertexAttributeType::FLOAT,
                                         stride, offset);
     }
 
@@ -81,7 +84,7 @@ namespace Tungsten
                                                int32_t stride,
                                                size_t offset)
     {
-        define_vertex_attribute_pointer(location, size, GL_SHORT,
+        define_vertex_attribute_pointer(location, size, VertexAttributeType::INT16,
                                         stride, offset);
     }
 
@@ -90,37 +93,38 @@ namespace Tungsten
                                                int32_t stride,
                                                size_t offset)
     {
-        define_vertex_attribute_pointer(location, size, GL_INT,
+        define_vertex_attribute_pointer(location, size, VertexAttributeType::INT32,
                                         stride, offset);
     }
 
-    int32_t get_size_of_type(GLenum type)
+    int32_t get_size_of_type(VertexAttributeType type)
     {
         switch (type)
         {
-        case GL_BYTE:
+        case VertexAttributeType::INT8:
             return sizeof(GLbyte);
-        case GL_UNSIGNED_BYTE:
+        case VertexAttributeType::UINT8:
             return sizeof(GLubyte);
-        case GL_SHORT:
+        case VertexAttributeType::INT16:
             return sizeof(GLshort);
-        case GL_UNSIGNED_SHORT:
+        case VertexAttributeType::UINT16:
             return sizeof(GLushort);
-        case GL_INT:
+        case VertexAttributeType::INT32:
             return sizeof(GLint);
-        case GL_UNSIGNED_INT:
+        case VertexAttributeType::UINT32:
             return sizeof(GLuint);
-        case GL_FLOAT:
+        case VertexAttributeType::FLOAT:
             return sizeof(GLfloat);
-        case GL_DOUBLE:
+        case VertexAttributeType::DOUBLE:
             return sizeof(GLdouble);
         default:
-            TUNGSTEN_THROW("Unknown type in get_size_of_type: " + std::to_string(type));
+            TUNGSTEN_THROW("Unknown type in get_size_of_type: "
+                + std::to_string(static_cast<int>(type)));
         }
     }
 
-    bool is_float_type(GLenum type)
+    bool is_float_type(VertexAttributeType type)
     {
-        return type == GL_FLOAT || type == GL_DOUBLE;
+        return type == VertexAttributeType::FLOAT || type == VertexAttributeType::DOUBLE;
     }
 }

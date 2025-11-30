@@ -6,6 +6,8 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #include "Tungsten/GlProgram.hpp"
+
+#include <GL/glew.h>
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten

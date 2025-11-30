@@ -34,7 +34,7 @@ namespace Tungsten
                                 int32_t level = 0);
 
     [[nodiscard]]
-    GLenum check_framebuffer_status(FramebufferTarget target);
+    FramebufferStatus check_framebuffer_status(FramebufferTarget target);
 
     void assert_framebuffer_complete(FramebufferTarget target);
 }

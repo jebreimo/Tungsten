@@ -5,8 +5,10 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include <string>
 #include "Tungsten/TungstenException.hpp"
+
+#include <string>
+#include <GL/glew.h>
 
 namespace Tungsten
 {

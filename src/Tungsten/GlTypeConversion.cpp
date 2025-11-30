@@ -19,7 +19,8 @@ namespace Tungsten
         case BufferTarget::ARRAY: return GL_ARRAY_BUFFER;
         case BufferTarget::ELEMENT_ARRAY: return GL_ELEMENT_ARRAY_BUFFER;
         default:
-            TUNGSTEN_THROW("Unsupported buffer target: " + std::to_string(static_cast<int>(target)));
+            TUNGSTEN_THROW(
+                "Unsupported buffer target: " + std::to_string(static_cast<int>(target)));
         }
     }
 
@@ -53,7 +54,8 @@ namespace Tungsten
         case FramebufferTarget::DRAW: return GL_DRAW_FRAMEBUFFER;
         case FramebufferTarget::READ: return GL_READ_FRAMEBUFFER;
         default:
-            TUNGSTEN_THROW("Unsupported framebuffer target: " + std::to_string(static_cast<int>(target)));
+            TUNGSTEN_THROW(
+                "Unsupported framebuffer target: " + std::to_string(static_cast<int>(target)));
         }
     }
 
@@ -64,7 +66,9 @@ namespace Tungsten
         case FrameBufferAttachment::COLOR0: return GL_COLOR_ATTACHMENT0;
         case FrameBufferAttachment::DEPTH: return GL_DEPTH_ATTACHMENT;
         case FrameBufferAttachment::STENCIL: return GL_STENCIL_ATTACHMENT;
-        default: TUNGSTEN_THROW("Unsupported framebuffer attachment: " + std::to_string(static_cast<int>(attachment)));
+        default: TUNGSTEN_THROW(
+                "Unsupported framebuffer attachment: " + std::to_string(static_cast<int>(attachment)
+                ));
         }
     }
 
@@ -76,7 +80,8 @@ namespace Tungsten
         case TextureTarget::CUBE_MAP: return GL_TEXTURE_CUBE_MAP;
         case TextureTarget::TEXTURE_3D: return GL_TEXTURE_3D;
         case TextureTarget::ARRAY_2D: return GL_TEXTURE_2D_ARRAY;
-        default: TUNGSTEN_THROW("Unsupported texture target: " + std::to_string(static_cast<int>(target)));
+        default: TUNGSTEN_THROW(
+                "Unsupported texture target: " + std::to_string(static_cast<int>(target)));
         }
     }
 
@@ -91,7 +96,8 @@ namespace Tungsten
         case TextureTarget2D::CUBE_MAP_NEGATIVE_X: return GL_TEXTURE_CUBE_MAP_NEGATIVE_X;
         case TextureTarget2D::CUBE_MAP_NEGATIVE_Y: return GL_TEXTURE_CUBE_MAP_NEGATIVE_Y;
         case TextureTarget2D::CUBE_MAP_NEGATIVE_Z: return GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
-        default: TUNGSTEN_THROW("Unsupported texture target: " + std::to_string(static_cast<int>(target)));
+        default: TUNGSTEN_THROW(
+                "Unsupported texture target: " + std::to_string(static_cast<int>(target)));
         }
     }
 
@@ -109,7 +115,8 @@ namespace Tungsten
         case TextureFormat::RGBA:
             return GL_RGBA;
         default:
-            TUNGSTEN_THROW("Unsupported texture format: " + std::to_string(static_cast<int>(format)));
+            TUNGSTEN_THROW(
+                "Unsupported texture format: " + std::to_string(static_cast<int>(format)));
         }
     }
 
@@ -145,7 +152,8 @@ namespace Tungsten
         case TextureParameter::SWIZZLE_G: return GL_TEXTURE_SWIZZLE_G;
         case TextureParameter::SWIZZLE_B: return GL_TEXTURE_SWIZZLE_B;
         case TextureParameter::SWIZZLE_A: return GL_TEXTURE_SWIZZLE_A;
-        default: TUNGSTEN_THROW("Unsupported texture parameter: " + std::to_string(static_cast<int>(parameter)));
+        default: TUNGSTEN_THROW(
+                "Unsupported texture parameter: " + std::to_string(static_cast<int>(parameter)));
         }
     }
 
@@ -160,7 +168,8 @@ namespace Tungsten
         case TopologyType::TRIANGLES: return GL_TRIANGLES;
         case TopologyType::TRIANGLE_FAN: return GL_TRIANGLE_FAN;
         case TopologyType::TRIANGLE_STRIP: return GL_TRIANGLE_STRIP;
-        default: TUNGSTEN_THROW("Unsupported draw mode: " + std::to_string(static_cast<int>(topology)));
+        default: TUNGSTEN_THROW(
+                "Unsupported draw mode: " + std::to_string(static_cast<int>(topology)));
         }
     }
 
@@ -177,6 +186,178 @@ namespace Tungsten
         default:
             TUNGSTEN_THROW("Unknown ShaderType: "
                 + std::to_string(static_cast<int>(type)));
+        }
+    }
+
+    GLenum to_ogl_vertex_attribute_type(VertexAttributeType type)
+    {
+        switch (type)
+        {
+        case VertexAttributeType::INT8:
+            return GL_BYTE;
+        case VertexAttributeType::UINT8:
+            return GL_UNSIGNED_BYTE;
+        case VertexAttributeType::INT16:
+            return GL_SHORT;
+        case VertexAttributeType::UINT16:
+            return GL_UNSIGNED_SHORT;
+        case VertexAttributeType::INT32:
+            return GL_INT;
+        case VertexAttributeType::UINT32:
+            return GL_UNSIGNED_INT;
+        case VertexAttributeType::FLOAT:
+            return GL_FLOAT;
+        case VertexAttributeType::DOUBLE:
+            return GL_DOUBLE;
+        default:
+            TUNGSTEN_THROW("Unknown VertexAttributeType: "
+                + std::to_string(static_cast<int>(type)));
+        }
+    }
+
+    FramebufferStatus from_ogl_framebuffer_status(GLenum status)
+    {
+        switch (status)
+        {
+        case GL_FRAMEBUFFER_COMPLETE:
+            return FramebufferStatus::COMPLETE;
+        case GL_FRAMEBUFFER_UNDEFINED:
+            return FramebufferStatus::UNDEFINED;
+        case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+            return FramebufferStatus::INCOMPLETE_ATTACHMENT;
+        case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+            return FramebufferStatus::INCOMPLETE_MISSING_ATTACHMENT;
+        case GL_FRAMEBUFFER_UNSUPPORTED:
+            return FramebufferStatus::UNSUPPORTED;
+        case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+            return FramebufferStatus::INCOMPLETE_MULTISAMPLE;
+        default:
+            TUNGSTEN_THROW("Unknown FramebufferStatus: "
+                + std::to_string(static_cast<int>(status)));
+        }
+    }
+
+    GLenum to_ogl_element_index_type(ElementIndexType type)
+    {
+        switch (type)
+        {
+        case ElementIndexType::UINT8:
+            return GL_UNSIGNED_BYTE;
+        case ElementIndexType::UINT16:
+            return GL_UNSIGNED_SHORT;
+        case ElementIndexType::UINT32:
+            return GL_UNSIGNED_INT;
+        default:
+            TUNGSTEN_THROW("Unknown ElementIndexType: "
+                + std::to_string(static_cast<int>(type)));
+        }
+    }
+
+    GLint to_ogl_texture_min_filter(TextureMinFilter filter)
+    {
+        switch (filter)
+        {
+        case TextureMinFilter::NEAREST: return GL_NEAREST;
+        case TextureMinFilter::LINEAR: return GL_LINEAR;
+        case TextureMinFilter::NEAREST_MIPMAP_NEAREST: return GL_NEAREST_MIPMAP_NEAREST;
+        case TextureMinFilter::LINEAR_MIPMAP_NEAREST: return GL_LINEAR_MIPMAP_NEAREST;
+        case TextureMinFilter::NEAREST_MIPMAP_LINEAR: return GL_NEAREST_MIPMAP_LINEAR;
+        case TextureMinFilter::LINEAR_MIPMAP_LINEAR: return GL_LINEAR_MIPMAP_LINEAR;
+        default:
+            TUNGSTEN_THROW("Unsupported texture min filter: "
+                + std::to_string(static_cast<int>(filter)));
+        }
+    }
+
+    TextureMinFilter from_ogl_texture_min_filter(GLint filter)
+    {
+        switch (filter)
+        {
+        case GL_NEAREST: return TextureMinFilter::NEAREST;
+        case GL_LINEAR: return TextureMinFilter::LINEAR;
+        case GL_NEAREST_MIPMAP_NEAREST: return TextureMinFilter::NEAREST_MIPMAP_NEAREST;
+        case GL_LINEAR_MIPMAP_NEAREST: return TextureMinFilter::LINEAR_MIPMAP_NEAREST;
+        case GL_NEAREST_MIPMAP_LINEAR: return TextureMinFilter::NEAREST_MIPMAP_LINEAR;
+        case GL_LINEAR_MIPMAP_LINEAR: return TextureMinFilter::LINEAR_MIPMAP_LINEAR;
+        default:
+            TUNGSTEN_THROW("Unsupported texture min filter: "
+                + std::to_string(filter));
+        }
+    }
+
+    GLint to_ogl_texture_mag_filter(TextureMagFilter filter)
+    {
+        switch (filter)
+        {
+        case TextureMagFilter::NEAREST: return GL_NEAREST;
+        case TextureMagFilter::LINEAR: return GL_LINEAR;
+        default:
+            TUNGSTEN_THROW("Unsupported texture mag filter: "
+                + std::to_string(static_cast<int>(filter)));
+        }
+    }
+
+    TextureMagFilter from_ogl_texture_mag_filter(GLint filter)
+    {
+        switch (filter)
+        {
+        case GL_NEAREST: return TextureMagFilter::NEAREST;
+        case GL_LINEAR: return TextureMagFilter::LINEAR;
+        default:
+            TUNGSTEN_THROW("Unsupported texture mag filter: "
+                + std::to_string(filter));
+        }
+    }
+
+    GLint to_ogl_texture_wrap_mode(TextureWrapMode mode)
+    {
+        switch (mode)
+        {
+        case TextureWrapMode::REPEAT: return GL_REPEAT;
+        case TextureWrapMode::MIRRORED_REPEAT: return GL_MIRRORED_REPEAT;
+        case TextureWrapMode::CLAMP_TO_EDGE: return GL_CLAMP_TO_EDGE;
+        default:
+            TUNGSTEN_THROW("Unsupported texture wrap mode: "
+                + std::to_string(static_cast<int>(mode)));
+        }
+
+    }
+
+    TextureWrapMode from_ogl_texture_wrap_mode(GLint mode)
+    {
+        switch (mode)
+        {
+        case GL_REPEAT: return TextureWrapMode::REPEAT;
+        case GL_MIRRORED_REPEAT: return TextureWrapMode::MIRRORED_REPEAT;
+        case GL_CLAMP_TO_EDGE: return TextureWrapMode::CLAMP_TO_EDGE;
+        default:
+            TUNGSTEN_THROW("Unsupported texture wrap mode: "
+                + std::to_string(mode));
+        }
+    }
+
+    GLenum to_ogl_blend_function(BlendFunction blend_function)
+    {
+        switch (blend_function)
+        {
+        case BlendFunction::ZERO: return GL_ZERO;
+        case BlendFunction::ONE: return GL_ONE;
+        case BlendFunction::SRC_COLOR: return GL_SRC_COLOR;
+        case BlendFunction::ONE_MINUS_SRC_COLOR: return GL_ONE_MINUS_SRC_COLOR;
+        case BlendFunction::DST_COLOR: return GL_DST_COLOR;
+        case BlendFunction::ONE_MINUS_DST_COLOR: return GL_ONE_MINUS_DST_COLOR;
+        case BlendFunction::SRC_ALPHA: return GL_SRC_ALPHA;
+        case BlendFunction::ONE_MINUS_SRC_ALPHA: return GL_ONE_MINUS_SRC_ALPHA;
+        case BlendFunction::DST_ALPHA: return GL_DST_ALPHA;
+        case BlendFunction::ONE_MINUS_DST_ALPHA: return GL_ONE_MINUS_DST_ALPHA;
+        case BlendFunction::CONSTANT_COLOR: return GL_CONSTANT_COLOR;
+        case BlendFunction::ONE_MINUS_CONSTANT_COLOR: return GL_ONE_MINUS_CONSTANT_COLOR;
+        case BlendFunction::CONSTANT_ALPHA: return GL_CONSTANT_ALPHA;
+        case BlendFunction::ONE_MINUS_CONSTANT_ALPHA: return GL_ONE_MINUS_CONSTANT_ALPHA;
+        case BlendFunction::SRC_ALPHA_SATURATE: return GL_SRC_ALPHA_SATURATE;
+        default:
+            TUNGSTEN_THROW("Unsupported blend function: "
+                + std::to_string(static_cast<int>(blend_function)));
         }
     }
 }

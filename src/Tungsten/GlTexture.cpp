@@ -10,16 +10,15 @@
 #include <vector>
 
 #include "GlTypeConversion.hpp"
-#include "Tungsten/Environment.hpp"
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
 {
     namespace
     {
-        GLenum to_ogl_internal_format(TextureFormat format)
+        GLint to_ogl_internal_format(TextureFormat format)
         {
-            return to_ogl_texture_format(format);
+            return static_cast<int>(to_ogl_texture_format(format));
         }
 
         GLenum map_texture_binding(GLenum target)
@@ -49,7 +48,7 @@ namespace Tungsten
             case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
                 return GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY;
             default:
-                TUNGSTEN_THROW("Unsupported texture target: " + std::to_string(target));;
+                TUNGSTEN_THROW("Unsupported texture target: " + std::to_string(target));
             }
         }
     }
@@ -111,17 +110,19 @@ namespace Tungsten
                               const void* data)
     {
         get_ogl_wrapper().texImage2D(to_ogl_texture_target_2d(target), level,
-                     to_ogl_internal_format(format.format),
-                     size.x(), size.y(), 0,
-                     to_ogl_texture_format(format.format), to_ogl_texture_value_type(format.type), data);
+                                     to_ogl_internal_format(format.format),
+                                     size.x(), size.y(), 0,
+                                     to_ogl_texture_format(format.format),
+                                     to_ogl_texture_value_type(format.type), data);
         THROW_IF_GL_ERROR();
     }
 
-    void set_texture_storage_2d(TextureTarget2D target, int32_t levels, TextureFormat format, Size2I size)
+    void set_texture_storage_2d(TextureTarget2D target, int32_t levels, TextureFormat format,
+                                Size2I size)
     {
         get_ogl_wrapper().texStorage2D(to_ogl_texture_target_2d(target), levels,
-                       to_ogl_internal_format(format),
-                       size.x(), size.y());
+                                       to_ogl_internal_format(format),
+                                       size.x(), size.y());
         THROW_IF_GL_ERROR();
     }
 
@@ -132,16 +133,18 @@ namespace Tungsten
                                   const void* data)
     {
         get_ogl_wrapper().texSubImage2D(to_ogl_texture_target_2d(target), level,
-                        offset.x(), offset.y(), size.x(), size.y(),
-                        to_ogl_texture_format(format.format), to_ogl_texture_value_type(format.type), data);
+                                        offset.x(), offset.y(), size.x(), size.y(),
+                                        to_ogl_texture_format(format.format),
+                                        to_ogl_texture_value_type(format.type), data);
         THROW_IF_GL_ERROR();
     }
 
     void copy_texture_sub_image_2d(TextureTarget2D target, int32_t level, Position2I offset,
                                    Position2I position, Size2I size)
     {
-        get_ogl_wrapper().copyTexSubImage2D(to_ogl_texture_target_2d(target), level, position.x(), position.y(),
-                            offset.x(), offset.y(), size.x(), size.y());
+        get_ogl_wrapper().copyTexSubImage2D(to_ogl_texture_target_2d(target), level, position.x(),
+                                            position.y(),
+                                            offset.x(), offset.y(), size.x(), size.y());
         THROW_IF_GL_ERROR();
     }
 
@@ -154,7 +157,8 @@ namespace Tungsten
     float get_texture_float_parameter(TextureTarget target, TextureParameter pname)
     {
         float result;
-        get_ogl_wrapper().getTexParameterfv(to_ogl_texture_target(target), to_ogl_texture_parameter(pname), &result);
+        get_ogl_wrapper().getTexParameterfv(to_ogl_texture_target(target),
+                                            to_ogl_texture_parameter(pname), &result);
         THROW_IF_GL_ERROR();
         return result;
     }
@@ -162,14 +166,16 @@ namespace Tungsten
     void set_texture_float_parameter(TextureTarget target, TextureParameter pname,
                                      float param)
     {
-        get_ogl_wrapper().texParameterf(to_ogl_texture_target(target), to_ogl_texture_parameter(pname), param);
+        get_ogl_wrapper().texParameterf(to_ogl_texture_target(target),
+                                        to_ogl_texture_parameter(pname), param);
         THROW_IF_GL_ERROR();
     }
 
     int32_t get_texture_int_parameter(TextureTarget target, TextureParameter pname)
     {
         int32_t result;
-        get_ogl_wrapper().getTexParameteriv(to_ogl_texture_target(target), to_ogl_texture_parameter(pname), &result);
+        get_ogl_wrapper().getTexParameteriv(to_ogl_texture_target(target),
+                                            to_ogl_texture_parameter(pname), &result);
         THROW_IF_GL_ERROR();
         return result;
     }
@@ -177,47 +183,56 @@ namespace Tungsten
     void set_texture_int_parameter(TextureTarget target, TextureParameter pname,
                                    int32_t param)
     {
-        get_ogl_wrapper().texParameteri(to_ogl_texture_target(target), to_ogl_texture_parameter(pname), param);
+        get_ogl_wrapper().texParameteri(to_ogl_texture_target(target),
+                                        to_ogl_texture_parameter(pname), param);
         THROW_IF_GL_ERROR();
     }
 
-    int32_t get_mag_filter(TextureTarget target)
+    TextureMagFilter get_mag_filter(TextureTarget target)
     {
-        return get_texture_int_parameter(target, TextureParameter::MAG_FILTER);
+        return from_ogl_texture_mag_filter(
+            get_texture_int_parameter(target, TextureParameter::MAG_FILTER));
     }
 
-    void set_mag_filter(TextureTarget target, int32_t param)
+    void set_mag_filter(TextureTarget target, TextureMagFilter filter)
     {
-        set_texture_int_parameter(target, TextureParameter::MAG_FILTER, param);
+        set_texture_int_parameter(target, TextureParameter::MAG_FILTER,
+                                  to_ogl_texture_mag_filter(filter));
     }
 
-    int32_t get_min_filter(TextureTarget target)
+    TextureMinFilter get_min_filter(TextureTarget target)
     {
-        return get_texture_int_parameter(target, TextureParameter::MIN_FILTER);
+        return from_ogl_texture_min_filter(
+            get_texture_int_parameter(target, TextureParameter::MIN_FILTER));
     }
 
-    void set_min_filter(TextureTarget target, int32_t param)
+    void set_min_filter(TextureTarget target, TextureMinFilter filter)
     {
-        set_texture_int_parameter(target, TextureParameter::MIN_FILTER, param);
+        set_texture_int_parameter(target, TextureParameter::MIN_FILTER,
+                                  to_ogl_texture_min_filter(filter));
     }
 
-    int32_t get_wrap_s(TextureTarget target)
+    TextureWrapMode get_wrap_s(TextureTarget target)
     {
-        return get_texture_int_parameter(target, TextureParameter::WRAP_S);
+        return from_ogl_texture_wrap_mode(
+            get_texture_int_parameter(target, TextureParameter::WRAP_S));
     }
 
-    void set_wrap_s(TextureTarget target, int32_t param)
+    void set_wrap_s(TextureTarget target, TextureWrapMode mode)
     {
-        set_texture_int_parameter(target, TextureParameter::WRAP_S, param);
+        set_texture_int_parameter(target, TextureParameter::WRAP_S,
+                                  to_ogl_texture_wrap_mode(mode));
     }
 
-    int32_t get_wrap_t(TextureTarget target)
+    TextureWrapMode get_wrap_t(TextureTarget target)
     {
-        return get_texture_int_parameter(target, TextureParameter::WRAP_T);
+        return from_ogl_texture_wrap_mode(
+            get_texture_int_parameter(target, TextureParameter::WRAP_T));
     }
 
-    void set_wrap_t(TextureTarget target, int32_t param)
+    void set_wrap_t(TextureTarget target, TextureWrapMode mode)
     {
-        set_texture_int_parameter(target, TextureParameter::WRAP_T, param);
+        set_texture_int_parameter(target, TextureParameter::WRAP_T,
+                                  to_ogl_texture_wrap_mode(mode));
     }
 }

@@ -10,7 +10,6 @@
 #include <Tungsten/Tungsten.hpp>
 #include <Yconvert/Convert.hpp>
 
-
 class ShowText : public Tungsten::EventLoop
 {
 public:
@@ -32,13 +31,13 @@ public:
 
     void on_draw() override
     {
-        glClearColor(0.4, 0.6, 0.8, 1);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        Tungsten::set_clear_color(0.4, 0.6, 0.8, 1);
+        Tungsten::clear(Tungsten::ClearBufferMask::COLOR_DEPTH);
         auto [w, h] = application().window_size();
-        auto screen_size = Xyz::Vector2F(float(w), float(h));
-        auto u8text = "Jan Erik Breimo\nNatasha Barrett\nTime: " + std::to_string(second_);
+        const auto screen_size = Xyz::Vector2F(float(w), float(h));
+        const auto u8text = "Jan Erik Breimo\nNatasha Barrett\nTime: " + std::to_string(second_);
 
-        auto text = Yconvert::convert_to<std::u32string>(
+        const auto text = Yconvert::convert_to<std::u32string>(
             u8text,
             Yconvert::Encoding::UTF_8,
             Yconvert::Encoding::UTF_32_NATIVE,

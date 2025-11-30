@@ -8,6 +8,7 @@
 #include "Tungsten/TextRenderer.hpp"
 
 #include "Tungsten/ArrayBufferBuilder.hpp"
+#include "Tungsten/GlStateManagement.hpp"
 #include "Tungsten/GlTexture.hpp"
 #include "Tungsten/GlVertices.hpp"
 #include "Tungsten/YimageGl.hpp"
@@ -191,12 +192,12 @@ namespace Tungsten
         if (!data_)
             initialize();
 
-        bool default_blend = get_ogl_wrapper().isEnabled(GL_BLEND);
+        bool default_blend = is_blend_enabled();
         if (auto_blend_)
         {
             if (!default_blend)
-                get_ogl_wrapper().enable(GL_BLEND);
-            get_ogl_wrapper().blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                set_blend_enabled(true);
+            set_blend_function(BlendFunction::SRC_ALPHA, BlendFunction::ONE_MINUS_SRC_ALPHA);
         }
 
         use_program(data_->program.program);
@@ -216,8 +217,7 @@ namespace Tungsten
                                       * scale3(scale_x, scale_y, 1.0f));
         draw_triangle_elements_16(0, int32_t(data_->vertex_array.indexes.size()));
 
-        if (auto_blend_ && !default_blend)
-            get_ogl_wrapper().disable(GL_BLEND);
+        set_blend_enabled(default_blend);
     }
 
     void TextRenderer::initialize()
@@ -229,10 +229,10 @@ namespace Tungsten
         activate_texture_unit(0);
         bind_texture(TextureTarget::TEXTURE_2D, data_->texture);
 
-        set_min_filter(TextureTarget::TEXTURE_2D,GL_LINEAR);
-        set_mag_filter(TextureTarget::TEXTURE_2D,GL_LINEAR);
-        set_wrap_s(TextureTarget::TEXTURE_2D,GL_CLAMP_TO_EDGE);
-        set_wrap_t(TextureTarget::TEXTURE_2D,GL_CLAMP_TO_EDGE);
+        set_min_filter(TextureTarget::TEXTURE_2D, TextureMinFilter::LINEAR);
+        set_mag_filter(TextureTarget::TEXTURE_2D, TextureMagFilter::LINEAR);
+        set_wrap_s(TextureTarget::TEXTURE_2D, TextureWrapMode::CLAMP_TO_EDGE);
+        set_wrap_t(TextureTarget::TEXTURE_2D, TextureWrapMode::CLAMP_TO_EDGE);
 
         set_texture_image_2d(TextureTarget2D::TEXTURE_2D, 0,
                              image_size(),

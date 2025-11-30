@@ -67,22 +67,22 @@ namespace Tungsten
     void set_texture_int_parameter(TextureTarget target, TextureParameter pname, int32_t param);
 
     [[nodiscard]]
-    int32_t get_mag_filter(TextureTarget target);
+    TextureMagFilter get_mag_filter(TextureTarget target);
 
-    void set_mag_filter(TextureTarget target, int32_t param);
-
-    [[nodiscard]]
-    int32_t get_min_filter(TextureTarget target);
-
-    void set_min_filter(TextureTarget target, int32_t param);
+    void set_mag_filter(TextureTarget target, TextureMagFilter filter);
 
     [[nodiscard]]
-    int32_t get_wrap_s(TextureTarget target);
+    TextureMinFilter get_min_filter(TextureTarget target);
 
-    void set_wrap_s(TextureTarget target, int32_t param);
+    void set_min_filter(TextureTarget target, TextureMinFilter filter);
 
     [[nodiscard]]
-    int32_t get_wrap_t(TextureTarget target);
+    TextureWrapMode get_wrap_s(TextureTarget target);
 
-    void set_wrap_t(TextureTarget target, int32_t param);
+    void set_wrap_s(TextureTarget target, TextureWrapMode mode);
+
+    [[nodiscard]]
+    TextureWrapMode get_wrap_t(TextureTarget target);
+
+    void set_wrap_t(TextureTarget target, TextureWrapMode mode);
 }

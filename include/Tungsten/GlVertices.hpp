@@ -6,7 +6,6 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include <GL/glew.h>
 
 #include "Types.hpp"
 
@@ -14,7 +13,7 @@ namespace Tungsten
 {
     void draw_array(TopologyType topology, int32_t offset, int32_t count);
 
-    void draw_elements(TopologyType topology, GLenum type,
+    void draw_elements(TopologyType topology, ElementIndexType type,
                        int32_t offset, int32_t count);
 
     void draw_elements_16(TopologyType topology, int32_t offset, int32_t count);

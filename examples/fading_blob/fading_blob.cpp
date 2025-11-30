@@ -33,8 +33,8 @@ public:
     {
         if (event.type == SDL_EVENT_WINDOW_RESIZED)
         {
-            glFinish();
-            glViewport(0, 0, event.window.data1, event.window.data2);
+            Tungsten::finish_rendering();
+            Tungsten::set_viewport(0, 0, event.window.data1, event.window.data2);
             fader_.set_window_size({event.window.data1, event.window.data2});
             return true;
         }
@@ -70,7 +70,6 @@ int main(int argc, char* argv[])
     {
         Tungsten::SdlApplication app("Something");
         app.parse_command_line_options(argc, argv);
-        Tungsten::set_ogl_tracing_enabled(true);
         app.run<fading_blob>();
     }
     catch (std::exception& ex)

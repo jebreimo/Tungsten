@@ -7,7 +7,7 @@
 ##****************************************************************************
 cmake_minimum_required(VERSION 3.15)
 
-project(Tungsten VERSION 0.7.2)
+project(Tungsten VERSION 0.8.0)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -69,6 +69,7 @@ add_library(Tungsten STATIC
     include/Tungsten/GlTexture.hpp
     include/Tungsten/GlVertexArray.hpp
     include/Tungsten/GlVertices.hpp
+    include/Tungsten/IOglWrapper.hpp
     include/Tungsten/SdlApplication.hpp
     include/Tungsten/SdlDisplay.hpp
     include/Tungsten/SdlSession.hpp
@@ -92,8 +93,12 @@ add_library(Tungsten STATIC
     src/Tungsten/GlProgram.cpp
     src/Tungsten/GlShader.cpp
     src/Tungsten/GlTexture.cpp
+    src/Tungsten/GlTypeConversion.cpp
+    src/Tungsten/GlTypeConversion.hpp
     src/Tungsten/GlVertexArray.cpp
     src/Tungsten/GlVertices.cpp
+    src/Tungsten/IOglWrapper.cpp
+    src/Tungsten/OglWrapper.hpp
     src/Tungsten/SdlApplication.cpp
     src/Tungsten/SdlDisplay.cpp
     src/Tungsten/SdlSession.cpp
@@ -108,15 +113,14 @@ add_library(Tungsten STATIC
     src/Tungsten/TextRenderer/Monaco64.hpp
     src/Tungsten/TextRenderer/RenderTextShaderProgram.cpp
     src/Tungsten/TextRenderer/RenderTextShaderProgram.hpp
+    src/Tungsten/TracingOglWrapper.hpp
     src/Tungsten/TungstenException.cpp
     src/Tungsten/Uniform.cpp
     src/Tungsten/YimageGl.cpp
-        include/Tungsten/IOglWrapper.hpp
-        src/Tungsten/GlTypeConversion.cpp
-        src/Tungsten/GlTypeConversion.hpp
-        src/Tungsten/OglWrapper.hpp
-        src/Tungsten/IOglWrapper.cpp
-        src/Tungsten/TracingOglWrapper.hpp
+    src/Tungsten/GlRendering.cpp
+    include/Tungsten/GlRendering.hpp
+    src/Tungsten/GlStateManagement.cpp
+    include/Tungsten/GlStateManagement.hpp
 )
 
 target_link_libraries(Tungsten

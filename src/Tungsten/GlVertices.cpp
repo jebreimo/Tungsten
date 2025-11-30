@@ -14,16 +14,18 @@ namespace Tungsten
 {
     namespace
     {
-        int32_t get_type_size(GLenum type)
+        int32_t get_type_size(ElementIndexType type)
         {
             switch (type)
             {
-            case GL_UNSIGNED_SHORT:
+            case ElementIndexType::UINT16:
                 return sizeof(unsigned short);
-            case GL_UNSIGNED_BYTE:
+            case ElementIndexType::UINT32:
+                return sizeof(unsigned int);
+            case ElementIndexType::UINT8:
                 return 1;
             default:
-                TUNGSTEN_THROW("Unsupported type: " + std::to_string(type));
+                TUNGSTEN_THROW("Unsupported type: " + std::to_string(int(type)));
             }
         }
     }
@@ -33,15 +35,18 @@ namespace Tungsten
         get_ogl_wrapper().drawArrays(to_ogl_draw_mode(topology), int32_t(offset), count);
     }
 
-    void draw_elements(TopologyType topology, GLenum type, int32_t offset, int32_t count)
+    void draw_elements(TopologyType topology, ElementIndexType type, int32_t offset, int32_t count)
     {
         intptr_t tmp_offset = offset * get_type_size(type);
-        get_ogl_wrapper().drawElements(to_ogl_draw_mode(topology), count, type, reinterpret_cast<void*>(tmp_offset));
+        get_ogl_wrapper().drawElements(to_ogl_draw_mode(topology),
+                                       count,
+                                       to_ogl_element_index_type(type),
+                                       reinterpret_cast<void*>(tmp_offset));
         THROW_IF_GL_ERROR();
     }
 
     void draw_elements_16(TopologyType topology, int32_t offset, int32_t count)
     {
-        draw_elements(topology, GL_UNSIGNED_SHORT, offset, count);
+        draw_elements(topology, ElementIndexType::UINT16, offset, count);
     }
 }

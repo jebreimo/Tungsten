@@ -17,19 +17,19 @@ namespace Tungsten
     public:
         VertexArrayBuilder& add_float(uint32_t attribute_location, int32_t count)
         {
-            definitions_.push_back({attribute_location, count, GL_FLOAT});
+            definitions_.push_back({attribute_location, count, VertexAttributeType::FLOAT});
             return *this;
         }
 
         VertexArrayBuilder& add_int16(uint32_t attribute_location, int32_t count)
         {
-            definitions_.push_back({attribute_location, count, GL_SHORT});
+            definitions_.push_back({attribute_location, count, VertexAttributeType::INT16});
             return *this;
         }
 
         VertexArrayBuilder& add_int32(uint32_t attribute_location, int32_t count)
         {
-            definitions_.push_back({attribute_location, count, GL_INT});
+            definitions_.push_back({attribute_location, count, VertexAttributeType::INT32});
             return *this;
         }
 
@@ -56,7 +56,7 @@ namespace Tungsten
         {
             uint32_t location;
             int32_t count;
-            GLenum type;
+            VertexAttributeType type;
         };
 
         std::vector<Definition> definitions_;

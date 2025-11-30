@@ -6,7 +6,6 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include <GL/glew.h>
 #include <Xyz/Vector.hpp>
 
 namespace Tungsten
@@ -125,5 +124,76 @@ namespace Tungsten
         VERTEX,
         FRAGMENT,
         COMPUTE
+    };
+
+    enum class VertexAttributeType
+    {
+        INT8,
+        UINT8,
+        INT16,
+        UINT16,
+        INT32,
+        UINT32,
+        FLOAT,
+        DOUBLE
+    };
+
+    enum class ElementIndexType
+    {
+        UINT8,
+        UINT16,
+        UINT32
+    };
+
+    enum class FramebufferStatus
+    {
+        COMPLETE,
+        UNDEFINED,
+        INCOMPLETE_ATTACHMENT,
+        INCOMPLETE_MISSING_ATTACHMENT,
+        UNSUPPORTED,
+        INCOMPLETE_MULTISAMPLE
+    };
+
+    enum class TextureMinFilter
+    {
+        NEAREST,
+        LINEAR,
+        NEAREST_MIPMAP_NEAREST,
+        LINEAR_MIPMAP_NEAREST,
+        NEAREST_MIPMAP_LINEAR,
+        LINEAR_MIPMAP_LINEAR
+    };
+
+    enum class TextureMagFilter
+    {
+        NEAREST,
+        LINEAR
+    };
+
+    enum class TextureWrapMode
+    {
+        REPEAT,
+        MIRRORED_REPEAT,
+        CLAMP_TO_EDGE
+    };
+
+    enum class BlendFunction
+    {
+        ZERO,
+        ONE,
+        SRC_COLOR,
+        ONE_MINUS_SRC_COLOR,
+        DST_COLOR,
+        ONE_MINUS_DST_COLOR,
+        SRC_ALPHA,
+        ONE_MINUS_SRC_ALPHA,
+        DST_ALPHA,
+        ONE_MINUS_DST_ALPHA,
+        CONSTANT_COLOR,
+        ONE_MINUS_CONSTANT_COLOR,
+        CONSTANT_ALPHA,
+        ONE_MINUS_CONSTANT_ALPHA,
+        SRC_ALPHA_SATURATE
     };
 }

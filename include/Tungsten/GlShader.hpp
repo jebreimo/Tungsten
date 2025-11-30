@@ -7,7 +7,6 @@
 //****************************************************************************
 #pragma once
 #include <string>
-#include <vector>
 #include "GlHandle.hpp"
 #include "Types.hpp"
 

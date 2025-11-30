@@ -6,7 +6,6 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include <GL/glew.h>
 #include <Xyz/Xyz.hpp>
 
 namespace Tungsten

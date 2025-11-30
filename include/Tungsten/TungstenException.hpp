@@ -8,7 +8,6 @@
 #pragma once
 #include <stdexcept>
 #include <string>
-#include <GL/glew.h>
 #include <SDL3/SDL.h>
 #include "IOglWrapper.hpp"
 

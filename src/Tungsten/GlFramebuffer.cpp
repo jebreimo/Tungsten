@@ -54,16 +54,16 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
-    GLenum check_framebuffer_status(FramebufferTarget target)
+    FramebufferStatus check_framebuffer_status(FramebufferTarget target)
     {
         auto result = get_ogl_wrapper().checkFramebufferStatus(to_ogl_framebuffer_target(target));
         THROW_IF_GL_ERROR();
-        return result;
+        return from_ogl_framebuffer_status(result);
     }
 
     void assert_framebuffer_complete(FramebufferTarget target)
     {
-        if (check_framebuffer_status(target) != GL_FRAMEBUFFER_COMPLETE)
+        if (check_framebuffer_status(target) != FramebufferStatus::COMPLETE)
             TUNGSTEN_THROW("Frame buffer is incomplete.");
     }
 }

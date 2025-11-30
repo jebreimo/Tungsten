@@ -81,12 +81,12 @@ namespace Tungsten
         GLenum checkFramebufferStatus(GLenum target) override
         {
             log("glCheckFramebufferStatus({})", target);
-            return glCheckFramebufferStatus(target);
+            return wrapper->checkFramebufferStatus(target);
         }
 
         void clear(GLbitfield mask) override
         {
-            log("glClear({})", mask);
+            log("glClear({:#x})", mask);
             wrapper->clear(mask);
         }
 
@@ -94,6 +94,18 @@ namespace Tungsten
         {
             log("glClearColor({}, {}, {}, {})", red, green, blue, alpha);
             wrapper->clearColor(red, green, blue, alpha);
+        }
+
+        void clearDepth(float depth) override
+        {
+            log("glClearDepth({})", depth);
+            wrapper->clearDepth(depth);
+        }
+
+        void clearStencil(int32_t stencil) override
+        {
+            log("glClearStencil({})", stencil);
+            wrapper->clearStencil(stencil);
         }
 
         void compileShader(GLuint shader) override
@@ -113,13 +125,13 @@ namespace Tungsten
         GLuint createProgram() override
         {
             log("glCreateProgram()");
-            return glCreateProgram();
+            return wrapper->createProgram();
         }
 
         GLuint createShader(GLenum type) override
         {
             log("glCreateShader({})", type);
-            return glCreateShader(type);
+            return wrapper->createShader(type);
         }
 
         void deleteBuffers(GLsizei n, const GLuint* buffers) override
@@ -239,8 +251,8 @@ namespace Tungsten
 
         GLint getAttribLocation(GLuint program, const GLchar* name) override
         {
-            log("glGetAttribLocation({}, {})", program, std::string_view(name));
-            return glGetAttribLocation(program, name);
+            log("glGetAttribLocation({}, \"{}\")", program, std::string_view(name));
+            return wrapper->getAttribLocation(program, name);
         }
 
         void getBufferParameteriv(GLenum target, GLenum pname, GLint* params) override
@@ -251,7 +263,7 @@ namespace Tungsten
 
         GLenum getError() override
         {
-            auto error = glGetError();
+            auto error = wrapper->getError();
             if (error != GL_NO_ERROR)
                 log("glGetError() -> {}", error);
             return error;
@@ -301,20 +313,20 @@ namespace Tungsten
 
         GLint getUniformLocation(GLuint program, const GLchar* name) override
         {
-            log("glGetUniformLocation({}, {})", program, std::string_view(name));
-            return glGetUniformLocation(program, name);
+            log("glGetUniformLocation({}, \"{}\")", program, std::string_view(name));
+            return wrapper->getUniformLocation(program, name);
         }
 
         GLboolean isBuffer(GLuint buffer) override
         {
             log("glIsBuffer(buffer)");
-            return glIsBuffer(buffer);
+            return wrapper->isBuffer(buffer);
         }
 
         GLboolean isEnabled(GLenum cap) override
         {
             log("glIsEnabled(cap)");
-            return glIsEnabled(cap);
+            return wrapper->isEnabled(cap);
         }
 
         void linkProgram(GLuint program) override

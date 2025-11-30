@@ -74,6 +74,16 @@ namespace Tungsten
             glClearColor(red, green, blue, alpha);
         }
 
+        void clearDepth(float depth) override
+        {
+            glClearDepth(depth);
+        }
+
+        void clearStencil(int32_t stencil) override
+        {
+            glClearStencil(stencil);
+        }
+
         void compileShader(GLuint shader) override
         {
             glCompileShader(shader);

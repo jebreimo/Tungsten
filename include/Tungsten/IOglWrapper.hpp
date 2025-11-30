@@ -52,6 +52,10 @@ namespace Tungsten
 
         virtual void clearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha) = 0;
 
+        virtual void clearDepth(float depth) = 0;
+
+        virtual void clearStencil(int32_t stencil) = 0;
+
         virtual void compileShader(GLuint shader) = 0;
 
         virtual void copyTexSubImage2D(GLenum target, GLint level, GLint xOffset, GLint yOffset, GLint x, GLint y,

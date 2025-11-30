@@ -6,8 +6,8 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include <Tungsten/Types.hpp>
 #include <memory>
+#include <Tungsten/Types.hpp>
 
 class SceneFader
 {

@@ -88,8 +88,8 @@ public:
     void on_draw() override
     {
         JEB_CHECKPOINT();
-        glClearColor(0.4, 0.6, 0.8, 1);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        Tungsten::set_clear_color(0.4, 0.6, 0.8, 1);
+        Tungsten::clear(Tungsten::ClearBufferMask::COLOR_DEPTH);
         auto screen_size = vector_cast<float>(application().window_size());
 
         auto line_height = text_renderer_.font().max_glyph.size[1];
