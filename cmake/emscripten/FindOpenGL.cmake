@@ -9,6 +9,10 @@ cmake_minimum_required(VERSION 3.13)
 
 if (NOT TARGET OpenGL::GL)
     add_library(OpenGL::GL INTERFACE IMPORTED)
+    target_link_options(OpenGL::GL INTERFACE
+        "SHELL:-s USE_WEBGL2=1"
+        "SHELL:-s MIN_WEBGL_VERSION=2"
+    )
 endif ()
 
 set(OpenGL_FOUND YES)
