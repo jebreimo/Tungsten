@@ -16,7 +16,7 @@ namespace Tungsten
 {
     bool is_blend_enabled()
     {
-        return get_ogl_wrapper().isEnabled(GL_BLEND);
+        return get_ogl_wrapper().is_enabled(GL_BLEND);
     }
 
     void set_blend_enabled(bool enabled)
@@ -29,7 +29,7 @@ namespace Tungsten
 
     void set_blend_function(BlendFunction src, BlendFunction dst)
     {
-        get_ogl_wrapper().blendFunc(to_ogl_blend_function(src),
+        get_ogl_wrapper().blend_func(to_ogl_blend_function(src),
                                     to_ogl_blend_function(dst));
     }
 

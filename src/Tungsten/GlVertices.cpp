@@ -32,13 +32,13 @@ namespace Tungsten
 
     void draw_array(TopologyType topology, int32_t offset, int32_t count)
     {
-        get_ogl_wrapper().drawArrays(to_ogl_draw_mode(topology), int32_t(offset), count);
+        get_ogl_wrapper().draw_arrays(to_ogl_draw_mode(topology), int32_t(offset), count);
     }
 
     void draw_elements(TopologyType topology, ElementIndexType type, int32_t offset, int32_t count)
     {
         intptr_t tmp_offset = offset * get_type_size(type);
-        get_ogl_wrapper().drawElements(to_ogl_draw_mode(topology),
+        get_ogl_wrapper().draw_elements(to_ogl_draw_mode(topology),
                                        count,
                                        to_ogl_element_index_type(type),
                                        reinterpret_cast<void*>(tmp_offset));

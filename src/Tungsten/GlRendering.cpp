@@ -12,7 +12,7 @@ namespace Tungsten
 {
     void set_clear_color(float r, float g, float b, float a)
     {
-        get_ogl_wrapper().clearColor(r, g, b, a);
+        get_ogl_wrapper().clear_color(r, g, b, a);
     }
 
     void set_clear_color(const Xyz::Vector4F& color)
@@ -22,12 +22,12 @@ namespace Tungsten
 
     void set_clear_depth(float depth)
     {
-        get_ogl_wrapper().clearDepth(depth);
+        get_ogl_wrapper().clear_depth(depth);
     }
 
     void set_clear_stencil(int32_t stencil)
     {
-        get_ogl_wrapper().clearStencil(stencil);
+        get_ogl_wrapper().clear_stencil(stencil);
     }
 
     void clear(ClearBufferMask mask)

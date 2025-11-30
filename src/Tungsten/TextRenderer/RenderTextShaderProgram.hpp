@@ -7,7 +7,7 @@
 //****************************************************************************
 #pragma once
 #include "Tungsten/GlProgram.hpp"
-#include "Tungsten/Uniform.hpp"
+#include "Tungsten/GlUniform.hpp"
 
 namespace Tungsten::Detail
 {
@@ -19,11 +19,11 @@ namespace Tungsten::Detail
         RenderTextShaderProgram(const RenderTextShaderProgram&) = delete;
         RenderTextShaderProgram& operator=(const RenderTextShaderProgram&) = delete;
 
-        Tungsten::ProgramHandle program;
+        ProgramHandle program;
 
-        Tungsten::Uniform<Xyz::Matrix4F> mvp_matrix;
-        Tungsten::Uniform<int32_t> texture;
-        Tungsten::Uniform<Xyz::Vector4F> color;
+        Uniform<Xyz::Matrix4F> mvp_matrix;
+        Uniform<int32_t> texture;
+        Uniform<Xyz::Vector4F> color;
 
         uint32_t position;
         uint32_t texture_coord;

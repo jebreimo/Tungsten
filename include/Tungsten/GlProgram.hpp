@@ -7,7 +7,7 @@
 //****************************************************************************
 #pragma once
 #include "GlShader.hpp"
-#include "Uniform.hpp"
+#include "GlUniform.hpp"
 
 namespace Tungsten
 {

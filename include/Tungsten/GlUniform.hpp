@@ -47,14 +47,14 @@ namespace Tungsten
     void set_uniform(int32_t location, Xyz::Matrix4F mat, bool transpose = true);
 
     template <typename T>
-    class GlUniform
+    class Uniform
     {
     public:
-        GlUniform()
+        Uniform()
                 : location_(-1)
         {}
 
-        explicit GlUniform(int32_t location)
+        explicit Uniform(int32_t location)
                 : location_(location)
         {}
 

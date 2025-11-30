@@ -20,8 +20,8 @@ namespace Tungsten::Detail
             .add_shader(ShaderType::FRAGMENT, RenderText_frag)
             .build();
 
-        position = Tungsten::get_vertex_attribute(program, "a_Position");
-        texture_coord = Tungsten::get_vertex_attribute(program, "a_TextureCoord");
+        position = get_vertex_attribute(program, "a_Position");
+        texture_coord = get_vertex_attribute(program, "a_TextureCoord");
 
         mvp_matrix = Tungsten::get_uniform<Xyz::Matrix4F>(program, "u_MvpMatrix");
         texture = Tungsten::get_uniform<int32_t>(program, "u_Texture");

@@ -17,14 +17,14 @@ namespace Tungsten
 {
     void BufferDeleter::operator()(uint32_t id) const
     {
-        get_ogl_wrapper().deleteBuffers(1, &id);
+        get_ogl_wrapper().delete_buffers(1, &id);
         THROW_IF_GL_ERROR();
     }
 
     BufferHandle generate_buffer()
     {
         uint32_t id;
-        get_ogl_wrapper().genBuffers(1, &id);
+        get_ogl_wrapper().gen_buffers(1, &id);
         THROW_IF_GL_ERROR();
         return BufferHandle(id);
     }
@@ -32,7 +32,7 @@ namespace Tungsten
     void generate_buffers(std::span<BufferHandle> buffers)
     {
         auto ids = std::vector<uint32_t>(size_t(buffers.size()));
-        get_ogl_wrapper().genBuffers(int32_t(ids.size()), ids.data());
+        get_ogl_wrapper().gen_buffers(int32_t(ids.size()), ids.data());
         THROW_IF_GL_ERROR();
         for (size_t i = 0; i < ids.size(); ++i)
             buffers[i] = BufferHandle(ids[i]);
@@ -40,21 +40,21 @@ namespace Tungsten
 
     void bind_buffer(BufferTarget target, uint32_t buffer)
     {
-        get_ogl_wrapper().bindBuffer(to_ogl_buffer_target(target), buffer);
+        get_ogl_wrapper().bind_buffer(to_ogl_buffer_target(target), buffer);
         THROW_IF_GL_ERROR();
     }
 
     void set_buffer_data(BufferTarget target, ptrdiff_t size, const void* data,
                          BufferUsage usage)
     {
-        get_ogl_wrapper().bufferData(to_ogl_buffer_target(target), size, data, to_ogl_buffer_usage(usage));
+        get_ogl_wrapper().buffer_data(to_ogl_buffer_target(target), size, data, to_ogl_buffer_usage(usage));
         THROW_IF_GL_ERROR();
     }
 
     void set_buffer_subdata(BufferTarget target, ptrdiff_t offset,
                             ptrdiff_t size, const void* data)
     {
-        get_ogl_wrapper().bufferSubData(to_ogl_buffer_target(target), offset, size, data);
+        get_ogl_wrapper().buffer_sub_data(to_ogl_buffer_target(target), offset, size, data);
         THROW_IF_GL_ERROR();
     }
 
@@ -72,13 +72,13 @@ namespace Tungsten
 
     bool is_buffer(uint32_t buffer)
     {
-        return get_ogl_wrapper().isBuffer(buffer) != 0;
+        return get_ogl_wrapper().is_buffer(buffer) != 0;
     }
 
     int32_t get_buffer_size(BufferTarget target)
     {
         int32_t size;
-        get_ogl_wrapper().getBufferParameteriv(to_ogl_buffer_target(target), GL_BUFFER_SIZE, &size);
+        get_ogl_wrapper().get_buffer_parameter_iv(to_ogl_buffer_target(target), GL_BUFFER_SIZE, &size);
         THROW_IF_GL_ERROR();
         return size;
     }
@@ -86,7 +86,7 @@ namespace Tungsten
     BufferUsage get_buffer_usage(BufferTarget target)
     {
         int32_t usage;
-        get_ogl_wrapper().getBufferParameteriv(to_ogl_buffer_target(target), GL_BUFFER_USAGE, &usage);
+        get_ogl_wrapper().get_buffer_parameter_iv(to_ogl_buffer_target(target), GL_BUFFER_USAGE, &usage);
         THROW_IF_GL_ERROR();
         return from_ogl_buffer_usage(usage);
     }
