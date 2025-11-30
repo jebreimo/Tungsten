@@ -9,7 +9,7 @@
 #include <span>
 
 #include "GlHandle.hpp"
-#include "Types.hpp"
+#include "GlTypes.hpp"
 
 namespace Tungsten
 {

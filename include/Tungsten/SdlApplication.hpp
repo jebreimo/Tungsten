@@ -10,7 +10,7 @@
 #include <memory>
 #include "EventLoop.hpp"
 #include "SdlSession.hpp"
-#include "Types.hpp"
+#include "GlTypes.hpp"
 #include "WindowParameters.hpp"
 
 namespace argos

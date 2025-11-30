@@ -5,7 +5,7 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/Uniform.hpp"
+#include "Tungsten/GlUniform.hpp"
 
 #include "Tungsten/TungstenException.hpp"
 

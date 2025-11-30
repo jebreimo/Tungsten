@@ -65,8 +65,11 @@ add_library(Tungsten STATIC
     include/Tungsten/GlHandle.hpp
     include/Tungsten/GlParameters.hpp
     include/Tungsten/GlProgram.hpp
+    include/Tungsten/GlRendering.hpp
     include/Tungsten/GlShader.hpp
+    include/Tungsten/GlStateManagement.hpp
     include/Tungsten/GlTexture.hpp
+    include/Tungsten/GlUniform.hpp
     include/Tungsten/GlVertexArray.hpp
     include/Tungsten/GlVertices.hpp
     include/Tungsten/IOglWrapper.hpp
@@ -78,7 +81,6 @@ add_library(Tungsten STATIC
     include/Tungsten/TextRenderer.hpp
     include/Tungsten/Tungsten.hpp
     include/Tungsten/TungstenException.hpp
-    include/Tungsten/Uniform.hpp
     include/Tungsten/VertexArray.hpp
     include/Tungsten/VertexArrayBuilder.hpp
     include/Tungsten/WindowParameters.hpp
@@ -91,10 +93,13 @@ add_library(Tungsten STATIC
     src/Tungsten/GlFramebuffer.cpp
     src/Tungsten/GlParameters.cpp
     src/Tungsten/GlProgram.cpp
+    src/Tungsten/GlRendering.cpp
     src/Tungsten/GlShader.cpp
+    src/Tungsten/GlStateManagement.cpp
     src/Tungsten/GlTexture.cpp
     src/Tungsten/GlTypeConversion.cpp
     src/Tungsten/GlTypeConversion.hpp
+    src/Tungsten/GlUniform.cpp
     src/Tungsten/GlVertexArray.cpp
     src/Tungsten/GlVertices.cpp
     src/Tungsten/IOglWrapper.cpp
@@ -115,12 +120,7 @@ add_library(Tungsten STATIC
     src/Tungsten/TextRenderer/RenderTextShaderProgram.hpp
     src/Tungsten/TracingOglWrapper.hpp
     src/Tungsten/TungstenException.cpp
-    src/Tungsten/Uniform.cpp
     src/Tungsten/YimageGl.cpp
-    src/Tungsten/GlRendering.cpp
-    include/Tungsten/GlRendering.hpp
-    src/Tungsten/GlStateManagement.cpp
-    include/Tungsten/GlStateManagement.hpp
 )
 
 target_link_libraries(Tungsten

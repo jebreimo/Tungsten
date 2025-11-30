@@ -47,14 +47,15 @@ namespace Tungsten
     struct Font
     {
         Font(FontId identifier,
-             const Xyz::Rectangle2F& max_glyph,
+             Xyz::Rectangle2F max_glyph,
              std::unordered_map<char32_t, Glyph> glyphs,
-             Yimage::Image  image)
+             Yimage::Image image)
             : identifier{std::move(identifier)},
-              max_glyph(max_glyph),
+              max_glyph(std::move(max_glyph)),
               glyphs(std::move(glyphs)),
               image(std::move(image))
-        {}
+        {
+        }
 
         FontId identifier;
         Xyz::Rectangle2F max_glyph;

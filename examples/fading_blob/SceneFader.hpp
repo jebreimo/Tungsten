@@ -7,7 +7,7 @@
 //****************************************************************************
 #pragma once
 #include <memory>
-#include <Tungsten/Types.hpp>
+#include <Tungsten/GlTypes.hpp>
 
 class SceneFader
 {

@@ -9,7 +9,7 @@
 #include <utility>
 #include "Xyz/Vector.hpp"
 #include "Yimage/Image.hpp"
-#include <Tungsten/Types.hpp>
+#include <Tungsten/GlTypes.hpp>
 
 namespace Tungsten
 {
