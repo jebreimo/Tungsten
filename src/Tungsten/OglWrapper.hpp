@@ -241,6 +241,11 @@ namespace Tungsten
             glGetShaderiv(shader, pname, param);
         }
 
+        const GLubyte* get_string(GLenum pname) override
+        {
+            return glGetString(pname);
+        }
+
         void get_tex_parameter(GLenum target, GLenum pname, GLfloat* params) override
         {
             glGetTexParameterfv(target, pname, params);

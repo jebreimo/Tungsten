@@ -122,6 +122,8 @@ add_library(Tungsten STATIC
     src/Tungsten/TungstenException.cpp
     src/Tungsten/YimageGl.cpp
     include/Tungsten/DummyOglWrapper.hpp
+    include/Tungsten/DeviceInfo.cpp
+    include/Tungsten/DeviceInfo.hpp
 )
 
 target_link_libraries(Tungsten

@@ -17,6 +17,7 @@ using GLintptr = ptrdiff_t;
 using GLsizeiptr = ptrdiff_t;
 using GLclampf = float;
 using GLchar = char;
+using GLubyte = unsigned char;
 using GLboolean = unsigned char;
 using GLfloat = float;
 
@@ -129,6 +130,8 @@ namespace Tungsten
                                          GLsizei* length, GLchar* info_log) = 0;
 
         virtual void get_shader(GLuint shader, GLenum pname, GLint* param) = 0;
+
+        virtual const GLubyte* get_string(GLenum name) = 0;
 
         virtual void get_tex_parameter(GLenum target, GLenum pname, GLfloat* params) = 0;
 

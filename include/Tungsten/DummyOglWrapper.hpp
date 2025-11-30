@@ -203,6 +203,11 @@ namespace Tungsten
         {
         }
 
+        const GLubyte* get_string(GLenum pname) override
+        {
+            return nullptr;
+        }
+
         void get_tex_parameter(GLenum target, GLenum pname, GLfloat* params) override
         {
         }
