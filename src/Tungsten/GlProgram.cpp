@@ -48,7 +48,7 @@ namespace Tungsten
     bool get_program_link_status(uint32_t program_id)
     {
         int32_t result = 0;
-        get_ogl_wrapper().get_program_iv(program_id, GL_LINK_STATUS, &result);
+        get_ogl_wrapper().get_program(program_id, GL_LINK_STATUS, &result);
         THROW_IF_GL_ERROR();
         return result == GL_TRUE;
     }
@@ -56,7 +56,7 @@ namespace Tungsten
     int32_t get_program_info_log_length(uint32_t program_id)
     {
         int32_t size;
-        get_ogl_wrapper().get_program_iv(program_id, GL_INFO_LOG_LENGTH, &size);
+        get_ogl_wrapper().get_program(program_id, GL_INFO_LOG_LENGTH, &size);
         return size;
     }
 

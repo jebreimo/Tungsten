@@ -255,10 +255,10 @@ namespace Tungsten
             return wrapper->get_attrib_location(program, name);
         }
 
-        void get_buffer_parameter_iv(GLenum target, GLenum pname, GLint* params) override
+        void get_buffer_parameter(GLenum target, GLenum pname, GLint* params) override
         {
             log("glGetBufferParameteriv({}, {}, {})", target, pname, static_cast<const void*>(params));
-            wrapper->get_buffer_parameter_iv(target, pname, params);
+            wrapper->get_buffer_parameter(target, pname, params);
         }
 
         GLenum getError() override
@@ -269,10 +269,10 @@ namespace Tungsten
             return error;
         }
 
-        void get_integer_v(GLenum pname, GLint* params) override
+        void get_integer(GLenum pname, GLint* params) override
         {
             log("glGetIntegerv({}, {})", pname, static_cast<const void*>(params));
-            wrapper->get_integer_v(pname, params);
+            wrapper->get_integer(pname, params);
         }
 
         void get_program_info_log(GLuint program, GLsizei bufSize, GLsizei* length, GLchar* infoLog) override
@@ -281,10 +281,10 @@ namespace Tungsten
             wrapper->get_program_info_log(program, bufSize, length, infoLog);
         }
 
-        void get_program_iv(GLuint program, GLenum pname, GLint* param) override
+        void get_program(GLuint program, GLenum pname, GLint* param) override
         {
             log("glGetProgramiv({}, {}, {})", program, pname, static_cast<const void*>(param));
-            wrapper->get_program_iv(program, pname, param);
+            wrapper->get_program(program, pname, param);
         }
 
         void get_shader_info_log(GLuint shader, GLsizei bufSize, GLsizei* length, GLchar* infoLog) override
@@ -293,22 +293,22 @@ namespace Tungsten
             wrapper->get_shader_info_log(shader, bufSize, length, infoLog);
         }
 
-        void get_shader_iv(GLuint shader, GLenum pname, GLint* param) override
+        void get_shader(GLuint shader, GLenum pname, GLint* param) override
         {
             log("glGetShaderiv({}, {}, {})", shader, pname, static_cast<const void*>(param));
-            wrapper->get_shader_iv(shader, pname, param);
+            wrapper->get_shader(shader, pname, param);
         }
 
-        void get_tex_parameter_fv(GLenum target, GLenum pname, GLfloat* params) override
+        void get_tex_parameter(GLenum target, GLenum pname, GLfloat* params) override
         {
             log("glGetTexParameterfv({}, {}, {})", target, pname, static_cast<const void*>(params));
-            wrapper->get_tex_parameter_fv(target, pname, params);
+            wrapper->get_tex_parameter(target, pname, params);
         }
 
-        void get_tex_parameter_iv(GLenum target, GLenum pname, GLint* params) override
+        void get_tex_parameter(GLenum target, GLenum pname, GLint* params) override
         {
             log("glGetTexParameteriv({}, {}, {})", target, pname, static_cast<const void*>(params));
-            wrapper->get_tex_parameter_iv(target, pname, params);
+            wrapper->get_tex_parameter(target, pname, params);
         }
 
         GLint get_uniform_location(GLuint program, const GLchar* name) override
@@ -387,16 +387,16 @@ namespace Tungsten
             wrapper->uniform1_i(location, v0);
         }
 
-        void uniform1_fv(GLint location, GLsizei count, const GLfloat* value) override
+        void uniform1(GLint location, GLsizei count, const GLfloat* value) override
         {
             log("glUniform1fv({}, {}, {})", location, count, static_cast<const void*>(value));
-            wrapper->uniform1_fv(location, count, value);
+            wrapper->uniform1(location, count, value);
         }
 
-        void uniform1_iv(GLint location, GLsizei count, const GLint* value) override
+        void uniform1(GLint location, GLsizei count, const GLint* value) override
         {
             log("glUniform1iv({}, {}, {})", location, count, static_cast<const void*>(value));
-            wrapper->uniform1_iv(location, count, value);
+            wrapper->uniform1(location, count, value);
         }
 
         void uniform2_f(GLint location, GLfloat v0, GLfloat v1) override
@@ -411,16 +411,16 @@ namespace Tungsten
             wrapper->uniform2_i(location, v0, v1);
         }
 
-        void uniform2_fv(GLint location, GLsizei count, const GLfloat* value) override
+        void uniform2(GLint location, GLsizei count, const GLfloat* value) override
         {
             log("glUniform2fv({}, {}, {})", location, count, static_cast<const void*>(value));
-            wrapper->uniform2_fv(location, count, value);
+            wrapper->uniform2(location, count, value);
         }
 
-        void uniform2_iv(GLint location, GLsizei count, const GLint* value) override
+        void uniform2(GLint location, GLsizei count, const GLint* value) override
         {
             log("glUniform2iv({}, {}, {})", location, count, static_cast<const void*>(value));
-            wrapper->uniform2_iv(location, count, value);
+            wrapper->uniform2(location, count, value);
         }
 
         void uniform3_f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2) override
@@ -435,16 +435,16 @@ namespace Tungsten
             wrapper->uniform3_i(location, v0, v1, v2);
         }
 
-        void uniform3_fv(GLint location, GLsizei count, const GLfloat* value) override
+        void uniform3(GLint location, GLsizei count, const GLfloat* value) override
         {
             log("glUniform3fv({}, {}, {})", location, count, static_cast<const void*>(value));
-            wrapper->uniform3_fv(location, count, value);
+            wrapper->uniform3(location, count, value);
         }
 
-        void uniform3_iv(GLint location, GLsizei count, const GLint* value) override
+        void uniform3(GLint location, GLsizei count, const GLint* value) override
         {
             log("glUniform3iv({}, {}, {})", location, count, static_cast<const void*>(value));
-            wrapper->uniform3_iv(location, count, value);
+            wrapper->uniform3(location, count, value);
         }
 
         void uniform4_f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3) override
@@ -459,34 +459,34 @@ namespace Tungsten
             wrapper->uniform4_i(location, v0, v1, v2, v3);
         }
 
-        void uniform4_fv(GLint location, GLsizei count, const GLfloat* value) override
+        void uniform4(GLint location, GLsizei count, const GLfloat* value) override
         {
             log("glUniform4fv({}, {}, {})", location, count, static_cast<const void*>(value));
-            wrapper->uniform4_fv(location, count, value);
+            wrapper->uniform4(location, count, value);
         }
 
-        void uniform4_iv(GLint location, GLsizei count, const GLint* value) override
+        void uniform4(GLint location, GLsizei count, const GLint* value) override
         {
             log("glUniform4iv({}, {}, {})", location, count, static_cast<const void*>(value));
-            wrapper->uniform4_iv(location, count, value);
+            wrapper->uniform4(location, count, value);
         }
 
-        void uniform_matrix2_fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) override
+        void uniform_matrix2(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) override
         {
             log("glUniformMatrix2fv({}, {}, {}, {})", location, count, transpose, static_cast<const void*>(value));
-            wrapper->uniform_matrix2_fv(location, count, transpose, value);
+            wrapper->uniform_matrix2(location, count, transpose, value);
         }
 
-        void uniform_matrix3_fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) override
+        void uniform_matrix3(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) override
         {
             log("glUniformMatrix3fv({}, {}, {}, {})", location, count, transpose, static_cast<const void*>(value));
-            wrapper->uniform_matrix3_fv(location, count, transpose, value);
+            wrapper->uniform_matrix3(location, count, transpose, value);
         }
 
-        void uniform_matrix4_fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) override
+        void uniform_matrix4(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) override
         {
             log("glUniformMatrix4fv({}, {}, {}, {})", location, count, transpose, static_cast<const void*>(value));
-            wrapper->uniform_matrix4_fv(location, count, transpose, value);
+            wrapper->uniform_matrix4(location, count, transpose, value);
         }
 
         void use_program(GLuint program) override

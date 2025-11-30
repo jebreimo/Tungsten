@@ -9,6 +9,7 @@
 
 #include "OglWrapper.hpp"
 #include "TracingOglWrapper.hpp"
+#include "Tungsten/DummyOglWrapper.hpp"
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
@@ -16,6 +17,7 @@ namespace Tungsten
     namespace
     {
         OglWrapper ogl_wrapper_;
+        DummyOglWrapper dummy_ogl_wrapper_;
         TracingOglWrapper tracing_ogl_wrapper_;
         IOglWrapper* raw_wrapper_ = &ogl_wrapper_;
         std::unique_ptr<IOglWrapper> custom_wrapper_;
@@ -63,11 +65,13 @@ namespace Tungsten
 
     std::unique_ptr<IOglWrapper> set_standard_ogl_wrapper(StandardOglWrapper wrapper_type)
     {
-        std::unique_ptr<IOglWrapper> old_wrapper;
         switch (wrapper_type)
         {
-            case StandardOglWrapper::DEFAULT:
+        case StandardOglWrapper::DEFAULT:
             set_raw_wrapper(&ogl_wrapper_);
+            return std::move(custom_wrapper_);
+        case StandardOglWrapper::DUMMY:
+            set_raw_wrapper(&dummy_ogl_wrapper_);
             return std::move(custom_wrapper_);
         default:
             TUNGSTEN_THROW("Invalid OpenGL wrapper type!");

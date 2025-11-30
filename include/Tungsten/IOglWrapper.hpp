@@ -6,7 +6,6 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include <cstddef>
 #include <memory>
 
 using GLenum = unsigned int;
@@ -115,25 +114,25 @@ namespace Tungsten
 
         virtual GLint get_attrib_location(GLuint program, const GLchar* name) = 0;
 
-        virtual void get_buffer_parameter_iv(GLenum target, GLenum pname, GLint* params) = 0;
+        virtual void get_buffer_parameter(GLenum target, GLenum pname, GLint* params) = 0;
 
         virtual GLenum getError() = 0;
 
-        virtual void get_integer_v(GLenum pname, GLint* params) = 0;
+        virtual void get_integer(GLenum pname, GLint* params) = 0;
 
         virtual void get_program_info_log(GLuint program, GLsizei buf_size,
                                           GLsizei* length, GLchar* info_log) = 0;
 
-        virtual void get_program_iv(GLuint program, GLenum pname, GLint* param) = 0;
+        virtual void get_program(GLuint program, GLenum pname, GLint* param) = 0;
 
         virtual void get_shader_info_log(GLuint shader, GLsizei buf_size,
                                          GLsizei* length, GLchar* info_log) = 0;
 
-        virtual void get_shader_iv(GLuint shader, GLenum pname, GLint* param) = 0;
+        virtual void get_shader(GLuint shader, GLenum pname, GLint* param) = 0;
 
-        virtual void get_tex_parameter_fv(GLenum target, GLenum pname, GLfloat* params) = 0;
+        virtual void get_tex_parameter(GLenum target, GLenum pname, GLfloat* params) = 0;
 
-        virtual void get_tex_parameter_iv(GLenum target, GLenum pname, GLint* params) = 0;
+        virtual void get_tex_parameter(GLenum target, GLenum pname, GLint* params) = 0;
 
         virtual GLint get_uniform_location(GLuint program, const GLchar* name) = 0;
 
@@ -171,41 +170,41 @@ namespace Tungsten
 
         virtual void uniform1_i(GLint location, GLint v0) = 0;
 
-        virtual void uniform1_fv(GLint location, GLsizei count, const GLfloat* value) = 0;
+        virtual void uniform1(GLint location, GLsizei count, const GLfloat* value) = 0;
 
-        virtual void uniform1_iv(GLint location, GLsizei count, const GLint* value) = 0;
+        virtual void uniform1(GLint location, GLsizei count, const GLint* value) = 0;
 
         virtual void uniform2_f(GLint location, GLfloat v0, GLfloat v1) = 0;
 
         virtual void uniform2_i(GLint location, GLint v0, GLint v1) = 0;
 
-        virtual void uniform2_fv(GLint location, GLsizei count, const GLfloat* value) = 0;
+        virtual void uniform2(GLint location, GLsizei count, const GLfloat* value) = 0;
 
-        virtual void uniform2_iv(GLint location, GLsizei count, const GLint* value) = 0;
+        virtual void uniform2(GLint location, GLsizei count, const GLint* value) = 0;
 
         virtual void uniform3_f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2) = 0;
 
         virtual void uniform3_i(GLint location, GLint v0, GLint v1, GLint v2) = 0;
 
-        virtual void uniform3_fv(GLint location, GLsizei count, const GLfloat* value) = 0;
+        virtual void uniform3(GLint location, GLsizei count, const GLfloat* value) = 0;
 
-        virtual void uniform3_iv(GLint location, GLsizei count, const GLint* value) = 0;
+        virtual void uniform3(GLint location, GLsizei count, const GLint* value) = 0;
 
         virtual void uniform4_f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3) = 0;
 
         virtual void uniform4_i(GLint location, GLint v0, GLint v1, GLint v2, GLint v3) = 0;
 
-        virtual void uniform4_fv(GLint location, GLsizei count, const GLfloat* value) = 0;
+        virtual void uniform4(GLint location, GLsizei count, const GLfloat* value) = 0;
 
-        virtual void uniform4_iv(GLint location, GLsizei count, const GLint* value) = 0;
+        virtual void uniform4(GLint location, GLsizei count, const GLint* value) = 0;
 
-        virtual void uniform_matrix2_fv(GLint location, GLsizei count, GLboolean transpose,
+        virtual void uniform_matrix2(GLint location, GLsizei count, GLboolean transpose,
                                         const GLfloat* value) = 0;
 
-        virtual void uniform_matrix3_fv(GLint location, GLsizei count, GLboolean transpose,
+        virtual void uniform_matrix3(GLint location, GLsizei count, GLboolean transpose,
                                         const GLfloat* value) = 0;
 
-        virtual void uniform_matrix4_fv(GLint location, GLsizei count, GLboolean transpose,
+        virtual void uniform_matrix4(GLint location, GLsizei count, GLboolean transpose,
                                         const GLfloat* value) = 0;
 
         virtual void use_program(GLuint program) = 0;

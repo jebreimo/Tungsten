@@ -78,7 +78,7 @@ namespace Tungsten
     int32_t get_buffer_size(BufferTarget target)
     {
         int32_t size;
-        get_ogl_wrapper().get_buffer_parameter_iv(to_ogl_buffer_target(target), GL_BUFFER_SIZE, &size);
+        get_ogl_wrapper().get_buffer_parameter(to_ogl_buffer_target(target), GL_BUFFER_SIZE, &size);
         THROW_IF_GL_ERROR();
         return size;
     }
@@ -86,7 +86,7 @@ namespace Tungsten
     BufferUsage get_buffer_usage(BufferTarget target)
     {
         int32_t usage;
-        get_ogl_wrapper().get_buffer_parameter_iv(to_ogl_buffer_target(target), GL_BUFFER_USAGE, &usage);
+        get_ogl_wrapper().get_buffer_parameter(to_ogl_buffer_target(target), GL_BUFFER_USAGE, &usage);
         THROW_IF_GL_ERROR();
         return from_ogl_buffer_usage(usage);
     }

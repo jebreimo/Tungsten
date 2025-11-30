@@ -36,7 +36,7 @@ namespace Tungsten
     bool get_shader_compile_status(uint32_t shader_id)
     {
         int32_t result = 0;
-        get_ogl_wrapper().get_shader_iv(shader_id, GL_COMPILE_STATUS, &result);
+        get_ogl_wrapper().get_shader(shader_id, GL_COMPILE_STATUS, &result);
         THROW_IF_GL_ERROR();
         return result == GL_TRUE;
     }
@@ -44,7 +44,7 @@ namespace Tungsten
     int32_t get_shader_info_log_length(uint32_t shader_id)
     {
         int32_t size;
-        get_ogl_wrapper().get_shader_iv(shader_id, GL_INFO_LOG_LENGTH, &size);
+        get_ogl_wrapper().get_shader(shader_id, GL_INFO_LOG_LENGTH, &size);
         return size;
     }
 

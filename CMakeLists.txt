@@ -121,6 +121,7 @@ add_library(Tungsten STATIC
     src/Tungsten/TracingOglWrapper.hpp
     src/Tungsten/TungstenException.cpp
     src/Tungsten/YimageGl.cpp
+    include/Tungsten/DummyOglWrapper.hpp
 )
 
 target_link_libraries(Tungsten

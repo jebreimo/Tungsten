@@ -91,7 +91,7 @@ namespace Tungsten
     int32_t active_texture_unit()
     {
         int32_t result;
-        get_ogl_wrapper().get_integer_v(GL_ACTIVE_TEXTURE, &result);
+        get_ogl_wrapper().get_integer(GL_ACTIVE_TEXTURE, &result);
         THROW_IF_GL_ERROR();
         return result - GL_TEXTURE0;
     }
@@ -99,7 +99,7 @@ namespace Tungsten
     uint32_t bound_texture(TextureTarget target)
     {
         int32_t result;
-        get_ogl_wrapper().get_integer_v(map_texture_binding(to_ogl_texture_target(target)), &result);
+        get_ogl_wrapper().get_integer(map_texture_binding(to_ogl_texture_target(target)), &result);
         THROW_IF_GL_ERROR();
         return static_cast<uint32_t>(result);
     }
@@ -157,7 +157,7 @@ namespace Tungsten
     float get_texture_float_parameter(TextureTarget target, TextureParameter pname)
     {
         float result;
-        get_ogl_wrapper().get_tex_parameter_fv(to_ogl_texture_target(target),
+        get_ogl_wrapper().get_tex_parameter(to_ogl_texture_target(target),
                                             to_ogl_texture_parameter(pname), &result);
         THROW_IF_GL_ERROR();
         return result;
@@ -174,7 +174,7 @@ namespace Tungsten
     int32_t get_texture_int_parameter(TextureTarget target, TextureParameter pname)
     {
         int32_t result;
-        get_ogl_wrapper().get_tex_parameter_iv(to_ogl_texture_target(target),
+        get_ogl_wrapper().get_tex_parameter(to_ogl_texture_target(target),
                                             to_ogl_texture_parameter(pname), &result);
         THROW_IF_GL_ERROR();
         return result;
