@@ -63,37 +63,37 @@ namespace Tungsten
 
     void set_uniform(int32_t location, const Xyz::Vector2I& vec)
     {
-        get_ogl_wrapper().uniform2(location, 1, vec.values);
+        get_ogl_wrapper().uniform2(location, 1, vec.values.data());
         THROW_IF_GL_ERROR();
     }
 
     void set_uniform(int32_t location, const Xyz::Vector3I& vec)
     {
-        get_ogl_wrapper().uniform3(location, 1, vec.values);
+        get_ogl_wrapper().uniform3(location, 1, vec.values.data());
         THROW_IF_GL_ERROR();
     }
 
     void set_uniform(int32_t location, const Xyz::Vector4I& vec)
     {
-        get_ogl_wrapper().uniform4(location, 1, vec.values);
+        get_ogl_wrapper().uniform4(location, 1, vec.values.data());
         THROW_IF_GL_ERROR();
     }
 
     void set_uniform(int32_t location, const Xyz::Vector2F& vec)
     {
-        get_ogl_wrapper().uniform2(location, 1, vec.values);
+        get_ogl_wrapper().uniform2(location, 1, vec.values.data());
         THROW_IF_GL_ERROR();
     }
 
     void set_uniform(int32_t location, const Xyz::Vector3F& vec)
     {
-        get_ogl_wrapper().uniform3(location, 1, vec.values);
+        get_ogl_wrapper().uniform3(location, 1, vec.values.data());
         THROW_IF_GL_ERROR();
     }
 
     void set_uniform(int32_t location, const Xyz::Vector4F& vec)
     {
-        get_ogl_wrapper().uniform4(location, 1, vec.values);
+        get_ogl_wrapper().uniform4(location, 1, vec.values.data());
         THROW_IF_GL_ERROR();
     }
 
@@ -101,7 +101,7 @@ namespace Tungsten
     {
         if (transpose)
             Xyz::transpose_inplace(mat);
-        get_ogl_wrapper().uniform_matrix2(location, 1, false, mat.values);
+        get_ogl_wrapper().uniform_matrix2(location, 1, false, mat.values.data());
         THROW_IF_GL_ERROR();
     }
 
@@ -109,7 +109,7 @@ namespace Tungsten
     {
         if (transpose)
             Xyz::transpose_inplace(mat);
-        get_ogl_wrapper().uniform_matrix3(location, 1, false, mat.values);
+        get_ogl_wrapper().uniform_matrix3(location, 1, false, mat.values.data());
         THROW_IF_GL_ERROR();
     }
 
@@ -117,7 +117,7 @@ namespace Tungsten
     {
         if (transpose)
             Xyz::transpose_inplace(mat);
-        get_ogl_wrapper().uniform_matrix4(location, 1, false, mat.values);
+        get_ogl_wrapper().uniform_matrix4(location, 1, false, mat.values.data());
         THROW_IF_GL_ERROR();
     }
 }
