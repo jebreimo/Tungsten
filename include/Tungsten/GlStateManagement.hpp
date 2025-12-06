@@ -16,5 +16,13 @@ namespace Tungsten
 
     void set_blend_function(BlendFunction src, BlendFunction dst);
 
+    bool is_depth_test_enabled();
+
+    void set_depth_test_enabled(bool enabled);
+
+    bool is_cull_face_enabled();
+
+    void set_cull_face_enabled(bool enabled);
+
     void set_viewport(int x, int y, int width, int height);
 }

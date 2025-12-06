@@ -33,6 +33,32 @@ namespace Tungsten
                                     to_ogl_blend_function(dst));
     }
 
+    bool is_depth_test_enabled()
+    {
+        return get_ogl_wrapper().is_enabled(GL_DEPTH_TEST);
+    }
+
+    void set_depth_test_enabled(bool enabled)
+    {
+        if (enabled)
+            get_ogl_wrapper().enable(GL_DEPTH_TEST);
+        else
+            get_ogl_wrapper().disable(GL_DEPTH_TEST);
+    }
+
+    bool is_cull_face_enabled()
+    {
+        return get_ogl_wrapper().is_enabled(GL_CULL_FACE);
+    }
+
+    void set_cull_face_enabled(bool enabled)
+    {
+        if (enabled)
+            get_ogl_wrapper().enable(GL_CULL_FACE);
+        else
+            get_ogl_wrapper().disable(GL_CULL_FACE);
+    }
+
     void set_viewport(int x, int y, int width, int height)
     {
         get_ogl_wrapper().viewport(x, y, width, height);
