@@ -331,7 +331,7 @@ namespace Tungsten
 
         GLboolean is_enabled(GLenum cap) override
         {
-            log("glIsEnabled(cap)");
+            log("glIsEnabled({})", cap);
             return wrapper->is_enabled(cap);
         }
 
