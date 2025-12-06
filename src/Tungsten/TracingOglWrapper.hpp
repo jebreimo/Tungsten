@@ -139,6 +139,12 @@ namespace Tungsten
             return wrapper->create_shader(type);
         }
 
+        void cull_face(GLenum mode) override
+        {
+            log("glCullFace({})", mode);
+            wrapper->cull_face(mode);
+        }
+
         void delete_buffers(GLsizei n, const GLuint* buffers) override
         {
             log("glDeleteBuffers({}, {})", n, static_cast<const void*>(buffers));

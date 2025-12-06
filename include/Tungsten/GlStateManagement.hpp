@@ -24,5 +24,7 @@ namespace Tungsten
 
     void set_cull_face_enabled(bool enabled);
 
+    void set_cull_mode(CullMode mode);
+
     void set_viewport(int x, int y, int width, int height);
 }

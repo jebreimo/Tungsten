@@ -90,6 +90,10 @@ namespace Tungsten
             return 0;
         }
 
+        void cull_face(GLenum mode) override
+        {
+        }
+
         void delete_buffers(GLsizei n, const GLuint* buffers) override
         {
         }

@@ -59,6 +59,11 @@ namespace Tungsten
             get_ogl_wrapper().disable(GL_CULL_FACE);
     }
 
+    void set_cull_mode(CullMode mode)
+    {
+        get_ogl_wrapper().cull_face(to_ogl_cull_mode(mode));
+    }
+
     void set_viewport(int x, int y, int width, int height)
     {
         get_ogl_wrapper().viewport(x, y, width, height);

@@ -196,4 +196,11 @@ namespace Tungsten
         ONE_MINUS_CONSTANT_ALPHA,
         SRC_ALPHA_SATURATE
     };
+
+    enum class CullMode
+    {
+        FRONT,
+        BACK,
+        FRONT_AND_BACK
+    };
 }

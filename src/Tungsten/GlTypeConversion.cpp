@@ -360,4 +360,17 @@ namespace Tungsten
                 + std::to_string(static_cast<int>(blend_function)));
         }
     }
+
+    GLenum to_ogl_cull_mode(CullMode mode)
+    {
+        switch (mode)
+        {
+        case CullMode::BACK: return GL_BACK;
+        case CullMode::FRONT: return GL_FRONT;
+        case CullMode::FRONT_AND_BACK: return GL_FRONT_AND_BACK;
+        default:
+            TUNGSTEN_THROW("Unsupported cull mode: "
+                + std::to_string(static_cast<int>(mode)));
+        }
+    }
 }

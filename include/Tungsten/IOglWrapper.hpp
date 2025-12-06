@@ -70,6 +70,8 @@ namespace Tungsten
 
         virtual GLuint create_shader(GLenum type) = 0;
 
+        virtual void cull_face(GLenum mode) = 0;
+
         virtual void delete_buffers(GLsizei n, const GLuint* buffers) = 0;
 
         virtual void delete_framebuffers(GLsizei n, const GLuint* framebuffers) = 0;

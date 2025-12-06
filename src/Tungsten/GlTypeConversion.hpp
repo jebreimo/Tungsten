@@ -33,4 +33,5 @@ namespace Tungsten
     GLint to_ogl_texture_wrap_mode(TextureWrapMode mode);
     TextureWrapMode from_ogl_texture_wrap_mode(GLint mode);
     GLenum to_ogl_blend_function(BlendFunction blend_function);
+    GLenum to_ogl_cull_mode(CullMode mode);
 }
