@@ -6,6 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include <iosfwd>
 #include <string>
 #include <vector>
 
@@ -19,6 +20,8 @@ namespace Tungsten
         std::string shader_language_version;
         std::vector<std::string> extensions;
     };
+
+    std::ostream& operator<<(std::ostream& os, const DeviceInfo& info);
 
     DeviceInfo get_device_info();
 }

@@ -251,6 +251,11 @@ namespace Tungsten
             return glGetString(pname);
         }
 
+        const GLubyte* get_string_i(GLenum name, GLuint index) override
+        {
+            return glGetStringi(name, index);
+        }
+
         void get_tex_parameter(GLenum target, GLenum pname, GLfloat* params) override
         {
             glGetTexParameterfv(target, pname, params);

@@ -135,6 +135,8 @@ namespace Tungsten
 
         virtual const GLubyte* get_string(GLenum name) = 0;
 
+        virtual const GLubyte* get_string_i(GLenum name, GLuint index) = 0;
+
         virtual void get_tex_parameter(GLenum target, GLenum pname, GLfloat* params) = 0;
 
         virtual void get_tex_parameter(GLenum target, GLenum pname, GLint* params) = 0;

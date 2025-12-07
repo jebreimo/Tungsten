@@ -7,53 +7,69 @@
 //****************************************************************************
 #include "DeviceInfo.hpp"
 
+#include <ostream>
 #include <GL/glew.h>
 
 #include "IOglWrapper.hpp"
+#include "TungstenException.hpp"
 
 namespace Tungsten
 {
+    std::ostream& operator<<(std::ostream& os, const DeviceInfo& info)
+    {
+        os << "Vendor: " << info.vendor << '\n'
+            << "Renderer: " << info.renderer << '\n'
+            << "Version: " << info.version << '\n'
+            << "Shader Language Version: "
+            << info.shader_language_version << '\n';
+        os << "Extensions:";
+        for (const auto& ext : info.extensions)
+            os << "\n  " << ext;
+        return os;
+    }
+
+    namespace
+    {
+        std::string get_string_or_empty(GLenum name)
+        {
+            auto& ogl = get_ogl_wrapper();
+            const char* str = reinterpret_cast<const char*>(ogl.get_string(name));
+            THROW_IF_GL_ERROR();
+            return str ? str : "";
+        }
+
+        std::vector<std::string> get_extension_list()
+        {
+            auto& ogl = get_ogl_wrapper();
+            std::vector<std::string> extensions;
+            uint32_t i = 0;
+            while (true)
+            {
+                const char* str = reinterpret_cast<const char*>(ogl.get_string_i(GL_EXTENSIONS, i));
+                if (str == nullptr)
+                {
+                    auto error = ogl.get_error();
+                    if (error == GL_INVALID_VALUE)
+                        break;
+                    THROW_GL_ERROR(error);
+                }
+                extensions.emplace_back(reinterpret_cast<const char*>(str));
+                ++i;
+            }
+
+            return extensions;
+        }
+    }
+
     DeviceInfo get_device_info()
     {
         auto& ogl = get_ogl_wrapper();
-        DeviceInfo device;
-        {
-            const char* str = reinterpret_cast<const char*>(ogl.get_string(GL_VENDOR));
-            device.vendor = str ? str : "";
-        }
-        {
-            const char* str = reinterpret_cast<const char*>(ogl.get_string(GL_RENDERER));
-            device.renderer = str ? str : "";
-        }
-        {
-            const char* str = reinterpret_cast<const char*>(ogl.get_string(GL_VERSION));
-            device.version = str ? str : "";
-        }
-        {
-            const char* str = reinterpret_cast<const char*>(
-                ogl.get_string(GL_SHADING_LANGUAGE_VERSION));
-            device.shader_language_version = str ? str : "";
-        }
-        {
-            const char* str = reinterpret_cast<const char*>(ogl.get_string(GL_EXTENSIONS));
-            if (str)
-            {
-                std::string extensions_str = str;
-                size_t start = 0;
-                size_t end;
-                while ((end = extensions_str.find(' ', start)) != std::string::npos)
-                {
-                    device.extensions.push_back(
-                        extensions_str.substr(start, end - start));
-                    start = end + 1;
-                }
-                if (start < extensions_str.size())
-                {
-                    device.extensions.push_back(
-                        extensions_str.substr(start));
-                }
-            }
-        }
-        return device;
+        return {
+            .vendor = get_string_or_empty(GL_VENDOR),
+            .renderer = get_string_or_empty(GL_RENDERER),
+            .version = get_string_or_empty(GL_VERSION),
+            .shader_language_version = get_string_or_empty(GL_SHADING_LANGUAGE_VERSION),
+            .extensions = get_extension_list()
+        };
     }
 }

@@ -8,6 +8,7 @@
 #pragma once
 #include "ArrayBuffer.hpp"
 #include "ArrayBufferBuilder.hpp"
+#include "DeviceInfo.hpp"
 #include "FontManager.hpp"
 #include "GlBuffer.hpp"
 #include "GlFramebuffer.hpp"

@@ -55,6 +55,9 @@ add_library(Tungsten STATIC
     include/Tungsten/ArrayBuffer.hpp
     include/Tungsten/ArrayBufferBuilder.hpp
     include/Tungsten/Buffer.hpp
+    include/Tungsten/DeviceInfo.cpp
+    include/Tungsten/DeviceInfo.hpp
+    include/Tungsten/DummyOglWrapper.hpp
     include/Tungsten/Environment.hpp
     include/Tungsten/Font.hpp
     include/Tungsten/FontManager.hpp
