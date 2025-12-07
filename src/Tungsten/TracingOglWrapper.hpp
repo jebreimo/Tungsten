@@ -276,9 +276,9 @@ namespace Tungsten
             wrapper->get_buffer_parameter(target, pname, params);
         }
 
-        GLenum getError() override
+        GLenum get_error() override
         {
-            auto error = wrapper->getError();
+            auto error = wrapper->get_error();
             if (error != GL_NO_ERROR)
                 log("glGetError() -> {}", error);
             return error;

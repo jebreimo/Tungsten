@@ -180,7 +180,7 @@ namespace Tungsten
         {
         }
 
-        GLenum getError() override
+        GLenum get_error() override
         {
             return 0;
         }

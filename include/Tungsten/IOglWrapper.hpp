@@ -119,7 +119,7 @@ namespace Tungsten
 
         virtual void get_buffer_parameter(GLenum target, GLenum pname, GLint* params) = 0;
 
-        virtual GLenum getError() = 0;
+        virtual GLenum get_error() = 0;
 
         virtual void get_integer(GLenum pname, GLint* params) = 0;
 

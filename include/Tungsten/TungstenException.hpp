@@ -39,9 +39,16 @@ namespace Tungsten
 #define TUNGSTEN_THROW_NESTED(msg) \
     std::throw_with_nested(IMPL_TUNGSTEN_EXCEPTION_1(__FILE__, __LINE__, msg))
 
+#define THROW_GL_ERROR(error_code) \
+    do { \
+        throw IMPL_TUNGSTEN_EXCEPTION_1(__FILE__, __LINE__, \
+                          + std::string("[") + __func__ + "] " \
+                          + get_gl_error_message(error_code)); \
+    } while (false)
+
 #define THROW_IF_GL_ERROR() \
     do { \
-        auto my_gl_error = get_ogl_wrapper().getError(); \
+        auto my_gl_error = get_ogl_wrapper().get_error(); \
         if (!my_gl_error) \
             break; \
         throw IMPL_TUNGSTEN_EXCEPTION_1(__FILE__, __LINE__, \

@@ -20,11 +20,11 @@ namespace Tungsten
 
     void set_depth_test_enabled(bool enabled);
 
-    bool is_cull_face_enabled();
+    bool is_face_culling_enabled();
 
-    void set_cull_face_enabled(bool enabled);
+    void set_face_culling_enabled(bool enabled);
 
-    void set_cull_mode(CullMode mode);
+    void set_face_culling_mode(FaceCullingMode mode);
 
     void set_viewport(int x, int y, int width, int height);
 }

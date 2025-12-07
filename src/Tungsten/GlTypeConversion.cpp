@@ -361,13 +361,13 @@ namespace Tungsten
         }
     }
 
-    GLenum to_ogl_cull_mode(CullMode mode)
+    GLenum to_ogl_cull_mode(FaceCullingMode mode)
     {
         switch (mode)
         {
-        case CullMode::BACK: return GL_BACK;
-        case CullMode::FRONT: return GL_FRONT;
-        case CullMode::FRONT_AND_BACK: return GL_FRONT_AND_BACK;
+        case FaceCullingMode::BACK: return GL_BACK;
+        case FaceCullingMode::FRONT: return GL_FRONT;
+        case FaceCullingMode::FRONT_AND_BACK: return GL_FRONT_AND_BACK;
         default:
             TUNGSTEN_THROW("Unsupported cull mode: "
                 + std::to_string(static_cast<int>(mode)));

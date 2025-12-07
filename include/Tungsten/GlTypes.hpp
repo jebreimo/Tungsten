@@ -197,7 +197,7 @@ namespace Tungsten
         SRC_ALPHA_SATURATE
     };
 
-    enum class CullMode
+    enum class FaceCullingMode
     {
         FRONT,
         BACK,

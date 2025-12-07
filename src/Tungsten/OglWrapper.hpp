@@ -216,7 +216,7 @@ namespace Tungsten
             glGetBufferParameteriv(target, pname, params);
         }
 
-        GLenum getError() override
+        GLenum get_error() override
         {
             return glGetError();
         }

@@ -46,12 +46,12 @@ namespace Tungsten
             get_ogl_wrapper().disable(GL_DEPTH_TEST);
     }
 
-    bool is_cull_face_enabled()
+    bool is_face_culling_enabled()
     {
         return get_ogl_wrapper().is_enabled(GL_CULL_FACE);
     }
 
-    void set_cull_face_enabled(bool enabled)
+    void set_face_culling_enabled(bool enabled)
     {
         if (enabled)
             get_ogl_wrapper().enable(GL_CULL_FACE);
@@ -59,7 +59,7 @@ namespace Tungsten
             get_ogl_wrapper().disable(GL_CULL_FACE);
     }
 
-    void set_cull_mode(CullMode mode)
+    void set_face_culling_mode(FaceCullingMode mode)
     {
         get_ogl_wrapper().cull_face(to_ogl_cull_mode(mode));
     }
