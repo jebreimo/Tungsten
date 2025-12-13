@@ -52,9 +52,9 @@ find_package(OpenGL REQUIRED)
 find_package(SDL3 REQUIRED)
 
 add_library(Tungsten STATIC
-    include/Tungsten/VertexArrayDataBuilder.hpp
     include/Tungsten/Buffer.hpp
-    src/Tungsten/DeviceInfo.cpp
+    include/Tungsten/Camera.hpp
+    include/Tungsten/Detail/UniformTypeAdapter.hpp
     include/Tungsten/DeviceInfo.hpp
     include/Tungsten/DummyOglWrapper.hpp
     include/Tungsten/Environment.hpp
@@ -74,23 +74,33 @@ add_library(Tungsten STATIC
     include/Tungsten/GlUniform.hpp
     include/Tungsten/GlVertexArray.hpp
     include/Tungsten/GlVertices.hpp
+    include/Tungsten/GouraudShader.hpp
     include/Tungsten/IOglWrapper.hpp
+    include/Tungsten/PhongShader.hpp
+    include/Tungsten/PositionNormalShapes.cpp
+    include/Tungsten/PositionNormalShapes.hpp
+    include/Tungsten/RenderItem.hpp
     include/Tungsten/SdlApplication.hpp
     include/Tungsten/SdlDisplay.hpp
     include/Tungsten/SdlSession.hpp
-    src/Tungsten/ShaderProgram.cpp
+    include/Tungsten/ShaderManager.hpp
     include/Tungsten/ShaderProgram.hpp
     include/Tungsten/ShaderProgramBuilder.hpp
-    src/Tungsten/ShaderProgramManager.cpp
-    include/Tungsten/ShaderProgramManager.hpp
     include/Tungsten/ShaderTools.hpp
+    include/Tungsten/SmoothMeshShader.cpp
+    include/Tungsten/SmoothMeshShader.hpp
     include/Tungsten/TextRenderer.hpp
     include/Tungsten/Tungsten.hpp
     include/Tungsten/TungstenException.hpp
+    include/Tungsten/UniformType.hpp
+    include/Tungsten/VertexArrayDataBuilder.hpp
+    include/Tungsten/VertexArrayObject.hpp
+    include/Tungsten/VertexArrayObjectBuilder.hpp
     include/Tungsten/WindowParameters.hpp
     include/Tungsten/YimageGl.hpp
     src/Tungsten/CommandLine.cpp
     src/Tungsten/CommandLine.hpp
+    src/Tungsten/DeviceInfo.cpp
     src/Tungsten/FontManager.cpp
     src/Tungsten/GlBuffer.cpp
     src/Tungsten/GlContext.cpp
@@ -108,14 +118,15 @@ add_library(Tungsten STATIC
     src/Tungsten/GlVertices.cpp
     src/Tungsten/IOglWrapper.cpp
     src/Tungsten/OglWrapper.hpp
+    src/Tungsten/RenderItem.cpp
     src/Tungsten/SdlApplication.cpp
     src/Tungsten/SdlDisplay.cpp
     src/Tungsten/SdlSession.cpp
+    src/Tungsten/ShaderManager.cpp
+    src/Tungsten/ShaderProgram.cpp
     src/Tungsten/ShaderProgramBuilder.cpp
-    src/Tungsten/ShaderPrograms/GouraudShaderProgram.cpp
-    include/Tungsten/GouraudShaderProgram.hpp
-    src/Tungsten/ShaderPrograms/PhongShaderProgram.cpp
-    include/Tungsten/PhongShaderProgram.hpp
+    src/Tungsten/ShaderPrograms/GouraudShader.cpp
+    src/Tungsten/ShaderPrograms/PhongShader.cpp
     src/Tungsten/ShaderTools.cpp
     src/Tungsten/TextRenderer.cpp
     src/Tungsten/TextRenderer/Monaco32.hpp
@@ -124,16 +135,9 @@ add_library(Tungsten STATIC
     src/Tungsten/TextRenderer/RenderTextShaderProgram.hpp
     src/Tungsten/TracingOglWrapper.hpp
     src/Tungsten/TungstenException.cpp
-    src/Tungsten/YimageGl.cpp
-    include/Tungsten/Detail/UniformTypeAdapter.hpp
-    include/Tungsten/UniformType.hpp
-    src/Tungsten/RenderItem.cpp
-    include/Tungsten/RenderItem.hpp
-    include/Tungsten/Camera.hpp
-    include/Tungsten/VertexArrayObjectBuilder.hpp
-    src/Tungsten/VertexArrayObjectBuilder.cpp
     src/Tungsten/VertexArrayObject.cpp
-    include/Tungsten/VertexArrayObject.hpp
+    src/Tungsten/VertexArrayObjectBuilder.cpp
+    src/Tungsten/YimageGl.cpp
 )
 
 target_link_libraries(Tungsten

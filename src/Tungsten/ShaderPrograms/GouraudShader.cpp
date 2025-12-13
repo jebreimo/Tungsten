@@ -5,21 +5,20 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/GouraudShaderProgram.hpp"
+#include "Tungsten/GouraudShader.hpp"
 #include "Tungsten/ShaderProgramBuilder.hpp"
-#include "Tungsten/VertexArrayObjectBuilder.hpp"
 
 #include "Gouraud-frag.glsl.hpp"
 #include "Gouraud-vert.glsl.hpp"
 
 namespace Tungsten
 {
-    GouraudShaderProgram::GouraudShaderProgram()
-        : ShaderProgram("Gouraud",
-                        {
-                            {ShaderType::VERTEX, Gouraud_vert},
-                            {ShaderType::FRAGMENT, Gouraud_frag}
-                        })
+    GouraudShader::GouraudShader()
+        : SmoothMeshShader(std::string(NAME),
+                           {
+                               {ShaderType::VERTEX, Gouraud_vert},
+                               {ShaderType::FRAGMENT, Gouraud_frag}
+                           })
     {
         position_attr = get_vertex_attribute(program(), "a_position");
         normal_attr = get_vertex_attribute(program(), "a_normal");
@@ -34,11 +33,9 @@ namespace Tungsten
         ambient = get_uniform<Xyz::Vector3F>(program(), "u_ambient");
     }
 
-    VertexArrayObject GouraudShaderProgram::create_vao() const
+    void GouraudShader::set_light(const Light& light)
     {
-        return VertexArrayObjectBuilder()
-            .add_float(position_attr, 3)
-            .add_float(normal_attr, 3)
-            .build();
+        SmoothMeshShader::set_light(light);
+        ambient.set(light.ambient);
     }
 }

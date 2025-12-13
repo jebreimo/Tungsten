@@ -20,6 +20,8 @@
 #include "GlTypes.hpp"
 #include "GlUniform.hpp"
 #include "GlVertices.hpp"
+#include "GouraudShader.hpp"
+#include "PhongShader.hpp"
 #include "SdlApplication.hpp"
 #include "ShaderTools.hpp"
 #include "TextRenderer.hpp"

@@ -16,9 +16,9 @@ namespace Tungsten
     {
     public:
         VertexArrayHandle vao;
-        BufferHandle vertices;
-        BufferHandle indices;
-        int32_t index_count = 0;
+        BufferHandle vertex_buffer;
+        BufferHandle element_buffer;
+        int32_t element_count = 0;
 
         explicit VertexArrayObject(bool create_now = true);
 
@@ -48,7 +48,15 @@ namespace Tungsten
                             ptrdiff_t(indices.size() * sizeof(uint16_t)),
                             indices.data(),
                             usage);
-            index_count = static_cast<int32_t>(indices.size());
+            element_count = static_cast<int32_t>(indices.size());
+        }
+
+        template <typename ItemType>
+        void set_data(const std::vector<ItemType>& vertices,
+                      std::span<const uint16_t> indices,
+                      BufferUsage usage = BufferUsage::STATIC_DRAW)
+        {
+            set_data(std::span(vertices), indices, usage);
         }
     };
 } // Tungsten

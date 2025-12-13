@@ -39,11 +39,16 @@ public:
         std::ostringstream ss;
         switch (event.type)
         {
-        case SDL_EVENT_FINGER_DOWN: ss << "finger down: "; break;
-        case SDL_EVENT_FINGER_UP: ss << "finger up: "; break;
-        case SDL_EVENT_FINGER_MOTION: ss << "finger motion: "; break;
-        case SDL_EVENT_FINGER_CANCELED: ss << "finger canceled: "; break;
-        default: ss << "unknown: "; break;
+        case SDL_EVENT_FINGER_DOWN: ss << "finger down: ";
+            break;
+        case SDL_EVENT_FINGER_UP: ss << "finger up: ";
+            break;
+        case SDL_EVENT_FINGER_MOTION: ss << "finger motion: ";
+            break;
+        case SDL_EVENT_FINGER_CANCELED: ss << "finger canceled: ";
+            break;
+        default: ss << "unknown: ";
+            break;
         }
         ss << "id " << event.fingerID << " " << event.x << " " << event.y
             << " " << event.dx << " " << event.dy
@@ -90,10 +95,12 @@ public:
         JEB_CHECKPOINT();
         Tungsten::set_clear_color(0.4, 0.6, 0.8, 1);
         Tungsten::clear(Tungsten::ClearBufferMask::COLOR_DEPTH);
-        auto screen_size = vector_cast<float>(application().window_size());
+        auto [w, h] = application().window_size();
+        Tungsten::set_viewport(0, 0, w, h);
+        Xyz::Vector2F screen_size{float(w), float(h)};
 
-        auto line_height = text_renderer_.font().max_glyph.size[1];
-        auto lines = std::min(texts_.size(), size_t(screen_size[1] / line_height));
+        const auto line_height = text_renderer_.font().max_glyph.size[1];
+        const auto lines = std::min(texts_.size(), size_t(screen_size[1] / line_height));
         int i = 0;
         for (auto it = texts_.end() - lines; it != texts_.end(); ++it)
         {

@@ -213,7 +213,7 @@ namespace Tungsten
         using namespace Xyz::affine;
         data_->program.mvp_matrix.set(translate3(adjusted_pos[0], adjusted_pos[1], 0.f)
                                       * scale3(scale_x, scale_y, 1.0f));
-        draw_triangle_elements_16(0, data_->vao.index_count);
+        draw_triangle_elements_16(0, data_->vao.element_count);
 
         set_blend_enabled(default_blend);
     }

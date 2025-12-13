@@ -19,30 +19,30 @@ namespace Tungsten
 
     VertexArrayObject::VertexArrayObject(VertexArrayObject&& rhs) noexcept
         : vao(std::move(rhs.vao)),
-          vertices(std::move(rhs.vertices)),
-          indices(std::move(rhs.indices)),
-          index_count(rhs.index_count)
+          vertex_buffer(std::move(rhs.vertex_buffer)),
+          element_buffer(std::move(rhs.element_buffer)),
+          element_count(rhs.element_count)
     {
-        rhs.index_count = 0;
+        rhs.element_count = 0;
     }
 
     VertexArrayObject& VertexArrayObject::operator=(VertexArrayObject&& rhs) noexcept
     {
         vao = std::move(rhs.vao);
-        vertices = std::move(rhs.vertices);
-        indices = std::move(rhs.indices);
-        std::swap(index_count, rhs.index_count);
+        vertex_buffer = std::move(rhs.vertex_buffer);
+        element_buffer = std::move(rhs.element_buffer);
+        std::swap(element_count, rhs.element_count);
         return *this;
     }
 
     void VertexArrayObject::create()
     {
         vao = generate_vertex_array();
-        std::array buffers = {&vertices, &indices};
+        std::array buffers = {&vertex_buffer, &element_buffer};
         generate_buffers(buffers);
         bind_vertex_array(vao);
-        bind_buffer(BufferTarget::ARRAY, vertices);
-        bind_buffer(BufferTarget::ELEMENT_ARRAY, indices);
+        bind_buffer(BufferTarget::ARRAY, vertex_buffer);
+        bind_buffer(BufferTarget::ELEMENT_ARRAY, element_buffer);
     }
 
     void VertexArrayObject::bind() const

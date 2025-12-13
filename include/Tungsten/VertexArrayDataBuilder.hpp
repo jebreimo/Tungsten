@@ -10,14 +10,15 @@
 
 namespace Tungsten
 {
-    template<typename Item>
+    template <typename Item>
     struct VertexArrayData
     {
+        using ItemType = Item;
         std::vector<Item> vertexes;
         std::vector<uint16_t> indexes;
     };
 
-    template <typename Item>
+    template <typename Item, typename Index = uint16_t>
     class VertexArrayDataBuilder
     {
     public:
@@ -27,13 +28,13 @@ namespace Tungsten
         }
 
         explicit VertexArrayDataBuilder(VertexArrayData<Item>& array,
-                                       size_t base_index)
+                                       Index base_index)
             : array_(array),
               base_index_(base_index)
         {
         }
 
-        VertexArrayDataBuilder& reserve_vertexes(size_t count)
+        VertexArrayDataBuilder& reserve_vertexes(Index count)
         {
             array_.vertexes.reserve(base_index_ + count);
             return *this;
@@ -46,7 +47,7 @@ namespace Tungsten
         }
 
         [[nodiscard]]
-        Item& vertex(size_t index)
+        Item& vertex(Index index)
         {
             return array_.vertexes[index];
         }
@@ -57,13 +58,13 @@ namespace Tungsten
             return *this;
         }
 
-        VertexArrayDataBuilder& add_index(uint16_t a)
+        VertexArrayDataBuilder& add_index(Index a)
         {
             array_.indexes.push_back(a + base_index_);
             return *this;
         }
 
-        VertexArrayDataBuilder& add_indexes(uint16_t a, uint16_t b, uint16_t c)
+        VertexArrayDataBuilder& add_indexes(Index a, Index b, Index c)
         {
             array_.indexes.push_back(a + base_index_);
             array_.indexes.push_back(b + base_index_);
@@ -71,8 +72,12 @@ namespace Tungsten
             return *this;
         }
 
+        [[nodiscard]] Index max_index() const
+        {
+            return Index(array_.vertexes.size()) - base_index_;
+        }
     private:
         VertexArrayData<Item>& array_;
-        uint32_t base_index_ = 0;
+        Index base_index_ = 0;
     };
 }

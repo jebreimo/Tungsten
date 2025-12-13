@@ -170,12 +170,6 @@ namespace Tungsten
                 if (event.key.key == SDLK_ESCAPE)
                     quit();
                 break;
-            case SDL_EVENT_WINDOW_RESIZED:
-                get_ogl_wrapper().finish();
-                SDL_Log("Window resized");
-                get_ogl_wrapper().viewport(0, 0, event.window.data1, event.window.data2);
-                data_->event_loop->redraw();
-                break;
             default:
                 break;
             }

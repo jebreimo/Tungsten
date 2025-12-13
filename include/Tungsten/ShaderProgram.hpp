@@ -16,9 +16,6 @@ namespace Tungsten
     class ShaderProgram
     {
     public:
-        ShaderProgram(std::string name,
-                      std::vector<std::pair<ShaderType, std::string>> sources);
-
         virtual ~ShaderProgram();
 
         [[nodiscard]] const std::string& name() const;
@@ -30,6 +27,10 @@ namespace Tungsten
         [[nodiscard]] const ProgramHandle& program() const;
 
         [[nodiscard]] virtual VertexArrayObject create_vao() const = 0;
+
+    protected:
+        ShaderProgram(std::string name,
+                      std::vector<std::pair<ShaderType, std::string>> sources);
 
     private:
         std::string name_;

@@ -5,8 +5,7 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/PhongShaderProgram.hpp"
-#include "Tungsten/ShaderProgramBuilder.hpp"
+#include "Tungsten/PhongShader.hpp"
 #include "Tungsten/VertexArrayObjectBuilder.hpp"
 
 #include "Phong-frag.glsl.hpp"
@@ -14,12 +13,12 @@
 
 namespace Tungsten
 {
-    PhongShaderProgram::PhongShaderProgram()
-        : ShaderProgram("Phong",
-                        {
-                            {ShaderType::VERTEX, Phong_vert},
-                            {ShaderType::FRAGMENT, Phong_frag}
-                        })
+    PhongShader::PhongShader()
+        : SmoothMeshShader(std::string(NAME),
+                           {
+                               {ShaderType::VERTEX, Phong_vert},
+                               {ShaderType::FRAGMENT, Phong_frag}
+                           })
     {
         position_attr = get_vertex_attribute(program(), "a_position");
         normal_attr = get_vertex_attribute(program(), "a_normal");
@@ -31,13 +30,5 @@ namespace Tungsten
         diffuse_albedo = get_uniform<Xyz::Vector3F>(program(), "u_diffuse_albedo");
         specular_albedo = get_uniform<Xyz::Vector3F>(program(), "u_specular_albedo");
         specular_power = get_uniform<float>(program(), "u_specular_power");
-    }
-
-    VertexArrayObject PhongShaderProgram::create_vao() const
-    {
-        return VertexArrayObjectBuilder()
-            .add_float(position_attr, 3)
-            .add_float(normal_attr, 3)
-            .build();
     }
 }
