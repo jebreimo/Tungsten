@@ -9,7 +9,7 @@
 
 #include "Tungsten/GlVertices.hpp"
 #include "Tungsten/ShaderProgramBuilder.hpp"
-#include "Tungsten/VertexArrayBuilder.hpp"
+#include "Tungsten/VertexArrayObjectBuilder.hpp"
 
 class Shape2DRenderer::Basic2DProgram
 {
@@ -55,7 +55,7 @@ public:
     uint32_t position_attr;
 };
 
-Shape2D::Shape2D(Tungsten::VertexArray<Xyz::Vector2F> vertex_array,
+Shape2D::Shape2D(Tungsten::VertexArrayObject vertex_array,
                  const Xyz::Vector4F& color)
     : vertex_array_(std::move(vertex_array)),
       color_(color)
@@ -72,7 +72,7 @@ void Shape2D::set_color(const Xyz::Vector4F& color)
     color_ = color;
 }
 
-const Tungsten::VertexArray<Xyz::Vector2F>& Shape2D::vertex_array() const
+const Tungsten::VertexArrayObject& Shape2D::vertex_array() const
 {
     return vertex_array_;
 }
@@ -103,10 +103,10 @@ Shape2DRenderer& Shape2DRenderer::operator=(Shape2DRenderer&& rhs) noexcept
 Shape2D Shape2DRenderer::create_shape(const Buffer& buffer, const Xyz::Vector4F& color) const
 {
     Tungsten::use_program(program_->program);
-    auto vertex_array = Tungsten::VertexArrayBuilder<Xyz::Vector2F>()
+    auto vertex_array = Tungsten::VertexArrayObjectBuilder()
         .add_float(program_->position_attr, 2)
         .build();
-    set_buffers(vertex_array, buffer);
+    vertex_array.set_data<Xyz::Vector2F>(buffer.vertexes, buffer.indexes);
     return {std::move(vertex_array), color};
 }
 

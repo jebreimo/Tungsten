@@ -51,17 +51,20 @@ namespace Tungsten
     {
     public:
         Uniform()
-                : location_(-1)
-        {}
+            : location_(-1)
+        {
+        }
 
         explicit Uniform(int32_t location)
-                : location_(location)
-        {}
+            : location_(location)
+        {
+        }
 
         void set(const T& value)
         {
             set_uniform(location_, value);
         }
+
     private:
         int32_t location_;
     };

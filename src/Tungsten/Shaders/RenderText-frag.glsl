@@ -7,15 +7,19 @@
 //****************************************************************************
 #version 100
 
-varying highp vec2 v_TextureCoord;
+#ifdef GL_ES
+    precision highp float;
+#endif
+
+varying vec2 v_TextureCoord;
 
 uniform sampler2D u_Texture;
-uniform highp vec4 u_TextColor;
+uniform vec4 u_TextColor;
 
 void main()
 {
-    highp vec4 texCol = texture2D(u_Texture, v_TextureCoord);
-    highp float value = max(texCol.r, max(texCol.g, texCol.b));
+    vec4 texCol = texture2D(u_Texture, v_TextureCoord);
+    float value = max(texCol.r, max(texCol.g, texCol.b));
     if (value == 0.0)
         discard;
     gl_FragColor = vec4(u_TextColor.r,

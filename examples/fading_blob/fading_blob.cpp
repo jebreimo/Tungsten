@@ -18,7 +18,7 @@ public:
           fader_(app.window_size())
     {
         Shape2DRenderer::Buffer buffer;
-        Tungsten::ArrayBufferBuilder builder(buffer);
+        Tungsten::VertexArrayDataBuilder builder(buffer);
         builder.add_vertex({-1, -1})
             .add_vertex({1, -1})
             .add_vertex({1, 1})
@@ -68,8 +68,9 @@ int main(int argc, char* argv[])
 {
     try
     {
-        Tungsten::SdlApplication app("Something");
+        Tungsten::SdlApplication app("Fading blob");
         app.parse_command_line_options(argc, argv);
+        Tungsten::set_ogl_tracing_enabled(true);
         app.run<fading_blob>();
     }
     catch (std::exception& ex)

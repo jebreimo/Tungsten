@@ -23,6 +23,8 @@ namespace Tungsten
 
     void generate_buffers(std::span<BufferHandle> buffers);
 
+    void generate_buffers(std::span<BufferHandle*> buffers);
+
     void bind_buffer(BufferTarget target, uint32_t buffer);
 
     void set_buffer_data(BufferTarget target, ptrdiff_t size,

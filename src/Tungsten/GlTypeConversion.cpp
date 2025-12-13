@@ -193,22 +193,12 @@ namespace Tungsten
     {
         switch (type)
         {
-        case VertexAttributeType::INT8:
-            return GL_BYTE;
-        case VertexAttributeType::UINT8:
-            return GL_UNSIGNED_BYTE;
-        case VertexAttributeType::INT16:
-            return GL_SHORT;
-        case VertexAttributeType::UINT16:
-            return GL_UNSIGNED_SHORT;
         case VertexAttributeType::INT32:
             return GL_INT;
         case VertexAttributeType::UINT32:
             return GL_UNSIGNED_INT;
         case VertexAttributeType::FLOAT:
             return GL_FLOAT;
-        case VertexAttributeType::DOUBLE:
-            return GL_DOUBLE;
         default:
             TUNGSTEN_THROW("Unknown VertexAttributeType: "
                 + std::to_string(static_cast<int>(type)));

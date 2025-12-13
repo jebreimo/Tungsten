@@ -79,12 +79,12 @@ namespace Tungsten
                                         stride, offset);
     }
 
-    void define_vertex_attribute_int16_pointer(uint32_t location,
+    void define_vertex_attribute_uint16_pointer(uint32_t location,
                                                int32_t size,
                                                int32_t stride,
                                                size_t offset)
     {
-        define_vertex_attribute_pointer(location, size, VertexAttributeType::INT16,
+        define_vertex_attribute_pointer(location, size, VertexAttributeType::UINT32,
                                         stride, offset);
     }
 
@@ -97,26 +97,17 @@ namespace Tungsten
                                         stride, offset);
     }
 
+    // ReSharper disable once CppDFAConstantFunctionResult
     int32_t get_size_of_type(VertexAttributeType type)
     {
         switch (type)
         {
-        case VertexAttributeType::INT8:
-            return sizeof(GLbyte);
-        case VertexAttributeType::UINT8:
-            return sizeof(GLubyte);
-        case VertexAttributeType::INT16:
-            return sizeof(GLshort);
-        case VertexAttributeType::UINT16:
-            return sizeof(GLushort);
         case VertexAttributeType::INT32:
             return sizeof(GLint);
         case VertexAttributeType::UINT32:
             return sizeof(GLuint);
         case VertexAttributeType::FLOAT:
             return sizeof(GLfloat);
-        case VertexAttributeType::DOUBLE:
-            return sizeof(GLdouble);
         default:
             TUNGSTEN_THROW("Unknown type in get_size_of_type: "
                 + std::to_string(static_cast<int>(type)));
@@ -125,6 +116,6 @@ namespace Tungsten
 
     bool is_float_type(VertexAttributeType type)
     {
-        return type == VertexAttributeType::FLOAT || type == VertexAttributeType::DOUBLE;
+        return type == VertexAttributeType::FLOAT;
     }
 }

@@ -5,7 +5,7 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#version 300 es
+#version 410
 
 layout (location = 0) in vec3 a_position;
 layout (location = 1) in vec3 a_normal;

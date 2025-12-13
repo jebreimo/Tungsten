@@ -38,6 +38,15 @@ namespace Tungsten
             buffers[i] = BufferHandle(ids[i]);
     }
 
+    void generate_buffers(std::span<BufferHandle*> buffers)
+    {
+        auto ids = std::vector<uint32_t>(size_t(buffers.size()));
+        get_ogl_wrapper().gen_buffers(int32_t(ids.size()), ids.data());
+        THROW_IF_GL_ERROR();
+        for (size_t i = 0; i < ids.size(); ++i)
+            *buffers[i] = BufferHandle(ids[i]);
+    }
+
     void bind_buffer(BufferTarget target, uint32_t buffer)
     {
         get_ogl_wrapper().bind_buffer(to_ogl_buffer_target(target), buffer);

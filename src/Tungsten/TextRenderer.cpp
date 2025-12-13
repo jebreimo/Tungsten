@@ -7,13 +7,11 @@
 //****************************************************************************
 #include "Tungsten/TextRenderer.hpp"
 
-#include "Tungsten/ArrayBufferBuilder.hpp"
+#include "Tungsten/VertexArrayDataBuilder.hpp"
 #include "Tungsten/GlStateManagement.hpp"
 #include "Tungsten/GlTexture.hpp"
 #include "Tungsten/GlVertices.hpp"
 #include "Tungsten/YimageGl.hpp"
-#include "Tungsten/VertexArray.hpp"
-#include "Tungsten/VertexArrayBuilder.hpp"
 #include "Tungsten/TextRenderer/RenderTextShaderProgram.hpp"
 
 namespace Tungsten
@@ -26,11 +24,11 @@ namespace Tungsten
             Xyz::Vector2F texture;
         };
 
-        void add_rectangle(ArrayBuffer<TextVertex>& buffer,
+        void add_rectangle(VertexArrayData<TextVertex>& buffer,
                            const Xyz::Rectangle2F& vertex_rect,
                            const Xyz::Rectangle2F& tex_rect)
         {
-            ArrayBufferBuilder<TextVertex> builder(buffer);
+            VertexArrayDataBuilder<TextVertex> builder(buffer);
             builder.reserve_vertexes(4);
             builder.add_vertex({
                 vertex_rect[0],
@@ -54,7 +52,7 @@ namespace Tungsten
         }
 
         [[nodiscard]]
-        std::pair<ArrayBuffer<TextVertex>, Xyz::Rectangle2F>
+        std::pair<VertexArrayData<TextVertex>, Xyz::Rectangle2F>
         make_text_array_buffer(
             const Font& font,
             std::u32string_view text,
@@ -64,7 +62,7 @@ namespace Tungsten
             if (glyphs.empty() || text.empty())
                 return {};
 
-            ArrayBuffer<TextVertex> buffer;
+            VertexArrayData<TextVertex> buffer;
 
             unsigned lines = 0;
             float max_width = 0;
@@ -153,9 +151,9 @@ namespace Tungsten
 
     struct TextRenderer::Data
     {
-        VertexArray<TextVertex> vertex_array;
         TextureHandle texture;
         Detail::RenderTextShaderProgram program;
+        VertexArrayObject vao;
     };
 
     TextRenderer::TextRenderer(const Font& font)
@@ -192,7 +190,7 @@ namespace Tungsten
         if (!data_)
             initialize();
 
-        bool default_blend = is_blend_enabled();
+        const bool default_blend = is_blend_enabled();
         if (auto_blend_)
         {
             if (!default_blend)
@@ -200,14 +198,14 @@ namespace Tungsten
             set_blend_function(BlendFunction::SRC_ALPHA, BlendFunction::ONE_MINUS_SRC_ALPHA);
         }
 
-        use_program(data_->program.program);
+        data_->program.use();
 
         activate_texture_unit(0);
         bind_texture(TextureTarget::TEXTURE_2D, data_->texture);
 
         auto [buffer, rect] = make_text_array_buffer(*font_, text,
                                                      properties.line_gap);
-        set_buffers(data_->vertex_array, buffer);
+        data_->vao.set_data<TextVertex>(buffer.vertexes, buffer.indexes);
 
         data_->program.color.set(to_vector(properties.color));
         auto adjusted_pos = pos - rect.placement.origin * 2.0f / screen_size;
@@ -215,7 +213,7 @@ namespace Tungsten
         using namespace Xyz::affine;
         data_->program.mvp_matrix.set(translate3(adjusted_pos[0], adjusted_pos[1], 0.f)
                                       * scale3(scale_x, scale_y, 1.0f));
-        draw_triangle_elements_16(0, int32_t(data_->vertex_array.indexes.size()));
+        draw_triangle_elements_16(0, data_->vao.index_count);
 
         set_blend_enabled(default_blend);
     }
@@ -239,12 +237,9 @@ namespace Tungsten
                              get_ogl_pixel_type(font_->image.pixel_type()),
                              font_->image.data());
 
-        use_program(data_->program.program);
+        data_->program.use();
+        data_->vao = data_->program.create_vao();
         data_->program.texture.set(0);
-        data_->vertex_array = VertexArrayBuilder<TextVertex>()
-            .add_float(data_->program.position, 2)
-            .add_float(data_->program.texture_coord, 2)
-            .build();
     }
 
     Size2I TextRenderer::image_size() const

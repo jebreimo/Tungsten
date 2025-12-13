@@ -8,18 +8,20 @@
 #pragma once
 #include "Tungsten/GlProgram.hpp"
 #include "Tungsten/GlUniform.hpp"
+#include "Tungsten/GlVertexArray.hpp"
+#include "Tungsten/ShaderProgram.hpp"
+#include "Tungsten/VertexArrayObject.hpp"
 
 namespace Tungsten::Detail
 {
-    class RenderTextShaderProgram
+    class RenderTextShaderProgram : public ShaderProgram
     {
     public:
+        using VertexType = std::tuple<Xyz::Vector2F, Xyz::Vector2F>;
+
         RenderTextShaderProgram();
 
-        RenderTextShaderProgram(const RenderTextShaderProgram&) = delete;
-        RenderTextShaderProgram& operator=(const RenderTextShaderProgram&) = delete;
-
-        ProgramHandle program;
+        [[nodiscard]] VertexArrayObject create_vao() const override;
 
         Uniform<Xyz::Matrix4F> mvp_matrix;
         Uniform<int32_t> texture;

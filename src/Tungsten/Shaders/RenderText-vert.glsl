@@ -7,12 +7,16 @@
 //****************************************************************************
 #version 100
 
-attribute highp vec2 a_Position;
-attribute highp vec2 a_TextureCoord;
+#ifdef GL_ES
+    precision highp float;
+#endif
 
-uniform highp mat4 u_MvpMatrix;
+attribute vec2 a_Position;
+attribute vec2 a_TextureCoord;
 
-varying highp vec2 v_TextureCoord;
+uniform mat4 u_MvpMatrix;
+
+varying vec2 v_TextureCoord;
 
 void main()
 {

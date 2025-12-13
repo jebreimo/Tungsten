@@ -5,7 +5,7 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#version 300 es
+#version 410
 
 layout (location = 0) in vec3 a_position;
 layout (location = 1) in vec3 a_normal;
@@ -13,7 +13,7 @@ layout (location = 1) in vec3 a_normal;
 uniform mat4 u_mv_matrix;
 uniform mat4 u_proj_matrix;
 
-uniform vec3 u_light_pos = vec3(-100.0, -100.0, 100.0);
+uniform vec3 u_light_pos = vec3(100.0, 100.0, 100.0);
 
 out VS_OUT
 {

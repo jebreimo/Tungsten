@@ -6,31 +6,40 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include "ArrayBuffer.hpp"
+#include <vector>
 
 namespace Tungsten
 {
+    template<typename Item>
+    struct VertexArrayData
+    {
+        std::vector<Item> vertexes;
+        std::vector<uint16_t> indexes;
+    };
+
     template <typename Item>
-    class ArrayBufferBuilder
+    class VertexArrayDataBuilder
     {
     public:
-        explicit ArrayBufferBuilder(ArrayBuffer<Item>& array)
-            : ArrayBufferBuilder(array, array.vertexes.size())
-        {}
+        explicit VertexArrayDataBuilder(VertexArrayData<Item>& array)
+            : VertexArrayDataBuilder(array, array.vertexes.size())
+        {
+        }
 
-        explicit ArrayBufferBuilder(ArrayBuffer<Item>& array,
-                                    size_t base_index)
+        explicit VertexArrayDataBuilder(VertexArrayData<Item>& array,
+                                       size_t base_index)
             : array_(array),
               base_index_(base_index)
-        {}
+        {
+        }
 
-        ArrayBufferBuilder& reserve_vertexes(size_t count)
+        VertexArrayDataBuilder& reserve_vertexes(size_t count)
         {
             array_.vertexes.reserve(base_index_ + count);
             return *this;
         }
 
-        ArrayBufferBuilder& add_vertex(const Item& vertex)
+        VertexArrayDataBuilder& add_vertex(const Item& vertex)
         {
             array_.vertexes.push_back(vertex);
             return *this;
@@ -42,27 +51,28 @@ namespace Tungsten
             return array_.vertexes[index];
         }
 
-        ArrayBufferBuilder& reserve_indexes(size_t count)
+        VertexArrayDataBuilder& reserve_indexes(size_t count)
         {
             array_.indexes.reserve(array_.indexes.size() + count);
             return *this;
         }
 
-        ArrayBufferBuilder& add_index(uint16_t a)
+        VertexArrayDataBuilder& add_index(uint16_t a)
         {
             array_.indexes.push_back(a + base_index_);
             return *this;
         }
 
-        ArrayBufferBuilder& add_indexes(uint16_t a, uint16_t b, uint16_t c)
+        VertexArrayDataBuilder& add_indexes(uint16_t a, uint16_t b, uint16_t c)
         {
             array_.indexes.push_back(a + base_index_);
             array_.indexes.push_back(b + base_index_);
             array_.indexes.push_back(c + base_index_);
             return *this;
         }
+
     private:
-        ArrayBuffer<Item>& array_;
+        VertexArrayData<Item>& array_;
         uint32_t base_index_ = 0;
     };
 }

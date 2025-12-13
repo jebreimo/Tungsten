@@ -9,22 +9,30 @@
 #include "Tungsten/ShaderProgramBuilder.hpp"
 #include "RenderText-frag.glsl.hpp"
 #include "RenderText-vert.glsl.hpp"
+#include "Tungsten/VertexArrayObjectBuilder.hpp"
 
 namespace Tungsten::Detail
 {
     RenderTextShaderProgram::RenderTextShaderProgram()
+        : ShaderProgram("internal::Text",
+                        {
+                            {ShaderType::VERTEX, RenderText_vert},
+                            {ShaderType::FRAGMENT, RenderText_frag}
+                        })
     {
-        using namespace Tungsten;
-        program = ShaderProgramBuilder()
-            .add_shader(ShaderType::VERTEX, RenderText_vert)
-            .add_shader(ShaderType::FRAGMENT, RenderText_frag)
+        position = get_vertex_attribute(program(), "a_Position");
+        texture_coord = get_vertex_attribute(program(), "a_TextureCoord");
+
+        mvp_matrix = Tungsten::get_uniform<Xyz::Matrix4F>(program(), "u_MvpMatrix");
+        texture = Tungsten::get_uniform<int32_t>(program(), "u_Texture");
+        color = Tungsten::get_uniform<Xyz::Vector4F>(program(), "u_TextColor");
+    }
+
+    VertexArrayObject RenderTextShaderProgram::create_vao() const
+    {
+        return VertexArrayObjectBuilder()
+            .add_float(position, 2)
+            .add_float(texture_coord, 2)
             .build();
-
-        position = get_vertex_attribute(program, "a_Position");
-        texture_coord = get_vertex_attribute(program, "a_TextureCoord");
-
-        mvp_matrix = Tungsten::get_uniform<Xyz::Matrix4F>(program, "u_MvpMatrix");
-        texture = Tungsten::get_uniform<int32_t>(program, "u_Texture");
-        color = Tungsten::get_uniform<Xyz::Vector4F>(program, "u_TextColor");
     }
 }

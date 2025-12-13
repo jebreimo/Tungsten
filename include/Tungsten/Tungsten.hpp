@@ -6,8 +6,9 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include "ArrayBuffer.hpp"
-#include "ArrayBufferBuilder.hpp"
+
+#include "VertexArrayDataBuilder.hpp"
+#include "Camera.hpp"
 #include "DeviceInfo.hpp"
 #include "FontManager.hpp"
 #include "GlBuffer.hpp"
@@ -23,5 +24,5 @@
 #include "ShaderTools.hpp"
 #include "TextRenderer.hpp"
 #include "TungstenException.hpp"
-#include "VertexArrayBuilder.hpp"
+#include "VertexArrayObjectBuilder.hpp"
 #include "YimageGl.hpp"

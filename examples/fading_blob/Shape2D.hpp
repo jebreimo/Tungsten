@@ -9,30 +9,31 @@
 #include <memory>
 #include <Xyz/Matrix.hpp>
 
-#include "Tungsten/ArrayBuffer.hpp"
+#include "Tungsten/VertexArrayDataBuilder.hpp"
+#include "Tungsten/VertexArrayObject.hpp"
 
 class Shape2D
 {
 public:
     Shape2D() = default;
 
-    Shape2D(Tungsten::VertexArray<Xyz::Vector2F> vertex_array,
+    Shape2D(Tungsten::VertexArrayObject vertex_array,
             const Xyz::Vector4F& color);
 
     [[nodiscard]] const Xyz::Vector4F& color() const;
 
     void set_color(const Xyz::Vector4F& color);
 
-    const Tungsten::VertexArray<Xyz::Vector2F>& vertex_array() const;
+    const Tungsten::VertexArrayObject& vertex_array() const;
 private:
-    Tungsten::VertexArray<Xyz::Vector2F> vertex_array_;
+    Tungsten::VertexArrayObject vertex_array_;
     Xyz::Vector4F color_;
 };
 
 class Shape2DRenderer
 {
 public:
-    using Buffer = Tungsten::ArrayBuffer<Xyz::Vector2F>;
+    using Buffer = Tungsten::VertexArrayData<Xyz::Vector2F>;
 
     Shape2DRenderer();
 

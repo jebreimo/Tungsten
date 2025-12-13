@@ -39,7 +39,7 @@ FetchContent_Declare(argos
 
 FetchContent_Declare(xyz
     GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
-    GIT_TAG v0.9.2)
+    GIT_TAG v0.9.4)
 
 FetchContent_Declare(yimage
     GIT_REPOSITORY "https://github.com/jebreimo/Yimage.git"
@@ -52,10 +52,9 @@ find_package(OpenGL REQUIRED)
 find_package(SDL3 REQUIRED)
 
 add_library(Tungsten STATIC
-    include/Tungsten/ArrayBuffer.hpp
-    include/Tungsten/ArrayBufferBuilder.hpp
+    include/Tungsten/VertexArrayDataBuilder.hpp
     include/Tungsten/Buffer.hpp
-    include/Tungsten/DeviceInfo.cpp
+    src/Tungsten/DeviceInfo.cpp
     include/Tungsten/DeviceInfo.hpp
     include/Tungsten/DummyOglWrapper.hpp
     include/Tungsten/Environment.hpp
@@ -79,13 +78,15 @@ add_library(Tungsten STATIC
     include/Tungsten/SdlApplication.hpp
     include/Tungsten/SdlDisplay.hpp
     include/Tungsten/SdlSession.hpp
+    src/Tungsten/ShaderProgram.cpp
+    include/Tungsten/ShaderProgram.hpp
     include/Tungsten/ShaderProgramBuilder.hpp
+    src/Tungsten/ShaderProgramManager.cpp
+    include/Tungsten/ShaderProgramManager.hpp
     include/Tungsten/ShaderTools.hpp
     include/Tungsten/TextRenderer.hpp
     include/Tungsten/Tungsten.hpp
     include/Tungsten/TungstenException.hpp
-    include/Tungsten/VertexArray.hpp
-    include/Tungsten/VertexArrayBuilder.hpp
     include/Tungsten/WindowParameters.hpp
     include/Tungsten/YimageGl.hpp
     src/Tungsten/CommandLine.cpp
@@ -112,9 +113,9 @@ add_library(Tungsten STATIC
     src/Tungsten/SdlSession.cpp
     src/Tungsten/ShaderProgramBuilder.cpp
     src/Tungsten/ShaderPrograms/GouraudShaderProgram.cpp
-    src/Tungsten/ShaderPrograms/GouraudShaderProgram.hpp
+    include/Tungsten/GouraudShaderProgram.hpp
     src/Tungsten/ShaderPrograms/PhongShaderProgram.cpp
-    src/Tungsten/ShaderPrograms/PhongShaderProgram.hpp
+    include/Tungsten/PhongShaderProgram.hpp
     src/Tungsten/ShaderTools.cpp
     src/Tungsten/TextRenderer.cpp
     src/Tungsten/TextRenderer/Monaco32.hpp
@@ -124,9 +125,15 @@ add_library(Tungsten STATIC
     src/Tungsten/TracingOglWrapper.hpp
     src/Tungsten/TungstenException.cpp
     src/Tungsten/YimageGl.cpp
-    include/Tungsten/DummyOglWrapper.hpp
-    include/Tungsten/DeviceInfo.cpp
-    include/Tungsten/DeviceInfo.hpp
+    include/Tungsten/Detail/UniformTypeAdapter.hpp
+    include/Tungsten/UniformType.hpp
+    src/Tungsten/RenderItem.cpp
+    include/Tungsten/RenderItem.hpp
+    include/Tungsten/Camera.hpp
+    include/Tungsten/VertexArrayObjectBuilder.hpp
+    src/Tungsten/VertexArrayObjectBuilder.cpp
+    src/Tungsten/VertexArrayObject.cpp
+    include/Tungsten/VertexArrayObject.hpp
 )
 
 target_link_libraries(Tungsten
@@ -165,7 +172,5 @@ tungsten_target_embed_shaders(Tungsten
 )
 
 if (TUNGSTEN_BUILD_EXAMPLES)
-    add_subdirectory(examples/show_text)
-    add_subdirectory(examples/fading_blob)
-    add_subdirectory(examples/touch_events)
+    add_subdirectory(examples)
 endif ()

@@ -7,12 +7,12 @@
 //****************************************************************************
 #include "SceneFader.hpp"
 
-#include "Tungsten/ArrayBufferBuilder.hpp"
+#include "Tungsten/VertexArrayDataBuilder.hpp"
 #include "Tungsten/GlFramebuffer.hpp"
 #include "Tungsten/GlTexture.hpp"
 #include "Tungsten/GlVertices.hpp"
 #include "Tungsten/ShaderProgramBuilder.hpp"
-#include "Tungsten/VertexArrayBuilder.hpp"
+#include "Tungsten/VertexArrayObjectBuilder.hpp"
 
 namespace
 {
@@ -84,19 +84,20 @@ public:
         Tungsten::generate_textures(textures_);
         set_window_size(window_size);
 
-        Tungsten::ArrayBuffer<TextureFaderVertex> buffer;
-        Tungsten::ArrayBufferBuilder builder(buffer);
+        vertex_array_ = Tungsten::VertexArrayObjectBuilder()
+            .add_float(program_.position_attr, 2)
+            .add_float(program_.tex_position_attr, 2)
+            .build();
+
+        Tungsten::VertexArrayData<TextureFaderVertex> buffer;
+        Tungsten::VertexArrayDataBuilder builder(buffer);
         builder.add_vertex({{-1, -1}, {0, 0}})
             .add_vertex({{1, -1}, {1, 0}})
             .add_vertex({{1, 1}, {1, 1}})
             .add_vertex({{-1, 1}, {0, 1}});
         builder.add_indexes(0, 1, 2)
             .add_indexes(0, 2, 3);
-        vertex_array_ = Tungsten::VertexArrayBuilder<TextureFaderVertex>()
-            .add_float(program_.position_attr, 2)
-            .add_float(program_.tex_position_attr, 2)
-            .build();
-        Tungsten::set_buffers(vertex_array_, buffer);
+        vertex_array_.set_data<TextureFaderVertex>(buffer.vertexes, buffer.indexes);
     }
 
     void set_window_size(Tungsten::Size2I size)
@@ -146,7 +147,7 @@ private:
     Xyz::Vector3F color_delta_ = {0, 0, 0};
     Tungsten::FramebufferHandle frame_buffer_;
     std::array<Tungsten::TextureHandle, 2> textures_;
-    Tungsten::VertexArray<TextureFaderVertex> vertex_array_;
+    Tungsten::VertexArrayObject vertex_array_;
     TextureFaderProgram program_;
     int index_ = 0;
 };

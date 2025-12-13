@@ -6,16 +6,18 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include "Tungsten/GlProgram.hpp"
+#include "Tungsten/ShaderProgram.hpp"
 
 namespace Tungsten
 {
-    class GouraudShaderProgram
+    class PhongShaderProgram : public ShaderProgram
     {
     public:
-        void setup();
+        using VertexType = std::tuple<Xyz::Vector3F, Xyz::Vector3F>;
 
-        ProgramHandle program;
+        PhongShaderProgram();
+
+        [[nodiscard]] VertexArrayObject create_vao() const override;
 
         Uniform<Xyz::Matrix4F> mv_matrix;
         Uniform<Xyz::Matrix4F> proj_matrix;
@@ -24,7 +26,6 @@ namespace Tungsten
         Uniform<Xyz::Vector3F> diffuse_albedo;
         Uniform<Xyz::Vector3F> specular_albedo;
         Uniform<float> specular_power;
-        Uniform<Xyz::Vector3F> ambient;
 
         uint32_t position_attr;
         uint32_t normal_attr;
