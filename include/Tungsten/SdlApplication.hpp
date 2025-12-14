@@ -97,6 +97,8 @@ namespace Tungsten
 
         [[nodiscard]] Size2I window_size() const;
 
+        [[nodiscard]] float aspect_ratio() const;
+
         [[nodiscard]] const EventLoop* event_loop() const;
 
         [[nodiscard]] EventLoop* event_loop();

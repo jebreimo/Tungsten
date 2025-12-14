@@ -9,15 +9,35 @@
 #include <Tungsten/Tungsten.hpp>
 #include <Yconvert/Convert.hpp>
 
+#include "MeshItem.hpp"
 #include "Tungsten/PositionNormalShapes.hpp"
 #include "Tungsten/ShaderManager.hpp"
 
-Tungsten::VertexArrayData<Tungsten::PositionNormal> make_cube_array()
+Tungsten::VertexArrayObject make_cube_vao(const Tungsten::SmoothMeshShader& program)
 {
-    Tungsten::VertexArrayData<Tungsten::PositionNormal> buffer;
-    Tungsten::VertexArrayDataBuilder builder(buffer);
+    Tungsten::VertexArrayData<Tungsten::PositionNormal> cube;
+    Tungsten::VertexArrayDataBuilder builder(cube);
     add_cube(builder);
-    return buffer;
+    std::cout << cube << '\n';
+    auto vao = program.create_vao();
+    vao.set_data(cube.vertexes, cube.indexes);
+    return vao;
+}
+
+Tungsten::SmoothMeshShader& get_phong_shader()
+{
+    return dynamic_cast<Tungsten::SmoothMeshShader&>(
+        Tungsten::ShaderManager::instance().get_program(Tungsten::BuiltinShaders::PHONG));
+}
+
+Tungsten::Camera make_camera(float aspect_ratio)
+{
+    const auto fov_y = Tungsten::calculate_fov_y(
+        Xyz::to_radians(50.f), Xyz::to_radians(50.f), aspect_ratio);
+    return Tungsten::Camera{
+        Xyz::make_look_at_matrix<float>({-2, -sqrt(17.f), 2}, {0, 0, 0}, {0, 0, 1}),
+        Xyz::make_perspective_matrix<float>(fov_y, aspect_ratio, 1.5f, 10)
+    };
 }
 
 class Cube : public Tungsten::EventLoop
@@ -25,15 +45,27 @@ class Cube : public Tungsten::EventLoop
 public:
     explicit Cube(Tungsten::SdlApplication& app)
         : EventLoop(app),
-          program(dynamic_cast<Tungsten::SmoothMeshShader&>(
-              Tungsten::ShaderManager::instance().get_program(Tungsten::BuiltinShaders::PHONG)))
+          program(get_phong_shader()),
+          item(make_cube_vao(program), {}),
+          camera{make_camera(app.aspect_ratio())}
     {
         std::cout << Tungsten::get_device_info() << '\n';
+    }
 
-        auto cube = make_cube_array();
-        std::cout << cube << '\n';
-        vao = program.create_vao();
-        vao.set_data(cube.vertexes, cube.indexes);
+    bool on_event(const SDL_Event& event) override
+    {
+        if (event.type == SDL_EVENT_WINDOW_RESIZED)
+        {
+            const auto aspect_ratio = float(event.window.data1) / float(event.window.data2);
+            camera = make_camera(aspect_ratio);
+            return true;
+        }
+        return false;
+    }
+
+    void on_update() override
+    {
+        item.set_model_matrix(get_rotation(SDL_GetTicks() - start_ticks));
     }
 
     void on_draw() override
@@ -46,16 +78,9 @@ public:
         Tungsten::set_viewport(0, 0, w, h);
 
         program.use();
-        program.set_model_view_matrix(
-            Xyz::make_look_at_matrix<float>({-2, -sqrt(17.f), 2}, {0, 0, 0}, {0, 0, 1})
-            * get_rotation(SDL_GetTicks() - start_ticks)
-        );
-        program.set_projection_matrix(
-            Xyz::make_perspective_matrix<float>(Xyz::to_radians(50.f), float(w) / float(h), 1.5f,
-                                                10)
-        );
-        vao.bind();
-        Tungsten::draw_triangle_elements_16(0, vao.element_count);
+        program.set_projection_matrix(camera.projection);
+
+        item.draw(camera, program);
 
         Tungsten::set_ogl_tracing_enabled(false);
         redraw();
@@ -73,7 +98,8 @@ private:
     }
 
     Tungsten::SmoothMeshShader& program;
-    Tungsten::VertexArrayObject vao;
+    MeshItem item;
+    Tungsten::Camera camera;
     uint64_t start_ticks = SDL_GetTicks();
 };
 

@@ -157,6 +157,12 @@ namespace Tungsten
         return {w, h};
     }
 
+    float SdlApplication::aspect_ratio() const
+    {
+        auto size = window_size();
+        return float(size.x()) / float(size.y());
+    }
+
     void SdlApplication::process_event(const SDL_Event& event)
     {
         if (!data_->event_loop->on_event(event))

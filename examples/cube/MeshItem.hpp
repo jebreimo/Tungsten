@@ -8,22 +8,21 @@
 #pragma once
 #include <Tungsten/Tungsten.hpp>
 
-class PhongMesh
+class MeshItem
 {
 public:
-    void set_light_pos(const Xyz::Vector3F& pos);
+    MeshItem(Tungsten::VertexArrayObject vao,
+             const Tungsten::Material& material);
+
+    void set_model_matrix(const Xyz::Matrix4F& model_matrix);
 
     void set_material(const Tungsten::Material& material);
 
-    void setup();
+    void draw(const Tungsten::Camera& camera,
+              Tungsten::SmoothMeshShader& program) const;
 
-    void draw(const Tungsten::Camera& camera);
 private:
     Xyz::Matrix4F model_matrix_ = Xyz::Matrix4F::identity();
-    Xyz::Vector3F light_pos_ = {0, 0, 0};
+    Tungsten::VertexArrayObject vao_;
     Tungsten::Material material_;
-    std::shared_ptr<Tungsten::VertexArrayHandle> vao_;
-    std::shared_ptr<Tungsten::ProgramHandle> program_;
-    Tungsten::BufferHandle vertex_buffer_;
-    Tungsten::BufferHandle indexes_buffer_;
 };
