@@ -94,7 +94,7 @@ public:
     {
         JEB_CHECKPOINT();
         Tungsten::set_clear_color(0.4, 0.6, 0.8, 1);
-        Tungsten::clear(Tungsten::ClearBufferMask::COLOR_DEPTH);
+        Tungsten::clear(Tungsten::ClearBits::COLOR_DEPTH);
         auto [w, h] = application().window_size();
         Tungsten::set_viewport(0, 0, w, h);
         Xyz::Vector2F screen_size{float(w), float(h)};

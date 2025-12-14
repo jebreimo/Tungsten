@@ -32,7 +32,7 @@ public:
     void on_draw() override
     {
         Tungsten::set_clear_color(0.4, 0.6, 0.8, 1);
-        Tungsten::clear(Tungsten::ClearBufferMask::COLOR_DEPTH);
+        Tungsten::clear(Tungsten::ClearBits::COLOR_DEPTH);
         auto [w, h] = application().window_size();
         Tungsten::set_viewport(0, 0, w, h);
         const auto screen_size = Xyz::Vector2F(float(w), float(h));

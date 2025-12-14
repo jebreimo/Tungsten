@@ -54,7 +54,7 @@ find_package(SDL3 REQUIRED)
 add_library(Tungsten STATIC
     include/Tungsten/Buffer.hpp
     include/Tungsten/Camera.hpp
-    include/Tungsten/Detail/UniformTypeAdapter.hpp
+    include/Tungsten/Detail/GenericBitmaskOperators.hpp
     include/Tungsten/DeviceInfo.hpp
     include/Tungsten/DummyOglWrapper.hpp
     include/Tungsten/Environment.hpp
@@ -79,7 +79,6 @@ add_library(Tungsten STATIC
     include/Tungsten/PhongShader.hpp
     include/Tungsten/PositionNormalShapes.cpp
     include/Tungsten/PositionNormalShapes.hpp
-    include/Tungsten/RenderItem.hpp
     include/Tungsten/SdlApplication.hpp
     include/Tungsten/SdlDisplay.hpp
     include/Tungsten/SdlSession.hpp
@@ -92,7 +91,6 @@ add_library(Tungsten STATIC
     include/Tungsten/TextRenderer.hpp
     include/Tungsten/Tungsten.hpp
     include/Tungsten/TungstenException.hpp
-    include/Tungsten/UniformType.hpp
     include/Tungsten/VertexArrayDataBuilder.hpp
     include/Tungsten/VertexArrayObject.hpp
     include/Tungsten/VertexArrayObjectBuilder.hpp
@@ -118,7 +116,6 @@ add_library(Tungsten STATIC
     src/Tungsten/GlVertices.cpp
     src/Tungsten/IOglWrapper.cpp
     src/Tungsten/OglWrapper.hpp
-    src/Tungsten/RenderItem.cpp
     src/Tungsten/SdlApplication.cpp
     src/Tungsten/SdlDisplay.cpp
     src/Tungsten/SdlSession.cpp

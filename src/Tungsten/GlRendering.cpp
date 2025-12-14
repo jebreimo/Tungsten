@@ -30,7 +30,7 @@ namespace Tungsten
         get_ogl_wrapper().clear_stencil(stencil);
     }
 
-    void clear(ClearBufferMask mask)
+    void clear(ClearBits mask)
     {
         get_ogl_wrapper().clear(static_cast<GLenum>(mask));
     }

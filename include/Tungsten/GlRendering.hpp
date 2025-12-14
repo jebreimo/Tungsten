@@ -7,7 +7,7 @@
 //****************************************************************************
 #pragma once
 #include <Xyz/Vector.hpp>
-#include <Tungsten/GenericBitmaskOperators.hpp>
+#include "Detail/GenericBitmaskOperators.hpp"
 
 namespace Tungsten
 {
@@ -19,7 +19,7 @@ namespace Tungsten
 
     void set_clear_stencil(int32_t stencil);
 
-    enum class ClearBufferMask
+    enum class ClearBits
     {
         COLOR = 0x00004000,
         DEPTH = 0x00000100,
@@ -28,9 +28,9 @@ namespace Tungsten
         ALL = COLOR | DEPTH | STENCIL
     };
 
-    TUNGSTEN_ENABLE_BITMASK_OPERATORS(ClearBufferMask);
+    TUNGSTEN_ENABLE_BITMASK_OPERATORS(ClearBits);
 
-    void clear(ClearBufferMask mask);
+    void clear(ClearBits mask);
 
     void finish_rendering();
 }

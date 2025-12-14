@@ -73,7 +73,7 @@ public:
         Tungsten::set_depth_test_enabled(true);
         Tungsten::set_face_culling_enabled(true);
         Tungsten::set_clear_color({0.2f, 0.3f, 0.3f, 1.0f});
-        Tungsten::clear(Tungsten::ClearBufferMask::COLOR_DEPTH);
+        Tungsten::clear(Tungsten::ClearBits::COLOR_DEPTH);
         auto [w, h] = application().window_size();
         Tungsten::set_viewport(0, 0, w, h);
 
