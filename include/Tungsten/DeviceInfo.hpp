@@ -18,6 +18,19 @@ namespace Tungsten
         std::string renderer;
         std::string version;
         std::string shader_language_version;
+
+        int32_t max_vertex_attribs;
+        int32_t max_vertex_uniform_vectors;
+        int32_t max_vertex_output_components;
+        int32_t max_fragment_input_components;
+        int32_t max_vertex_texture_image_units;
+        int32_t max_combined_texture_image_units;
+        int32_t max_texture_image_units;
+        int32_t max_fragment_uniform_vectors;
+        int32_t max_draw_buffers;
+        int32_t min_program_texel_offset;
+        int32_t max_program_texel_offset;
+
         std::vector<std::string> extensions;
     };
 
