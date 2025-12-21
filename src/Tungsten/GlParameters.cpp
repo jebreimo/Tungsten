@@ -10,6 +10,16 @@
 
 namespace Tungsten
 {
+    bool GlVersion::is_es() const
+    {
+        return profile == SDL_GL_CONTEXT_PROFILE_ES;
+    }
+
+    bool GlVersion::is_core() const
+    {
+        return profile == SDL_GL_CONTEXT_PROFILE_CORE;
+    }
+
     GlVersionCode get_sdl_gl_version_code()
     {
         auto [profile, maj, min] = get_sdl_gl_version();

@@ -8,16 +8,15 @@
 #include "Tungsten/GouraudShader.hpp"
 #include "Tungsten/ShaderProgramBuilder.hpp"
 
-#include "Gouraud-frag.glsl.hpp"
-#include "Gouraud-vert.glsl.hpp"
+#include "../ShaderSources.hpp"
 
 namespace Tungsten
 {
     GouraudShader::GouraudShader()
         : SmoothMeshShader(std::string(NAME),
                            {
-                               {ShaderType::VERTEX, Gouraud_vert},
-                               {ShaderType::FRAGMENT, Gouraud_frag}
+                               {ShaderType::VERTEX, ShaderSources::GOURAUD_VERTEX},
+                               {ShaderType::FRAGMENT, ShaderSources::GOURAUD_FRAGMENT}
                            })
     {
         position_attr = get_vertex_attribute(program(), "a_position");

@@ -8,6 +8,7 @@
 #version 100
 
 #ifdef GL_ES
+    precision highp int;
     precision highp float;
 #endif
 

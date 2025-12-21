@@ -8,16 +8,15 @@
 #include "Tungsten/PhongShader.hpp"
 #include "Tungsten/VertexArrayObjectBuilder.hpp"
 
-#include "Phong-frag.glsl.hpp"
-#include "Phong-vert.glsl.hpp"
+#include "../ShaderSources.hpp"
 
 namespace Tungsten
 {
     PhongShader::PhongShader()
         : SmoothMeshShader(std::string(NAME),
                            {
-                               {ShaderType::VERTEX, Phong_vert},
-                               {ShaderType::FRAGMENT, Phong_frag}
+                               {ShaderType::VERTEX, ShaderSources::PHONG_VERTEX},
+                               {ShaderType::FRAGMENT, ShaderSources::PHONG_FRAGMENT}
                            })
     {
         position_attr = get_vertex_attribute(program(), "a_position");

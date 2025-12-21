@@ -6,6 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include <string>
 #include <SDL3/SDL.h>
 
 namespace Tungsten
@@ -20,6 +21,8 @@ namespace Tungsten
         SDL_GLProfile profile = SDL_GLProfile(0);
         int major_version = 0;
         int minor_version = 0;
+        [[nodiscard]] bool is_es() const;
+        [[nodiscard]] bool is_core() const;
     };
 
     GlVersion get_sdl_gl_version();

@@ -5,7 +5,12 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#version 410
+#version 300 es
+
+#ifdef GL_ES
+    precision highp int;
+    precision highp float;
+#endif
 
 layout (location = 0) in vec3 a_position;
 layout (location = 1) in vec3 a_normal;

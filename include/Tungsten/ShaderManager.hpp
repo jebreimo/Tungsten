@@ -11,6 +11,7 @@
 #include "GlProgram.hpp"
 #include "GlTypes.hpp"
 #include "ShaderProgram.hpp"
+#include "ShaderPreprocessor.hpp"
 
 namespace Tungsten
 {
@@ -27,11 +28,13 @@ namespace Tungsten
 
         void add_program(std::unique_ptr<ShaderProgram> program);
 
-        [[nodiscard]] ShaderProgram& get_program(const std::string& name);
+        [[nodiscard]] ShaderProgram& program(const std::string& name);
 
         [[nodiscard]] ShaderProgram* try_get_program(const std::string& name);
 
-        [[nodiscard]] ShaderProgram& get_program(BuiltinShaders program);
+        [[nodiscard]] ShaderProgram& program(BuiltinShaders program);
+
+        [[nodiscard]] ShaderPreprocessor& preprocessor();
     private:
         ShaderManager() = default;
 
@@ -39,5 +42,6 @@ namespace Tungsten
         ShaderProgram& get_or_create_builtin_program();
 
         std::unordered_map<std::string, std::unique_ptr<ShaderProgram>> programs_;
+        ShaderPreprocessor preprocessor_;
     };
 }

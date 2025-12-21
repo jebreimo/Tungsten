@@ -27,7 +27,7 @@ Tungsten::VertexArrayObject make_cube_vao(const Tungsten::SmoothMeshShader& prog
 Tungsten::SmoothMeshShader& get_phong_shader()
 {
     return dynamic_cast<Tungsten::SmoothMeshShader&>(
-        Tungsten::ShaderManager::instance().get_program(Tungsten::BuiltinShaders::PHONG));
+        Tungsten::ShaderManager::instance().program(Tungsten::BuiltinShaders::PHONG));
 }
 
 Tungsten::Camera make_camera(float aspect_ratio)

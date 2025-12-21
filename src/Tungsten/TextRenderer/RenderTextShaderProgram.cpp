@@ -7,17 +7,16 @@
 //****************************************************************************
 #include "RenderTextShaderProgram.hpp"
 #include "Tungsten/ShaderProgramBuilder.hpp"
-#include "RenderText-frag.glsl.hpp"
-#include "RenderText-vert.glsl.hpp"
 #include "Tungsten/VertexArrayObjectBuilder.hpp"
+#include "../ShaderSources.hpp"
 
 namespace Tungsten::Detail
 {
     RenderTextShaderProgram::RenderTextShaderProgram()
         : ShaderProgram("internal::Text",
                         {
-                            {ShaderType::VERTEX, RenderText_vert},
-                            {ShaderType::FRAGMENT, RenderText_frag}
+                            {ShaderType::VERTEX, ShaderSources::RENDER_TEXT_VERTEX},
+                            {ShaderType::FRAGMENT, ShaderSources::RENDER_TEXT_FRAGMENT}
                         })
     {
         position = get_vertex_attribute(program(), "a_Position");

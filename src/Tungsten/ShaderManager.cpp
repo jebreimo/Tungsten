@@ -25,7 +25,7 @@ namespace Tungsten
             TUNGSTEN_THROW("Program with name '" + program->name() + "' already exists.");
     }
 
-    ShaderProgram& ShaderManager::get_program(const std::string& name)
+    ShaderProgram& ShaderManager::program(const std::string& name)
     {
         const auto program = try_get_program(name);
         if (!program)
@@ -41,7 +41,7 @@ namespace Tungsten
         return it->second.get();
     }
 
-    ShaderProgram& ShaderManager::get_program(BuiltinShaders program)
+    ShaderProgram& ShaderManager::program(BuiltinShaders program)
     {
         switch (program)
         {
@@ -63,6 +63,11 @@ namespace Tungsten
 
         auto phong_shader = std::make_unique<ShaderType>();
         add_program(std::move(phong_shader));
-        return get_program(name);
+        return program(name);
+    }
+
+    ShaderPreprocessor& ShaderManager::preprocessor()
+    {
+        return preprocessor_;
     }
 }

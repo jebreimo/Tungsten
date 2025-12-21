@@ -36,5 +36,11 @@ namespace Tungsten
 
     std::ostream& operator<<(std::ostream& os, const DeviceInfo& info);
 
-    DeviceInfo get_device_info();
+    [[nodiscard]] DeviceInfo get_device_info();
+
+    [[nodiscard]] std::string get_gl_version();
+
+    [[nodiscard]] std::string get_shader_language_version();
+
+    [[nodiscard]] std::string get_shader_language_version_string();
 }

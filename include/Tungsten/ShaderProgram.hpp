@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 #include "GlProgram.hpp"
+#include "ShaderPreprocessor.hpp"
 #include "VertexArrayObject.hpp"
 
 namespace Tungsten
@@ -31,6 +32,10 @@ namespace Tungsten
     protected:
         ShaderProgram(std::string name,
                       std::vector<std::pair<ShaderType, std::string>> sources);
+
+        ShaderProgram(std::string name,
+                      std::vector<std::pair<ShaderType, std::string>> sources,
+                      const ShaderPreprocessor& preprocessor);
 
     private:
         std::string name_;

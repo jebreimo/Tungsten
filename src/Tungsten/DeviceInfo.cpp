@@ -5,13 +5,13 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "../../include/Tungsten/DeviceInfo.hpp"
+#include "Tungsten/DeviceInfo.hpp"
 
 #include <ostream>
 #include <GL/glew.h>
 
-#include "../../include/Tungsten/IOglWrapper.hpp"
-#include "../../include/Tungsten/TungstenException.hpp"
+#include "Tungsten/IOglWrapper.hpp"
+#include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
 {
@@ -22,7 +22,7 @@ namespace Tungsten
             << "Version: " << info.version << '\n'
             << "Shader Language Version: "
             << info.shader_language_version << '\n'
-        << "Built-in constants:\n"
+            << "Built-in constants:\n"
             << "  Max Vertex Attribs: " << info.max_vertex_attribs << '\n'
             << "  Max Vertex Uniform Vectors: "
             << info.max_vertex_uniform_vectors << '\n'
@@ -113,5 +113,43 @@ namespace Tungsten
             .max_program_texel_offset = get_integer(GL_MAX_PROGRAM_TEXEL_OFFSET),
             .extensions = get_extension_list()
         };
+    }
+
+    [[nodiscard]] std::string get_gl_version()
+    {
+        return get_string_or_empty(GL_VERSION);
+    }
+
+    std::string get_shader_language_version()
+    {
+        return get_string_or_empty(GL_SHADING_LANGUAGE_VERSION);
+    }
+
+    std::string get_shader_language_version_string()
+    {
+        static std::string version;
+        if (version.empty())
+        {
+            auto sl_version = get_shader_language_version();
+
+            const auto point_pos = sl_version.find('.');
+            if (point_pos == std::string::npos)
+            {
+                TUNGSTEN_THROW("Unable to parse shader language version: " + sl_version);
+            }
+
+            version.append(sl_version.substr(0, point_pos));
+
+            auto end_pos = sl_version.find_first_not_of("0123456789", point_pos + 1);
+            if (end_pos == std::string::npos)
+                end_pos = sl_version.size();
+
+            version.append(sl_version.substr(point_pos + 1, end_pos - point_pos - 1));
+
+            if (get_gl_version().find(" ES") != std::string::npos)
+                version.append(" es");
+        }
+
+        return version;
     }
 }

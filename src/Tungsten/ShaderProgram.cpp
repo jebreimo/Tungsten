@@ -7,18 +7,28 @@
 //****************************************************************************
 #include "Tungsten/ShaderProgram.hpp"
 
+#include "Tungsten/ShaderManager.hpp"
 #include "Tungsten/ShaderProgramBuilder.hpp"
 
 namespace Tungsten
 {
     ShaderProgram::ShaderProgram(std::string name,
                                  std::vector<std::pair<ShaderType, std::string>> sources)
+        : ShaderProgram(std::move(name),
+                        std::move(sources),
+                        ShaderManager::instance().preprocessor())
+    {
+    }
+
+    ShaderProgram::ShaderProgram(std::string name,
+                                 std::vector<std::pair<ShaderType, std::string>> sources,
+                                 const ShaderPreprocessor& preprocessor)
         : name_(std::move(name))
     {
         ShaderProgramBuilder builder;
         for (auto& [type, source] : sources)
         {
-            builder.add_shader(type, source);
+            builder.add_shader(type, preprocessor.preprocess(source, {}));
             sources_.insert({type, std::move(source)});
         }
         program_ = builder.build();

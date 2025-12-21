@@ -45,7 +45,12 @@ FetchContent_Declare(yimage
     GIT_REPOSITORY "https://github.com/jebreimo/Yimage.git"
     GIT_TAG v0.2.4)
 
-FetchContent_MakeAvailable(argos xyz yimage)
+FetchContent_Declare(cppembed
+    GIT_REPOSITORY "https://github.com/jebreimo/cppembed.git"
+    GIT_TAG "v0.1.10"
+)
+
+FetchContent_MakeAvailable(argos xyz yimage cppembed)
 
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -135,6 +140,10 @@ add_library(Tungsten STATIC
     src/Tungsten/VertexArrayObject.cpp
     src/Tungsten/VertexArrayObjectBuilder.cpp
     src/Tungsten/YimageGl.cpp
+    src/Tungsten/ShaderPreprocessor.cpp
+    include/Tungsten/ShaderPreprocessor.hpp
+    src/Tungsten/ShaderSources.cpp.in
+    src/Tungsten/ShaderSources.hpp
 )
 
 target_link_libraries(Tungsten
@@ -158,18 +167,11 @@ target_include_directories(Tungsten
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/tools/cmake)
-
-include(TungstenTargetEmbedShaders)
-
-tungsten_target_embed_shaders(Tungsten
+list(APPEND CMAKE_MODULE_PATH ${cppembed_SOURCE_DIR}/cmake)
+include(TargetEmbedCppData)
+target_embed_cpp_data(Tungsten
     FILES
-        src/Tungsten/Shaders/Gouraud-frag.glsl
-        src/Tungsten/Shaders/Gouraud-vert.glsl
-        src/Tungsten/Shaders/Phong-frag.glsl
-        src/Tungsten/Shaders/Phong-vert.glsl
-        src/Tungsten/Shaders/RenderText-frag.glsl
-        src/Tungsten/Shaders/RenderText-vert.glsl
+        src/Tungsten/ShaderSources.cpp.in
 )
 
 if (TUNGSTEN_BUILD_EXAMPLES)

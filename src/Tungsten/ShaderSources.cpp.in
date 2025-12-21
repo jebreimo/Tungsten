@@ -1,0 +1,20 @@
+//****************************************************************************
+// Copyright © 2025 Jan Erik Breimo. All rights reserved.
+// Created by Jan Erik Breimo on 2025-12-20.
+//
+// This file is distributed under the Zero-Clause BSD License.
+// License text is included with the source distribution.
+//****************************************************************************
+#include "Tungsten/ShaderSources.hpp"
+
+namespace Tungsten::ShaderSources
+{
+    extern const std::string PHONG_VERTEX(#embed_text "shaders/Phong-vert.glsl");
+    extern const std::string PHONG_FRAGMENT(#embed_text "shaders/Phong-frag.glsl");
+
+    extern const std::string GOURAUD_VERTEX(#embed_text "shaders/Gouraud-vert.glsl");
+    extern const std::string GOURAUD_FRAGMENT(#embed_text "shaders/Gouraud-frag.glsl");
+
+    extern const std::string RENDER_TEXT_VERTEX(#embed_text "shaders/RenderText-vert.glsl");
+    extern const std::string RENDER_TEXT_FRAGMENT(#embed_text "shaders/RenderText-frag.glsl");
+}
