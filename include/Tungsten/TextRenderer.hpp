@@ -22,10 +22,12 @@ namespace Tungsten
     public:
         explicit TextRenderer(const Font& font);
 
-        TextRenderer(const TextRenderer&) = delete;
-        TextRenderer(TextRenderer&&) noexcept;
         ~TextRenderer();
+
+        TextRenderer(const TextRenderer&) = delete;
         TextRenderer& operator=(const TextRenderer&) = delete;
+
+        TextRenderer(TextRenderer&&) noexcept;
         TextRenderer& operator=(TextRenderer&&) noexcept;
 
         [[nodiscard]] const Font& font() const;
@@ -34,22 +36,37 @@ namespace Tungsten
 
         void set_auto_blend(bool value);
 
+        [[nodiscard]] Xyz::Vector2F
+        get_size(std::string_view text, float line_gap = 0.1) const;
+
+        [[nodiscard]] Xyz::Vector2F
+        get_size(std::u8string_view text, float line_gap = 0.1) const;
+
+        [[nodiscard]] Xyz::Vector2F
+        get_size(std::u32string_view text, float line_gap = 0.1) const;
+
+        void draw(std::string_view text,
+                  const Xyz::Vector2F& pos,
+                  const Xyz::Vector2F& screen_size,
+                  const TextProperties& properties = {}) const;
+
+        void draw(std::u8string_view text,
+                  const Xyz::Vector2F& pos,
+                  const Xyz::Vector2F& screen_size,
+                  const TextProperties& properties = {}) const;
+
         void draw(std::u32string_view text,
                   const Xyz::Vector2F& pos,
                   const Xyz::Vector2F& screen_size,
-                  const TextProperties& properties = {});
+                  const TextProperties& properties = {}) const;
     private:
-        void initialize();
+        [[nodiscard]] Size2I image_size() const;
 
-        Size2I image_size() const;
+        template <typename CharT>
+        [[nodiscard]] std::u32string
+        to_u32(std::basic_string_view<CharT> str) const;
 
         struct Data;
         std::unique_ptr<Data> data_;
-        const Font* font_ = nullptr;
-        bool auto_blend_ = true;
     };
-
-    [[nodiscard]] Xyz::Vector2F
-    get_size(std::u32string_view text, const Font& font,
-             float line_gap = 0.1);
 }

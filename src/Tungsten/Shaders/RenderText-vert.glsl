@@ -5,19 +5,19 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#version 100
+#version 300 es
 
 #ifdef GL_ES
     precision highp int;
     precision highp float;
 #endif
 
-attribute vec2 a_Position;
-attribute vec2 a_TextureCoord;
+in vec2 a_Position;
+in vec2 a_TextureCoord;
 
 uniform mat4 u_MvpMatrix;
 
-varying vec2 v_TextureCoord;
+out vec2 v_TextureCoord;
 
 void main()
 {

@@ -8,7 +8,6 @@
 #include <iostream>
 #include <thread>
 #include <Tungsten/Tungsten.hpp>
-#include <Yconvert/Convert.hpp>
 
 class ShowText : public Tungsten::EventLoop
 {
@@ -36,16 +35,9 @@ public:
         auto [w, h] = application().window_size();
         Tungsten::set_viewport(0, 0, w, h);
         const auto screen_size = Xyz::Vector2F(float(w), float(h));
-        const auto u8text = "Jan Erik Breimo\nNatasha Barrett\nTime: " + std::to_string(second_);
+        const auto text = "Jan Erik Breimo\nNatasha Barrett\nTime: " + std::to_string(second_);
 
-        const auto text = Yconvert::convert_to<std::u32string>(
-            u8text,
-            Yconvert::Encoding::UTF_8,
-            Yconvert::Encoding::UTF_32_NATIVE,
-            Yconvert::ErrorPolicy::REPLACE
-        );
-
-        auto size = Tungsten::get_size(text, text_renderer_.font()) * 2.f / screen_size;
+        auto size = text_renderer_.get_size(text) * 2.f / screen_size;
         text_renderer_.draw(text, {-size[0] / 2, -size[1] / 2}, screen_size,
                             {.color = {0xFF, 0, 0, 0xFF}});
         text_renderer_.draw(text, {-1.f, 1.f - size[1]}, screen_size,
@@ -68,6 +60,7 @@ int main(int argc, char* argv[])
     {
         Tungsten::SdlApplication app("ShowText");
         app.parse_command_line_options(argc, argv);
+        Tungsten::set_ogl_tracing_enabled(true);
         app.run<ShowText>();
     }
     catch (std::exception& ex)

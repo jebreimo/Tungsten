@@ -7,12 +7,13 @@
 //****************************************************************************
 #include "Tungsten/TextRenderer.hpp"
 
-#include "Tungsten/VertexArrayDataBuilder.hpp"
+#include "Yconvert/Convert.hpp"
 #include "Tungsten/GlStateManagement.hpp"
 #include "Tungsten/GlTexture.hpp"
 #include "Tungsten/GlVertices.hpp"
-#include "Tungsten/YimageGl.hpp"
 #include "Tungsten/TextRenderer/RenderTextShaderProgram.hpp"
+#include "Tungsten/VertexArrayDataBuilder.hpp"
+#include "Tungsten/YimageGl.hpp"
 
 namespace Tungsten
 {
@@ -151,13 +152,45 @@ namespace Tungsten
 
     struct TextRenderer::Data
     {
+        const Font* font = nullptr;
         TextureHandle texture;
         Detail::RenderTextShaderProgram program;
         VertexArrayObject vao;
+        bool auto_blend = true;
+        Yconvert::Converter converter;
+
+        explicit Data(const Font& font)
+            : font(&font),
+              texture(generate_texture()),
+              converter(Yconvert::Encoding::UTF_8,
+                        Yconvert::Encoding::UTF_32_NATIVE)
+        {
+            converter.set_error_policy(Yconvert::ErrorPolicy::THROW);
+            bind_texture(TextureTarget::TEXTURE_2D, texture);
+
+            set_min_filter(TextureTarget::TEXTURE_2D, TextureMinFilter::LINEAR);
+            set_mag_filter(TextureTarget::TEXTURE_2D, TextureMagFilter::LINEAR);
+            set_wrap_s(TextureTarget::TEXTURE_2D, TextureWrapMode::CLAMP_TO_EDGE);
+            set_wrap_t(TextureTarget::TEXTURE_2D, TextureWrapMode::CLAMP_TO_EDGE);
+
+            set_texture_image_2d(TextureTarget2D::TEXTURE_2D, 0,
+                                 image_size(),
+                                 get_ogl_pixel_type(font.image.pixel_type()),
+                                 font.image.data());
+
+            program.use();
+            vao = program.create_vao();
+            program.texture.set(0);
+        }
+
+        [[nodiscard]] Size2I image_size() const
+        {
+            return {int32_t(font->image.width()), int32_t(font->image.height())};
+        }
     };
 
     TextRenderer::TextRenderer(const Font& font)
-        : font_(&font)
+        : data_(std::make_unique<Data>(font))
     {
     }
 
@@ -169,29 +202,59 @@ namespace Tungsten
 
     const Font& TextRenderer::font() const
     {
-        return *font_;
+        return *data_->font;
     }
 
     bool TextRenderer::auto_blend() const
     {
-        return auto_blend_;
+        return data_->auto_blend;
     }
 
     void TextRenderer::set_auto_blend(bool value)
     {
-        auto_blend_ = value;
+        data_->auto_blend = value;
+    }
+
+    Xyz::Vector2F TextRenderer::get_size(std::string_view text, float line_gap) const
+    {
+        return get_size(to_u32(text), line_gap);
+    }
+
+    Xyz::Vector2F TextRenderer::get_size(std::u8string_view text, float line_gap) const
+    {
+        return get_size(to_u32(text), line_gap);
+    }
+
+    Xyz::Vector2F
+    TextRenderer::get_size(std::u32string_view text, float line_gap) const
+    {
+        auto rect = get_text_size(*data_->font, text, line_gap);
+        return {rect.size[0], rect.size[1]};
+    }
+
+    void TextRenderer::draw(std::string_view text,
+                            const Xyz::Vector2F& pos,
+                            const Xyz::Vector2F& screen_size,
+                            const TextProperties& properties) const
+    {
+        draw(to_u32(text), pos, screen_size, properties);
+    }
+
+    void TextRenderer::draw(std::u8string_view text,
+                            const Xyz::Vector2F& pos,
+                            const Xyz::Vector2F& screen_size,
+                            const TextProperties& properties) const
+    {
+        draw(to_u32(text), pos, screen_size, properties);
     }
 
     void TextRenderer::draw(std::u32string_view text,
                             const Xyz::Vector2F& pos,
                             const Xyz::Vector2F& screen_size,
-                            const TextProperties& properties)
+                            const TextProperties& properties) const
     {
-        if (!data_)
-            initialize();
-
         const bool default_blend = is_blend_enabled();
-        if (auto_blend_)
+        if (data_->auto_blend)
         {
             if (!default_blend)
                 set_blend_enabled(true);
@@ -203,7 +266,7 @@ namespace Tungsten
         activate_texture_unit(0);
         bind_texture(TextureTarget::TEXTURE_2D, data_->texture);
 
-        auto [buffer, rect] = make_text_array_buffer(*font_, text,
+        auto [buffer, rect] = make_text_array_buffer(*data_->font, text,
                                                      properties.line_gap);
         data_->vao.set_data<TextVertex>(buffer.vertexes, buffer.indexes);
 
@@ -218,38 +281,14 @@ namespace Tungsten
         set_blend_enabled(default_blend);
     }
 
-    void TextRenderer::initialize()
-    {
-        data_ = std::make_unique<Data>();
-
-        data_->texture = generate_texture();
-
-        activate_texture_unit(0);
-        bind_texture(TextureTarget::TEXTURE_2D, data_->texture);
-
-        set_min_filter(TextureTarget::TEXTURE_2D, TextureMinFilter::LINEAR);
-        set_mag_filter(TextureTarget::TEXTURE_2D, TextureMagFilter::LINEAR);
-        set_wrap_s(TextureTarget::TEXTURE_2D, TextureWrapMode::CLAMP_TO_EDGE);
-        set_wrap_t(TextureTarget::TEXTURE_2D, TextureWrapMode::CLAMP_TO_EDGE);
-
-        set_texture_image_2d(TextureTarget2D::TEXTURE_2D, 0,
-                             image_size(),
-                             get_ogl_pixel_type(font_->image.pixel_type()),
-                             font_->image.data());
-
-        data_->program.use();
-        data_->vao = data_->program.create_vao();
-        data_->program.texture.set(0);
-    }
-
     Size2I TextRenderer::image_size() const
     {
-        return {int32_t(font_->image.width()), int32_t(font_->image.height())};
+        return data_->image_size();
     }
 
-    Xyz::Vector2F get_size(std::u32string_view text, const Font& font,
-                           float line_gap)
+    template <typename CharT>
+    std::u32string TextRenderer::to_u32(std::basic_string_view<CharT> str) const
     {
-        return get_text_size(font, text, line_gap).size;
+        return Yconvert::convert_to<std::u32string>(str, data_->converter);
     }
 }

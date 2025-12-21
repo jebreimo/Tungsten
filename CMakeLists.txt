@@ -37,20 +37,24 @@ FetchContent_Declare(argos
     GIT_REPOSITORY "https://github.com/jebreimo/Argos.git"
     GIT_TAG v1.7.2)
 
-FetchContent_Declare(xyz
-    GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
-    GIT_TAG v0.9.4)
-
-FetchContent_Declare(yimage
-    GIT_REPOSITORY "https://github.com/jebreimo/Yimage.git"
-    GIT_TAG v0.2.4)
-
 FetchContent_Declare(cppembed
     GIT_REPOSITORY "https://github.com/jebreimo/cppembed.git"
     GIT_TAG "v0.1.10"
 )
 
-FetchContent_MakeAvailable(argos xyz yimage cppembed)
+FetchContent_Declare(xyz
+    GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
+    GIT_TAG v0.9.4)
+
+FetchContent_Declare(yconvert
+    GIT_REPOSITORY "https://github.com/jebreimo/Yconvert.git"
+    GIT_TAG v0.4.1)
+
+FetchContent_Declare(yimage
+    GIT_REPOSITORY "https://github.com/jebreimo/Yimage.git"
+    GIT_TAG v0.2.4)
+
+FetchContent_MakeAvailable(argos cppembed xyz yconvert yimage)
 
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -152,6 +156,7 @@ target_link_libraries(Tungsten
         OpenGL::GL
         SDL3::SDL3
         Xyz::Xyz
+        Yconvert::Yconvert
         Yimage::Yimage
     PRIVATE
         Argos
