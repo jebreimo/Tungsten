@@ -12,17 +12,6 @@
 #include "RingBuffer.hpp"
 #include "../show_text/Debug.hpp"
 
-namespace
-{
-    std::u32string u8_to_u32(std::string_view str)
-    {
-        return Yconvert::convert_to<std::u32string>(
-            str,
-            Yconvert::Encoding::UTF_8,
-            Yconvert::Encoding::UTF_32_NATIVE);
-    }
-}
-
 class EventLoop : public Tungsten::EventLoop
 {
 public:
@@ -53,8 +42,7 @@ public:
         ss << "id " << event.fingerID << " " << event.x << " " << event.y
             << " " << event.dx << " " << event.dy
             << " " << event.pressure;
-        if (auto str = ss.str(); !str.empty())
-            texts_.push_back(u8_to_u32(str));
+        texts_.push_back(ss.str());
         redraw();
     }
 
@@ -66,7 +54,7 @@ public:
 #if SDL_VERSION_ATLEAST(3, 2, 12)
         ss << " " << event.integer_x << " " << event.integer_y;
 #endif
-        texts_.push_back(u8_to_u32(ss.str()));
+        texts_.push_back(ss.str());
         redraw();
     }
 
@@ -105,7 +93,7 @@ public:
         for (auto it = texts_.end() - lines; it != texts_.end(); ++it)
         {
             auto& text = *it;
-            auto size = Tungsten::get_size(text, text_renderer_.font()) * 2.f
+            auto size = text_renderer_.get_size(text) * 2.f
                         / screen_size;
             text_renderer_.draw(text,
                                 {-1.0f, 1.0f - size[1] * float(++i)},
@@ -116,7 +104,7 @@ public:
 
 private:
     Tungsten::TextRenderer text_renderer_;
-    Chorasmia::RingBuffer<std::u32string, 100> texts_;
+    Chorasmia::RingBuffer<std::string, 100> texts_;
 };
 
 int main(int argc, char* argv[])

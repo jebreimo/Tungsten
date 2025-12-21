@@ -9,14 +9,6 @@ cmake_minimum_required(VERSION 3.15)
 
 set(CMAKE_CXX_STANDARD 20)
 
-include(FetchContent)
-
-FetchContent_Declare(yconvert
-    GIT_REPOSITORY "https://github.com/jebreimo/Yconvert.git"
-    GIT_TAG v0.4.1)
-
-FetchContent_MakeAvailable(yconvert)
-
 add_executable(touch_events
     touch_events.cpp
     RingBuffer.hpp
@@ -25,7 +17,6 @@ add_executable(touch_events
 target_link_libraries(touch_events
     PRIVATE
         Tungsten::Tungsten
-        Yconvert::Yconvert
 )
 
 if (EMSCRIPTEN)
