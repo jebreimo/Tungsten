@@ -42,7 +42,7 @@ Tungsten::Camera make_camera(float aspect_ratio)
     };
 }
 
-Tungsten::TextureHandle make_texture()
+Tungsten::TextureHandle make_texture(const Yimage::Image& image)
 {
     auto handle = Tungsten::generate_texture();
     bind_texture(Tungsten::TextureTarget::TEXTURE_2D, handle);
@@ -50,7 +50,6 @@ Tungsten::TextureHandle make_texture()
     set_mag_filter(Tungsten::TextureTarget::TEXTURE_2D, Tungsten::TextureMagFilter::LINEAR);
     set_wrap(Tungsten::TextureTarget::TEXTURE_2D, Tungsten::TextureWrapMode::CLAMP_TO_EDGE);
 
-    auto image = Tungsten::read_image(NUMBERS_PNG, std::size(NUMBERS_PNG) - 1);
     set_texture_image_2d(
         Tungsten::TextureTarget2D::TEXTURE_2D,
         0,
@@ -61,12 +60,17 @@ Tungsten::TextureHandle make_texture()
     return handle;
 }
 
+Yimage::Image get_image()
+{
+    return Tungsten::read_image(NUMBERS_PNG, std::size(NUMBERS_PNG) - 1);
+}
+
 class Cube : public Tungsten::EventLoop
 {
 public:
     explicit Cube(Tungsten::SdlApplication& app)
         : EventLoop(app),
-          texture_(make_texture()),
+          texture_(make_texture(get_image())),
           program(get_phong_shader()),
           item(make_cube_vao(program), {}),
           camera{make_camera(app.aspect_ratio())}

@@ -5,9 +5,9 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "../../include/Tungsten/SmoothMeshShader.hpp"
+#include "Tungsten/ShaderPrograms/SmoothMeshShader.hpp"
 
-#include "../../include/Tungsten/VertexArrayObjectBuilder.hpp"
+#include "Tungsten/VertexArrayObjectBuilder.hpp"
 
 namespace Tungsten
 {

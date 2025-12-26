@@ -5,7 +5,7 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/TexturedSmoothMeshShader.hpp"
+#include "Tungsten/ShaderPrograms/TexturedSmoothMeshShader.hpp"
 
 #include "Tungsten/VertexArrayObjectBuilder.hpp"
 

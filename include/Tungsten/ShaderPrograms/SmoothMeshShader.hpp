@@ -6,7 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include "ShaderProgram.hpp"
+#include "../ShaderProgram.hpp"
 
 namespace Tungsten
 {

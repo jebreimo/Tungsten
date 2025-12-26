@@ -8,8 +8,6 @@
 #pragma once
 #include <unordered_map>
 
-#include "GlProgram.hpp"
-#include "GlTypes.hpp"
 #include "ShaderProgram.hpp"
 #include "ShaderPreprocessor.hpp"
 

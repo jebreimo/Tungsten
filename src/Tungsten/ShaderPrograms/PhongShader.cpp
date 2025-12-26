@@ -5,7 +5,7 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/PhongShader.hpp"
+#include "Tungsten/ShaderPrograms/PhongShader.hpp"
 #include "Tungsten/VertexArrayObjectBuilder.hpp"
 
 #include "../ShaderSources.hpp"

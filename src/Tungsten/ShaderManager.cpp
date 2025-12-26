@@ -7,9 +7,9 @@
 //****************************************************************************
 #include "Tungsten/ShaderManager.hpp"
 
-#include "Tungsten/GouraudShader.hpp"
-#include "Tungsten/PhongShader.hpp"
-#include "Tungsten/TexturedPhongShader.hpp"
+#include "Tungsten/ShaderPrograms/GouraudShader.hpp"
+#include "Tungsten/ShaderPrograms/PhongShader.hpp"
+#include "Tungsten/ShaderPrograms/TexturedPhongShader.hpp"
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten

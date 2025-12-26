@@ -5,7 +5,7 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/GouraudShader.hpp"
+#include "Tungsten/ShaderPrograms/GouraudShader.hpp"
 #include "Tungsten/ShaderProgramBuilder.hpp"
 
 #include "../ShaderSources.hpp"

@@ -5,7 +5,7 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/TexturedPhongShader.hpp"
+#include "Tungsten/ShaderPrograms/TexturedPhongShader.hpp"
 #include "Tungsten/ShaderSources.hpp"
 #include "Tungsten/VertexArrayObjectBuilder.hpp"
 

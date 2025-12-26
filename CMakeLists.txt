@@ -83,10 +83,10 @@ add_library(Tungsten STATIC
     include/Tungsten/GlUniform.hpp
     include/Tungsten/GlVertexArray.hpp
     include/Tungsten/GlVertices.hpp
-    include/Tungsten/GouraudShader.hpp
+    include/Tungsten/ShaderPrograms/GouraudShader.hpp
     include/Tungsten/IOglWrapper.hpp
     include/Tungsten/MeshShapes.hpp
-    include/Tungsten/PhongShader.hpp
+    include/Tungsten/ShaderPrograms/PhongShader.hpp
     include/Tungsten/SdlApplication.hpp
     include/Tungsten/SdlDisplay.hpp
     include/Tungsten/SdlSession.hpp
@@ -95,7 +95,7 @@ add_library(Tungsten STATIC
     include/Tungsten/ShaderProgram.hpp
     include/Tungsten/ShaderProgramBuilder.hpp
     include/Tungsten/ShaderTools.hpp
-    include/Tungsten/SmoothMeshShader.hpp
+    include/Tungsten/ShaderPrograms/SmoothMeshShader.hpp
     include/Tungsten/TextRenderer.hpp
     include/Tungsten/Tungsten.hpp
     include/Tungsten/TungstenException.hpp
@@ -137,7 +137,7 @@ add_library(Tungsten STATIC
     src/Tungsten/ShaderSources.cpp.in
     src/Tungsten/ShaderSources.hpp
     src/Tungsten/ShaderTools.cpp
-    src/Tungsten/SmoothMeshShader.cpp
+    src/Tungsten/ShaderPrograms/SmoothMeshShader.cpp
     src/Tungsten/TextRenderer.cpp
     src/Tungsten/TextRenderer/Monaco32.hpp
     src/Tungsten/TextRenderer/Monaco64.hpp
@@ -148,8 +148,8 @@ add_library(Tungsten STATIC
     src/Tungsten/VertexArrayObject.cpp
     src/Tungsten/VertexArrayObjectBuilder.cpp
     src/Tungsten/YimageGl.cpp
-    src/Tungsten/TexturedPhongShader.cpp
-    src/Tungsten/TexturedSmoothMeshShader.cpp
+    src/Tungsten/ShaderPrograms/TexturedPhongShader.cpp
+    src/Tungsten/ShaderPrograms/TexturedSmoothMeshShader.cpp
 )
 
 target_link_libraries(Tungsten
