@@ -8,6 +8,8 @@
 #pragma once
 #include <vector>
 
+#include "VertexArrayObject.hpp"
+
 namespace Tungsten
 {
     template <typename Item>
@@ -75,6 +77,11 @@ namespace Tungsten
         [[nodiscard]] Index max_index() const
         {
             return Index(array_.vertexes.size()) - base_index_;
+        }
+
+        [[nodiscard]] VertexArrayData<Item>& vertex_array()
+        {
+            return array_;
         }
     private:
         VertexArrayData<Item>& array_;

@@ -235,4 +235,10 @@ namespace Tungsten
         set_texture_int_parameter(target, TextureParameter::WRAP_T,
                                   to_ogl_texture_wrap_mode(mode));
     }
+
+    void set_wrap(TextureTarget target, TextureWrapMode mode)
+    {
+        set_wrap_s(target, mode);
+        set_wrap_t(target, mode);
+    }
 }

@@ -85,4 +85,6 @@ namespace Tungsten
     TextureWrapMode get_wrap_t(TextureTarget target);
 
     void set_wrap_t(TextureTarget target, TextureWrapMode mode);
+
+    void set_wrap(TextureTarget target, TextureWrapMode mode);
 }

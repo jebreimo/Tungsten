@@ -12,12 +12,14 @@
 #include "MeshItem.hpp"
 #include "Tungsten/MeshShapes.hpp"
 #include "Tungsten/ShaderManager.hpp"
+#include "Resources.hpp"
+#include "Tungsten/YimageGl.hpp"
 
 Tungsten::VertexArrayObject make_cube_vao(const Tungsten::SmoothMeshShader& program)
 {
-    Tungsten::VertexArrayData<Tungsten::PositionNormal> cube;
+    Tungsten::VertexArrayData<Tungsten::PositionNormalTexture> cube;
     Tungsten::VertexArrayDataBuilder builder(cube);
-    add_cube_pn(builder);
+    Tungsten::add_cube_pnt(builder);
     write(std::cout, cube);
     auto vao = program.create_vao();
     vao.set_data(cube.vertexes, cube.indexes);
@@ -27,7 +29,7 @@ Tungsten::VertexArrayObject make_cube_vao(const Tungsten::SmoothMeshShader& prog
 Tungsten::SmoothMeshShader& get_phong_shader()
 {
     return dynamic_cast<Tungsten::SmoothMeshShader&>(
-        Tungsten::ShaderManager::instance().program(Tungsten::BuiltinShaders::PHONG));
+        Tungsten::ShaderManager::instance().program(Tungsten::BuiltinShaders::TEXTURED_PHONG));
 }
 
 Tungsten::Camera make_camera(float aspect_ratio)
@@ -40,15 +42,36 @@ Tungsten::Camera make_camera(float aspect_ratio)
     };
 }
 
+Tungsten::TextureHandle make_texture()
+{
+    auto handle = Tungsten::generate_texture();
+    bind_texture(Tungsten::TextureTarget::TEXTURE_2D, handle);
+    set_min_filter(Tungsten::TextureTarget::TEXTURE_2D, Tungsten::TextureMinFilter::LINEAR);
+    set_mag_filter(Tungsten::TextureTarget::TEXTURE_2D, Tungsten::TextureMagFilter::LINEAR);
+    set_wrap(Tungsten::TextureTarget::TEXTURE_2D, Tungsten::TextureWrapMode::CLAMP_TO_EDGE);
+
+    auto image = Tungsten::read_image(NUMBERS_PNG, std::size(NUMBERS_PNG) - 1);
+    set_texture_image_2d(
+        Tungsten::TextureTarget2D::TEXTURE_2D,
+        0,
+        {int32_t(image.width()), int32_t(image.height())},
+        Tungsten::get_ogl_pixel_type(image.pixel_type()),
+        image.data());
+
+    return handle;
+}
+
 class Cube : public Tungsten::EventLoop
 {
 public:
     explicit Cube(Tungsten::SdlApplication& app)
         : EventLoop(app),
+          texture_(make_texture()),
           program(get_phong_shader()),
           item(make_cube_vao(program), {}),
           camera{make_camera(app.aspect_ratio())}
     {
+        item.set_texture(texture_);
         std::cout << Tungsten::get_device_info() << '\n';
     }
 
@@ -93,10 +116,11 @@ private:
         const auto fraction = std::modf(double(ticks) / 5000, &i);
         const auto angle = float(fraction * 2 * Xyz::Constants<double>::PI);
         if ((ticks / 10000) % 2 == 0)
-            return Xyz::affine::rotate_z<float>(angle);
+            return Xyz::affine::rotate_z<float>(-angle);
         return Xyz::affine::rotate_y(angle);
     }
 
+    Tungsten::TextureHandle texture_;
     Tungsten::SmoothMeshShader& program;
     MeshItem item;
     Tungsten::Camera camera;

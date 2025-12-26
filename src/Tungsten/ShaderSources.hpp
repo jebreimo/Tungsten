@@ -13,6 +13,9 @@ namespace Tungsten::ShaderSources
     extern const std::string PHONG_VERTEX;
     extern const std::string PHONG_FRAGMENT;
 
+    extern const std::string PHONG_TEXTURE_VERTEX;
+    extern const std::string PHONG_TEXTURE_FRAGMENT;
+
     extern const std::string GOURAUD_VERTEX;
     extern const std::string GOURAUD_FRAGMENT;
 

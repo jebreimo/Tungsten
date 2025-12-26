@@ -72,6 +72,7 @@ namespace Tungsten
 
     enum class TextureTarget
     {
+        NONE,
         TEXTURE_2D,
         CUBE_MAP,
         TEXTURE_3D,
@@ -130,7 +131,9 @@ namespace Tungsten
     {
         INT32,
         UINT32,
-        FLOAT
+        FLOAT,
+        VECTOR2,
+        VECTOR3
     };
 
     enum class ElementIndexType

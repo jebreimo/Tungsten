@@ -170,8 +170,7 @@ namespace Tungsten
 
             set_min_filter(TextureTarget::TEXTURE_2D, TextureMinFilter::LINEAR);
             set_mag_filter(TextureTarget::TEXTURE_2D, TextureMagFilter::LINEAR);
-            set_wrap_s(TextureTarget::TEXTURE_2D, TextureWrapMode::CLAMP_TO_EDGE);
-            set_wrap_t(TextureTarget::TEXTURE_2D, TextureWrapMode::CLAMP_TO_EDGE);
+            set_wrap(TextureTarget::TEXTURE_2D, TextureWrapMode::CLAMP_TO_EDGE);
 
             set_texture_image_2d(TextureTarget2D::TEXTURE_2D, 0,
                                  image_size(),

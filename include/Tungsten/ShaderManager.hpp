@@ -17,8 +17,9 @@ namespace Tungsten
 {
     enum class BuiltinShaders
     {
+        GOURAUD,
         PHONG,
-        GOURAUD
+        TEXTURED_PHONG
     };
 
     class ShaderManager

@@ -8,4 +8,5 @@
 add_subdirectory(cube)
 add_subdirectory(show_text)
 add_subdirectory(fading_blob)
+add_subdirectory(textured_cube)
 add_subdirectory(touch_events)
