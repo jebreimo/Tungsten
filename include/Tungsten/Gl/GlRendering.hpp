@@ -7,7 +7,7 @@
 //****************************************************************************
 #pragma once
 #include <Xyz/Vector.hpp>
-#include "Detail/GenericBitmaskOperators.hpp"
+#include "../Detail/GenericBitmaskOperators.hpp"
 
 namespace Tungsten
 {

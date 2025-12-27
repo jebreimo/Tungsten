@@ -7,8 +7,8 @@
 //****************************************************************************
 #pragma once
 #include <span>
-#include "GlBuffer.hpp"
-#include "GlVertexArray.hpp"
+#include "Gl/GlBuffer.hpp"
+#include "Gl/GlVertexArray.hpp"
 
 namespace Tungsten
 {

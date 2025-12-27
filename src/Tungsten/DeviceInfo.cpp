@@ -10,7 +10,7 @@
 #include <ostream>
 #include <GL/glew.h>
 
-#include "Tungsten/IOglWrapper.hpp"
+#include "Tungsten/Gl/IOglWrapper.hpp"
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten

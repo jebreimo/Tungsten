@@ -5,12 +5,12 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/GlTexture.hpp"
+#include "Tungsten/Gl/GlTexture.hpp"
 
 #include <vector>
 
-#include "GlTypeConversion.hpp"
 #include "Tungsten/TungstenException.hpp"
+#include "GlTypeConversion.hpp"
 
 namespace Tungsten
 {

@@ -7,7 +7,7 @@
 //****************************************************************************
 #include "MeshItem.hpp"
 
-#include "../../include/Tungsten/ShaderPrograms/TexturedSmoothMeshShader.hpp"
+#include "Tungsten/ShaderPrograms/TexturedSmoothMeshShader.hpp"
 
 MeshItem::MeshItem(Tungsten::VertexArrayObject vao,
                    const Tungsten::Material& material)

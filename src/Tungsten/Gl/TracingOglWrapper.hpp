@@ -8,9 +8,8 @@
 #pragma once
 #include <format>
 #include <iostream>
-
-#include "Tungsten/IOglWrapper.hpp"
 #include <GL/glew.h>
+#include "Tungsten/Gl/IOglWrapper.hpp"
 
 namespace Tungsten
 {

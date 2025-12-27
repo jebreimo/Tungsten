@@ -8,9 +8,9 @@
 #include "SceneFader.hpp"
 
 #include "Tungsten/VertexArrayDataBuilder.hpp"
-#include "Tungsten/GlFramebuffer.hpp"
-#include "Tungsten/GlTexture.hpp"
-#include "Tungsten/GlVertices.hpp"
+#include "Tungsten/Gl/GlFramebuffer.hpp"
+#include "Tungsten/Gl/GlTexture.hpp"
+#include "Tungsten/Gl/GlVertices.hpp"
 #include "Tungsten/ShaderProgramBuilder.hpp"
 #include "Tungsten/VertexArrayObjectBuilder.hpp"
 

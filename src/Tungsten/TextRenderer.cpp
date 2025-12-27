@@ -8,9 +8,9 @@
 #include "Tungsten/TextRenderer.hpp"
 
 #include "Yconvert/Convert.hpp"
-#include "Tungsten/GlStateManagement.hpp"
-#include "Tungsten/GlTexture.hpp"
-#include "Tungsten/GlVertices.hpp"
+#include "Tungsten/Gl/GlStateManagement.hpp"
+#include "Tungsten/Gl/GlTexture.hpp"
+#include "Tungsten/Gl/GlVertices.hpp"
 #include "Tungsten/TextRenderer/RenderTextShaderProgram.hpp"
 #include "Tungsten/VertexArrayDataBuilder.hpp"
 #include "Tungsten/YimageGl.hpp"

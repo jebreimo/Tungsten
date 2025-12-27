@@ -7,7 +7,7 @@
 //****************************************************************************
 #pragma once
 #include "Font.hpp"
-#include "GlTypes.hpp"
+#include "Gl/GlTypes.hpp"
 
 namespace Tungsten
 {

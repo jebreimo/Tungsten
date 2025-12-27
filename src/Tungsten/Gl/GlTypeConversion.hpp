@@ -7,7 +7,7 @@
 //****************************************************************************
 #pragma once
 #include <GL/glew.h>
-#include "Tungsten/GlTypes.hpp"
+#include "Tungsten/Gl/GlTypes.hpp"
 
 namespace Tungsten
 {

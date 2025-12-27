@@ -6,7 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include "GlTypes.hpp"
+#include "Gl/GlTypes.hpp"
 #include "VertexArrayObject.hpp"
 
 namespace Tungsten

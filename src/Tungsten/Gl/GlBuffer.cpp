@@ -5,12 +5,12 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/GlBuffer.hpp"
+#include "Tungsten/Gl/GlBuffer.hpp"
 
 #include <vector>
 
 #include "GlTypeConversion.hpp"
-#include "Tungsten/IOglWrapper.hpp"
+#include "Tungsten/Gl/IOglWrapper.hpp"
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten

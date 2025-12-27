@@ -8,8 +8,8 @@
 #pragma once
 #include <stdexcept>
 #include <string>
-#include <SDL3/SDL.h>
-#include "IOglWrapper.hpp"
+#include <SDL3/SDL_error.h>
+#include "Gl/IOglWrapper.hpp"
 
 namespace Tungsten
 {

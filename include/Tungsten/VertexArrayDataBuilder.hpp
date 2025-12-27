@@ -8,8 +8,6 @@
 #pragma once
 #include <vector>
 
-#include "VertexArrayObject.hpp"
-
 namespace Tungsten
 {
     template <typename Item>

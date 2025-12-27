@@ -70,21 +70,21 @@ add_library(Tungsten STATIC
     include/Tungsten/Font.hpp
     include/Tungsten/FontManager.hpp
     include/Tungsten/FontManager.hpp
-    include/Tungsten/GlBuffer.hpp
+    include/Tungsten/Gl/GlBuffer.hpp
     include/Tungsten/GlContext.hpp
-    include/Tungsten/GlFramebuffer.hpp
-    include/Tungsten/GlHandle.hpp
+    include/Tungsten/Gl/GlFramebuffer.hpp
+    include/Tungsten/Gl/GlHandle.hpp
     include/Tungsten/GlParameters.hpp
-    include/Tungsten/GlProgram.hpp
-    include/Tungsten/GlRendering.hpp
-    include/Tungsten/GlShader.hpp
-    include/Tungsten/GlStateManagement.hpp
-    include/Tungsten/GlTexture.hpp
-    include/Tungsten/GlUniform.hpp
-    include/Tungsten/GlVertexArray.hpp
-    include/Tungsten/GlVertices.hpp
+    include/Tungsten/Gl/GlProgram.hpp
+    include/Tungsten/Gl/GlRendering.hpp
+    include/Tungsten/Gl/GlShader.hpp
+    include/Tungsten/Gl/GlStateManagement.hpp
+    include/Tungsten/Gl/GlTexture.hpp
+    include/Tungsten/Gl/GlUniform.hpp
+    include/Tungsten/Gl/GlVertexArray.hpp
+    include/Tungsten/Gl/GlVertices.hpp
     include/Tungsten/ShaderPrograms/GouraudShader.hpp
-    include/Tungsten/IOglWrapper.hpp
+    include/Tungsten/Gl/IOglWrapper.hpp
     include/Tungsten/MeshShapes.hpp
     include/Tungsten/ShaderPrograms/PhongShader.hpp
     include/Tungsten/SdlApplication.hpp
@@ -108,23 +108,23 @@ add_library(Tungsten STATIC
     src/Tungsten/CommandLine.hpp
     src/Tungsten/DeviceInfo.cpp
     src/Tungsten/FontManager.cpp
-    src/Tungsten/GlBuffer.cpp
+    src/Tungsten/Gl/GlBuffer.cpp
     src/Tungsten/GlContext.cpp
-    src/Tungsten/GlFramebuffer.cpp
+    src/Tungsten/Gl/GlFramebuffer.cpp
     src/Tungsten/GlParameters.cpp
-    src/Tungsten/GlProgram.cpp
-    src/Tungsten/GlRendering.cpp
-    src/Tungsten/GlShader.cpp
-    src/Tungsten/GlStateManagement.cpp
-    src/Tungsten/GlTexture.cpp
-    src/Tungsten/GlTypeConversion.cpp
-    src/Tungsten/GlTypeConversion.hpp
-    src/Tungsten/GlUniform.cpp
-    src/Tungsten/GlVertexArray.cpp
-    src/Tungsten/GlVertices.cpp
-    src/Tungsten/IOglWrapper.cpp
+    src/Tungsten/Gl/GlProgram.cpp
+    src/Tungsten/Gl/GlRendering.cpp
+    src/Tungsten/Gl/GlShader.cpp
+    src/Tungsten/Gl/GlStateManagement.cpp
+    src/Tungsten/Gl/GlTexture.cpp
+    src/Tungsten/Gl/GlTypeConversion.cpp
+    src/Tungsten/Gl/GlTypeConversion.hpp
+    src/Tungsten/Gl/GlUniform.cpp
+    src/Tungsten/Gl/GlVertexArray.cpp
+    src/Tungsten/Gl/GlVertices.cpp
+    src/Tungsten/Gl/IOglWrapper.cpp
     src/Tungsten/MeshShapes.cpp
-    src/Tungsten/OglWrapper.hpp
+    src/Tungsten/Gl/OglWrapper.hpp
     src/Tungsten/SdlApplication.cpp
     src/Tungsten/SdlDisplay.cpp
     src/Tungsten/SdlSession.cpp
@@ -143,7 +143,7 @@ add_library(Tungsten STATIC
     src/Tungsten/TextRenderer/Monaco64.hpp
     src/Tungsten/TextRenderer/RenderTextShaderProgram.cpp
     src/Tungsten/TextRenderer/RenderTextShaderProgram.hpp
-    src/Tungsten/TracingOglWrapper.hpp
+    src/Tungsten/Gl/TracingOglWrapper.hpp
     src/Tungsten/TungstenException.cpp
     src/Tungsten/VertexArrayObject.cpp
     src/Tungsten/VertexArrayObjectBuilder.cpp

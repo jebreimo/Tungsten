@@ -5,7 +5,7 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/GlProgram.hpp"
+#include "Tungsten/Gl/GlProgram.hpp"
 
 #include <GL/glew.h>
 #include "Tungsten/TungstenException.hpp"

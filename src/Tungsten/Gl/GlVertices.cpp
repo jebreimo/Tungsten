@@ -5,10 +5,10 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/GlVertices.hpp"
+#include "Tungsten/Gl/GlVertices.hpp"
 
-#include "GlTypeConversion.hpp"
 #include "Tungsten/TungstenException.hpp"
+#include "GlTypeConversion.hpp"
 
 namespace Tungsten
 {

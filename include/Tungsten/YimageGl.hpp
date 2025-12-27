@@ -6,10 +6,9 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include <utility>
-#include "Xyz/Vector.hpp"
-#include "Yimage/Image.hpp"
-#include <Tungsten/GlTypes.hpp>
+#include <Xyz/Vector.hpp>
+#include <Yimage/Image.hpp>
+#include "Gl/GlTypes.hpp"
 
 namespace Tungsten
 {

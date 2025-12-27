@@ -5,7 +5,7 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/GlShader.hpp"
+#include "Tungsten/Gl/GlShader.hpp"
 
 #include "GlTypeConversion.hpp"
 #include "Tungsten/TungstenException.hpp"

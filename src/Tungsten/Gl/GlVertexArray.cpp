@@ -5,7 +5,7 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/GlVertexArray.hpp"
+#include "Tungsten/Gl/GlVertexArray.hpp"
 
 #include <vector>
 

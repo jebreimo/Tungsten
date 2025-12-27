@@ -5,12 +5,11 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/GlStateManagement.hpp"
+#include "Tungsten/Gl/GlStateManagement.hpp"
 
 #include <GL/glew.h>
-
+#include "Tungsten/Gl/IOglWrapper.hpp"
 #include "GlTypeConversion.hpp"
-#include "Tungsten/IOglWrapper.hpp"
 
 namespace Tungsten
 {

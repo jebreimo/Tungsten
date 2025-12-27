@@ -7,7 +7,7 @@
 //****************************************************************************
 #include "Shape2D.hpp"
 
-#include "Tungsten/GlVertices.hpp"
+#include "Tungsten/Gl/GlVertices.hpp"
 #include "Tungsten/ShaderProgramBuilder.hpp"
 #include "Tungsten/VertexArrayObjectBuilder.hpp"
 

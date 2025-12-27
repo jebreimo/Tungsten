@@ -8,7 +8,7 @@
 #pragma once
 #include <unordered_map>
 
-#include "GlProgram.hpp"
+#include "Gl/GlProgram.hpp"
 #include "ShaderPreprocessor.hpp"
 #include "VertexArrayObject.hpp"
 

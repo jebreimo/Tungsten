@@ -5,7 +5,7 @@
 // This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/IOglWrapper.hpp"
+#include "Tungsten/Gl/IOglWrapper.hpp"
 
 #include "OglWrapper.hpp"
 #include "TracingOglWrapper.hpp"

@@ -6,9 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include "Tungsten/GlProgram.hpp"
-#include "Tungsten/GlUniform.hpp"
-#include "Tungsten/GlVertexArray.hpp"
+#include "Tungsten/Gl/GlUniform.hpp"
 #include "Tungsten/ShaderProgram.hpp"
 #include "Tungsten/VertexArrayObject.hpp"
 

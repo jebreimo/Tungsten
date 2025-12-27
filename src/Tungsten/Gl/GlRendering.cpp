@@ -5,8 +5,8 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include <Tungsten/GlRendering.hpp>
-#include <Tungsten/IOglWrapper.hpp>
+#include "Tungsten/Gl/GlRendering.hpp"
+#include "Tungsten/Gl/IOglWrapper.hpp"
 
 namespace Tungsten
 {

@@ -6,7 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include "GlBuffer.hpp"
+#include "Gl/GlBuffer.hpp"
 
 namespace Tungsten
 {

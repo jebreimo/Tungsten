@@ -7,8 +7,8 @@
 //****************************************************************************
 #pragma once
 #include <string>
-#include "GlProgram.hpp"
-#include "GlTypes.hpp"
+#include "Gl/GlProgram.hpp"
+#include "Gl/GlTypes.hpp"
 
 namespace Tungsten
 {
