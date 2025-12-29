@@ -106,7 +106,7 @@ Shape2D Shape2DRenderer::create_shape(const Buffer& buffer, const Xyz::Vector4F&
     auto vertex_array = Tungsten::VertexArrayObjectBuilder()
         .add_float(program_->position_attr, 2)
         .build();
-    vertex_array.set_data<Xyz::Vector2F>(buffer.vertexes, buffer.indexes);
+    vertex_array.set_data<Xyz::Vector2F>(buffer.vertices, buffer.indices);
     return {std::move(vertex_array), color};
 }
 

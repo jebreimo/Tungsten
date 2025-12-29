@@ -14,8 +14,8 @@ namespace Tungsten
     struct VertexArrayData
     {
         using ItemType = Item;
-        std::vector<Item> vertexes;
-        std::vector<uint16_t> indexes;
+        std::vector<Item> vertices;
+        std::vector<uint16_t> indices;
     };
 
     template <typename Item, typename Index = uint16_t>
@@ -23,7 +23,7 @@ namespace Tungsten
     {
     public:
         explicit VertexArrayDataBuilder(VertexArrayData<Item>& array)
-            : VertexArrayDataBuilder(array, array.vertexes.size())
+            : VertexArrayDataBuilder(array, array.vertices.size())
         {
         }
 
@@ -36,45 +36,45 @@ namespace Tungsten
 
         VertexArrayDataBuilder& reserve_vertexes(Index count)
         {
-            array_.vertexes.reserve(base_index_ + count);
+            array_.vertices.reserve(base_index_ + count);
             return *this;
         }
 
         VertexArrayDataBuilder& add_vertex(const Item& vertex)
         {
-            array_.vertexes.push_back(vertex);
+            array_.vertices.push_back(vertex);
             return *this;
         }
 
         [[nodiscard]]
         Item& vertex(Index index)
         {
-            return array_.vertexes[index];
+            return array_.vertices[index];
         }
 
         VertexArrayDataBuilder& reserve_indexes(size_t count)
         {
-            array_.indexes.reserve(array_.indexes.size() + count);
+            array_.indices.reserve(array_.indices.size() + count);
             return *this;
         }
 
         VertexArrayDataBuilder& add_index(Index a)
         {
-            array_.indexes.push_back(a + base_index_);
+            array_.indices.push_back(a + base_index_);
             return *this;
         }
 
         VertexArrayDataBuilder& add_indexes(Index a, Index b, Index c)
         {
-            array_.indexes.push_back(a + base_index_);
-            array_.indexes.push_back(b + base_index_);
-            array_.indexes.push_back(c + base_index_);
+            array_.indices.push_back(a + base_index_);
+            array_.indices.push_back(b + base_index_);
+            array_.indices.push_back(c + base_index_);
             return *this;
         }
 
         [[nodiscard]] Index max_index() const
         {
-            return Index(array_.vertexes.size()) - base_index_;
+            return Index(array_.vertices.size()) - base_index_;
         }
 
         [[nodiscard]] VertexArrayData<Item>& vertex_array()

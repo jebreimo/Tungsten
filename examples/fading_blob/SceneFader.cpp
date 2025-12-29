@@ -97,7 +97,7 @@ public:
             .add_vertex({{-1, 1}, {0, 1}});
         builder.add_indexes(0, 1, 2)
             .add_indexes(0, 2, 3);
-        vertex_array_.set_data<TextureFaderVertex>(buffer.vertexes, buffer.indexes);
+        vertex_array_.set_data<TextureFaderVertex>(buffer.vertices, buffer.indices);
     }
 
     void set_window_size(Tungsten::Size2I size)

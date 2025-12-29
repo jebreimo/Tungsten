@@ -22,7 +22,7 @@ Tungsten::VertexArrayObject make_cube_vao(const Tungsten::SmoothMeshShader& prog
     Tungsten::add_cube_pnt(builder);
     write(std::cout, cube);
     auto vao = program.create_vao();
-    vao.set_data(cube.vertexes, cube.indexes);
+    vao.set_data(cube.vertices, cube.indices);
     return vao;
 }
 

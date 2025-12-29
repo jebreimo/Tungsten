@@ -267,7 +267,7 @@ namespace Tungsten
 
         auto [buffer, rect] = make_text_array_buffer(*data_->font, text,
                                                      properties.line_gap);
-        data_->vao.set_data<TextVertex>(buffer.vertexes, buffer.indexes);
+        data_->vao.set_data<TextVertex>(buffer.vertices, buffer.indices);
 
         data_->program.color.set(to_vector(properties.color));
         auto adjusted_pos = pos - rect.placement.origin * 2.0f / screen_size;

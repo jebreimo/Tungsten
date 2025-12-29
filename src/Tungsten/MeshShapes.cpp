@@ -14,23 +14,27 @@ namespace Tungsten
         os << std::get<0>(p) << " " << std::get<1>(p) << '\n';
     }
 
-    void write(std::ostream& os, const std::vector<uint16_t>& indexes)
+    void write(std::ostream& os, const std::vector<uint16_t>& indices)
     {
-        for (size_t i = 0; i < indexes.size(); i += 3)
+        for (size_t i = 0; i < indices.size(); i += 3)
         {
-            os << indexes[i] << ' '
-                << indexes[i + 1] << ' '
-                << indexes[i + 2] << '\n';
+            os << i << ": "
+                << indices[i] << ' '
+                << indices[i + 1] << ' '
+                << indices[i + 2] << '\n';
         }
     }
 
     void write(std::ostream& os, const VertexArrayData<PositionNormal>& buffer)
     {
-        os << "Vertexes:\n";
-        for (const auto& v : buffer.vertexes)
-            write(os, v);
-        os << "Indexes:\n";
-        write(os, buffer.indexes);
+        os << "Vertices:\n";
+        for (size_t i = 0; i < buffer.vertices.size(); i++)
+        {
+            os << i << ": ";
+            write(os, buffer.vertices[i]);
+        }
+        os << "Indices:\n";
+        write(os, buffer.indices);
     }
 
     void write(std::ostream& os, const PositionNormalTexture& p)
@@ -42,10 +46,13 @@ namespace Tungsten
 
     void write(std::ostream& os, const VertexArrayData<PositionNormalTexture>& buffer)
     {
-        os << "Vertexes:\n";
-        for (const auto& v : buffer.vertexes)
-            write(os, v);
-        os << "Indexes:\n";
-        write(os, buffer.indexes);
+        os << "Vertices:\n";
+        for (size_t i = 0; i < buffer.vertices.size(); i++)
+        {
+            os << i << ": ";
+            write(os, buffer.vertices[i]);
+        }
+        os << "Indices:\n";
+        write(os, buffer.indices);
     }
 }
