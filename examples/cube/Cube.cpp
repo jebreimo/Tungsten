@@ -18,7 +18,7 @@ Tungsten::VertexArrayObject make_cube_vao(const Tungsten::SmoothMeshShader& prog
     Tungsten::VertexArrayData<Tungsten::PositionNormal> cube;
     Tungsten::VertexArrayDataBuilder builder(cube);
     add_cube_pn(builder);
-    write(std::cout, cube);
+    write_pn(std::cout, cube);
     auto vao = program.create_vao();
     vao.set_data(cube.vertices, cube.indices);
     return vao;
@@ -40,10 +40,10 @@ Tungsten::Camera make_camera(float aspect_ratio)
     };
 }
 
-class Cube : public Tungsten::EventLoop
+class TexturedCube : public Tungsten::EventLoop
 {
 public:
-    explicit Cube(Tungsten::SdlApplication& app)
+    explicit TexturedCube(Tungsten::SdlApplication& app)
         : EventLoop(app),
           program(get_phong_shader()),
           item(make_cube_vao(program), {}),
@@ -110,7 +110,7 @@ int main(int argc, char** argv)
         Tungsten::SdlApplication app("Cube");
         app.parse_command_line_options(argc, argv);
         Tungsten::set_ogl_tracing_enabled(true);
-        app.run<Cube>();
+        app.run<TexturedCube>();
     }
     catch (const std::exception& e)
     {

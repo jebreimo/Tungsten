@@ -20,7 +20,7 @@ Tungsten::VertexArrayObject make_cube_vao(const Tungsten::SmoothMeshShader& prog
     Tungsten::VertexArrayData<Tungsten::PositionNormalTexture> cube;
     Tungsten::VertexArrayDataBuilder builder(cube);
     Tungsten::add_cube_pnt(builder);
-    write(std::cout, cube);
+    write_pnt(std::cout, cube);
     auto vao = program.create_vao();
     vao.set_data(cube.vertices, cube.indices);
     return vao;
@@ -65,10 +65,10 @@ Yimage::Image get_image()
     return Tungsten::read_image(NUMBERS_PNG, std::size(NUMBERS_PNG) - 1);
 }
 
-class Cube : public Tungsten::EventLoop
+class TexturedCube : public Tungsten::EventLoop
 {
 public:
-    explicit Cube(Tungsten::SdlApplication& app)
+    explicit TexturedCube(Tungsten::SdlApplication& app)
         : EventLoop(app),
           texture_(make_texture(get_image())),
           program(get_phong_shader()),
@@ -138,7 +138,7 @@ int main(int argc, char** argv)
         Tungsten::SdlApplication app("Cube");
         app.parse_command_line_options(argc, argv);
         Tungsten::set_ogl_tracing_enabled(true);
-        app.run<Cube>();
+        app.run<TexturedCube>();
     }
     catch (const std::exception& e)
     {
