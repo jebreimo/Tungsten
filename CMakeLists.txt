@@ -7,7 +7,7 @@
 ##****************************************************************************
 cmake_minimum_required(VERSION 3.15)
 
-project(Tungsten VERSION 0.8.1)
+project(Tungsten VERSION 0.8.2)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -71,10 +71,8 @@ add_library(Tungsten STATIC
     include/Tungsten/FontManager.hpp
     include/Tungsten/FontManager.hpp
     include/Tungsten/Gl/GlBuffer.hpp
-    include/Tungsten/GlContext.hpp
     include/Tungsten/Gl/GlFramebuffer.hpp
     include/Tungsten/Gl/GlHandle.hpp
-    include/Tungsten/GlParameters.hpp
     include/Tungsten/Gl/GlProgram.hpp
     include/Tungsten/Gl/GlRendering.hpp
     include/Tungsten/Gl/GlShader.hpp
@@ -83,19 +81,21 @@ add_library(Tungsten STATIC
     include/Tungsten/Gl/GlUniform.hpp
     include/Tungsten/Gl/GlVertexArray.hpp
     include/Tungsten/Gl/GlVertices.hpp
-    include/Tungsten/ShaderPrograms/GouraudShader.hpp
     include/Tungsten/Gl/IOglWrapper.hpp
-    include/Tungsten/MeshShapes.hpp
-    include/Tungsten/ShaderPrograms/PhongShader.hpp
+    include/Tungsten/GlContext.hpp
+    include/Tungsten/GlParameters.hpp
+    include/Tungsten/MeshUtilities.hpp
     include/Tungsten/SdlApplication.hpp
     include/Tungsten/SdlDisplay.hpp
     include/Tungsten/SdlSession.hpp
     include/Tungsten/ShaderManager.hpp
     include/Tungsten/ShaderPreprocessor.hpp
-    include/Tungsten/ShaderProgram.hpp
     include/Tungsten/ShaderProgramBuilder.hpp
-    include/Tungsten/ShaderTools.hpp
+    include/Tungsten/ShaderPrograms/GouraudShader.hpp
+    include/Tungsten/ShaderPrograms/PhongShader.hpp
+    include/Tungsten/ShaderPrograms/ShaderProgram.hpp
     include/Tungsten/ShaderPrograms/SmoothMeshShader.hpp
+    include/Tungsten/ShaderTools.hpp
     include/Tungsten/TextRenderer.hpp
     include/Tungsten/Tungsten.hpp
     include/Tungsten/TungstenException.hpp
@@ -109,9 +109,7 @@ add_library(Tungsten STATIC
     src/Tungsten/DeviceInfo.cpp
     src/Tungsten/FontManager.cpp
     src/Tungsten/Gl/GlBuffer.cpp
-    src/Tungsten/GlContext.cpp
     src/Tungsten/Gl/GlFramebuffer.cpp
-    src/Tungsten/GlParameters.cpp
     src/Tungsten/Gl/GlProgram.cpp
     src/Tungsten/Gl/GlRendering.cpp
     src/Tungsten/Gl/GlShader.cpp
@@ -123,8 +121,11 @@ add_library(Tungsten STATIC
     src/Tungsten/Gl/GlVertexArray.cpp
     src/Tungsten/Gl/GlVertices.cpp
     src/Tungsten/Gl/IOglWrapper.cpp
-    src/Tungsten/MeshShapes.cpp
     src/Tungsten/Gl/OglWrapper.hpp
+    src/Tungsten/Gl/TracingOglWrapper.hpp
+    src/Tungsten/GlContext.cpp
+    src/Tungsten/GlParameters.cpp
+    src/Tungsten/MeshUtilities.cpp
     src/Tungsten/SdlApplication.cpp
     src/Tungsten/SdlDisplay.cpp
     src/Tungsten/SdlSession.cpp
@@ -134,22 +135,21 @@ add_library(Tungsten STATIC
     src/Tungsten/ShaderProgramBuilder.cpp
     src/Tungsten/ShaderPrograms/GouraudShader.cpp
     src/Tungsten/ShaderPrograms/PhongShader.cpp
+    src/Tungsten/ShaderPrograms/SmoothMeshShader.cpp
+    src/Tungsten/ShaderPrograms/TexturedPhongShader.cpp
+    src/Tungsten/ShaderPrograms/TexturedSmoothMeshShader.cpp
     src/Tungsten/ShaderSources.cpp.in
     src/Tungsten/ShaderSources.hpp
     src/Tungsten/ShaderTools.cpp
-    src/Tungsten/ShaderPrograms/SmoothMeshShader.cpp
     src/Tungsten/TextRenderer.cpp
     src/Tungsten/TextRenderer/Monaco32.hpp
     src/Tungsten/TextRenderer/Monaco64.hpp
     src/Tungsten/TextRenderer/RenderTextShaderProgram.cpp
     src/Tungsten/TextRenderer/RenderTextShaderProgram.hpp
-    src/Tungsten/Gl/TracingOglWrapper.hpp
     src/Tungsten/TungstenException.cpp
     src/Tungsten/VertexArrayObject.cpp
     src/Tungsten/VertexArrayObjectBuilder.cpp
     src/Tungsten/YimageGl.cpp
-    src/Tungsten/ShaderPrograms/TexturedPhongShader.cpp
-    src/Tungsten/ShaderPrograms/TexturedSmoothMeshShader.cpp
 )
 
 target_link_libraries(Tungsten

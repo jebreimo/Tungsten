@@ -129,6 +129,7 @@ namespace Tungsten
 
     enum class VertexAttributeType
     {
+        NONE,
         INT32,
         UINT32,
         FLOAT,

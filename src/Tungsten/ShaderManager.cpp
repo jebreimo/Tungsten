@@ -14,6 +14,17 @@
 
 namespace Tungsten
 {
+    BuiltinShader to_builtin_shader(const std::string& name)
+    {
+        if (name == "GOURAUD" || name == "builtin::GOURAUD")
+            return BuiltinShader::GOURAUD;
+        if (name == "PHONG" || name == "builtin::PHONG")
+            return BuiltinShader::PHONG;
+        if (name == "TEXTURED_PHONG" || name == "builtin::TEXTURED_PHONG")
+            return BuiltinShader::TEXTURED_PHONG;
+        TUNGSTEN_THROW("Unknown built-in shader program name: '" + name + "'.");
+    }
+
     ShaderManager& ShaderManager::instance()
     {
         static ShaderManager instance;
@@ -42,15 +53,15 @@ namespace Tungsten
         return it->second.get();
     }
 
-    ShaderProgram& ShaderManager::program(BuiltinShaders program)
+    ShaderProgram& ShaderManager::program(BuiltinShader program)
     {
         switch (program)
         {
-        case BuiltinShaders::GOURAUD:
+        case BuiltinShader::GOURAUD:
             return get_or_create_builtin_program<GouraudShader>();
-        case BuiltinShaders::PHONG:
+        case BuiltinShader::PHONG:
             return get_or_create_builtin_program<PhongShader>();
-        case BuiltinShaders::TEXTURED_PHONG:
+        case BuiltinShader::TEXTURED_PHONG:
             return get_or_create_builtin_program<TexturedPhongShader>();
         default:
             TUNGSTEN_THROW("Unknown built-in shader program.");

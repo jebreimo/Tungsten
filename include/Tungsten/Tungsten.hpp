@@ -19,6 +19,7 @@
 #include "Gl/GlTypes.hpp"
 #include "Gl/GlUniform.hpp"
 #include "Gl/GlVertices.hpp"
+#include "MeshUtilities.hpp"
 #include "SdlApplication.hpp"
 #include "ShaderManager.hpp"
 #include "ShaderPrograms/TexturedSmoothMeshShader.hpp"

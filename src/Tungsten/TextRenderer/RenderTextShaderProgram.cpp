@@ -27,11 +27,12 @@ namespace Tungsten::Detail
         color = Tungsten::get_uniform<Xyz::Vector4F>(program(), "u_TextColor");
     }
 
-    VertexArrayObject RenderTextShaderProgram::create_vao() const
+    VertexArrayObject RenderTextShaderProgram::create_vao(int32_t extra_stride) const
     {
         return VertexArrayObjectBuilder()
             .add_float(position, 2)
             .add_float(texture_coord, 2)
+            .add_stride(extra_stride)
             .build();
     }
 }

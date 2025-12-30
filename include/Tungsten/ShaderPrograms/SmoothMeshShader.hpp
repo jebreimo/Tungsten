@@ -6,7 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include "../ShaderProgram.hpp"
+#include "ShaderProgram.hpp"
 
 namespace Tungsten
 {
@@ -28,7 +28,9 @@ namespace Tungsten
     public:
         using VertexType = std::tuple<Xyz::Vector3F, Xyz::Vector3F>;
 
-        [[nodiscard]] VertexArrayObject create_vao() const override;
+        using ShaderProgram::create_vao;
+
+        [[nodiscard]] VertexArrayObject create_vao(int32_t extra_stride) const override;
 
         virtual void set_material(const Material& material);
 

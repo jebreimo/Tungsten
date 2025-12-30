@@ -10,8 +10,6 @@
 #include <Yconvert/Convert.hpp>
 
 #include "MeshItem.hpp"
-#include "Tungsten/MeshShapes.hpp"
-#include "Tungsten/ShaderManager.hpp"
 
 Tungsten::VertexArrayObject make_cube_vao(const Tungsten::SmoothMeshShader& program)
 {
@@ -27,7 +25,7 @@ Tungsten::VertexArrayObject make_cube_vao(const Tungsten::SmoothMeshShader& prog
 Tungsten::SmoothMeshShader& get_phong_shader()
 {
     return dynamic_cast<Tungsten::SmoothMeshShader&>(
-        Tungsten::ShaderManager::instance().program(Tungsten::BuiltinShaders::PHONG));
+        Tungsten::ShaderManager::instance().program(Tungsten::BuiltinShader::PHONG));
 }
 
 Tungsten::Camera make_camera(float aspect_ratio)

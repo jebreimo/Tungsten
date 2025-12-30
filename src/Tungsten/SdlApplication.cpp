@@ -86,9 +86,9 @@ namespace Tungsten
         data_->window_parameters = get_default_window_parameters();
     }
 
-    SdlApplication::SdlApplication(SdlApplication&&) noexcept = default;
-
     SdlApplication::~SdlApplication() = default;
+
+    SdlApplication::SdlApplication(SdlApplication&&) noexcept = default;
 
     SdlApplication& SdlApplication::operator=(SdlApplication&&) noexcept = default;
 

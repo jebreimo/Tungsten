@@ -21,6 +21,13 @@ namespace Tungsten
                          std::span<const uint16_t> indices,
                          bool indexes = true);
 
+    void write_line_segments(std::ostream& os,
+                             std::span<const uint16_t> indices,
+                             bool indexes = true);
+
+    std::vector<uint16_t> triangles_to_line_segments(
+        std::span<const uint16_t> triangle_indices);
+
     template <typename... T>
     void write_pn(std::ostream& os,
                   const std::tuple<Xyz::Vector3F, Xyz::Vector3F, T...>& p)

@@ -15,7 +15,9 @@ namespace Tungsten
     public:
         using VertexType = std::tuple<Xyz::Vector3F, Xyz::Vector3F, Xyz::Vector2F>;
 
-        [[nodiscard]] VertexArrayObject create_vao() const override;
+        using ShaderProgram::create_vao;
+
+        [[nodiscard]] VertexArrayObject create_vao(int32_t extra_stride) const override;
 
         void set_texture(int32_t texture_handle);
     protected:

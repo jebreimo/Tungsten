@@ -37,6 +37,16 @@ namespace Tungsten
         return *this;
     }
 
+    VertexArrayObjectBuilder& VertexArrayObjectBuilder::add_stride(int32_t byte_count)
+    {
+        if (byte_count == 0)
+            return *this;
+        if (byte_count < 0)
+            TUNGSTEN_THROW("Stride byte count must be positive.");
+        definitions_.push_back({0, byte_count, VertexAttributeType::NONE});
+        return *this;
+    }
+
     VertexArrayObject VertexArrayObjectBuilder::build() const
     {
         VertexArrayObject vbo;
@@ -46,6 +56,12 @@ namespace Tungsten
         {
             if (offset >= stride)
                 TUNGSTEN_THROW("Vertex attribute offset exceeds stride.");
+
+            if (def.type == VertexAttributeType::NONE)
+            {
+                offset += def.count;
+                continue;
+            }
 
             define_vertex_attribute_pointer(def.location, def.count,
                                             def.type, stride, offset);
@@ -57,6 +73,8 @@ namespace Tungsten
 
     int32_t VertexArrayObjectBuilder::get_byte_size(const Definition& definition)
     {
+        if (definition.type == VertexAttributeType::NONE)
+            return definition.count;
         return get_size_of_type(definition.type) * definition.count;
     }
 

@@ -11,11 +11,12 @@
 
 namespace Tungsten
 {
-    VertexArrayObject SmoothMeshShader::create_vao() const
+    VertexArrayObject SmoothMeshShader::create_vao(int32_t extra_stride) const
     {
         return VertexArrayObjectBuilder()
             .add_float(position_attr, 3)
             .add_float(normal_attr, 3)
+            .add_stride(extra_stride)
             .build();
     }
 

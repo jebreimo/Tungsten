@@ -8,17 +8,19 @@
 #pragma once
 #include <unordered_map>
 
-#include "ShaderProgram.hpp"
+#include "ShaderPrograms/ShaderProgram.hpp"
 #include "ShaderPreprocessor.hpp"
 
 namespace Tungsten
 {
-    enum class BuiltinShaders
+    enum class BuiltinShader
     {
         GOURAUD,
         PHONG,
         TEXTURED_PHONG
     };
+
+    BuiltinShader to_builtin_shader(const std::string& name);
 
     class ShaderManager
     {
@@ -31,7 +33,7 @@ namespace Tungsten
 
         [[nodiscard]] ShaderProgram* try_get_program(const std::string& name);
 
-        [[nodiscard]] ShaderProgram& program(BuiltinShaders program);
+        [[nodiscard]] ShaderProgram& program(BuiltinShader program);
 
         [[nodiscard]] ShaderPreprocessor& preprocessor();
     private:

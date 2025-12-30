@@ -22,6 +22,8 @@ namespace Tungsten
 
         VertexArrayObjectBuilder& add_int32(uint32_t attribute_location, int32_t count);
 
+        VertexArrayObjectBuilder& add_stride(int32_t byte_count);
+
         [[nodiscard]] VertexArrayObject build() const;
 
     private:

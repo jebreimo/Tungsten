@@ -8,9 +8,9 @@
 #pragma once
 #include <unordered_map>
 
-#include "Gl/GlProgram.hpp"
-#include "ShaderPreprocessor.hpp"
-#include "VertexArrayObject.hpp"
+#include "../Gl/GlProgram.hpp"
+#include "../ShaderPreprocessor.hpp"
+#include "../VertexArrayObject.hpp"
 
 namespace Tungsten
 {
@@ -27,7 +27,9 @@ namespace Tungsten
 
         [[nodiscard]] const ProgramHandle& program() const;
 
-        [[nodiscard]] virtual VertexArrayObject create_vao() const = 0;
+        [[nodiscard]] virtual VertexArrayObject create_vao() const;
+
+        [[nodiscard]] virtual VertexArrayObject create_vao(int32_t extra_stride) const = 0;
 
     protected:
         ShaderProgram(std::string name,

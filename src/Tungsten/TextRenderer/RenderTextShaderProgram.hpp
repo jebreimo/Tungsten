@@ -7,7 +7,7 @@
 //****************************************************************************
 #pragma once
 #include "Tungsten/Gl/GlUniform.hpp"
-#include "Tungsten/ShaderProgram.hpp"
+#include "../../../include/Tungsten/ShaderPrograms/ShaderProgram.hpp"
 #include "Tungsten/VertexArrayObject.hpp"
 
 namespace Tungsten::Detail
@@ -19,7 +19,9 @@ namespace Tungsten::Detail
 
         RenderTextShaderProgram();
 
-        [[nodiscard]] VertexArrayObject create_vao() const override;
+        using ShaderProgram::create_vao;
+
+        [[nodiscard]] VertexArrayObject create_vao(int32_t extra_stride) const override;
 
         Uniform<Xyz::Matrix4F> mvp_matrix;
         Uniform<int32_t> texture;

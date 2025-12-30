@@ -45,9 +45,9 @@ namespace Tungsten
 
         explicit SdlApplication(std::string name);
 
-        SdlApplication(SdlApplication&&) noexcept;
-
         virtual ~SdlApplication();
+
+        SdlApplication(SdlApplication&&) noexcept;
 
         SdlApplication& operator=(SdlApplication&&) noexcept;
 

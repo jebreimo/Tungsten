@@ -6,30 +6,47 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #include <iostream>
+#include <Argos/Argos.hpp>
 #include <Tungsten/Tungsten.hpp>
 #include <Yconvert/Convert.hpp>
+#include <Ystring/Ystring.hpp>
 
 #include "MeshItem.hpp"
-#include "Tungsten/MeshShapes.hpp"
-#include "Tungsten/ShaderManager.hpp"
 #include "Resources.hpp"
-#include "Tungsten/YimageGl.hpp"
 
-Tungsten::VertexArrayObject make_cube_vao(const Tungsten::SmoothMeshShader& program)
+Tungsten::VertexArrayObject
+make_cube_vao(const Tungsten::SmoothMeshShader& program,
+              bool wireframe)
 {
     Tungsten::VertexArrayData<Tungsten::PositionNormalTexture> cube;
     Tungsten::VertexArrayDataBuilder builder(cube);
     Tungsten::add_cube_pnt(builder);
-    write_pnt(std::cout, cube);
-    auto vao = program.create_vao();
+    if (!wireframe)
+    {
+        write_pnt(std::cout, cube);
+    }
+    else
+    {
+        cube.indices = Tungsten::triangles_to_line_segments(cube.indices);
+        const auto& vertices = cube.vertices;
+        Tungsten::write_pnt(std::cout, std::span(vertices), true);
+        Tungsten::write_line_segments(std::cout, cube.indices);
+    }
+
+    int32_t extra_stride = 0;
+    if (!dynamic_cast<const Tungsten::TexturedSmoothMeshShader*>(&program))
+        extra_stride = sizeof(Xyz::Vector2F);
+    auto vao = program.create_vao(extra_stride);
+
     vao.set_data(cube.vertices, cube.indices);
+
     return vao;
 }
 
-Tungsten::SmoothMeshShader& get_phong_shader()
+Tungsten::SmoothMeshShader& get_shader(Tungsten::BuiltinShader shader_type)
 {
     return dynamic_cast<Tungsten::SmoothMeshShader&>(
-        Tungsten::ShaderManager::instance().program(Tungsten::BuiltinShaders::TEXTURED_PHONG));
+        Tungsten::ShaderManager::instance().program(shader_type));
 }
 
 Tungsten::Camera make_camera(float aspect_ratio)
@@ -68,11 +85,13 @@ Yimage::Image get_image()
 class TexturedCube : public Tungsten::EventLoop
 {
 public:
-    explicit TexturedCube(Tungsten::SdlApplication& app)
+    TexturedCube(Tungsten::SdlApplication& app,
+                 Tungsten::BuiltinShader shader_type,
+                 bool wireframe)
         : EventLoop(app),
           texture_(make_texture(get_image())),
-          program(get_phong_shader()),
-          item(make_cube_vao(program), {}),
+          program(get_shader(shader_type)),
+          item(make_cube_vao(program, wireframe), {}, wireframe),
           camera{make_camera(app.aspect_ratio())}
     {
         item.set_texture(texture_);
@@ -131,14 +150,42 @@ private:
     uint64_t start_ticks = SDL_GetTicks();
 };
 
+argos::ParsedArguments parse_arguments(int argc, char* argv[])
+{
+    using namespace argos;
+    ArgumentParser parser;
+    parser
+        .add(Opt("-s", "--shader")
+            .argument("name")
+            .help("Name of the shader program to use. Available shaders are"
+                " listed below, default is TEXTURED_PHONG."))
+        .add(Opt("-w", "--wireframe")
+            .help("Show the cube in wireframe mode."))
+        .text(TextId::FINAL_TEXT,
+              "Available shaders:\n"
+              "  TEXTURED_PHONG\n"
+              "  PHONG\n"
+              "  GOURAUD");
+    Tungsten::SdlApplication::add_command_line_options(parser);
+    return parser.parse(argc, argv);
+}
+
+Tungsten::BuiltinShader get_shader_type(const argos::ParsedArguments& args)
+{
+    const auto name = ystring::to_upper(args.value("--shader").as_string("TEXTURED_PHONG"));
+    return Tungsten::to_builtin_shader(name);
+}
+
 int main(int argc, char** argv)
 {
     try
     {
-        Tungsten::SdlApplication app("Cube");
-        app.parse_command_line_options(argc, argv);
+        const auto args = parse_arguments(argc, argv);
+        Tungsten::SdlApplication app("TexturedCube");
+        app.read_command_line_options(args);
         Tungsten::set_ogl_tracing_enabled(true);
-        app.run<TexturedCube>();
+        app.run<TexturedCube>(get_shader_type(args),
+                              args.value("--wireframe").as_bool(false));
     }
     catch (const std::exception& e)
     {

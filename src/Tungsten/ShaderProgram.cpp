@@ -5,7 +5,7 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/ShaderProgram.hpp"
+#include "../../include/Tungsten/ShaderPrograms/ShaderProgram.hpp"
 
 #include "Tungsten/ShaderManager.hpp"
 #include "Tungsten/ShaderProgramBuilder.hpp"
@@ -54,5 +54,10 @@ namespace Tungsten
     const ProgramHandle& ShaderProgram::program() const
     {
         return program_;
+    }
+
+    VertexArrayObject ShaderProgram::create_vao() const
+    {
+        return create_vao(0);
     }
 }
