@@ -9,48 +9,26 @@
 
 #include "Tungsten/VertexArrayDataBuilder.hpp"
 #include "Tungsten/Gl/GlFramebuffer.hpp"
+#include "Tungsten/Gl/GlRendering.hpp"
 #include "Tungsten/Gl/GlTexture.hpp"
-#include "Tungsten/Gl/GlVertices.hpp"
 #include "Tungsten/ShaderProgramBuilder.hpp"
 #include "Tungsten/VertexArrayObjectBuilder.hpp"
+#include "Tungsten/ShaderPreprocessor.hpp"
+#include "Resources.hpp"
 
 namespace
 {
-    const char* VERTEX_SHADER = R"(
-        #version 330 core
-        in highp vec2 a_position;
-        in highp vec2 a_tex_position;
-        out highp vec2 u_tex_position;
-        void main()
-        {
-            u_tex_position = a_tex_position;
-            gl_Position = vec4(a_position, 0.0, 1.0);
-        })";
-
-    const char* FRAGMENT_SHADER = R"(
-        #version 330 core
-        in highp vec2 u_tex_position;
-        uniform sampler2D u_texture;
-        uniform highp vec3 u_color_delta;
-        out highp vec4 fragColor;
-        void main()
-        {
-            highp vec4 tex_color = texture(u_texture, u_tex_position);
-            highp vec3 sum = tex_color.rgb + u_color_delta;
-            highp vec3 result = vec3(max(sum.r, 0.0),
-                                     max(sum.g, 0.0),
-                                     max(sum.b, 0.0));
-            fragColor = vec4(result, 1.0);
-        })";
-
     class TextureFaderProgram
     {
     public:
         TextureFaderProgram()
         {
+            const Tungsten::ShaderPreprocessor pp;
             program = Tungsten::ShaderProgramBuilder()
-                .add_shader(Tungsten::ShaderType::VERTEX, VERTEX_SHADER)
-                .add_shader(Tungsten::ShaderType::FRAGMENT, FRAGMENT_SHADER)
+                .add_shader(Tungsten::ShaderType::VERTEX,
+                            pp.preprocess(std::string_view(SCENE_FADER_VERTEX)))
+                .add_shader(Tungsten::ShaderType::FRAGMENT,
+                            pp.preprocess(std::string_view(SCENE_FADER_FRAGMENT)))
                 .build();
 
             position_attr = get_vertex_attribute(program, "a_position");
@@ -107,8 +85,10 @@ public:
             Tungsten::bind_texture(Tungsten::TextureTarget::TEXTURE_2D, texture);
             Tungsten::set_texture_image_2d(Tungsten::TextureTarget2D::TEXTURE_2D, 0, size,
                                            Tungsten::RGB_TEXTURE);
-            Tungsten::set_min_filter(Tungsten::TextureTarget::TEXTURE_2D, Tungsten::TextureMinFilter::LINEAR);
-            Tungsten::set_mag_filter(Tungsten::TextureTarget::TEXTURE_2D, Tungsten::TextureMagFilter::LINEAR);
+            Tungsten::set_min_filter(Tungsten::TextureTarget::TEXTURE_2D,
+                                     Tungsten::TextureMinFilter::LINEAR);
+            Tungsten::set_mag_filter(Tungsten::TextureTarget::TEXTURE_2D,
+                                     Tungsten::TextureMagFilter::LINEAR);
         }
     }
 

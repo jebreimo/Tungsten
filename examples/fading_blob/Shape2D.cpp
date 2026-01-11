@@ -7,34 +7,23 @@
 //****************************************************************************
 #include "Shape2D.hpp"
 
-#include "Tungsten/Gl/GlVertices.hpp"
+#include "Tungsten/Gl/GlRendering.hpp"
 #include "Tungsten/ShaderProgramBuilder.hpp"
 #include "Tungsten/VertexArrayObjectBuilder.hpp"
+#include "Tungsten/ShaderPreprocessor.hpp"
+#include "Resources.hpp"
 
 class Shape2DRenderer::Basic2DProgram
 {
 public:
     Basic2DProgram()
     {
+        const Tungsten::ShaderPreprocessor pp;
         program = Tungsten::ShaderProgramBuilder()
-            .add_shader(Tungsten::ShaderType::VERTEX, R"(
-                #version 100
-                uniform highp mat3 u_model_view_matrix;
-                uniform highp mat3 u_projection_matrix;
-                uniform highp float u_z;
-                attribute vec2 a_position;
-                void main()
-                {
-                    vec3 pos = u_projection_matrix * u_model_view_matrix * vec3(a_position, 1.0);
-                    gl_Position = vec4(vec2(pos), u_z, 1.0);
-                })")
-            .add_shader(Tungsten::ShaderType::FRAGMENT, R"(
-                #version 100
-                uniform highp vec4 u_color;
-                void main()
-                {
-                    gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-                })")
+            .add_shader(Tungsten::ShaderType::VERTEX,
+                        pp.preprocess(std::string_view(BASIC2D_VERTEX)))
+            .add_shader(Tungsten::ShaderType::FRAGMENT,
+                        pp.preprocess(std::string_view(BASIC2D_FRAGMENT)))
             .build();
 
         position_attr = Tungsten::get_vertex_attribute(program, "a_position");

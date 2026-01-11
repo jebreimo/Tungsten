@@ -7,6 +7,11 @@
 //****************************************************************************
 #version 300 es
 
+#ifdef GL_ES
+precision highp int;
+precision highp float;
+#endif
+
 uniform vec4 u_color = vec4(1.0, 1.0, 1.0, 1.0);
 out vec4 color;
 

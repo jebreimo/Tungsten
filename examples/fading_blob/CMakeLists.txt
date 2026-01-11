@@ -15,9 +15,15 @@ add_executable(fading_blob
     fading_blob.cpp
     SceneFader.cpp
     SceneFader.hpp
+    Resources.hpp
 )
 
 target_link_libraries(fading_blob
     PRIVATE
         Tungsten::Tungsten
+)
+
+target_embed_cpp_data(fading_blob
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/Resources.cpp.in
 )

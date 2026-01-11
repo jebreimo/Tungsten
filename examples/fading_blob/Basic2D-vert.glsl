@@ -7,16 +7,19 @@
 //****************************************************************************
 #version 300 es
 
+#ifdef GL_ES
+precision highp int;
+precision highp float;
+#endif
+
 layout(location = 0) in vec2 a_position;
 
-uniform mat3 u_mv_matrix;
-uniform mat3 u_p_matrix;
+uniform mat3 u_model_view_matrix;
+uniform mat3 u_projection_matrix;
 uniform float u_z;
-uniform float u_point_size;
 
 void main()
 {
-    vec3 pos = u_mv_matrix * u_p_matrix * vec3(a_position, 1.0);
-    gl_Position = vec4(pos.xy, u_z, 1.0);
-    gl_PointSize = u_point_size;
+    vec3 pos = u_projection_matrix * u_model_view_matrix * vec3(a_position, 1.0);
+    gl_Position = vec4(vec2(pos), u_z, 1.0);
 }
