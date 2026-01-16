@@ -80,7 +80,6 @@ add_library(Tungsten STATIC
     include/Tungsten/Gl/GlTexture.hpp
     include/Tungsten/Gl/GlUniform.hpp
     include/Tungsten/Gl/GlVertexArray.hpp
-    include/Tungsten/Gl/GlVertices.hpp
     include/Tungsten/Gl/IOglWrapper.hpp
     include/Tungsten/GlContext.hpp
     include/Tungsten/GlParameters.hpp
@@ -119,7 +118,6 @@ add_library(Tungsten STATIC
     src/Tungsten/Gl/GlTypeConversion.hpp
     src/Tungsten/Gl/GlUniform.cpp
     src/Tungsten/Gl/GlVertexArray.cpp
-    src/Tungsten/Gl/GlVertices.cpp
     src/Tungsten/Gl/IOglWrapper.cpp
     src/Tungsten/Gl/OglWrapper.hpp
     src/Tungsten/Gl/TracingOglWrapper.hpp
