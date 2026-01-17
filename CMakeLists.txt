@@ -44,7 +44,7 @@ FetchContent_Declare(cppembed
 
 FetchContent_Declare(xyz
     GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
-    GIT_TAG v0.9.4)
+    GIT_TAG v0.9.5)
 
 FetchContent_Declare(yconvert
     GIT_REPOSITORY "https://github.com/jebreimo/Yconvert.git"
@@ -101,8 +101,10 @@ add_library(Tungsten STATIC
     include/Tungsten/VertexArrayDataBuilder.hpp
     include/Tungsten/VertexArrayObject.hpp
     include/Tungsten/VertexArrayObjectBuilder.hpp
+    include/Tungsten/Viewport.hpp
     include/Tungsten/WindowParameters.hpp
     include/Tungsten/YimageGl.hpp
+    src/Tungsten/Camera.cpp
     src/Tungsten/CommandLine.cpp
     src/Tungsten/CommandLine.hpp
     src/Tungsten/DeviceInfo.cpp
