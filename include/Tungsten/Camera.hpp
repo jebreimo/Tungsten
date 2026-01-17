@@ -9,12 +9,120 @@
 #include <Xyz/Matrix.hpp>
 #include <Xyz/ProjectionMatrix.hpp>
 
+#include "Viewport.hpp"
+
 namespace Tungsten
 {
-    struct Camera
+    enum class ProjectionType
     {
-        Xyz::Matrix4F view;
-        Xyz::Matrix4F projection;
+        PERSPECTIVE,
+        ORTHOGRAPHIC
+    };
+
+    struct ProjectionParameters
+    {
+        float left = -1.0f;
+        float right = 1.0f;
+        float bottom = -1.0f;
+        float top = 1.0f;
+        float near = 0.1f;
+        float far = 1000.0f;
+        ProjectionType type = ProjectionType::PERSPECTIVE;
+        bool use_aspect_ratio = false;
+    };
+
+    class Camera
+    {
+    public:
+        Camera();
+
+        Camera(const Viewport& viewport,
+               const Xyz::Matrix4F& view,
+               const ProjectionParameters& projection_parameters);
+
+        [[nodiscard]] const Xyz::Matrix4F& view_matrix() const
+        {
+            return view_;
+        }
+
+        void set_view_matrix(const Xyz::Matrix4F& view);
+
+        [[nodiscard]] Xyz::ViewMatrixComponents<float> decomposed_view_matrix() const;
+
+        [[nodiscard]] const Xyz::Matrix4F& projection_matrix() const
+        {
+            return projection_;
+        }
+
+        [[nodiscard]] const Viewport& viewport() const
+        {
+            return viewport_;
+        }
+
+        void set_viewport(const Viewport& viewport);
+
+        [[nodiscard]] const ProjectionParameters& projection_parameters() const
+        {
+            return projection_parameters_;
+        }
+
+        void set_projection_parameters(const ProjectionParameters& parameters);
+
+    private:
+        Viewport viewport_;
+        ProjectionParameters projection_parameters_;
+        Xyz::Matrix4F view_;
+        Xyz::Matrix4F projection_;
+    };
+
+    struct CameraBuilder
+    {
+    public:
+        CameraBuilder();
+
+        explicit CameraBuilder(const Camera& camera);
+
+        CameraBuilder& look_at(const Xyz::Vector3F& eye,
+                               const Xyz::Vector3F& center,
+                               const Xyz::Vector3F& up = {0, 1, 0});
+
+        CameraBuilder& perspective(float fov_y_radians,
+                                   float near,
+                                   float far);
+
+        CameraBuilder& perspective(float bottom,
+                                   float top,
+                                   float near,
+                                   float far);
+
+        CameraBuilder& perspective(float left,
+                                   float right,
+                                   float bottom,
+                                   float top,
+                                   float near,
+                                   float far);
+
+        CameraBuilder& orthographic(float bottom,
+                                    float top,
+                                    float near,
+                                    float far);
+
+        CameraBuilder& orthographic(float left,
+                                    float right,
+                                    float bottom,
+                                    float top,
+                                    float near,
+                                    float far);
+
+        CameraBuilder& viewport(const Viewport& viewport);
+
+        [[nodiscard]] Camera build() const;
+
+    private:
+        Xyz::Matrix4F view_;
+        Viewport viewport_;
+        Xyz::Vector3F position_;
+        ProjectionParameters projection_parameters_;
     };
 
     /**

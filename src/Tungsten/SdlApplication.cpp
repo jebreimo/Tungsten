@@ -163,6 +163,12 @@ namespace Tungsten
         return float(size.x()) / float(size.y());
     }
 
+    Viewport SdlApplication::viewport() const
+    {
+        auto size = window_size();
+        return {{0.0f, 0.0f}, {float(size.x()), float(size.y())}};
+    }
+
     void SdlApplication::process_event(const SDL_Event& event)
     {
         if (!data_->event_loop->on_event(event))

@@ -171,7 +171,7 @@ namespace Tungsten
     }
 
     /**
-     * Adds a cube defined by position, normal and texture coordinate
+     * Adds a cube defined by position, normal, and texture coordinate
      * vectors to the vertex array data builder.
      *
      * The texture coordinates are mapped so that each face gets a

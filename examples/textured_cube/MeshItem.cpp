@@ -36,7 +36,7 @@ void MeshItem::set_texture(uint32_t texture_handle)
 void MeshItem::draw(const Tungsten::Camera& camera,
                     Tungsten::SmoothMeshShader& program) const
 {
-    program.set_model_view_matrix(camera.view * model_matrix_);
+    program.set_model_view_matrix(camera.view_matrix() * model_matrix_);
     program.set_material(material_);
     if (texture_handle_)
     {

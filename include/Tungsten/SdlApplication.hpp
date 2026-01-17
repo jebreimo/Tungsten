@@ -10,6 +10,7 @@
 #include <memory>
 #include "EventLoop.hpp"
 #include "SdlSession.hpp"
+#include "Viewport.hpp"
 #include "Gl/GlTypes.hpp"
 #include "WindowParameters.hpp"
 
@@ -98,6 +99,8 @@ namespace Tungsten
         [[nodiscard]] Size2I window_size() const;
 
         [[nodiscard]] float aspect_ratio() const;
+
+        [[nodiscard]] Viewport viewport() const;
 
         [[nodiscard]] const EventLoop* event_loop() const;
 

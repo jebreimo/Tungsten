@@ -28,14 +28,15 @@ Tungsten::SmoothMeshShader& get_phong_shader()
         Tungsten::ShaderManager::instance().program(Tungsten::BuiltinShader::PHONG));
 }
 
-Tungsten::Camera make_camera(float aspect_ratio)
+Tungsten::Camera make_camera(const Tungsten::Viewport viewport)
 {
     const auto fov_y = Tungsten::calculate_fov_y(
-        Xyz::to_radians(50.f), Xyz::to_radians(50.f), aspect_ratio);
-    return Tungsten::Camera{
-        Xyz::make_look_at_matrix<float>({-2, -sqrt(17.f), 2}, {0, 0, 0}, {0, 0, 1}),
-        Xyz::make_perspective_matrix<float>(fov_y, aspect_ratio, 1.5f, 10)
-    };
+        Xyz::to_radians(50.f), Xyz::to_radians(50.f), viewport.aspect_ratio());
+    return Tungsten::CameraBuilder()
+        .viewport(viewport)
+        .look_at({-2, -sqrt(17.f), 2}, {0, 0, 0}, {0, 0, 1})
+        .perspective(fov_y, 1.5f, 10)
+        .build();
 }
 
 class TexturedCube : public Tungsten::EventLoop
@@ -45,7 +46,7 @@ public:
         : EventLoop(app),
           program(get_phong_shader()),
           item(make_cube_vao(program), {}),
-          camera{make_camera(app.aspect_ratio())}
+          camera{make_camera(app.viewport())}
     {
         std::cout << Tungsten::get_device_info() << '\n';
     }
@@ -54,8 +55,7 @@ public:
     {
         if (event.type == SDL_EVENT_WINDOW_RESIZED)
         {
-            const auto aspect_ratio = float(event.window.data1) / float(event.window.data2);
-            camera = make_camera(aspect_ratio);
+            camera = make_camera(application().viewport());
             return true;
         }
         return false;
@@ -76,7 +76,7 @@ public:
         Tungsten::set_viewport(0, 0, w, h);
 
         program.use();
-        program.set_projection_matrix(camera.projection);
+        program.set_projection_matrix(camera.projection_matrix());
 
         item.draw(camera, program);
 
