@@ -21,24 +21,32 @@ namespace Tungsten
     {
     }
 
-    void ShaderPreprocessor::add_define(std::string name, std::string value)
+    ShaderPreprocessor&
+    ShaderPreprocessor::add_define(std::string name, std::string value)
     {
         defines_.emplace_back(std::move(name), std::move(value));
+        return *this;
     }
 
-    void ShaderPreprocessor::add_include(const std::string& name, const std::string& content)
+    ShaderPreprocessor&
+    ShaderPreprocessor::add_include(const std::string& name, const std::string& content)
     {
         includes_[name] = content;
+        return *this;
     }
 
-    void ShaderPreprocessor::add_include_path(const std::filesystem::path& path)
+    ShaderPreprocessor&
+    ShaderPreprocessor::add_include_path(const std::filesystem::path& path)
     {
         include_paths_.push_back(path);
+        return *this;
     }
 
-    void ShaderPreprocessor::set_version(const std::string& version)
+    ShaderPreprocessor&
+    ShaderPreprocessor::set_version(const std::string& version)
     {
         version_ = version;
+        return *this;
     }
 
     namespace
@@ -143,14 +151,14 @@ namespace Tungsten
 
         if (!current_dir.empty())
         {
-            auto path = current_dir / name;
+            const auto path = current_dir / name;
             if (auto content = read_file_content(path))
                 return *content;
         }
 
         for (const auto& include_path : include_paths_)
         {
-            auto path = include_path / name;
+            const auto path = include_path / name;
             if (auto content = read_file_content(path))
                 return *content;
         }

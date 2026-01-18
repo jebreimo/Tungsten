@@ -94,6 +94,9 @@ add_library(Tungsten STATIC
     include/Tungsten/ShaderPrograms/PhongShader.hpp
     include/Tungsten/ShaderPrograms/ShaderProgram.hpp
     include/Tungsten/ShaderPrograms/SmoothMeshShader.hpp
+    include/Tungsten/ShaderPrograms/TexturedGouraudShader.hpp
+    include/Tungsten/ShaderPrograms/TexturedPhongShader.hpp
+    include/Tungsten/ShaderPrograms/TexturedSmoothMeshShader.hpp
     include/Tungsten/ShaderTools.hpp
     include/Tungsten/TextRenderer.hpp
     include/Tungsten/Tungsten.hpp
@@ -136,6 +139,7 @@ add_library(Tungsten STATIC
     src/Tungsten/ShaderPrograms/GouraudShader.cpp
     src/Tungsten/ShaderPrograms/PhongShader.cpp
     src/Tungsten/ShaderPrograms/SmoothMeshShader.cpp
+    src/Tungsten/ShaderPrograms/TexturedGouraudShader.cpp
     src/Tungsten/ShaderPrograms/TexturedPhongShader.cpp
     src/Tungsten/ShaderPrograms/TexturedSmoothMeshShader.cpp
     src/Tungsten/ShaderSources.cpp.in

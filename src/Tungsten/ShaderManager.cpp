@@ -9,6 +9,7 @@
 
 #include "Tungsten/ShaderPrograms/GouraudShader.hpp"
 #include "Tungsten/ShaderPrograms/PhongShader.hpp"
+#include "Tungsten/ShaderPrograms/TexturedGouraudShader.hpp"
 #include "Tungsten/ShaderPrograms/TexturedPhongShader.hpp"
 #include "Tungsten/TungstenException.hpp"
 
@@ -20,6 +21,8 @@ namespace Tungsten
             return BuiltinShader::GOURAUD;
         if (name == "PHONG" || name == "builtin::PHONG")
             return BuiltinShader::PHONG;
+        if (name == "TEXTURED_GOURAUD" || name == "builtin::TEXTURED_GOURAUD")
+            return BuiltinShader::TEXTURED_GOURAUD;
         if (name == "TEXTURED_PHONG" || name == "builtin::TEXTURED_PHONG")
             return BuiltinShader::TEXTURED_PHONG;
         TUNGSTEN_THROW("Unknown built-in shader program name: '" + name + "'.");
@@ -61,6 +64,8 @@ namespace Tungsten
             return get_or_create_builtin_program<GouraudShader>();
         case BuiltinShader::PHONG:
             return get_or_create_builtin_program<PhongShader>();
+        case BuiltinShader::TEXTURED_GOURAUD:
+            return get_or_create_builtin_program<TexturedGouraudShader>();
         case BuiltinShader::TEXTURED_PHONG:
             return get_or_create_builtin_program<TexturedPhongShader>();
         default:

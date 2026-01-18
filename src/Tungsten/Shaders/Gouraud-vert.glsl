@@ -14,6 +14,9 @@
 
 layout (location = 0) in vec3 a_position;
 layout (location = 1) in vec3 a_normal;
+#ifdef USE_TEXTURES
+layout (location = 2) in vec2 a_texcoord;
+#endif
 
 uniform mat4 u_mv_matrix;
 uniform mat4 u_proj_matrix;
@@ -27,6 +30,9 @@ uniform vec3 u_ambient = vec3(0.1, 0.1, 0.1);
 out VS_OUT
 {
     vec3 color;
+    #ifdef USE_TEXTURES
+    vec2 texcoord;
+    #endif
 } vs_out;
 
 void main()
@@ -42,5 +48,8 @@ void main()
                     * u_specular_albedo;
 
     vs_out.color = u_ambient + diffuse + specular;
+    #ifdef USE_TEXTURES
+    vs_out.texcoord = a_texcoord;
+    #endif
     gl_Position = u_proj_matrix * p;
 }

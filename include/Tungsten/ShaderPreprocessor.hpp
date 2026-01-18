@@ -18,15 +18,15 @@ namespace Tungsten
     public:
         ShaderPreprocessor();
 
-        void add_define(std::string name,
-                        std::string value);
+        ShaderPreprocessor& add_define(std::string name,
+                                       std::string value = {});
 
-        void add_include(const std::string& name,
-                         const std::string& content);
+        ShaderPreprocessor& add_include(const std::string& name,
+                                        const std::string& content);
 
-        void add_include_path(const std::filesystem::path& path);
+        ShaderPreprocessor& add_include_path(const std::filesystem::path& path);
 
-        void set_version(const std::string& version);
+        ShaderPreprocessor& set_version(const std::string& version);
 
         [[nodiscard]] std::string
         preprocess(std::string_view source,

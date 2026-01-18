@@ -1,24 +1,25 @@
 //****************************************************************************
-// Copyright © 2025 Jan Erik Breimo. All rights reserved.
-// Created by Jan Erik Breimo on 2025-12-26.
+// Copyright © 2022 Jan Erik Breimo. All rights reserved.
+// Created by Jan Erik Breimo on 2022-06-11.
 //
-// This file is distributed under the Zero-Clause BSD License.
+// This file is distributed under the BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/ShaderPrograms/TexturedPhongShader.hpp"
-#include "Tungsten/ShaderSources.hpp"
-#include "Tungsten/VertexArrayObjectBuilder.hpp"
+#include "Tungsten/ShaderPrograms/TexturedGouraudShader.hpp"
+#include "Tungsten/ShaderProgramBuilder.hpp"
+
+#include "../ShaderSources.hpp"
 
 namespace Tungsten
 {
-    TexturedPhongShader::TexturedPhongShader()
+    TexturedGouraudShader::TexturedGouraudShader()
         : TexturedSmoothMeshShader(
-              std::string(NAME),
-              {
-                  {ShaderType::VERTEX, ShaderSources::PHONG_VERTEX},
-                  {ShaderType::FRAGMENT, ShaderSources::PHONG_FRAGMENT}
-              },
-              ShaderPreprocessor().add_define("USE_TEXTURES"))
+            std::string(NAME),
+            {
+                {ShaderType::VERTEX, ShaderSources::GOURAUD_VERTEX},
+                {ShaderType::FRAGMENT, ShaderSources::GOURAUD_FRAGMENT}
+            },
+            ShaderPreprocessor().add_define("USE_TEXTURES"))
     {
         position_attr = get_vertex_attribute(program(), "a_position");
         normal_attr = get_vertex_attribute(program(), "a_normal");
@@ -31,6 +32,13 @@ namespace Tungsten
         diffuse_albedo = get_uniform<Xyz::Vector3F>(program(), "u_diffuse_albedo");
         specular_albedo = get_uniform<Xyz::Vector3F>(program(), "u_specular_albedo");
         specular_power = get_uniform<float>(program(), "u_specular_power");
+        ambient = get_uniform<Xyz::Vector3F>(program(), "u_ambient");
         texture = get_uniform<int32_t>(program(), "u_texture");
+    }
+
+    void TexturedGouraudShader::set_light(const Light& light)
+    {
+        SmoothMeshShader::set_light(light);
+        ambient.set(light.ambient);
     }
 }

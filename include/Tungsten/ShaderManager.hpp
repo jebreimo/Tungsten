@@ -17,6 +17,7 @@ namespace Tungsten
     {
         GOURAUD,
         PHONG,
+        TEXTURED_GOURAUD,
         TEXTURED_PHONG
     };
 

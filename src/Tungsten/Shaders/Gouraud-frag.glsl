@@ -17,9 +17,18 @@ layout (location = 0) out vec4 color;
 in VS_OUT
 {
     vec3 color;
+    #ifdef USE_TEXTURES
+    vec2 texcoord;
+    #endif
 } fs_in;
+
+uniform sampler2D u_texture;
 
 void main()
 {
-    color = vec4(fs_in.color, 1.0);
+    vec3 rgb_color = fs_in.color;
+    #ifdef USE_TEXTURES
+    rgb_color *= texture(u_texture, fs_in.texcoord).rgb;
+    #endif
+    color = vec4(rgb_color, 1.0);
 }

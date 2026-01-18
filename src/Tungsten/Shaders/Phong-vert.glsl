@@ -14,6 +14,9 @@
 
 layout (location = 0) in vec3 a_position;
 layout (location = 1) in vec3 a_normal;
+#ifdef USE_TEXTURES
+layout (location = 2) in vec2 a_texcoord;
+#endif
 
 uniform mat4 u_mv_matrix;
 uniform mat4 u_proj_matrix;
@@ -25,6 +28,9 @@ out VS_OUT
     vec3 normal;
     vec3 light;
     vec3 view;
+    #ifdef USE_TEXTURES
+    vec2 texcoord;
+    #endif
 } vs_out;
 
 void main()
@@ -33,5 +39,8 @@ void main()
     vs_out.normal = mat3(u_mv_matrix) * a_normal;
     vs_out.light = u_light_pos - p.xyz;
     vs_out.view = -p.xyz;
+    #ifdef USE_TEXTURES
+    vs_out.texcoord = a_texcoord;
+    #endif
     gl_Position = u_proj_matrix * p;
 }

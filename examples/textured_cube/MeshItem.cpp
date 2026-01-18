@@ -38,11 +38,6 @@ void MeshItem::draw(const Tungsten::Camera& camera,
 {
     program.set_model_view_matrix(camera.view_matrix() * model_matrix_);
     program.set_material(material_);
-    if (texture_handle_)
-    {
-        if (auto* tex_prog = dynamic_cast<Tungsten::TexturedSmoothMeshShader*>(&program))
-            tex_prog->set_texture(static_cast<int32_t>(*texture_handle_));
-    }
     vao_.bind();
     if (wireframe_)
         Tungsten::draw_line_elements_16(0, vao_.element_count);

@@ -164,6 +164,7 @@ argos::ParsedArguments parse_arguments(int argc, char* argv[])
         .text(TextId::FINAL_TEXT,
               "Available shaders:\n"
               "  TEXTURED_PHONG\n"
+              "  TEXTURED_GOURAUD\n"
               "  PHONG\n"
               "  GOURAUD");
     Tungsten::SdlApplication::add_command_line_options(parser);
