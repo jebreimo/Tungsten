@@ -33,14 +33,14 @@ namespace Tungsten
 
     uint32_t get_vertex_attribute(uint32_t program_id, const std::string& name)
     {
-        auto attrLoc = get_ogl_wrapper().get_attrib_location(program_id, name.c_str());
+        const auto attrLoc = get_ogl_wrapper().get_attrib_location(program_id, name.c_str());
         THROW_IF_GL_ERROR();
         return uint32_t(attrLoc);
     }
 
     int32_t get_uniform_location(uint32_t program_id, const char* name)
     {
-        auto result = get_ogl_wrapper().get_uniform_location(program_id, name);
+        const auto result = get_ogl_wrapper().get_uniform_location(program_id, name);
         THROW_IF_GL_ERROR();
         return result;
     }
