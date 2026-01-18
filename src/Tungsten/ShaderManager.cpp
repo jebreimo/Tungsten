@@ -7,8 +7,10 @@
 //****************************************************************************
 #include "Tungsten/ShaderManager.hpp"
 
+#include "Tungsten/ShaderPrograms/BlinnPhongShader.hpp"
 #include "Tungsten/ShaderPrograms/GouraudShader.hpp"
 #include "Tungsten/ShaderPrograms/PhongShader.hpp"
+#include "Tungsten/ShaderPrograms/TexturedBlinnPhongShader.hpp"
 #include "Tungsten/ShaderPrograms/TexturedGouraudShader.hpp"
 #include "Tungsten/ShaderPrograms/TexturedPhongShader.hpp"
 #include "Tungsten/TungstenException.hpp"
@@ -17,14 +19,18 @@ namespace Tungsten
 {
     BuiltinShader to_builtin_shader(const std::string& name)
     {
-        if (name == "GOURAUD" || name == "builtin::GOURAUD")
+        if (name == "GOURAUD" || name == GouraudShader::NAME)
             return BuiltinShader::GOURAUD;
-        if (name == "PHONG" || name == "builtin::PHONG")
+        if (name == "PHONG" || name == PhongShader::NAME)
             return BuiltinShader::PHONG;
-        if (name == "TEXTURED_GOURAUD" || name == "builtin::TEXTURED_GOURAUD")
+        if (name == "BLINN_PHONG" || name == BlinnPhongShader::NAME)
+            return BuiltinShader::BLINN_PHONG;
+        if (name == "TEXTURED_GOURAUD" || name == TexturedGouraudShader::NAME)
             return BuiltinShader::TEXTURED_GOURAUD;
-        if (name == "TEXTURED_PHONG" || name == "builtin::TEXTURED_PHONG")
+        if (name == "TEXTURED_PHONG" || name == TexturedPhongShader::NAME)
             return BuiltinShader::TEXTURED_PHONG;
+        if (name == "TEXTURED_BLINN_PHONG" || name == TexturedBlinnPhongShader::NAME)
+            return BuiltinShader::TEXTURED_BLINN_PHONG;
         TUNGSTEN_THROW("Unknown built-in shader program name: '" + name + "'.");
     }
 
@@ -64,10 +70,14 @@ namespace Tungsten
             return get_or_create_builtin_program<GouraudShader>();
         case BuiltinShader::PHONG:
             return get_or_create_builtin_program<PhongShader>();
+        case BuiltinShader::BLINN_PHONG:
+            return get_or_create_builtin_program<BlinnPhongShader>();
         case BuiltinShader::TEXTURED_GOURAUD:
             return get_or_create_builtin_program<TexturedGouraudShader>();
         case BuiltinShader::TEXTURED_PHONG:
             return get_or_create_builtin_program<TexturedPhongShader>();
+        case BuiltinShader::TEXTURED_BLINN_PHONG:
+            return get_or_create_builtin_program<TexturedBlinnPhongShader>();
         default:
             TUNGSTEN_THROW("Unknown built-in shader program.");
         }

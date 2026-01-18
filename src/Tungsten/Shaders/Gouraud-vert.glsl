@@ -21,7 +21,7 @@ layout (location = 2) in vec2 a_texcoord;
 uniform mat4 u_mv_matrix;
 uniform mat4 u_proj_matrix;
 
-uniform vec3 u_light_pos = vec3(-100.0, -100.0, 100.0);
+uniform vec3 u_light_pos = vec3(100.0, 100.0, 100.0);
 uniform vec3 u_diffuse_albedo = vec3(0.5, 0.2, 0.7);
 uniform vec3 u_specular_albedo = vec3(0.7);
 uniform float u_specular_power = 128.0;

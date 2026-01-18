@@ -17,8 +17,10 @@ namespace Tungsten
     {
         GOURAUD,
         PHONG,
+        BLINN_PHONG,
         TEXTURED_GOURAUD,
-        TEXTURED_PHONG
+        TEXTURED_PHONG,
+        TEXTURED_BLINN_PHONG
     };
 
     BuiltinShader to_builtin_shader(const std::string& name);

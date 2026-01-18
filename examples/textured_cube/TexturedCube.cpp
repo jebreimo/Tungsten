@@ -97,6 +97,7 @@ public:
     {
         item.set_texture(texture_);
         std::cout << Tungsten::get_device_info() << '\n';
+        Tungsten::set_swap_interval(app, Tungsten::SwapInterval::VSYNC);
     }
 
     bool on_event(const SDL_Event& event) override
@@ -158,13 +159,15 @@ argos::ParsedArguments parse_arguments(int argc, char* argv[])
         .add(Opt("-s", "--shader")
             .argument("name")
             .help("Name of the shader program to use. Available shaders are"
-                " listed below, default is TEXTURED_PHONG."))
+                " listed below, default is TEXTURED_BLINN_PHONG."))
         .add(Opt("-w", "--wireframe")
             .help("Show the cube in wireframe mode."))
         .text(TextId::FINAL_TEXT,
               "Available shaders:\n"
+              "  TEXTURED_BLINN_PHONG\n"
               "  TEXTURED_PHONG\n"
               "  TEXTURED_GOURAUD\n"
+              "  BLINN_PHONG\n"
               "  PHONG\n"
               "  GOURAUD");
     Tungsten::SdlApplication::add_command_line_options(parser);
@@ -173,7 +176,7 @@ argos::ParsedArguments parse_arguments(int argc, char* argv[])
 
 Tungsten::BuiltinShader get_shader_type(const argos::ParsedArguments& args)
 {
-    const auto name = ystring::to_upper(args.value("--shader").as_string("TEXTURED_PHONG"));
+    const auto name = ystring::to_upper(args.value("--shader").as_string("TEXTURED_BLINN_PHONG"));
     return Tungsten::to_builtin_shader(name);
 }
 

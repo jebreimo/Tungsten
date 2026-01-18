@@ -1,0 +1,48 @@
+//****************************************************************************
+// Copyright © 2026 Jan Erik Breimo. All rights reserved.
+// Created by Jan Erik Breimo on 2026-01-18.
+//
+// This file is distributed under the BSD License.
+// License text is included with the source distribution.
+//****************************************************************************
+#version 300 es
+
+#ifdef GL_ES
+    precision highp int;
+precision highp float;
+#endif
+
+layout (location = 0) out vec4 color;
+
+in VS_OUT
+{
+    vec3 normal;
+    vec3 light;
+    vec3 view;
+    #ifdef USE_TEXTURES
+    vec2 texcoord;
+    #endif
+} fs_in;
+
+uniform vec3 u_diffuse_albedo = vec3(0.5, 0.2, 0.7);
+uniform vec3 u_specular_albedo = vec3(0.7);
+uniform float u_specular_power = 128.0;
+uniform sampler2D u_texture;
+
+void main()
+{
+    vec3 normal = normalize(fs_in.normal);
+    vec3 light = normalize(fs_in.light);
+    vec3 view = normalize(fs_in.view);
+
+    vec3 halfway = normalize(light + view);
+    vec3 diffuse = max(dot(normal, light), 0.0) * u_diffuse_albedo;
+
+    #ifdef USE_TEXTURES
+    diffuse *= texture(u_texture, fs_in.texcoord).rgb;
+    #endif
+
+    vec3 specular = pow(max(dot(normal, halfway), 0.0), u_specular_power)
+                    * u_specular_albedo;
+    color = vec4(diffuse + specular, 1.0);
+}
