@@ -158,6 +158,12 @@ add_library(Tungsten STATIC
     src/Tungsten/VertexArrayObject.cpp
     src/Tungsten/VertexArrayObjectBuilder.cpp
     src/Tungsten/YimageGl.cpp
+    include/Tungsten/Commands/Command.cpp
+    include/Tungsten/Commands/Command.hpp
+    include/Tungsten/Commands/DrawElementsCommand.cpp
+    include/Tungsten/Commands/DrawElementsCommand.hpp
+    include/Tungsten/Commands/CompositeCommand.cpp
+    include/Tungsten/Commands/CompositeCommand.hpp
 )
 
 target_link_libraries(Tungsten

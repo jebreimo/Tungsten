@@ -9,14 +9,28 @@ cmake_minimum_required(VERSION 3.25)
 
 set(CMAKE_CXX_STANDARD 20)
 
+FetchContent_Declare(ystring2
+    GIT_REPOSITORY "https://github.com/jebreimo/Ystring2.git"
+    GIT_TAG v2.3.1)
+
+FetchContent_MakeAvailable(ystring2)
+
 add_executable(cube
-    Cube.cpp
     MeshItem.cpp
     MeshItem.hpp
+    Resources.hpp.in
+    Cube.cpp
 )
 
 target_link_libraries(cube
     PRIVATE
+        Argos::Argos
         Tungsten::Tungsten
         Yconvert::Yconvert
+        Ystring2::Ystring
+)
+
+target_embed_cpp_data(cube
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/Resources.hpp.in
 )
