@@ -121,6 +121,8 @@ namespace Tungsten
         [[nodiscard]] const EventLoop& callbacks() const;
 
         [[nodiscard]] EventLoop& callbacks();
+
+        [[nodiscard]] double seconds_per_frame() const;
     protected:
         void set_status(int status);
 

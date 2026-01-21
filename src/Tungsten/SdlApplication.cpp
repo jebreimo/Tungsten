@@ -76,6 +76,7 @@ namespace Tungsten
         SDL_Window* window = nullptr;
         GlContext gl_context;
         bool enable_touch_events = false;
+        double seconds_per_frame = 0;
     };
 
     SdlApplication::SdlApplication() = default;
@@ -218,12 +219,13 @@ namespace Tungsten
         }
 
         if (!size)
-            size = {640, 480};
+            size = {800, 600};
 
         SDL_Log("Create window with size %dx%d.", size.width, size.height);
         auto* window = SDL_CreateWindow(data_->name.c_str(),
                                         size.width, size.height,
                                         params.sdl_flags);
+
         if (window == nullptr)
             THROW_SDL_ERROR();
 
@@ -297,6 +299,8 @@ namespace Tungsten
 
     void SdlApplication::run_event_loop_step()
     {
+        const auto time = std::chrono::high_resolution_clock::now();
+
         SDL_Event event;
         while (SDL_PollEvent(&event))
             process_event(event);
@@ -315,6 +319,9 @@ namespace Tungsten
         {
             SDL_WaitEventTimeout(nullptr, 10);
         }
+
+        const auto newTime = std::chrono::high_resolution_clock::now();
+        data_->seconds_per_frame = std::chrono::duration<double>(newTime - time).count();
     }
 
     const EventLoop* SdlApplication::event_loop() const
@@ -371,6 +378,11 @@ namespace Tungsten
     const EventLoop& SdlApplication::callbacks() const
     {
         return *data_->event_loop;
+    }
+
+    double SdlApplication::seconds_per_frame() const
+    {
+        return data_->seconds_per_frame;
     }
 
     SdlSession SdlApplication::make_sdl_session()
