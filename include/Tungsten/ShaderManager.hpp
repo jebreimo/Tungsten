@@ -30,6 +30,10 @@ namespace Tungsten
     public:
         [[nodiscard]] static ShaderManager& instance();
 
+        ShaderManager(const ShaderManager&) = delete;
+
+        ShaderManager& operator=(const ShaderManager&) = delete;
+
         void add_program(std::unique_ptr<ShaderProgram> program);
 
         [[nodiscard]] ShaderProgram& program(const std::string& name);
@@ -39,6 +43,7 @@ namespace Tungsten
         [[nodiscard]] ShaderProgram& program(BuiltinShader program);
 
         [[nodiscard]] ShaderPreprocessor& preprocessor();
+
     private:
         ShaderManager() = default;
 
