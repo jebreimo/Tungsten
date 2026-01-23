@@ -9,11 +9,12 @@
 #include "Tungsten/ShaderProgramBuilder.hpp"
 
 #include "../ShaderSources.hpp"
+#include "Tungsten/VertexArrayObjectBuilder.hpp"
 
 namespace Tungsten
 {
     GouraudShader::GouraudShader()
-        : SmoothMeshShader(std::string(NAME),
+        : ShaderProgram(std::string(NAME),
                            {
                                {ShaderType::VERTEX, ShaderSources::GOURAUD_VERTEX},
                                {ShaderType::FRAGMENT, ShaderSources::GOURAUD_FRAGMENT}
@@ -32,9 +33,12 @@ namespace Tungsten
         ambient = get_uniform<Xyz::Vector3F>(program(), "u_ambient");
     }
 
-    void GouraudShader::set_light(const Light& light)
+    VertexArrayObject GouraudShader::create_vao(int32_t extra_stride) const
     {
-        SmoothMeshShader::set_light(light);
-        ambient.set(light.ambient);
+        return VertexArrayObjectBuilder()
+            .add_float(position_attr, 3)
+            .add_float(normal_attr, 3)
+            .add_stride(extra_stride)
+            .build();
     }
 }

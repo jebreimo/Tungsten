@@ -27,7 +27,7 @@ public:
      * @note The program must be already bound.
      */
     void draw(const Tungsten::Camera& camera,
-              Tungsten::SmoothMeshShader& program) const;
+              Tungsten::SmoothShader& program) const;
 
 private:
     Xyz::Matrix4F model_matrix_ = Xyz::Matrix4F::identity();

@@ -21,7 +21,7 @@
 #include "MeshUtilities.hpp"
 #include "SdlApplication.hpp"
 #include "ShaderManager.hpp"
-#include "ShaderPrograms/TexturedSmoothMeshShader.hpp"
+#include "ShaderPrograms/SmoothShader.hpp"
 #include "ShaderTools.hpp"
 #include "TextRenderer.hpp"
 #include "TungstenException.hpp"

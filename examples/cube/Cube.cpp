@@ -15,7 +15,7 @@
 #include "Resources.hpp"
 
 Tungsten::VertexArrayObject
-make_cube_vao(const Tungsten::SmoothMeshShader& program,
+make_cube_vao(const Tungsten::SmoothShader& program,
               bool wireframe)
 {
     Tungsten::VertexArrayData<Tungsten::PositionNormalTexture> cube;
@@ -33,9 +33,9 @@ make_cube_vao(const Tungsten::SmoothMeshShader& program,
         Tungsten::write_line_segments(std::cout, cube.indices);
     }
 
-    int32_t extra_stride = 0;
-    if (!dynamic_cast<const Tungsten::TexturedSmoothMeshShader*>(&program))
-        extra_stride = sizeof(Xyz::Vector2F);
+    int32_t extra_stride = sizeof(Xyz::Vector2F);
+    // if (!dynamic_cast<const Tungsten::TexturedSmoothShader*>(&program))
+    //     extra_stride = sizeof(Xyz::Vector2F);
     auto vao = program.create_vao(extra_stride);
 
     vao.set_data(cube.vertices, cube.indices);
@@ -43,9 +43,9 @@ make_cube_vao(const Tungsten::SmoothMeshShader& program,
     return vao;
 }
 
-Tungsten::SmoothMeshShader& get_shader(Tungsten::BuiltinShader shader_type)
+Tungsten::SmoothShader& get_shader(Tungsten::BuiltinShader shader_type)
 {
-    return dynamic_cast<Tungsten::SmoothMeshShader&>(
+    return dynamic_cast<Tungsten::SmoothShader&>(
         Tungsten::ShaderManager::instance().program(shader_type));
 }
 
@@ -145,7 +145,7 @@ private:
     }
 
     Tungsten::TextureHandle texture_;
-    Tungsten::SmoothMeshShader& program;
+    Tungsten::SmoothShader& program;
     MeshItem item;
     Tungsten::Camera camera;
     uint64_t start_ticks = SDL_GetTicks();
@@ -176,7 +176,7 @@ argos::ParsedArguments parse_arguments(int argc, char* argv[])
 
 Tungsten::BuiltinShader get_shader_type(const argos::ParsedArguments& args)
 {
-    const auto name = ystring::to_upper(args.value("--shader").as_string("TEXTURED_BLINN_PHONG"));
+    const auto name = ystring::to_upper(args.value("--shader").as_string("SMOOTH"));
     return Tungsten::to_builtin_shader(name);
 }
 

@@ -9,7 +9,7 @@
 
 #ifdef GL_ES
     precision highp int;
-precision highp float;
+    precision highp float;
 #endif
 
 layout (location = 0) out vec4 color;
@@ -26,7 +26,8 @@ in VS_OUT
 
 uniform vec3 u_diffuse_albedo = vec3(0.5, 0.2, 0.7);
 uniform vec3 u_specular_albedo = vec3(0.7);
-uniform float u_specular_power = 128.0;
+uniform float u_specular_power = 16.0;
+uniform vec3 u_ambient = vec3(0.1, 0.1, 0.1);
 uniform sampler2D u_texture;
 
 void main()
@@ -44,5 +45,5 @@ void main()
 
     vec3 specular = pow(max(dot(normal, halfway), 0.0), u_specular_power)
                     * u_specular_albedo;
-    color = vec4(diffuse + specular, 1.0);
+    color = vec4(u_ambient + diffuse + specular, 1.0);
 }

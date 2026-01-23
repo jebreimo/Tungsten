@@ -23,10 +23,23 @@ namespace Tungsten
         Xyz::Vector3F ambient = {0.1f, 0.1f, 0.1f};
     };
 
-    class SmoothMeshShader : public ShaderProgram
+    struct ShaderFeature
+    {
+        std::string name;
+        std::string definition_name;
+        std::string definition_value;
+    };
+
+    class SmoothShader : public ShaderProgram
     {
     public:
+        static constexpr std::string_view NAME = "builtin::SmoothMesh";
+
+        static std::vector<ShaderFeature> get_features();
+
         using VertexType = std::tuple<Xyz::Vector3F, Xyz::Vector3F>;
+
+        SmoothShader();
 
         using ShaderProgram::create_vao;
 
@@ -41,18 +54,20 @@ namespace Tungsten
         void set_projection_matrix(const Xyz::Matrix4F& proj);
 
     protected:
-        using ShaderProgram::ShaderProgram;
-
         Uniform<Xyz::Matrix4F> mv_matrix;
         Uniform<Xyz::Matrix4F> proj_matrix;
 
         Uniform<Xyz::Vector3F> light_pos;
 
+        Uniform<Xyz::Vector3F> ambient;
         Uniform<Xyz::Vector3F> diffuse_albedo;
         Uniform<Xyz::Vector3F> specular_albedo;
         Uniform<float> specular_power;
+        Uniform<int32_t> texture;
 
         uint32_t position_attr;
         uint32_t normal_attr;
+        uint32_t texture_coord_attr;
+
     };
 }
