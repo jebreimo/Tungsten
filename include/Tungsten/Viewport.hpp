@@ -20,4 +20,6 @@ namespace Tungsten
             return size[1] == 0.0f ? 1.0f : size[0] / size[1];
         }
     };
+
+    std::ostream &operator<<(std::ostream &os, const Viewport &viewport);
 } // Tungsten

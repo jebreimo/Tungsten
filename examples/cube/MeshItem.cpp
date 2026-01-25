@@ -36,8 +36,14 @@ void MeshItem::set_texture(uint32_t texture_handle)
 void MeshItem::draw(const Tungsten::Camera& camera,
                     Tungsten::SmoothShader& program) const
 {
-    program.set_model_view_matrix(camera.view_matrix() * model_matrix_);
+    program.set_model_matrix(model_matrix_);
     program.set_material(material_);
+    program.set_camera(camera);
+    program.set_light(Tungsten::DirectionalLight(
+        {1.0f, 1.0f, -5.0f},
+        {0.2f, 0.2f, 0.2f},
+        {0.8f, 0.8f, 0.8f},
+        {1.0f, 1.0f, 1.0f}));
     vao_.bind();
     if (wireframe_)
         Tungsten::draw_line_elements_16(0, vao_.element_count);

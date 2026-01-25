@@ -16,34 +16,50 @@ layout (location = 0) out vec4 color;
 
 in VS_OUT
 {
+    vec3 frag_pos;
     vec3 normal;
-    vec3 light;
-    vec3 view;
     #ifdef USE_TEXTURES
     vec2 texcoord;
     #endif
 } fs_in;
 
-uniform vec3 u_diffuse_albedo = vec3(0.5, 0.2, 0.7);
-uniform vec3 u_specular_albedo = vec3(0.7);
-uniform float u_specular_power = 16.0;
-uniform vec3 u_ambient = vec3(0.1, 0.1, 0.1);
-uniform sampler2D u_texture;
+struct Material
+{
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float shininess;
+};
+
+struct DirectionalLight
+{
+    vec3 direction;
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+};
+
+uniform vec3 u_view_pos;
+uniform Material u_material;
+uniform DirectionalLight u_dir_light;
+//uniform sampler2D u_texture;
 
 void main()
 {
-    vec3 normal = normalize(fs_in.normal);
-    vec3 light = normalize(fs_in.light);
-    vec3 view = normalize(fs_in.view);
+    vec3 ambient = u_dir_light.ambient * u_material.ambient;
+    // texture(material.diffuse, TexCoords).rgb;
 
-    vec3 halfway = normalize(light + view);
-    vec3 diffuse = max(dot(normal, light), 0.0) * u_diffuse_albedo;
+    // Directional light
+    vec3 norm = normalize(fs_in.normal);
+    vec3 light_dir = normalize(-u_dir_light.direction);
+    float diff = max(dot(norm, light_dir), 0.0);
+    vec3 diffuse = u_dir_light.diffuse * diff * u_material.diffuse;
 
-    #ifdef USE_TEXTURES
-    diffuse *= texture(u_texture, fs_in.texcoord).rgb;
-    #endif
+    vec3 view_dir = normalize(u_view_pos - fs_in.frag_pos);
+    vec3 reflect_dir = reflect(-light_dir, norm);
+    float spec = pow(max(dot(view_dir, reflect_dir), 0.0), u_material.shininess);
+    vec3 specular = u_dir_light.specular * spec * u_material.specular;
+    //texture(material.specular, TexCoords).rgb;
 
-    vec3 specular = pow(max(dot(normal, halfway), 0.0), u_specular_power)
-                    * u_specular_albedo;
-    color = vec4(u_ambient + diffuse + specular, 1.0);
+    color = vec4(ambient + diffuse + specular, 1.0);
 }

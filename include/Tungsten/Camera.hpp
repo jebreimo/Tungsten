@@ -6,8 +6,8 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include <string>
 #include <Xyz/Matrix.hpp>
-#include <Xyz/ProjectionMatrix.hpp>
 
 #include "Viewport.hpp"
 
@@ -18,6 +18,19 @@ namespace Tungsten
         PERSPECTIVE,
         ORTHOGRAPHIC
     };
+
+    std::string to_string(ProjectionType type);
+
+    std::ostream& operator<<(std::ostream& stream, ProjectionType type);
+
+    struct ViewParameters
+    {
+        Xyz::Vector3F position = {0.0f, 0.0f, 0.0f};
+        Xyz::Vector3F forward = {0.0f, 0.0f, 1.0f};
+        Xyz::Vector3F up = {0.0f, 1.0f, 0.0f};
+    };
+
+    std::ostream& operator<<(std::ostream& stream, const ViewParameters& parameters);
 
     struct ProjectionParameters
     {
@@ -31,13 +44,15 @@ namespace Tungsten
         bool use_aspect_ratio = false;
     };
 
+    std::ostream& operator<<(std::ostream& stream,
+                             const ProjectionParameters& parameters);
     class Camera
     {
     public:
         Camera();
 
         Camera(const Viewport& viewport,
-               const Xyz::Matrix4F& view,
+               const ViewParameters& view_parameters,
                const ProjectionParameters& projection_parameters);
 
         [[nodiscard]] const Xyz::Matrix4F& view_matrix() const
@@ -46,8 +61,6 @@ namespace Tungsten
         }
 
         void set_view_matrix(const Xyz::Matrix4F& view);
-
-        [[nodiscard]] Xyz::ViewMatrixComponents<float> decomposed_view_matrix() const;
 
         [[nodiscard]] const Xyz::Matrix4F& projection_matrix() const
         {
@@ -61,6 +74,10 @@ namespace Tungsten
 
         void set_viewport(const Viewport& viewport);
 
+        [[nodiscard]] ViewParameters view_parameters() const;
+
+        void set_view_parameters(const ViewParameters& parameters);
+
         [[nodiscard]] const ProjectionParameters& projection_parameters() const
         {
             return projection_parameters_;
@@ -70,10 +87,13 @@ namespace Tungsten
 
     private:
         Viewport viewport_;
+        ViewParameters view_parameters_;
         ProjectionParameters projection_parameters_;
         Xyz::Matrix4F view_;
         Xyz::Matrix4F projection_;
     };
+
+    std::ostream& operator<<(std::ostream& stream, const Camera& camera);
 
     struct CameraBuilder
     {
@@ -119,9 +139,9 @@ namespace Tungsten
         [[nodiscard]] Camera build() const;
 
     private:
-        Xyz::Matrix4F view_;
         Viewport viewport_;
         Xyz::Vector3F position_;
+        ViewParameters view_parameters_;
         ProjectionParameters projection_parameters_;
     };
 

@@ -155,6 +155,7 @@ add_library(Tungsten STATIC
     include/Tungsten/Commands/CompositeCommand.cpp
     include/Tungsten/Commands/CompositeCommand.hpp
     include/Tungsten/ShaderPrograms2/ShaderProgram.hpp
+    src/Tungsten/Viewport.cpp
 )
 
 target_link_libraries(Tungsten

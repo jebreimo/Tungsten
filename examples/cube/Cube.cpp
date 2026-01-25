@@ -125,8 +125,6 @@ public:
         Tungsten::set_viewport(0, 0, w, h);
 
         program.use();
-        program.set_projection_matrix(camera.projection_matrix());
-
         item.draw(camera, program);
 
         Tungsten::set_ogl_tracing_enabled(false);

@@ -12,6 +12,7 @@ namespace Tungsten::ShaderSources
     extern const std::string PHONG_VERTEX(#embed_text "shaders/Phong-vert.glsl");
     extern const std::string PHONG_FRAGMENT(#embed_text "shaders/Phong-frag.glsl");
 
+    extern const std::string BLINN_PHONG_VERTEX(#embed_text "shaders/BlinnPhong-vert.glsl");
     extern const std::string BLINN_PHONG_FRAGMENT(#embed_text "shaders/BlinnPhong-frag.glsl");
 
     extern const std::string GOURAUD_VERTEX(#embed_text "shaders/Gouraud-vert.glsl");

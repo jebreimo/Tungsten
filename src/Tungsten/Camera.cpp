@@ -7,6 +7,8 @@
 //****************************************************************************
 #include "Tungsten/Camera.hpp"
 
+#include <ostream>
+#include <Xyz/ProjectionMatrix.hpp>
 #include <Xyz/Utilities.hpp>
 
 namespace Tungsten
@@ -38,14 +40,79 @@ namespace Tungsten
                     bottom, top,
                     near, far);
             }
-            else // Orthographic
-            {
-                return Xyz::make_orthographic_matrix(
-                    left, right,
-                    bottom, top,
-                    near, far);
-            }
+
+            // else Orthographic
+            return Xyz::make_orthographic_matrix(
+                left, right,
+                bottom, top,
+                near, far);
         }
+
+        ViewParameters normalize(const ViewParameters& parameters)
+        {
+            const auto forward = Xyz::normalize(parameters.forward);
+            return {
+                parameters.position,
+                forward,
+                cross(cross(forward, Xyz::normalize(parameters.up)), forward)
+            };
+        }
+
+        Xyz::Matrix4F make_view_matrix(const ViewParameters& normalized_params)
+        {
+            const auto& f = normalized_params.forward;
+            const auto& u = normalized_params.up;
+            const auto s = Xyz::cross(f, u);
+            const auto& p = normalized_params.position;
+            return {
+                s[0], s[1], s[2], -dot(s, p),
+                u[0], u[1], u[2], -dot(u, p),
+                -f[0], -f[1], -f[2], dot(f, p),
+                0, 0, 0, 1
+            };
+        }
+    }
+
+    std::string to_string(ProjectionType type)
+    {
+        switch (type)
+        {
+        case ProjectionType::PERSPECTIVE:
+            return "PERSPECTIVE";
+        case ProjectionType::ORTHOGRAPHIC:
+            return "ORTHOGRAPHIC";
+        default:
+            return "UNKNOWN";
+        }
+    }
+
+    std::ostream& operator<<(std::ostream& stream, ProjectionType type)
+    {
+        stream << to_string(type);
+        return stream;
+    }
+
+    std::ostream& operator<<(std::ostream& stream, const ViewParameters& parameters)
+    {
+        stream << "{\n"
+               << "  Position: " << parameters.position << "\n"
+               << "  Forward: " << parameters.forward << "\n"
+               << "  Up: " << parameters.up << "\n"
+               << "}";
+        return stream;
+    }
+
+    std::ostream& operator<<(std::ostream& stream, const ProjectionParameters& parameters)
+    {
+        stream << "{\n"
+               << "  Left: " << parameters.left << ", Right: " << parameters.right << "\n"
+               << "  Bottom: " << parameters.bottom << ", Top: " << parameters.top << "\n"
+               << "  Near: " << parameters.near << ", Far: " << parameters.far << "\n"
+               << "  Type: " << parameters.type
+               << "  Use Aspect Ratio: "
+               << (parameters.use_aspect_ratio ? "true" : "false") << "\n"
+               << "}";
+        return stream;
     }
 
     Camera::Camera()
@@ -56,27 +123,38 @@ namespace Tungsten
     {
     }
 
-    Camera::Camera(const Viewport& viewport, const Xyz::Matrix4F& view,
+    Camera::Camera(const Viewport& viewport,
+                   const ViewParameters& view_parameters,
                    const ProjectionParameters& projection_parameters)
         : viewport_(viewport),
+          view_parameters_(normalize(view_parameters)),
           projection_parameters_(projection_parameters),
-          view_(view),
-          projection_{
-              make_projection_matrix(projection_parameters_,
-                                     viewport.aspect_ratio())
-          }
-
+          view_(make_view_matrix(view_parameters_)),
+          projection_(make_projection_matrix(projection_parameters_,
+                                             viewport_.aspect_ratio()))
     {
     }
 
     void Camera::set_view_matrix(const Xyz::Matrix4F& view)
     {
         view_ = view;
+        const auto& params = Xyz::decompose_view_matrix(view);
+        view_parameters_ = normalize({
+            params.position,
+            params.forward,
+            params.up
+        });
     }
 
-    Xyz::ViewMatrixComponents<float> Camera::decomposed_view_matrix() const
+    ViewParameters Camera::view_parameters() const
     {
-        return Xyz::decompose_view_matrix(view_);
+        return view_parameters_;
+    }
+
+    void Camera::set_view_parameters(const ViewParameters& parameters)
+    {
+        view_parameters_ = normalize(parameters);
+        view_ = make_view_matrix(view_parameters_);
     }
 
     void Camera::set_viewport(const Viewport& viewport)
@@ -101,11 +179,21 @@ namespace Tungsten
             viewport_.aspect_ratio());
     }
 
+    std::ostream& operator<<(std::ostream& stream, const Camera& camera)
+    {
+        stream << "{\n"
+               << "  Viewport: " << camera.viewport() << "\n"
+               << "  View Parameters: " << camera.view_parameters() << "\n"
+               << "  Projection Parameters: " <<camera.projection_parameters() << "\n"
+               << "}\n";
+        return stream;
+    }
+
     CameraBuilder::CameraBuilder() = default;
 
     CameraBuilder::CameraBuilder(const Camera& camera)
         : viewport_(camera.viewport()),
-          view_(camera.view_matrix()),
+          view_parameters_(camera.view_parameters()),
           projection_parameters_(camera.projection_parameters())
     {
     }
@@ -114,7 +202,7 @@ namespace Tungsten
                                           const Xyz::Vector3F& center,
                                           const Xyz::Vector3F& up)
     {
-        view_ = Xyz::make_look_at_matrix<float>(eye, center, up);
+        view_parameters_ = {eye, center - eye, up};
         return *this;
     }
 
@@ -182,6 +270,6 @@ namespace Tungsten
 
     Camera CameraBuilder::build() const
     {
-        return {viewport_, view_, projection_parameters_};
+        return {viewport_, view_parameters_, projection_parameters_};
     }
 } // Tungsten

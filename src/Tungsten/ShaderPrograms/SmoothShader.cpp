@@ -15,14 +15,14 @@ namespace Tungsten
     std::vector<ShaderFeature> SmoothShader::get_features()
     {
         return {
-            {"Use textures", "USE_TEXTURES", {}}
+            {"textured_material", "Use textures", "USE_TEXTURES", {}}
         };
     }
 
     SmoothShader::SmoothShader()
         : ShaderProgram(std::string(NAME),
                         {
-                            {ShaderType::VERTEX, ShaderSources::PHONG_VERTEX},
+                            {ShaderType::VERTEX, ShaderSources::BLINN_PHONG_VERTEX},
                             {ShaderType::FRAGMENT, ShaderSources::BLINN_PHONG_FRAGMENT}
                         })
     {
@@ -30,15 +30,25 @@ namespace Tungsten
         normal_attr = get_vertex_attribute(program(), "a_normal");
         texture_coord_attr = get_vertex_attribute(program(), "a_texcoord");
 
-        mv_matrix = get_uniform<Xyz::Matrix4F>(program(), "u_mv_matrix");
+        model_matrix = get_uniform<Xyz::Matrix4F>(program(), "u_model_matrix");
+        view_matrix = get_uniform<Xyz::Matrix4F>(program(), "u_view_matrix");
         proj_matrix = get_uniform<Xyz::Matrix4F>(program(), "u_proj_matrix");
 
-        light_pos = get_uniform<Xyz::Vector3F>(program(), "u_light_pos");
-        ambient = get_uniform<Xyz::Vector3F>(program(), "u_ambient");
-        diffuse_albedo = get_uniform<Xyz::Vector3F>(program(), "u_diffuse_albedo");
-        specular_albedo = get_uniform<Xyz::Vector3F>(program(), "u_specular_albedo");
-        specular_power = get_uniform<float>(program(), "u_specular_power");
-        texture = get_uniform<int32_t>(program(), "u_texture");
+        material_uniforms = {
+            get_uniform<Xyz::Vector3F>(program(), "u_material.ambient"),
+            get_uniform<Xyz::Vector3F>(program(), "u_material.diffuse"),
+            get_uniform<Xyz::Vector3F>(program(), "u_material.specular"),
+            get_uniform<float>(program(), "u_material.shininess")
+        };
+
+        dir_light_uniforms = {
+            get_uniform<Xyz::Vector3F>(program(), "u_dir_light.direction"),
+            get_uniform<Xyz::Vector3F>(program(), "u_dir_light.ambient"),
+            get_uniform<Xyz::Vector3F>(program(), "u_dir_light.diffuse"),
+            get_uniform<Xyz::Vector3F>(program(), "u_dir_light.specular")
+        };
+
+        view_pos = get_uniform<Xyz::Vector3F>(program(), "u_view_pos");
     }
 
     VertexArrayObject SmoothShader::create_vao(int32_t extra_stride) const
@@ -52,19 +62,40 @@ namespace Tungsten
 
     void SmoothShader::set_material(const Material& material)
     {
-        diffuse_albedo.set(material.diffuse_albedo);
-        specular_albedo.set(material.specular_albedo);
-        specular_power.set(material.specular_exponent);
+        material_uniforms.ambient.set(material.ambient);
+        material_uniforms.diffuse.set(material.diffuse);
+        material_uniforms.specular.set(material.specular);
+        material_uniforms.shininess.set(material.shininess);
     }
 
-    void SmoothShader::set_light(const Light& light)
+    void SmoothShader::set_light(const DirectionalLight& light)
     {
-        light_pos.set(light.position);
+        dir_light_uniforms.direction.set(light.direction);
+        dir_light_uniforms.ambient.set(light.ambient);
+        dir_light_uniforms.diffuse.set(light.diffuse);
+        dir_light_uniforms.specular.set(light.specular);
     }
 
-    void SmoothShader::set_model_view_matrix(const Xyz::Matrix4F& mv)
+    void SmoothShader::set_model_matrix(const Xyz::Matrix4F& mv)
     {
-        mv_matrix.set(mv);
+        model_matrix.set(mv);
+    }
+
+    void SmoothShader::set_camera(const Camera& camera)
+    {
+        set_view_matrix(camera.view_matrix());
+        set_view_pos(camera.view_parameters().position);
+        set_projection_matrix(camera.projection_matrix());
+    }
+
+    void SmoothShader::set_view_matrix(const Xyz::Matrix4F& mv)
+    {
+        view_matrix.set(mv);
+    }
+
+    void SmoothShader::set_view_pos(const Xyz::Vector3F& pos)
+    {
+        view_pos.set(pos);
     }
 
     void SmoothShader::set_projection_matrix(const Xyz::Matrix4F& proj)

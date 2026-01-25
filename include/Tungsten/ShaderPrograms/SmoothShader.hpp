@@ -7,25 +7,30 @@
 //****************************************************************************
 #pragma once
 #include "ShaderProgram.hpp"
+#include "Tungsten/Camera.hpp"
 
 namespace Tungsten
 {
     struct Material
     {
-        Xyz::Vector3F diffuse_albedo = {0.5, 0.2, 0.7};
-        Xyz::Vector3F specular_albedo = {0.7, 0.7, 0.7};
-        float specular_exponent = 128.0f;
+        Xyz::Vector3F ambient = {0.5, 0.2, 0.7};
+        Xyz::Vector3F diffuse = {0.5, 0.2, 0.7};
+        Xyz::Vector3F specular = {0.7, 0.7, 0.7};
+        float shininess = 128.0f;
     };
 
-    struct Light
+    struct DirectionalLight
     {
-        Xyz::Vector3F position = {100.0f, 100.0f, 100.0f};
+        Xyz::Vector3F direction = {1.0f, 1.0f, -10.0f};
         Xyz::Vector3F ambient = {0.1f, 0.1f, 0.1f};
+        Xyz::Vector3F diffuse = {0.5f, 0.5f, 0.5f};
+        Xyz::Vector3F specular = {0.7, 0.7, 0.7};
     };
 
     struct ShaderFeature
     {
         std::string name;
+        std::string description;
         std::string definition_name;
         std::string definition_value;
     };
@@ -47,23 +52,40 @@ namespace Tungsten
 
         virtual void set_material(const Material& material);
 
-        virtual void set_light(const Light& light);
+        virtual void set_light(const DirectionalLight& light);
 
-        void set_model_view_matrix(const Xyz::Matrix4F& mv);
+        void set_model_matrix(const Xyz::Matrix4F& mv);
+
+        void set_camera(const Camera& camera);
+
+        void set_view_matrix(const Xyz::Matrix4F& mv);
+
+        void set_view_pos(const Xyz::Vector3F& pos);
 
         void set_projection_matrix(const Xyz::Matrix4F& proj);
 
     protected:
-        Uniform<Xyz::Matrix4F> mv_matrix;
+        Uniform<Xyz::Matrix4F> model_matrix;
+        Uniform<Xyz::Matrix4F> view_matrix;
         Uniform<Xyz::Matrix4F> proj_matrix;
 
-        Uniform<Xyz::Vector3F> light_pos;
+        struct MaterialUniforms
+        {
+            Uniform<Xyz::Vector3F> ambient;
+            Uniform<Xyz::Vector3F> diffuse;
+            Uniform<Xyz::Vector3F> specular;
+            Uniform<float> shininess;
+        } material_uniforms;
 
-        Uniform<Xyz::Vector3F> ambient;
-        Uniform<Xyz::Vector3F> diffuse_albedo;
-        Uniform<Xyz::Vector3F> specular_albedo;
-        Uniform<float> specular_power;
-        Uniform<int32_t> texture;
+        struct DirectionalLightUniforms
+        {
+            Uniform<Xyz::Vector3F> direction;
+            Uniform<Xyz::Vector3F> ambient;
+            Uniform<Xyz::Vector3F> diffuse;
+            Uniform<Xyz::Vector3F> specular;
+        } dir_light_uniforms;
+
+        Uniform<Xyz::Vector3F> view_pos;
 
         uint32_t position_attr;
         uint32_t normal_attr;
