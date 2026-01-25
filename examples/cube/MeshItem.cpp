@@ -40,9 +40,9 @@ void MeshItem::draw(const Tungsten::Camera& camera,
     program.set_material(material_);
     program.set_camera(camera);
     program.set_light(Tungsten::DirectionalLight(
-        {1.0f, 1.0f, -5.0f},
-        {0.8f, 0.8f, 0.8f},
-        {0.8f, 0.8f, 0.8f},
+        {1.0f, 1.0f, -2.0f},
+        {1.0f, 1.0f, 1.0f},
+        {1.0f, 1.0f, 1.0f},
         {1.0f, 1.0f, 1.0f}));
     vao_.bind();
     if (wireframe_)
