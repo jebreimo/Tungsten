@@ -44,6 +44,8 @@ uniform Material u_material;
 uniform DirectionalLight u_dir_light;
 //uniform sampler2D u_texture;
 
+const float screen_gamma = 2.2; // Assume the monitor is calibrated to the sRGB color space
+
 void main()
 {
     vec3 ambient = u_dir_light.ambient * u_material.ambient;
@@ -60,6 +62,8 @@ void main()
     float spec = pow(max(dot(view_dir, reflect_dir), 0.0), u_material.shininess);
     vec3 specular = u_dir_light.specular * spec * u_material.specular;
     //texture(material.specular, TexCoords).rgb;
+    vec3 raw_color = ambient + diffuse + specular;
+    vec3 color_gamma = pow(raw_color, vec3(1.0 / screen_gamma));
 
-    color = vec4(ambient + diffuse + specular, 1.0);
+    color = vec4(color_gamma, 1.0);
 }

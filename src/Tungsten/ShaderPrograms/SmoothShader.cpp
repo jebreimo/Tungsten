@@ -60,7 +60,7 @@ namespace Tungsten
             .build();
     }
 
-    void SmoothShader::set_material(const Material& material)
+    void SmoothShader::set_material(const ColoredMaterial& material)
     {
         material_uniforms.ambient.set(material.ambient);
         material_uniforms.diffuse.set(material.diffuse);

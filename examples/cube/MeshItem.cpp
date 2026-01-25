@@ -10,7 +10,7 @@
 #include "Tungsten/ShaderPrograms/SmoothShader.hpp"
 
 MeshItem::MeshItem(Tungsten::VertexArrayObject vao,
-                   const Tungsten::Material& material,
+                   const Tungsten::ColoredMaterial& material,
                    bool wireframe)
     : vao_(std::move(vao)),
       material_(material),
@@ -23,7 +23,7 @@ void MeshItem::set_model_matrix(const Xyz::Matrix4F& model_matrix)
     model_matrix_ = model_matrix;
 }
 
-void MeshItem::set_material(const Tungsten::Material& material)
+void MeshItem::set_material(const Tungsten::ColoredMaterial& material)
 {
     material_ = material;
 }
@@ -41,7 +41,7 @@ void MeshItem::draw(const Tungsten::Camera& camera,
     program.set_camera(camera);
     program.set_light(Tungsten::DirectionalLight(
         {1.0f, 1.0f, -5.0f},
-        {0.2f, 0.2f, 0.2f},
+        {0.8f, 0.8f, 0.8f},
         {0.8f, 0.8f, 0.8f},
         {1.0f, 1.0f, 1.0f}));
     vao_.bind();

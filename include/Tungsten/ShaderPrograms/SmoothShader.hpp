@@ -8,17 +8,10 @@
 #pragma once
 #include "ShaderProgram.hpp"
 #include "Tungsten/Camera.hpp"
+#include "Tungsten/ColoredMaterial.hpp"
 
 namespace Tungsten
 {
-    struct Material
-    {
-        Xyz::Vector3F ambient = {0.5, 0.2, 0.7};
-        Xyz::Vector3F diffuse = {0.5, 0.2, 0.7};
-        Xyz::Vector3F specular = {0.7, 0.7, 0.7};
-        float shininess = 128.0f;
-    };
-
     struct DirectionalLight
     {
         Xyz::Vector3F direction = {1.0f, 1.0f, -10.0f};
@@ -50,7 +43,7 @@ namespace Tungsten
 
         [[nodiscard]] VertexArrayObject create_vao(int32_t extra_stride) const override;
 
-        virtual void set_material(const Material& material);
+        virtual void set_material(const ColoredMaterial& material);
 
         virtual void set_light(const DirectionalLight& light);
 

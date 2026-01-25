@@ -96,6 +96,7 @@ public:
           camera{make_camera(app.viewport())}
     {
         item.set_texture(texture_);
+        item.set_material(Tungsten::get_default_material(Tungsten::DefaultMaterial::RED_PLASTIC));
         std::cout << Tungsten::get_device_info() << '\n';
         Tungsten::set_swap_interval(app, Tungsten::SwapInterval::VSYNC);
     }
