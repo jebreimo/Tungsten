@@ -14,15 +14,27 @@
 
 namespace Tungsten
 {
-    enum class AttributeKind
+    enum class AttributeType
     {
         POSITION,
         NORMAL,
-        TEXCOORD,
+        TEX_COORD,
         COLOR,
         TANGENT,
         BITANGENT,
         CUSTOM
+    };
+
+    enum class UniformType
+    {
+        INT,
+        FLOAT,
+        VECTOR2,
+        VECTOR3,
+        VECTOR4,
+        MATRIX2,
+        MATRIX3,
+        MATRIX4
     };
 
     class Attribute
@@ -31,7 +43,7 @@ namespace Tungsten
         std::string name;
         int32_t size = 0;
         uint32_t location = 0;
-        AttributeKind kind = AttributeKind::CUSTOM;
+        AttributeType type = AttributeType::CUSTOM;
         AttributeDataType value_type = AttributeDataType::FLOAT;
     };
 
@@ -42,6 +54,7 @@ namespace Tungsten
         uint32_t location = 0;
         UniformType value_type = UniformType::FLOAT;
     };
+
     class ShaderProgram
     {
     public:
@@ -53,12 +66,26 @@ namespace Tungsten
 
         void use() const;
 
-        [[nodiscard]] const ProgramHandle& program() const;
+        [[nodiscard]] const ProgramHandle& handle() const;
 
         [[nodiscard]] virtual VertexArrayObject create_vao() const;
 
         [[nodiscard]] virtual VertexArrayObject create_vao(int32_t extra_stride) const = 0;
 
+        [[nodiscard]] const std::vector<Attribute>& attributes() const;
+
+        [[nodiscard]] const std::vector<Uniform2>& uniforms() const;
+
+        [[nodiscard]] const Uniform2* get_uniform(const std::string& name) const;
+
+        void set_uniform(const std::string& name, int32_t value);
+        void set_uniform(const std::string& name, float value);
+        void set_uniform(const std::string& name, const Xyz::Vector2F& value);
+        void set_uniform(const std::string& name, const Xyz::Vector3F& value);
+        void set_uniform(const std::string& name, const Xyz::Vector4F& value);
+        void set_uniform(const std::string& name, const Xyz::Matrix2F& value);
+        void set_uniform(const std::string& name, const Xyz::Matrix3F& value);
+        void set_uniform(const std::string& name, const Xyz::Matrix4F& value);
     protected:
         ShaderProgram(std::string name,
                       std::vector<std::pair<ShaderType, std::string>> sources);
@@ -70,6 +97,7 @@ namespace Tungsten
     private:
         std::string name_;
         std::unordered_map<ShaderType, std::string> sources_;
+        std::unordered_map<std::string, Uniform2> uniforms_;
         ProgramHandle program_;
     };
 }

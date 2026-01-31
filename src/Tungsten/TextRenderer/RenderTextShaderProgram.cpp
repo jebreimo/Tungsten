@@ -19,12 +19,12 @@ namespace Tungsten::Detail
                             {ShaderType::FRAGMENT, ShaderSources::RENDER_TEXT_FRAGMENT}
                         })
     {
-        position = get_vertex_attribute(program(), "a_Position");
-        texture_coord = get_vertex_attribute(program(), "a_TextureCoord");
+        position = get_vertex_attribute(handle(), "a_Position");
+        texture_coord = get_vertex_attribute(handle(), "a_TextureCoord");
 
-        mvp_matrix = Tungsten::get_uniform<Xyz::Matrix4F>(program(), "u_MvpMatrix");
-        texture = Tungsten::get_uniform<int32_t>(program(), "u_Texture");
-        color = Tungsten::get_uniform<Xyz::Vector4F>(program(), "u_TextColor");
+        mvp_matrix = Tungsten::get_uniform<Xyz::Matrix4F>(handle(), "u_MvpMatrix");
+        texture = Tungsten::get_uniform<int32_t>(handle(), "u_Texture");
+        color = Tungsten::get_uniform<Xyz::Vector4F>(handle(), "u_TextColor");
     }
 
     VertexArrayObject RenderTextShaderProgram::create_vao(int32_t extra_stride) const

@@ -25,7 +25,7 @@ namespace Tungsten
 
         void use() const;
 
-        [[nodiscard]] const ProgramHandle& program() const;
+        [[nodiscard]] const ProgramHandle& handle() const;
 
         [[nodiscard]] virtual VertexArrayObject create_vao() const;
 

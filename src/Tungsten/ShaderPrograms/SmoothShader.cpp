@@ -15,7 +15,10 @@ namespace Tungsten
     std::vector<ShaderFeature> SmoothShader::get_features()
     {
         return {
-            {"textured_material", "Use textures", "USE_TEXTURES", {}}
+            {"textured_material", "Use textures", "USE_TEXTURES", {}},
+            {"directional_light", "Use directional light", "USE_DIRECTIONAL_LIGHT", {}},
+            {"point_light", "Use point light", "USE_POINT_LIGHT", {}},
+            {"spotlight", "Use spotlight", "USE_SPOTLIGHT", {}}
         };
     }
 
@@ -24,31 +27,32 @@ namespace Tungsten
                         {
                             {ShaderType::VERTEX, ShaderSources::BLINN_PHONG_VERTEX},
                             {ShaderType::FRAGMENT, ShaderSources::BLINN_PHONG_FRAGMENT}
-                        })
+                        },
+                        ShaderPreprocessor().add_define("USE_DIRECTIONAL_LIGHT"))
     {
-        position_attr = get_vertex_attribute(program(), "a_position");
-        normal_attr = get_vertex_attribute(program(), "a_normal");
-        texture_coord_attr = get_vertex_attribute(program(), "a_texcoord");
+        position_attr = get_vertex_attribute(handle(), "a_position");
+        normal_attr = get_vertex_attribute(handle(), "a_normal");
+        texture_coord_attr = get_vertex_attribute(handle(), "a_tex_coord");
 
-        model_matrix = get_uniform<Xyz::Matrix4F>(program(), "u_model_matrix");
-        view_matrix = get_uniform<Xyz::Matrix4F>(program(), "u_view_matrix");
-        proj_matrix = get_uniform<Xyz::Matrix4F>(program(), "u_proj_matrix");
+        model_view_matrix = get_uniform<Xyz::Matrix4F>(handle(), "u_model_view_matrix");
+        normal_matrix = get_uniform<Xyz::Matrix3F>(handle(), "u_normal_matrix");
+        proj_matrix = get_uniform<Xyz::Matrix4F>(handle(), "u_proj_matrix");
 
         material_uniforms = {
-            get_uniform<Xyz::Vector3F>(program(), "u_material.ambient"),
-            get_uniform<Xyz::Vector3F>(program(), "u_material.diffuse"),
-            get_uniform<Xyz::Vector3F>(program(), "u_material.specular"),
-            get_uniform<float>(program(), "u_material.shininess")
+            get_uniform<Xyz::Vector3F>(handle(), "u_col_material.ambient"),
+            get_uniform<Xyz::Vector3F>(handle(), "u_col_material.diffuse"),
+            get_uniform<Xyz::Vector3F>(handle(), "u_col_material.specular"),
+            get_uniform<float>(handle(), "u_col_material.shininess")
         };
 
         dir_light_uniforms = {
-            get_uniform<Xyz::Vector3F>(program(), "u_dir_light.direction"),
-            get_uniform<Xyz::Vector3F>(program(), "u_dir_light.ambient"),
-            get_uniform<Xyz::Vector3F>(program(), "u_dir_light.diffuse"),
-            get_uniform<Xyz::Vector3F>(program(), "u_dir_light.specular")
+            get_uniform<Xyz::Vector3F>(handle(), "u_dir_light.direction"),
+            get_uniform<Xyz::Vector3F>(handle(), "u_dir_light.ambient"),
+            get_uniform<Xyz::Vector3F>(handle(), "u_dir_light.diffuse"),
+            get_uniform<Xyz::Vector3F>(handle(), "u_dir_light.specular")
         };
 
-        view_pos = get_uniform<Xyz::Vector3F>(program(), "u_view_pos");
+        view_pos = get_uniform<Xyz::Vector3F>(handle(), "u_view_pos");
     }
 
     VertexArrayObject SmoothShader::create_vao(int32_t extra_stride) const
@@ -68,38 +72,39 @@ namespace Tungsten
         material_uniforms.shininess.set(material.shininess);
     }
 
-    void SmoothShader::set_light(const DirectionalLight& light)
+    void SmoothShader::set_light(const DirectionalLight& light,
+                                 const Xyz::Matrix4F& view_matrix)
     {
-        dir_light_uniforms.direction.set(light.direction);
-        dir_light_uniforms.ambient.set(light.ambient);
-        dir_light_uniforms.diffuse.set(light.diffuse);
-        dir_light_uniforms.specular.set(light.specular);
+        dir_light_uniforms.direction.set(Xyz::make_submatrix<3, 3>(view_matrix) * light.direction);
+        dir_light_uniforms.ambient.set(light.light.ambient);
+        dir_light_uniforms.diffuse.set(light.light.diffuse);
+        dir_light_uniforms.specular.set(light.light.specular);
     }
 
-    void SmoothShader::set_model_matrix(const Xyz::Matrix4F& mv)
+    void SmoothShader::set_model_view_matrix(const Xyz::Matrix4F& mv,
+                                             bool update_normal_matrix)
     {
-        model_matrix.set(mv);
+        model_view_matrix.set(mv);
+        if (update_normal_matrix)
+        {
+            normal_matrix.set(Xyz::make_submatrix<3, 3>(invert(mv)), false);
+        }
     }
 
-    void SmoothShader::set_camera(const Camera& camera)
+    void SmoothShader::set_model_view_matrix(const Xyz::Matrix4F& model,
+                                             const Xyz::Matrix4F& view,
+                                             bool update_normal_matrix)
     {
-        set_view_matrix(camera.view_matrix());
-        set_view_pos(camera.view_parameters().position);
-        set_projection_matrix(camera.projection_matrix());
-    }
-
-    void SmoothShader::set_view_matrix(const Xyz::Matrix4F& mv)
-    {
-        view_matrix.set(mv);
-    }
-
-    void SmoothShader::set_view_pos(const Xyz::Vector3F& pos)
-    {
-        view_pos.set(pos);
+        set_model_view_matrix(view * model, update_normal_matrix);
     }
 
     void SmoothShader::set_projection_matrix(const Xyz::Matrix4F& proj)
     {
         proj_matrix.set(proj);
+    }
+
+    void SmoothShader::set_normal_matrix(const Xyz::Matrix3F& norm)
+    {
+        normal_matrix.set(norm);
     }
 }

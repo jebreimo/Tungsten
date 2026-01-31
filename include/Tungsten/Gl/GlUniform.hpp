@@ -68,4 +68,27 @@ namespace Tungsten
     private:
         int32_t location_;
     };
+
+    template <typename T, unsigned M, unsigned N>
+    class Uniform<Xyz::Matrix<T, M, N>>
+    {
+    public:
+        Uniform()
+            : location_(-1)
+        {
+        }
+
+        explicit Uniform(int32_t location)
+            : location_(location)
+        {
+        }
+
+        void set(const Xyz::Matrix<T, M, N>& value, bool transpose = true)
+        {
+            set_uniform(location_, value, transpose);
+        }
+
+    private:
+        int32_t location_;
+    };
 }

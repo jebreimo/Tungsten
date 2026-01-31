@@ -19,17 +19,17 @@ namespace Tungsten
                             {ShaderType::FRAGMENT, ShaderSources::PHONG_FRAGMENT}
                         })
     {
-        position_attr = get_vertex_attribute(program(), "a_position");
-        normal_attr = get_vertex_attribute(program(), "a_normal");
+        position_attr = get_vertex_attribute(handle(), "a_position");
+        normal_attr = get_vertex_attribute(handle(), "a_normal");
 
-        mv_matrix = get_uniform<Xyz::Matrix4F>(program(), "u_mv_matrix");
-        proj_matrix = get_uniform<Xyz::Matrix4F>(program(), "u_proj_matrix");
+        mv_matrix = get_uniform<Xyz::Matrix4F>(handle(), "u_mv_matrix");
+        proj_matrix = get_uniform<Xyz::Matrix4F>(handle(), "u_proj_matrix");
 
-        light_pos = get_uniform<Xyz::Vector3F>(program(), "u_light_pos");
-        ambient = get_uniform<Xyz::Vector3F>(program(), "u_ambient");
-        diffuse_albedo = get_uniform<Xyz::Vector3F>(program(), "u_diffuse_albedo");
-        specular_albedo = get_uniform<Xyz::Vector3F>(program(), "u_specular_albedo");
-        specular_power = get_uniform<float>(program(), "u_specular_power");
+        light_pos = get_uniform<Xyz::Vector3F>(handle(), "u_light_pos");
+        ambient = get_uniform<Xyz::Vector3F>(handle(), "u_ambient");
+        diffuse_albedo = get_uniform<Xyz::Vector3F>(handle(), "u_diffuse_albedo");
+        specular_albedo = get_uniform<Xyz::Vector3F>(handle(), "u_specular_albedo");
+        specular_power = get_uniform<float>(handle(), "u_specular_power");
     }
 
     VertexArrayObject PhongShader::create_vao(int32_t extra_stride) const

@@ -1,0 +1,71 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+enum AttributeDataType
+{
+    FLOAT
+    INT
+    UNSIGNED_INT
+    DOUBLE
+    BYTE
+    UNSIGNED_BYTE
+    SHORT
+    UNSIGNED_SHORT
+    FIXED
+}
+
+enum AttributeType
+{
+    POSITION_2D
+    POSITION_3D
+    NORMAL
+    COLOR
+    TEXCOORDS
+    TANGENT
+    BITANGENT
+    CUSTOM
+}
+
+class Attribute
+{
+    + location: int
+    + size: int
+    + type: AttributeType
+    + normalized: bool
+    + stride: int
+    + offset: int
+}
+
+abstract class ShaderProgram
+{
+    + use()
+    + setUniform(name: String, value: float)
+    + setUniform(name: String, value: int)
+    + setUniform(name: String, value: vec2)
+    + setUniform(name: String, value: vec3)
+    + setUniform(name: String, value: vec4)
+    + setUniform(name: String, value: mat3)
+    + setUniform(name: String, value: mat4)
+    - unforms: map<String, int>
+    - sources: map<ShaderType, String>
+}
+
+class MeshShaderProgram
+{
+    + hasTexture: bool
+    + hasNormal: bool
+    + hasTangent: bool
+    + hasBitangent: bool
+    + hasColor: bool
+    + setModelMatrix(model: mat4)
+    + setViewMatrix(view: mat4)
+    + setProjectionMatrix(proj: mat4)
+    + setDirectionalLight(direction: vec3, color: vec3, intensity: float)
+    + setPointLight(index: int, position: vec3, color: vec3, intensity: float, range: float)
+    + setSpotLight(index: int, position: vec3, direction: vec3, color: vec3, intensity: float, range: float, cutoff: float)
+    + setMaterial(ambient: vec3, diffuse: vec3, specular: vec3, shininess: float)
+}
+
+ShaderProgram <|-- MeshShaderProgram
+
+@enduml

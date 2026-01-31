@@ -51,7 +51,7 @@ namespace Tungsten
         use_program(program_);
     }
 
-    const ProgramHandle& ShaderProgram::program() const
+    const ProgramHandle& ShaderProgram::handle() const
     {
         return program_;
     }

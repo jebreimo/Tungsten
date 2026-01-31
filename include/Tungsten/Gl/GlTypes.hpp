@@ -32,7 +32,7 @@ namespace Tungsten
         TextureValueType type;
     };
 
-    enum class AttributeType
+    enum class AttributeDataType
     {
         INT8,
         UINT8,
