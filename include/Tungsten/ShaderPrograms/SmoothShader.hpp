@@ -14,14 +14,14 @@ namespace Tungsten
 {
     struct Light
     {
-        Xyz::Vector3F ambient = {0.1f, 0.1f, 0.1f};
-        Xyz::Vector3F diffuse = {0.5f, 0.5f, 0.5f};
-        Xyz::Vector3F specular = {0.7, 0.7, 0.7};
+        Xyz::Vector3F ambient = {1.f, 1.f, 1.f};
+        Xyz::Vector3F diffuse = {1.f, 1.f, 1.f};
+        Xyz::Vector3F specular = {1.f, 1.f, 1.f};
     };
 
     struct DirectionalLight
     {
-        Xyz::Vector3F direction = {1.0f, 1.0f, -10.0f};
+        Xyz::Vector3F direction = {1.0f, -1.0f, -10.0f};
         Light light;
     };
 

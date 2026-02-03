@@ -49,7 +49,7 @@ uniform DirectionalLight u_dir_light;
 
 vec3 calc_dir_light(DirectionalLight light, vec3 normal, vec3 view_dir)
 {
-    vec3 light_dir = normalize(light.direction);
+    vec3 light_dir = normalize(-light.direction);
     // diffuse shading
     float diff = max(dot(normal, light_dir), 0.0);
     // specular shading
