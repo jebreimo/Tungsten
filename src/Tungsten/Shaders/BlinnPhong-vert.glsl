@@ -12,9 +12,13 @@ precision highp int;
 precision highp float;
 #endif
 
+#ifndef USE_TEXTURED_MATERIAL
+#define USE_COLORED_MATERIAL
+#endif
+
 layout (location = 0) in vec3 a_position;
 layout (location = 1) in vec3 a_normal;
-#ifdef USE_TEXTURES
+#ifdef USE_TEXTURED_MATERIAL
 layout (location = 2) in vec2 a_tex_coord;
 #endif
 
@@ -27,7 +31,7 @@ out VS_OUT
     vec3 frag_pos;
     vec3 view_pos;
     vec3 normal;
-    #ifdef USE_TEXTURES
+    #ifdef USE_TEXTURED_MATERIAL
     vec2 texcoord;
     #endif
 } vs_out;
@@ -37,7 +41,7 @@ void main()
     vs_out.frag_pos = vec3(u_model_view_matrix * vec4(a_position, 1.0));
     vs_out.view_pos = -vs_out.frag_pos;
     vs_out.normal = u_normal_matrix * a_normal;
-    #ifdef USE_TEXTURES
+    #ifdef USE_TEXTURED_MATERIAL
     vs_out.texcoord = a_tex_coord;
     #endif
     gl_Position = u_proj_matrix * vec4(vs_out.frag_pos, 1.0);

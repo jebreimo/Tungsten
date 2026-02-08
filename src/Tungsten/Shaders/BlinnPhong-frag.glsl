@@ -12,6 +12,10 @@
     precision highp float;
 #endif
 
+#ifndef USE_TEXTURED_MATERIAL
+#define USE_COLORED_MATERIAL
+#endif
+
 layout (location = 0) out vec4 color;
 
 in VS_OUT
@@ -19,7 +23,7 @@ in VS_OUT
     vec3 frag_pos;
     vec3 view_pos;
     vec3 normal;
-    #ifdef USE_TEXTURES
+    #ifdef USE_TEXTURED_MATERIAL
     vec2 texcoord;
     #endif
 } fs_in;
@@ -32,7 +36,46 @@ struct ColorMaterial
     float shininess;
 };
 
+#ifdef USE_COLORED_MATERIAL
+
 uniform ColorMaterial u_col_material;
+
+ColorMaterial get_material()
+{
+    return u_col_material;
+}
+
+#elif defined(USE_TEXTURED_MATERIAL)
+
+struct TexturedMaterial
+{
+    sampler2D diffuse;
+
+    #ifdef USE_SPECULAR_MAP
+    sampler2D specular;
+    #else
+    vec3 specular;
+    #endif
+    float shininess;
+};
+
+uniform TexturedMaterial u_tex_material;
+
+ColorMaterial get_material()
+{
+    ColorMaterial material;
+    material.ambient = vec3(texture(u_tex_material.diffuse, fs_in.texcoord)) * 0.1;
+    material.diffuse = vec3(texture(u_tex_material.diffuse, fs_in.texcoord));
+    #ifdef USE_SPECULAR_MAP
+    material.specular = vec3(texture(u_tex_material.specular, fs_in.texcoord));
+    #else
+    material.specular = u_tex_material.specular;
+    #endif
+    material.shininess = u_tex_material.shininess;
+    return material;
+}
+
+#endif
 
 #ifdef USE_DIRECTIONAL_LIGHT
 
@@ -54,18 +97,17 @@ vec3 calc_dir_light(DirectionalLight light, vec3 normal, vec3 view_dir)
     float diff = max(dot(normal, light_dir), 0.0);
     // specular shading
     vec3 halfway = normalize(light_dir + view_dir);
-    float spec = pow(max(dot(normal, halfway), 0.0), u_col_material.shininess);
+
     // combine results
-    vec3 ambient = light.ambient * u_col_material.ambient;
-    vec3 diffuse = light.diffuse * diff * u_col_material.diffuse;
-    vec3 specular = light.specular * spec * u_col_material.specular;
-    //    vec3 ambient = light.ambient * vec3(texture(u_col_material.diffuse, fs_in.texcoord));
-    //    vec3 diffuse = light.diffuse * diff * vec3(texture(u_col_material.diffuse, fs_in.texcoord));
-    //    vec3 specular = light.specular * spec * vec3(texture(u_col_material.specular, fs_in.texcoord));
+    ColorMaterial col_material = get_material();
+    float spec = pow(max(dot(normal, halfway), 0.0), col_material.shininess);
+    vec3 ambient = light.ambient * col_material.ambient;
+    vec3 diffuse = light.diffuse * diff * col_material.diffuse;
+    vec3 specular = light.specular * spec * col_material.specular;
     return (ambient + diffuse + specular);
 }
 
-#endif
+#endif // USE_DIRECTIONAL_LIGHT
 
 #ifdef USE_POINT_LIGHTS
 
@@ -94,17 +136,17 @@ vec3 calc_point_light(PointLight light, vec3 normal, vec3 frag_pos, vec3 view_di
     float diff = max(dot(normal, light_dir), 0.0);
     // specular shading
     vec3 halfway = normalize(light_dir + view_dir);
-    float spec = pow(max(dot(normal, halfway), 0.0), u_col_material.shininess);
     // attenuation
     float distance = length(light.position - frag_pos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
+
     // combine results
-    vec3 ambient = light.ambient * u_col_material.diffuse;
-    vec3 diffuse = light.diffuse * diff * u_col_material.diffuse;
-    vec3 specular = light.specular * spec * u_col_material.specular;
-    //    vec3 ambient = light.ambient * vec3(texture(u_col_material.diffuse, fs_in.texcoord));
-    //    vec3 diffuse = light.diffuse * diff * vec3(texture(u_col_material.diffuse, fs_in.texcoord));
-    //    vec3 specular = light.specular * spec * vec3(texture(u_col_material.specular, fs_in.texcoord));
+    ColorMaterial col_material = get_material();
+    float spec = pow(max(dot(normal, halfway), 0.0), col_material.shininess);
+    vec3 ambient = light.ambient * col_material.ambient;
+    vec3 diffuse = light.diffuse * diff * col_material.diffuse;
+    vec3 specular = light.specular * spec * col_material.specular;
+
     ambient *= attenuation;
     diffuse *= attenuation;
     specular *= attenuation;
@@ -114,7 +156,7 @@ vec3 calc_point_light(PointLight light, vec3 normal, vec3 frag_pos, vec3 view_di
 uniform PointLight u_point_lights[MAX_POINT_LIGHTS];
 uniform int u_num_point_lights;
 
-#endif
+#endif // USE_POINT_LIGHTS
 
 #ifdef USE_SPOT_LIGHT
 
@@ -142,22 +184,21 @@ vec3 calc_spot_light(SpotLight light, vec3 normal, vec3 frag_pos, vec3 view_dir)
     float diff = max(dot(normal, light_dir), 0.0);
     // specular shading
     vec3 halfway = normalize(light_dir + view_dir);
-    float spec = pow(max(dot(normal, halfway), 0.0), u_col_material.shininess);
     // attenuation
     float distance = length(light.position - frag_pos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
-    // combine results
-    vec3 ambient = light.ambient * u_col_material.diffuse;
-    vec3 diffuse = light.diffuse * diff * u_col_material.diffuse;
-    vec3 specular = light.specular * spec * u_col_material.specular;
-    //    vec3 ambient = light.ambient * vec3(texture(u_col_material.diffuse, fs_in.texcoord));
-    //    vec3 diffuse = light.diffuse * diff * vec3(texture(u_col_material.diffuse, fs_in.texcoord));
-    //    vec3 specular = light.specular * spec * vec3(texture(u_col_material.specular, fs_in.texcoord));
-
     // spotlight intensity
     float theta = dot(light_dir, normalize(-light.direction));
     float epsilon = light.cut_off - light.outer_cut_off;
     float intensity = clamp((theta - light.outer_cut_off) / epsilon, 0.0, 1.0);
+
+    // combine results
+    ColorMaterial col_material = get_material();
+    float spec = pow(max(dot(normal, halfway), 0.0), col_material.shininess);
+    vec3 ambient = light.ambient * col_material.ambient;
+    vec3 diffuse = light.diffuse * diff * col_material.diffuse;
+    vec3 specular = light.specular * spec * col_material.specular;
+
     ambient *= attenuation * intensity;
     diffuse *= attenuation * intensity;
     specular *= attenuation * intensity;
@@ -167,7 +208,7 @@ vec3 calc_spot_light(SpotLight light, vec3 normal, vec3 frag_pos, vec3 view_dir)
 
 uniform SpotLight u_spot_light;
 
-#endif
+#endif // USE_SPOT_LIGHT
 
 void main()
 {
