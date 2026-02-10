@@ -38,11 +38,11 @@ namespace Tungsten
         normal_matrix = get_uniform<Xyz::Matrix3F>(handle(), "u_normal_matrix");
         proj_matrix = get_uniform<Xyz::Matrix4F>(handle(), "u_proj_matrix");
 
-        material_uniforms = {
-            get_uniform<Xyz::Vector3F>(handle(), "u_col_material.ambient"),
-            get_uniform<Xyz::Vector3F>(handle(), "u_col_material.diffuse"),
-            get_uniform<Xyz::Vector3F>(handle(), "u_col_material.specular"),
-            get_uniform<float>(handle(), "u_col_material.shininess")
+        colored_material_uniforms = {
+            get_uniform<Xyz::Vector3F>(handle(), "u_material.ambient"),
+            get_uniform<Xyz::Vector3F>(handle(), "u_material.diffuse"),
+            get_uniform<Xyz::Vector3F>(handle(), "u_material.specular"),
+            get_uniform<float>(handle(), "u_material.shininess")
         };
 
         dir_light_uniforms = {
@@ -66,10 +66,10 @@ namespace Tungsten
 
     void SmoothShader::set_material(const ColoredMaterial& material)
     {
-        material_uniforms.ambient.set(material.ambient);
-        material_uniforms.diffuse.set(material.diffuse);
-        material_uniforms.specular.set(material.specular);
-        material_uniforms.shininess.set(material.shininess);
+        colored_material_uniforms.ambient.set(material.ambient);
+        colored_material_uniforms.diffuse.set(material.diffuse);
+        colored_material_uniforms.specular.set(material.specular);
+        colored_material_uniforms.shininess.set(material.shininess);
     }
 
     void SmoothShader::set_light(const DirectionalLight& light,

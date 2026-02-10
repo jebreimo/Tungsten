@@ -57,6 +57,37 @@ namespace Tungsten
         std::string definition_value;
     };
 
+    struct TextureMapMaterial
+    {
+        Xyz::Vector3F specular = {1.f, 1.f, 1.f};
+        float shininess = 32.f;
+        int32_t texture_map = 0;
+    };
+
+    struct SpecularMapMaterial
+    {
+        float shininess = 32.f;
+        int32_t texture_map = 0;
+        int32_t specular_map = 1;
+    };
+
+    enum class MaterialType
+    {
+        COLORED,
+        TEXTURED,
+        TEXTURED_WITH_SPECULAR_MAP
+    };
+
+    struct SmoothShaderFeatures
+    {
+        MaterialType material_type = MaterialType::COLORED;
+        bool use_directional_light = true;
+        bool use_point_light = false;
+        bool use_spotlight = false;
+        unsigned int max_point_lights = 4;
+    };
+
+    // struct ShaderFactory
     class SmoothShader : public ShaderProgram
     {
     public:
@@ -72,10 +103,21 @@ namespace Tungsten
 
         [[nodiscard]] VertexArrayObject create_vao(int32_t extra_stride) const override;
 
-        virtual void set_material(const ColoredMaterial& material);
+        void set_material(const ColoredMaterial& material);
 
-        virtual void set_light(const DirectionalLight& light,
-                               const Xyz::Matrix4F& view_matrix);
+        void set_material(const TextureMapMaterial& material);
+
+        void set_material(const SpecularMapMaterial& material);
+
+        void set_light(const DirectionalLight& light,
+                       const Xyz::Matrix4F& view_matrix);
+
+        void set_light(unsigned index,
+                       const PointLight& light,
+                       const Xyz::Matrix4F& view_matrix);
+
+        void set_light(const Spotlight& light,
+                       const Xyz::Matrix4F& view_matrix);
 
         void set_model_view_matrix(const Xyz::Matrix4F& mv,
                                    bool update_normal_matrix = true);
@@ -93,13 +135,27 @@ namespace Tungsten
         Uniform<Xyz::Matrix3F> normal_matrix;
         Uniform<Xyz::Matrix4F> proj_matrix;
 
-        struct MaterialUniforms
+        struct ColoredMaterialUniforms
         {
             Uniform<Xyz::Vector3F> ambient;
             Uniform<Xyz::Vector3F> diffuse;
             Uniform<Xyz::Vector3F> specular;
             Uniform<float> shininess;
-        } material_uniforms;
+        } colored_material_uniforms;
+
+        struct TextureMapMaterialUniforms
+        {
+            Uniform<int32_t> texture_map;
+            Uniform<Xyz::Vector3F> specular;
+            Uniform<float> shininess;
+        } textured_material_uniforms;
+
+        struct SpecularMapMaterialUniforms
+        {
+            Uniform<int32_t> texture_map;
+            Uniform<int32_t> specular_map;
+            Uniform<float> shininess;
+        } specular_map_material_uniforms;
 
         struct DirectionalLightUniforms
         {

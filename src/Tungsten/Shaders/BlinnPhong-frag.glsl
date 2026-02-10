@@ -12,8 +12,8 @@
     precision highp float;
 #endif
 
-#ifndef USE_TEXTURED_MATERIAL
-#define USE_COLORED_MATERIAL
+#if defined(USE_DIFFUSE_MAP) || defined(USE_SPECULAR_MAP)
+    #define USE_TEXTURE_COORD
 #endif
 
 layout (location = 0) out vec4 color;
@@ -23,33 +23,19 @@ in VS_OUT
     vec3 frag_pos;
     vec3 view_pos;
     vec3 normal;
-    #ifdef USE_TEXTURED_MATERIAL
+    #ifdef USE_TEXTURE_COORD
     vec2 texcoord;
     #endif
 } fs_in;
 
-struct ColorMaterial
+struct Material
 {
+    #ifdef USE_DIFFUSE_MAP
+    sampler2D diffuse;
+    #else
     vec3 ambient;
     vec3 diffuse;
-    vec3 specular;
-    float shininess;
-};
-
-#ifdef USE_COLORED_MATERIAL
-
-uniform ColorMaterial u_col_material;
-
-ColorMaterial get_material()
-{
-    return u_col_material;
-}
-
-#elif defined(USE_TEXTURED_MATERIAL)
-
-struct TexturedMaterial
-{
-    sampler2D diffuse;
+    #endif
 
     #ifdef USE_SPECULAR_MAP
     sampler2D specular;
@@ -59,23 +45,37 @@ struct TexturedMaterial
     float shininess;
 };
 
-uniform TexturedMaterial u_tex_material;
+uniform Material u_material;
+
+struct ColorMaterial
+{
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float shininess;
+};
 
 ColorMaterial get_material()
 {
     ColorMaterial material;
-    material.ambient = vec3(texture(u_tex_material.diffuse, fs_in.texcoord)) * 0.1;
-    material.diffuse = vec3(texture(u_tex_material.diffuse, fs_in.texcoord));
-    #ifdef USE_SPECULAR_MAP
-    material.specular = vec3(texture(u_tex_material.specular, fs_in.texcoord));
+
+    #ifdef USE_DIFFUSE_MAP
+    material.ambient = vec3(texture(u_material.diffuse, fs_in.texcoord)) * 0.1;
+    material.diffuse = vec3(texture(u_material.diffuse, fs_in.texcoord));
     #else
-    material.specular = u_tex_material.specular;
+    material.ambient = u_material.ambient;
+    material.diffuse = u_material.diffuse;
     #endif
-    material.shininess = u_tex_material.shininess;
+
+    #ifdef USE_SPECULAR_MAP
+    material.specular = vec3(texture(u_material.specular, fs_in.texcoord));
+    #else
+    material.specular = u_material.specular;
+    #endif
+
+    material.shininess = u_material.shininess;
     return material;
 }
-
-#endif
 
 #ifdef USE_DIRECTIONAL_LIGHT
 
