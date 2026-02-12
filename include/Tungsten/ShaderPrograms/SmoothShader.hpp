@@ -6,49 +6,13 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include "LightUniforms.hpp"
 #include "MaterialUniforms.hpp"
 #include "ShaderProgram.hpp"
 #include "Tungsten/Camera.hpp"
 
 namespace Tungsten
 {
-    struct Light
-    {
-        Xyz::Vector3F ambient = {1.f, 1.f, 1.f};
-        Xyz::Vector3F diffuse = {1.f, 1.f, 1.f};
-        Xyz::Vector3F specular = {1.f, 1.f, 1.f};
-    };
-
-    struct DirectionalLight
-    {
-        Xyz::Vector3F direction = {1.0f, -1.0f, -10.0f};
-        Light light;
-    };
-
-    struct LightAttenuation
-    {
-        float constant = 1.0f;
-        float linear = 0.09f;
-        float quadratic = 0.032f;
-    };
-
-    struct PointLight
-    {
-        Xyz::Vector3F position = {0.0f, 0.0f, 0.0f};
-        Light light;
-        LightAttenuation attenuation;
-    };
-
-    struct Spotlight
-    {
-        Xyz::Vector3F position = {0.0f, 0.0f, 0.0f};
-        Xyz::Vector3F direction = {0.0f, 0.0f, -1.0f};
-        Light light;
-        LightAttenuation attenuation;
-        float cut_off = 12.5f; // degrees
-        float outer_cut_off = 15.0f; // degrees
-    };
-
     struct ShaderFeature
     {
         std::string name;
@@ -60,8 +24,9 @@ namespace Tungsten
     enum class MaterialType
     {
         COLORED,
-        TEXTURED,
-        TEXTURED_WITH_SPECULAR_MAP
+        DIFFUSE_MAP,
+        SPECULAR_MAP,
+        DIFFUSE_SPECULAR_MAP
     };
 
     struct SmoothShaderFeatures
@@ -73,20 +38,6 @@ namespace Tungsten
         unsigned int max_point_lights = 4;
     };
 
-    struct DirectionalLightUniform
-    {
-        explicit DirectionalLightUniform(const ShaderProgram& shader_program);
-
-        void set(const DirectionalLight& light,
-                 const Xyz::Matrix4F& view_matrix);
-
-        Uniform<Xyz::Vector3F> direction;
-        Uniform<Xyz::Vector3F> ambient;
-        Uniform<Xyz::Vector3F> diffuse;
-        Uniform<Xyz::Vector3F> specular;
-    };
-
-    // struct ShaderFactory
     class SmoothShader : public ShaderProgram
     {
     public:
@@ -101,19 +52,6 @@ namespace Tungsten
         using ShaderProgram::create_vao;
 
         [[nodiscard]] VertexArrayObject create_vao(int32_t extra_stride) const override;
-
-        void set_material(const TexMaterial& material);
-
-        void set_material(const SpecMaterial& material);
-
-        void set_material(const TexSpecMaterial& material);
-
-        void set_light(unsigned index,
-                       const PointLight& light,
-                       const Xyz::Matrix4F& view_matrix);
-
-        void set_light(const Spotlight& light,
-                       const Xyz::Matrix4F& view_matrix);
 
         void set_model_view_matrix(const Xyz::Matrix4F& mv,
                                    bool update_normal_matrix = true);
@@ -133,21 +71,6 @@ namespace Tungsten
         Uniform<Xyz::Matrix4F> model_view_matrix;
         Uniform<Xyz::Matrix3F> normal_matrix;
         Uniform<Xyz::Matrix4F> proj_matrix;
-
-
-        struct TextureMapMaterialUniforms
-        {
-            Uniform<int32_t> texture_map;
-            Uniform<Xyz::Vector3F> specular;
-            Uniform<float> shininess;
-        } textured_material_uniforms;
-
-        struct SpecularMapMaterialUniforms
-        {
-            Uniform<int32_t> texture_map;
-            Uniform<int32_t> specular_map;
-            Uniform<float> shininess;
-        } specular_map_material_uniforms;
 
         uint32_t position_attr;
         uint32_t normal_attr;

@@ -23,23 +23,6 @@ namespace Tungsten
         };
     }
 
-    DirectionalLightUniform::DirectionalLightUniform(const ShaderProgram& shader_program)
-        : direction(get_uniform<Xyz::Vector3F>(shader_program.handle(), "u_dir_light.direction")),
-          ambient(get_uniform<Xyz::Vector3F>(shader_program.handle(), "u_dir_light.ambient")),
-          diffuse(get_uniform<Xyz::Vector3F>(shader_program.handle(), "u_dir_light.diffuse")),
-          specular(get_uniform<Xyz::Vector3F>(shader_program.handle(), "u_dir_light.specular"))
-    {
-    }
-
-    void DirectionalLightUniform::set(const DirectionalLight& light,
-                                       const Xyz::Matrix4F& view_matrix)
-    {
-        direction.set(make_submatrix<3, 3>(view_matrix) * light.direction);
-        ambient.set(light.light.ambient);
-        diffuse.set(light.light.diffuse);
-        specular.set(light.light.specular);
-    }
-
     SmoothShader::SmoothShader()
         : ShaderProgram(std::string(NAME),
                         {

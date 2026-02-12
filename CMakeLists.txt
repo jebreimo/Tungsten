@@ -89,6 +89,7 @@ add_library(Tungsten STATIC
     include/Tungsten/Gl/IOglWrapper.hpp
     include/Tungsten/GlContext.hpp
     include/Tungsten/GlParameters.hpp
+    include/Tungsten/Lights.hpp
     include/Tungsten/Materials.hpp
     include/Tungsten/MeshUtilities.hpp
     include/Tungsten/SdlApplication.hpp
@@ -98,6 +99,7 @@ add_library(Tungsten STATIC
     include/Tungsten/ShaderPreprocessor.hpp
     include/Tungsten/ShaderProgramBuilder.hpp
     include/Tungsten/ShaderPrograms/GouraudShader.hpp
+    include/Tungsten/ShaderPrograms/LightUniforms.hpp
     include/Tungsten/ShaderPrograms/MaterialUniforms.hpp
     include/Tungsten/ShaderPrograms/PhongShader.hpp
     include/Tungsten/ShaderPrograms/ShaderProgram.hpp
@@ -144,6 +146,7 @@ add_library(Tungsten STATIC
     src/Tungsten/ShaderProgram.cpp
     src/Tungsten/ShaderProgramBuilder.cpp
     src/Tungsten/ShaderPrograms/GouraudShader.cpp
+    src/Tungsten/ShaderPrograms/LightUniforms.cpp
     src/Tungsten/ShaderPrograms/MaterialUniforms.cpp
     src/Tungsten/ShaderPrograms/PhongShader.cpp
     src/Tungsten/ShaderPrograms/SmoothShader.cpp
