@@ -12,12 +12,12 @@ class MeshItem
 {
 public:
     MeshItem(Tungsten::VertexArrayObject vao,
-             const Tungsten::ColoredMaterial& material,
+             const Tungsten::ColorMaterial& material,
              bool wireframe = false);
 
     void set_model_matrix(const Xyz::Matrix4F& model_matrix);
 
-    void set_material(const Tungsten::ColoredMaterial& material);
+    void set_material(const Tungsten::ColorMaterial& material);
 
     void set_texture(uint32_t texture_handle);
 
@@ -32,7 +32,7 @@ public:
 private:
     Xyz::Matrix4F model_matrix_ = Xyz::Matrix4F::identity();
     Tungsten::VertexArrayObject vao_;
-    Tungsten::ColoredMaterial material_;
+    Tungsten::ColorMaterial material_;
     std::optional<int32_t> texture_handle_;
     bool wireframe_;
 };

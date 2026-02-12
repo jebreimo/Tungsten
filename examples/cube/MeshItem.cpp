@@ -10,7 +10,7 @@
 #include "Tungsten/ShaderPrograms/SmoothShader.hpp"
 
 MeshItem::MeshItem(Tungsten::VertexArrayObject vao,
-                   const Tungsten::ColoredMaterial& material,
+                   const Tungsten::ColorMaterial& material,
                    bool wireframe)
     : vao_(std::move(vao)),
       material_(material),
@@ -23,7 +23,7 @@ void MeshItem::set_model_matrix(const Xyz::Matrix4F& model_matrix)
     model_matrix_ = model_matrix;
 }
 
-void MeshItem::set_material(const Tungsten::ColoredMaterial& material)
+void MeshItem::set_material(const Tungsten::ColorMaterial& material)
 {
     material_ = material;
 }
@@ -38,14 +38,17 @@ void MeshItem::draw(const Tungsten::Camera& camera,
 {
     program.set_model_view_matrix(camera.view_matrix() * model_matrix_);
     program.set_projection_matrix(camera.projection_matrix());
-    program.set_material(material_);
-    program.set_light(Tungsten::DirectionalLight(
-        {1.0f, 1.0f, -2.0f},
-        {
-            {1.0f, 1.0f, 1.0f},
-            {1.0f, 1.0f, 1.0f},
-            {1.0f, 1.0f, 1.0f}}),
-            camera.view_matrix());
+    program.material.set(material_);
+    program.directional_light.set(
+        Tungsten::DirectionalLight(
+            {1.0f, 1.0f, -1.0f},
+            {
+                {1.0f, 1.0f, 1.0f},
+                {1.0f, 1.0f, 1.0f},
+                {1.0f, 1.0f, 1.0f}
+            }),
+        camera.view_matrix()
+    );
     vao_.bind();
     if (wireframe_)
         Tungsten::draw_line_elements_16(0, vao_.element_count);

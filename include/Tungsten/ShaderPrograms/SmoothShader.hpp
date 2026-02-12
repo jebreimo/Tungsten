@@ -6,9 +6,9 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include "MaterialUniforms.hpp"
 #include "ShaderProgram.hpp"
 #include "Tungsten/Camera.hpp"
-#include "Tungsten/ColoredMaterial.hpp"
 
 namespace Tungsten
 {
@@ -57,20 +57,6 @@ namespace Tungsten
         std::string definition_value;
     };
 
-    struct TextureMapMaterial
-    {
-        Xyz::Vector3F specular = {1.f, 1.f, 1.f};
-        float shininess = 32.f;
-        int32_t texture_map = 0;
-    };
-
-    struct SpecularMapMaterial
-    {
-        float shininess = 32.f;
-        int32_t texture_map = 0;
-        int32_t specular_map = 1;
-    };
-
     enum class MaterialType
     {
         COLORED,
@@ -85,6 +71,19 @@ namespace Tungsten
         bool use_point_light = false;
         bool use_spotlight = false;
         unsigned int max_point_lights = 4;
+    };
+
+    struct DirectionalLightUniform
+    {
+        explicit DirectionalLightUniform(const ShaderProgram& shader_program);
+
+        void set(const DirectionalLight& light,
+                 const Xyz::Matrix4F& view_matrix);
+
+        Uniform<Xyz::Vector3F> direction;
+        Uniform<Xyz::Vector3F> ambient;
+        Uniform<Xyz::Vector3F> diffuse;
+        Uniform<Xyz::Vector3F> specular;
     };
 
     // struct ShaderFactory
@@ -103,14 +102,11 @@ namespace Tungsten
 
         [[nodiscard]] VertexArrayObject create_vao(int32_t extra_stride) const override;
 
-        void set_material(const ColoredMaterial& material);
+        void set_material(const TexMaterial& material);
 
-        void set_material(const TextureMapMaterial& material);
+        void set_material(const SpecMaterial& material);
 
-        void set_material(const SpecularMapMaterial& material);
-
-        void set_light(const DirectionalLight& light,
-                       const Xyz::Matrix4F& view_matrix);
+        void set_material(const TexSpecMaterial& material);
 
         void set_light(unsigned index,
                        const PointLight& light,
@@ -130,18 +126,14 @@ namespace Tungsten
 
         void set_normal_matrix(const Xyz::Matrix3F& norm);
 
+        ColorMaterialUniform material;
+
+        DirectionalLightUniform directional_light;
     protected:
         Uniform<Xyz::Matrix4F> model_view_matrix;
         Uniform<Xyz::Matrix3F> normal_matrix;
         Uniform<Xyz::Matrix4F> proj_matrix;
 
-        struct ColoredMaterialUniforms
-        {
-            Uniform<Xyz::Vector3F> ambient;
-            Uniform<Xyz::Vector3F> diffuse;
-            Uniform<Xyz::Vector3F> specular;
-            Uniform<float> shininess;
-        } colored_material_uniforms;
 
         struct TextureMapMaterialUniforms
         {
@@ -156,16 +148,6 @@ namespace Tungsten
             Uniform<int32_t> specular_map;
             Uniform<float> shininess;
         } specular_map_material_uniforms;
-
-        struct DirectionalLightUniforms
-        {
-            Uniform<Xyz::Vector3F> direction;
-            Uniform<Xyz::Vector3F> ambient;
-            Uniform<Xyz::Vector3F> diffuse;
-            Uniform<Xyz::Vector3F> specular;
-        } dir_light_uniforms;
-
-        Uniform<Xyz::Vector3F> view_pos;
 
         uint32_t position_attr;
         uint32_t normal_attr;

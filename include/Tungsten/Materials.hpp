@@ -10,12 +10,34 @@
 
 namespace Tungsten
 {
-    struct ColoredMaterial
+    struct ColorMaterial
     {
         Xyz::Vector3F ambient = {0.5, 0.5, 0.5};
         Xyz::Vector3F diffuse = {0.5, 0.5, 0.5};
         Xyz::Vector3F specular = {0.5, 0.5, 0.5};
-        float shininess = 128.0f;
+        float shininess = 32.0f;
+    };
+
+    struct TexMaterial
+    {
+        int32_t texture_unit = 0;
+        Xyz::Vector3F specular = {0.5, 0.5, 0.5};
+        float shininess = 32.0f;
+    };
+
+    struct SpecMaterial
+    {
+        Xyz::Vector3F ambient = {0.5, 0.5, 0.5};
+        Xyz::Vector3F diffuse = {0.5, 0.5, 0.5};
+        int32_t specular_unit = 0;
+        float shininess = 32.0f;
+    };
+
+    struct TexSpecMaterial
+    {
+        int32_t texture_unit = 0;
+        int32_t specular_unit = 1;
+        float shininess = 32.0f;
     };
 
     enum class DefaultMaterial
@@ -46,5 +68,5 @@ namespace Tungsten
         YELLOW_RUBBER,
     };
 
-    ColoredMaterial get_default_material(DefaultMaterial material);
+    ColorMaterial get_default_material(DefaultMaterial material);
 } // Tungsten

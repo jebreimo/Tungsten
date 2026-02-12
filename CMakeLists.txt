@@ -63,6 +63,12 @@ find_package(SDL3 REQUIRED)
 add_library(Tungsten STATIC
     include/Tungsten/Buffer.hpp
     include/Tungsten/Camera.hpp
+    include/Tungsten/Commands/Command.cpp
+    include/Tungsten/Commands/Command.hpp
+    include/Tungsten/Commands/CompositeCommand.cpp
+    include/Tungsten/Commands/CompositeCommand.hpp
+    include/Tungsten/Commands/DrawElementsCommand.cpp
+    include/Tungsten/Commands/DrawElementsCommand.hpp
     include/Tungsten/Detail/GenericBitmaskOperators.hpp
     include/Tungsten/DeviceInfo.hpp
     include/Tungsten/DummyOglWrapper.hpp
@@ -83,6 +89,7 @@ add_library(Tungsten STATIC
     include/Tungsten/Gl/IOglWrapper.hpp
     include/Tungsten/GlContext.hpp
     include/Tungsten/GlParameters.hpp
+    include/Tungsten/Materials.hpp
     include/Tungsten/MeshUtilities.hpp
     include/Tungsten/SdlApplication.hpp
     include/Tungsten/SdlDisplay.hpp
@@ -91,9 +98,11 @@ add_library(Tungsten STATIC
     include/Tungsten/ShaderPreprocessor.hpp
     include/Tungsten/ShaderProgramBuilder.hpp
     include/Tungsten/ShaderPrograms/GouraudShader.hpp
+    include/Tungsten/ShaderPrograms/MaterialUniforms.hpp
     include/Tungsten/ShaderPrograms/PhongShader.hpp
     include/Tungsten/ShaderPrograms/ShaderProgram.hpp
     include/Tungsten/ShaderPrograms/SmoothShader.hpp
+    include/Tungsten/ShaderPrograms2/ShaderProgram.hpp
     include/Tungsten/ShaderTools.hpp
     include/Tungsten/TextRenderer.hpp
     include/Tungsten/Tungsten.hpp
@@ -125,6 +134,7 @@ add_library(Tungsten STATIC
     src/Tungsten/Gl/TracingOglWrapper.hpp
     src/Tungsten/GlContext.cpp
     src/Tungsten/GlParameters.cpp
+    src/Tungsten/Materials.cpp
     src/Tungsten/MeshUtilities.cpp
     src/Tungsten/SdlApplication.cpp
     src/Tungsten/SdlDisplay.cpp
@@ -134,6 +144,7 @@ add_library(Tungsten STATIC
     src/Tungsten/ShaderProgram.cpp
     src/Tungsten/ShaderProgramBuilder.cpp
     src/Tungsten/ShaderPrograms/GouraudShader.cpp
+    src/Tungsten/ShaderPrograms/MaterialUniforms.cpp
     src/Tungsten/ShaderPrograms/PhongShader.cpp
     src/Tungsten/ShaderPrograms/SmoothShader.cpp
     src/Tungsten/ShaderSources.cpp.in
@@ -147,17 +158,8 @@ add_library(Tungsten STATIC
     src/Tungsten/TungstenException.cpp
     src/Tungsten/VertexArrayObject.cpp
     src/Tungsten/VertexArrayObjectBuilder.cpp
-    src/Tungsten/YimageGl.cpp
-    include/Tungsten/Commands/Command.cpp
-    include/Tungsten/Commands/Command.hpp
-    include/Tungsten/Commands/DrawElementsCommand.cpp
-    include/Tungsten/Commands/DrawElementsCommand.hpp
-    include/Tungsten/Commands/CompositeCommand.cpp
-    include/Tungsten/Commands/CompositeCommand.hpp
-    include/Tungsten/ShaderPrograms2/ShaderProgram.hpp
     src/Tungsten/Viewport.cpp
-    src/Tungsten/ColoredMaterial.cpp
-    include/Tungsten/ColoredMaterial.hpp
+    src/Tungsten/YimageGl.cpp
 )
 
 target_link_libraries(Tungsten

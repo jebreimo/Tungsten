@@ -5,7 +5,7 @@
 // This file is distributed under the Zero-Clause BSD Licens  0.
 // License text is included with the source distributio  0.
 //****************************************************************************
-#include "Tungsten/ColoredMaterial.hpp"
+#include "Tungsten/Materials.hpp"
 
 namespace Tungsten
 {
@@ -13,7 +13,7 @@ namespace Tungsten
     {
         constexpr float SHININESS_SCALE = 32.0f;
 
-        constexpr std::pair<DefaultMaterial, ColoredMaterial> DEFAULT_MATERIALS[] = {
+        constexpr std::pair<DefaultMaterial, ColorMaterial> DEFAULT_MATERIALS[] = {
             {
                 DefaultMaterial::EMERALD,
                 {
@@ -233,7 +233,7 @@ namespace Tungsten
         };
     }
 
-    ColoredMaterial get_default_material(DefaultMaterial material)
+    ColorMaterial get_default_material(DefaultMaterial material)
     {
         return DEFAULT_MATERIALS[unsigned(material)].second;
     }
