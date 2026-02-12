@@ -32,6 +32,12 @@ namespace Tungsten
         return Uniform<T>(get_uniform_location(program_id, name));
     }
 
+    template <typename T>
+    Uniform<T> get_uniform(uint32_t program_id, const std::string& name)
+    {
+        return Uniform<T>(get_uniform_location(program_id, name.c_str()));
+    }
+
     void link_program(uint32_t program_id);
 
     void use_program(uint32_t program_id);

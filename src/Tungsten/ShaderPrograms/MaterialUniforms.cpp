@@ -10,11 +10,12 @@
 
 namespace Tungsten
 {
-    ColorMaterialUniform::ColorMaterialUniform(const ShaderProgram& shader_program)
-        : ambient(get_uniform<Xyz::Vector3F>(shader_program.handle(), "u_material.ambient")),
-          diffuse(get_uniform<Xyz::Vector3F>(shader_program.handle(), "u_material.diffuse")),
-          specular(get_uniform<Xyz::Vector3F>(shader_program.handle(), "u_material.specular")),
-          shininess(get_uniform<float>(shader_program.handle(), "u_material.shininess"))
+    ColorMaterialUniform::ColorMaterialUniform(const std::string& prefix,
+                                               const ShaderProgram& shader_program)
+        : ambient(get_uniform<Xyz::Vector3F>(shader_program.handle(), prefix + "ambient")),
+          diffuse(get_uniform<Xyz::Vector3F>(shader_program.handle(), prefix + "diffuse")),
+          specular(get_uniform<Xyz::Vector3F>(shader_program.handle(), prefix + "specular")),
+          shininess(get_uniform<float>(shader_program.handle(), prefix + "shininess"))
     {
     }
 

@@ -15,7 +15,8 @@ namespace Tungsten
 
     struct ColorMaterialUniform
     {
-        explicit ColorMaterialUniform(const ShaderProgram& shader_program);
+        explicit ColorMaterialUniform(const std::string& prefix,
+                                      const ShaderProgram& shader_program);
 
         void set(const ColorMaterial& material);
 

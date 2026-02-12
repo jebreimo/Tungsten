@@ -17,7 +17,7 @@ namespace Tungsten
 
     struct DirectionalLightUniform
     {
-        explicit DirectionalLightUniform(const ShaderProgram& shader_program);
+        explicit DirectionalLightUniform(const std::string& prefix, const ShaderProgram& shader_program);
 
         void set(const DirectionalLight& light,
                  const Xyz::Matrix4F& view_matrix);

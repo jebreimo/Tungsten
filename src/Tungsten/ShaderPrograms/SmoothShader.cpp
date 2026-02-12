@@ -30,8 +30,8 @@ namespace Tungsten
                             {ShaderType::FRAGMENT, ShaderSources::BLINN_PHONG_FRAGMENT}
                         },
                         ShaderPreprocessor().add_define("USE_DIRECTIONAL_LIGHT")),
-          material(*this),
-          directional_light(*this)
+          material("u_material.", *this),
+          directional_light("u_dir_light.", *this)
     {
         position_attr = get_vertex_attribute(handle(), "a_position");
         normal_attr = get_vertex_attribute(handle(), "a_normal");
