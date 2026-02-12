@@ -6,7 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include "Gl/IOglWrapper.hpp"
+#include "IOglWrapper.hpp"
 
 namespace Tungsten
 {

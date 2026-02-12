@@ -71,11 +71,11 @@ add_library(Tungsten STATIC
     include/Tungsten/Commands/DrawElementsCommand.hpp
     include/Tungsten/Detail/GenericBitmaskOperators.hpp
     include/Tungsten/DeviceInfo.hpp
-    include/Tungsten/DummyOglWrapper.hpp
     include/Tungsten/Environment.hpp
     include/Tungsten/Font.hpp
     include/Tungsten/FontManager.hpp
     include/Tungsten/FontManager.hpp
+    include/Tungsten/Gl/DummyOglWrapper.hpp
     include/Tungsten/Gl/GlBuffer.hpp
     include/Tungsten/Gl/GlFramebuffer.hpp
     include/Tungsten/Gl/GlHandle.hpp
