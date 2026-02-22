@@ -23,7 +23,7 @@ namespace Tungsten
     GLenum to_ogl_texture_parameter(TextureParameter parameter);
     GLenum to_ogl_draw_mode(TopologyType topology);
     GLenum to_ogl_shader_type(ShaderType type);
-    GLenum to_ogl_vertex_attribute_type(VertexAttributeType type);
+    GLenum to_ogl_vertex_attribute_type(VertexAttributeDataType type);
     FramebufferStatus from_ogl_framebuffer_status(GLenum status);
     GLenum to_ogl_element_index_type(ElementIndexType type);
     GLint to_ogl_texture_min_filter(TextureMinFilter filter);

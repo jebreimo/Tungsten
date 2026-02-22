@@ -14,17 +14,6 @@
 
 namespace Tungsten
 {
-    enum class AttributeType
-    {
-        POSITION,
-        NORMAL,
-        TEX_COORD,
-        COLOR,
-        TANGENT,
-        BITANGENT,
-        CUSTOM
-    };
-
     enum class UniformType
     {
         INT,
@@ -35,16 +24,6 @@ namespace Tungsten
         MATRIX2,
         MATRIX3,
         MATRIX4
-    };
-
-    class Attribute
-    {
-    public:
-        std::string name;
-        int32_t size = 0;
-        uint32_t location = 0;
-        AttributeType type = AttributeType::CUSTOM;
-        AttributeDataType value_type = AttributeDataType::FLOAT;
     };
 
     class Uniform2
@@ -72,7 +51,7 @@ namespace Tungsten
 
         [[nodiscard]] virtual VertexArrayObject create_vao(int32_t extra_stride) const = 0;
 
-        [[nodiscard]] const std::vector<Attribute>& attributes() const;
+        [[nodiscard]] const std::vector<VertexAttribute>& attributes() const;
 
         [[nodiscard]] const std::vector<Uniform2>& uniforms() const;
 

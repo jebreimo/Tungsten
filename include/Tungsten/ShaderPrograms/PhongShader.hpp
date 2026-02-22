@@ -17,8 +17,6 @@ namespace Tungsten
 
         PhongShader();
 
-        [[nodiscard]] VertexArrayObject create_vao(int32_t extra_stride) const override;
-
         Uniform<Xyz::Matrix4F> mv_matrix;
         Uniform<Xyz::Matrix4F> proj_matrix;
 

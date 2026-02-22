@@ -32,18 +32,6 @@ namespace Tungsten
         TextureValueType type;
     };
 
-    enum class AttributeDataType
-    {
-        INT8,
-        UINT8,
-        INT16,
-        UINT16,
-        INT32,
-        UINT32,
-        FLOAT,
-        DOUBLE
-    };
-
     enum class BufferTarget
     {
         ARRAY,
@@ -127,14 +115,12 @@ namespace Tungsten
         COMPUTE
     };
 
-    enum class VertexAttributeType
+    enum class VertexAttributeDataType : uint8_t
     {
         NONE,
         INT32,
         UINT32,
-        FLOAT,
-        VECTOR2,
-        VECTOR3
+        FLOAT
     };
 
     enum class ElementIndexType

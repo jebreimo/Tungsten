@@ -156,8 +156,7 @@ namespace Tungsten
      */
     template <typename... T>
     void add_rect_pnt(
-        VertexArrayDataBuilder<std::tuple<Xyz::Vector3F, Xyz::Vector3F, Xyz::Vector2F, T...>>&
-        builder,
+        VertexArrayDataBuilder<std::tuple<Xyz::Vector3F, Xyz::Vector3F, Xyz::Vector2F, T...>>& builder,
         const Xyz::Rectangle3F& rect,
         const Xyz::Rectangle2F& uv_rect
     )

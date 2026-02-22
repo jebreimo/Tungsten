@@ -27,7 +27,7 @@ namespace Tungsten
 
     void define_vertex_attribute_pointer(uint32_t location,
                                          int32_t size,
-                                         VertexAttributeType type,
+                                         VertexAttributeDataType type,
                                          int32_t stride,
                                          size_t offset = 0,
                                          bool normalized = false);
@@ -51,5 +51,5 @@ namespace Tungsten
 
     void disable_vertex_attribute(uint32_t location);
 
-    int32_t get_size_of_type(VertexAttributeType type);
+    int32_t get_size_of_type(VertexAttributeDataType type);
 }

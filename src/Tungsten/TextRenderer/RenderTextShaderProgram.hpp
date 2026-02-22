@@ -19,10 +19,6 @@ namespace Tungsten::Detail
 
         RenderTextShaderProgram();
 
-        using ShaderProgram::create_vao;
-
-        [[nodiscard]] VertexArrayObject create_vao(int32_t extra_stride) const override;
-
         Uniform<Xyz::Matrix4F> mvp_matrix;
         Uniform<int32_t> texture;
         Uniform<Xyz::Vector4F> color;

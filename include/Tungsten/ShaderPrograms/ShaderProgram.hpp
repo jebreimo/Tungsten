@@ -27,9 +27,8 @@ namespace Tungsten
 
         [[nodiscard]] const ProgramHandle& handle() const;
 
-        [[nodiscard]] virtual VertexArrayObject create_vao() const;
-
-        [[nodiscard]] virtual VertexArrayObject create_vao(int32_t extra_stride) const = 0;
+        [[nodiscard]]
+        const std::vector<VertexAttributeDefinition>& attribute_definitions() const;
 
     protected:
         ShaderProgram(std::string name,
@@ -39,9 +38,11 @@ namespace Tungsten
                       std::vector<std::pair<ShaderType, std::string>> sources,
                       const ShaderPreprocessor& preprocessor);
 
+        void set_attribute_definitions(std::vector<VertexAttributeDefinition> definitions);
     private:
         std::string name_;
         std::unordered_map<ShaderType, std::string> sources_;
+        std::vector<VertexAttributeDefinition> attribute_definitions_;
         ProgramHandle program_;
     };
 }

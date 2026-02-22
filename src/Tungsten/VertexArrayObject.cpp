@@ -7,46 +7,64 @@
 //****************************************************************************
 #include "Tungsten/VertexArrayObject.hpp"
 
+#include "Tungsten/TungstenException.hpp"
+
 namespace Tungsten
 {
-    VertexArrayObject::VertexArrayObject(bool create_now)
+    std::pair<VertexAttributeDataType, uint32_t>
+    get_data_type_and_count(VertexAttributeType type)
     {
-        if (create_now)
-            create();
-    }
-
-    VertexArrayObject::~VertexArrayObject() = default;
-
-    VertexArrayObject::VertexArrayObject(VertexArrayObject&& rhs) noexcept
-        : vao(std::move(rhs.vao)),
-          vertex_buffer(std::move(rhs.vertex_buffer)),
-          element_buffer(std::move(rhs.element_buffer)),
-          element_count(rhs.element_count)
-    {
-        rhs.element_count = 0;
-    }
-
-    VertexArrayObject& VertexArrayObject::operator=(VertexArrayObject&& rhs) noexcept
-    {
-        vao = std::move(rhs.vao);
-        vertex_buffer = std::move(rhs.vertex_buffer);
-        element_buffer = std::move(rhs.element_buffer);
-        std::swap(element_count, rhs.element_count);
-        return *this;
-    }
-
-    void VertexArrayObject::create()
-    {
-        vao = generate_vertex_array();
-        std::array buffers = {&vertex_buffer, &element_buffer};
-        generate_buffers(buffers);
-        bind_vertex_array(vao);
-        bind_buffer(BufferTarget::ARRAY, vertex_buffer);
-        bind_buffer(BufferTarget::ELEMENT_ARRAY, element_buffer);
+        switch (type)
+        {
+        case VertexAttributeType::POSITION_2F:
+        case VertexAttributeType::NORMAL_2F:
+        case VertexAttributeType::TEX_COORD_2F:
+            return {VertexAttributeDataType::FLOAT, 2};
+        case VertexAttributeType::POSITION_3F:
+        case VertexAttributeType::NORMAL_3F:
+        case VertexAttributeType::TANGENT_3F:
+        case VertexAttributeType::BITANGENT_3F:
+        case VertexAttributeType::COLOR_3F:
+            return {VertexAttributeDataType::FLOAT, 3};
+        case VertexAttributeType::COLOR_4F:
+            return {VertexAttributeDataType::FLOAT, 4};
+        default:
+            TUNGSTEN_THROW("Unsupported type" + std::to_string(int(type)));
+        }
     }
 
     void VertexArrayObject::bind() const
     {
-        bind_vertex_array(vao);
+        bind_vertex_array(vao_);
+    }
+
+    VertexArrayObject::operator bool() const
+    {
+        return bool(vao_);
+    }
+
+    uint32_t VertexArrayObject::handle() const
+    {
+        return vao_;
+    }
+
+    const std::vector<VertexAttribute>& VertexArrayObject::attributes() const
+    {
+        return attributes_;
+    }
+
+    size_t VertexArrayObject::num_buffers() const
+    {
+        uint32_t buffer_id = 0;
+        size_t buffer_count = 0;
+        for (const auto& attribute : attributes_)
+        {
+            if (attribute.buffer_id != buffer_id)
+            {
+                buffer_id = attribute.buffer_id;
+                ++buffer_count;
+            }
+        }
+        return buffer_count;
     }
 } // Tungsten

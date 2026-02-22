@@ -36,19 +36,21 @@ namespace Tungsten
         position_attr = get_vertex_attribute(handle(), "a_position");
         normal_attr = get_vertex_attribute(handle(), "a_normal");
         texture_coord_attr = get_vertex_attribute(handle(), "a_tex_coord");
+        set_attribute_definitions({
+            {
+                position_attr, VertexAttributeType::POSITION_3F
+            },
+            {
+                normal_attr, VertexAttributeType::NORMAL_3F
+            },
+            {
+                texture_coord_attr, VertexAttributeType::TEX_COORD_2F
+            }
+        });
 
         model_view_matrix = get_uniform<Xyz::Matrix4F>(handle(), "u_model_view_matrix");
         normal_matrix = get_uniform<Xyz::Matrix3F>(handle(), "u_normal_matrix");
         proj_matrix = get_uniform<Xyz::Matrix4F>(handle(), "u_proj_matrix");
-    }
-
-    VertexArrayObject SmoothShader::create_vao(int32_t extra_stride) const
-    {
-        return VertexArrayObjectBuilder()
-            .add_float(position_attr, 3)
-            .add_float(normal_attr, 3)
-            .add_stride(extra_stride)
-            .build();
     }
 
     void SmoothShader::set_model_view_matrix(const Xyz::Matrix4F& mv,

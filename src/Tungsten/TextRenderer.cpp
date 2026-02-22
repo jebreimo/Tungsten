@@ -13,6 +13,7 @@
 #include "Tungsten/Gl/GlTexture.hpp"
 #include "Tungsten/TextRenderer/RenderTextShaderProgram.hpp"
 #include "Tungsten/VertexArrayDataBuilder.hpp"
+#include "Tungsten/VertexArrayObjectBuilder.hpp"
 #include "Tungsten/YimageGl.hpp"
 
 namespace Tungsten
@@ -178,7 +179,14 @@ namespace Tungsten
                                  font.image.data());
 
             program.use();
-            vao = program.create_vao();
+
+            // TODO make buffers members
+            auto vertex_buffer = generate_buffer();
+            vao = VertexArrayObjectBuilder()
+                .bind_buffer(vertex_buffer)
+                .add(program.attribute_definitions())
+                .build();
+
             program.texture.set(0);
         }
 

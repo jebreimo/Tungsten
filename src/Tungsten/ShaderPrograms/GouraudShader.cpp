@@ -15,13 +15,21 @@ namespace Tungsten
 {
     GouraudShader::GouraudShader()
         : ShaderProgram(std::string(NAME),
-                           {
-                               {ShaderType::VERTEX, ShaderSources::GOURAUD_VERTEX},
-                               {ShaderType::FRAGMENT, ShaderSources::GOURAUD_FRAGMENT}
-                           })
+                        {
+                            {ShaderType::VERTEX, ShaderSources::GOURAUD_VERTEX},
+                            {ShaderType::FRAGMENT, ShaderSources::GOURAUD_FRAGMENT}
+                        })
     {
         position_attr = get_vertex_attribute(handle(), "a_position");
         normal_attr = get_vertex_attribute(handle(), "a_normal");
+        set_attribute_definitions({
+            {
+                position_attr, VertexAttributeType::POSITION_3F
+            },
+            {
+                normal_attr, VertexAttributeType::NORMAL_3F
+            }
+        });
 
         mv_matrix = get_uniform<Xyz::Matrix4F>(handle(), "u_mv_matrix");
         proj_matrix = get_uniform<Xyz::Matrix4F>(handle(), "u_proj_matrix");
@@ -31,14 +39,5 @@ namespace Tungsten
         specular_albedo = get_uniform<Xyz::Vector3F>(handle(), "u_specular_albedo");
         specular_power = get_uniform<float>(handle(), "u_specular_power");
         ambient = get_uniform<Xyz::Vector3F>(handle(), "u_ambient");
-    }
-
-    VertexArrayObject GouraudShader::create_vao(int32_t extra_stride) const
-    {
-        return VertexArrayObjectBuilder()
-            .add_float(position_attr, 3)
-            .add_float(normal_attr, 3)
-            .add_stride(extra_stride)
-            .build();
     }
 }

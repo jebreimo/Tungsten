@@ -49,10 +49,6 @@ namespace Tungsten
 
         SmoothShader();
 
-        using ShaderProgram::create_vao;
-
-        [[nodiscard]] VertexArrayObject create_vao(int32_t extra_stride) const override;
-
         void set_model_view_matrix(const Xyz::Matrix4F& mv,
                                    bool update_normal_matrix = true);
 

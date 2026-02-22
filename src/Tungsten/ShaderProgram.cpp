@@ -56,8 +56,15 @@ namespace Tungsten
         return program_;
     }
 
-    VertexArrayObject ShaderProgram::create_vao() const
+    const std::vector<VertexAttributeDefinition>&
+    ShaderProgram::attribute_definitions() const
     {
-        return create_vao(0);
+        return attribute_definitions_;
+    }
+
+    void ShaderProgram::set_attribute_definitions(
+        std::vector<VertexAttributeDefinition> definitions)
+    {
+        attribute_definitions_ = std::move(definitions);
     }
 }

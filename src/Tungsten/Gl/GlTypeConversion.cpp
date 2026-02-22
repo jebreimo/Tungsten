@@ -189,15 +189,15 @@ namespace Tungsten
         }
     }
 
-    GLenum to_ogl_vertex_attribute_type(VertexAttributeType type)
+    GLenum to_ogl_vertex_attribute_type(VertexAttributeDataType type)
     {
         switch (type)
         {
-        case VertexAttributeType::INT32:
+        case VertexAttributeDataType::INT32:
             return GL_INT;
-        case VertexAttributeType::UINT32:
+        case VertexAttributeDataType::UINT32:
             return GL_UNSIGNED_INT;
-        case VertexAttributeType::FLOAT:
+        case VertexAttributeDataType::FLOAT:
             return GL_FLOAT;
         default:
             TUNGSTEN_THROW("Unknown VertexAttributeType: "
