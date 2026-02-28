@@ -16,6 +16,7 @@ namespace Tungsten
         void operator()(uint32_t id) const;
     };
 
+    constexpr uint32_t INVALID_VERTEX_ATTRIBUTE = UINT32_MAX;
     using ProgramHandle = GlHandle<ProgramDeleter>;
 
     ProgramHandle create_program();

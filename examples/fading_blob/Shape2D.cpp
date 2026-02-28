@@ -45,8 +45,14 @@ public:
 };
 
 Shape2D::Shape2D(Tungsten::VertexArrayObject vertex_array,
+                 Tungsten::BufferHandle vertex_buffer,
+                 Tungsten::BufferHandle element_buffer,
+                 uint32_t element_count,
                  const Xyz::Vector4F& color)
     : vertex_array_(std::move(vertex_array)),
+      vertex_buffer_(std::move(vertex_buffer)),
+      element_buffer_(std::move(element_buffer)),
+      element_count_(element_count),
       color_(color)
 {
 }
@@ -92,11 +98,24 @@ Shape2DRenderer& Shape2DRenderer::operator=(Shape2DRenderer&& rhs) noexcept
 Shape2D Shape2DRenderer::create_shape(const Buffer& buffer, const Xyz::Vector4F& color) const
 {
     Tungsten::use_program(program_->program);
+    auto vertex_buffer = Tungsten::generate_buffer();
     auto vertex_array = Tungsten::VertexArrayObjectBuilder()
+        .bind_buffer(vertex_buffer)
         .add_float(program_->position_attr, 2)
         .build();
-    vertex_array.set_data<Xyz::Vector2F>(buffer.vertices, buffer.indices);
-    return {std::move(vertex_array), color};
+    Tungsten::set_buffer_data(Tungsten::BufferTarget::ARRAY, std::span(buffer.vertices),
+                              Tungsten::BufferUsage::STATIC_DRAW);
+    auto element_buffer = Tungsten::generate_buffer();
+    Tungsten::bind_buffer(Tungsten::BufferTarget::ELEMENT_ARRAY, element_buffer);
+    Tungsten::set_buffer_data(Tungsten::BufferTarget::ELEMENT_ARRAY, std::span(buffer.indices),
+                              Tungsten::BufferUsage::STATIC_DRAW);
+    return {
+        std::move(vertex_array),
+        std::move(vertex_buffer),
+        std::move(element_buffer),
+        uint32_t(buffer.indices.size()),
+        color
+    };
 }
 
 void Shape2DRenderer::set_model_view_matrix(const Xyz::Matrix3F& matrix)

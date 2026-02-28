@@ -10,6 +10,7 @@
 #include <__ranges/reverse_view.h>
 
 #include "Tungsten/TungstenException.hpp"
+#include "Tungsten/Gl/GlBuffer.hpp"
 
 namespace Tungsten
 {
@@ -26,17 +27,8 @@ namespace Tungsten
     VertexArrayObjectBuilder& VertexArrayObjectBuilder::add(
         const VertexAttributeDefinition& definition)
     {
-        if (current_buffer_id_ == 0)
-            TUNGSTEN_THROW("Buffer must be bound before adding attributes.");
-        if (definition.location == UINT32_MAX && definition.dataType != VertexAttributeDataType::NONE)
-            TUNGSTEN_THROW("Attribute location must be less than UINT32_MAX.");
-        if (definition.count == 0 || definition.count > UINT8_MAX)
-            TUNGSTEN_THROW("Attribute count must be between 1 and 255.");
-        definitions_.push_back({
-            current_buffer_id_, definition.location, definition.count,
-            definition.dataType, definition.type
-        });
-        return *this;
+        return add(definition.location, definition.count,
+                   definition.data_type, definition.type);
     }
 
     VertexArrayObjectBuilder& VertexArrayObjectBuilder::add(
@@ -50,49 +42,47 @@ namespace Tungsten
     VertexArrayObjectBuilder&
     VertexArrayObjectBuilder::add(uint32_t attribute_location, VertexAttributeType type)
     {
-        auto [value_type, count] = get_data_type_and_count(type);
-        add(VertexAttributeDefinition(attribute_location, value_type, count, type));
-        return *this;
+        auto [data_type, count] = get_data_type_and_count(type);
+        return add(attribute_location, count, data_type, type);
     }
 
     VertexArrayObjectBuilder&
     VertexArrayObjectBuilder::add_float(uint32_t attribute_location,
                                         uint32_t count)
     {
-        return add(VertexAttributeDefinition(attribute_location,
-                                             VertexAttributeDataType::FLOAT,
-                                             count,
-                                             VertexAttributeType::CUSTOM));
+        return add(attribute_location,
+                   count,
+                   VertexAttributeDataType::FLOAT,
+                   VertexAttributeType::CUSTOM);
     }
 
     VertexArrayObjectBuilder&
     VertexArrayObjectBuilder::add_uint32(uint32_t attribute_location,
                                          uint32_t count)
     {
-        return add(VertexAttributeDefinition(attribute_location,
-                                             VertexAttributeDataType::UINT32,
-                                             count,
-                                             VertexAttributeType::CUSTOM));
+        return add(attribute_location,
+                   count,
+                   VertexAttributeDataType::UINT32,
+                   VertexAttributeType::CUSTOM);
     }
 
     VertexArrayObjectBuilder&
     VertexArrayObjectBuilder::add_int32(uint32_t attribute_location,
                                         uint32_t count)
     {
-        return add(VertexAttributeDefinition(attribute_location,
-                                             VertexAttributeDataType::INT32,
-                                             count,
-                                             VertexAttributeType::CUSTOM));
+        return add(attribute_location,
+                   count,
+                   VertexAttributeDataType::INT32,
+                   VertexAttributeType::CUSTOM);
     }
 
     VertexArrayObjectBuilder&
     VertexArrayObjectBuilder::add_padding(uint32_t byte_count)
     {
-        return add(VertexAttributeDefinition(UINT32_MAX,
-                                             VertexAttributeDataType::NONE,
-                                             byte_count,
-                                             VertexAttributeType::CUSTOM
-        ));
+        return add(UINT32_MAX,
+                   byte_count,
+                   VertexAttributeDataType::NONE,
+                   VertexAttributeType::CUSTOM);
     }
 
     VertexArrayObjectBuilder& VertexArrayObjectBuilder::set_divisor(uint32_t divisor)
@@ -104,7 +94,7 @@ namespace Tungsten
         {
             if (def.buffer_id != last_buffer_id)
                 break;
-            if (def.type != VertexAttributeDataType::NONE)
+            if (def.data_type != VertexAttributeDataType::NONE)
                 def.divisor = divisor;
         }
         return *this;
@@ -113,33 +103,56 @@ namespace Tungsten
     VertexArrayObject VertexArrayObjectBuilder::build() const
     {
         VertexArrayHandle vao = generate_vertex_array();
+        bind_vertex_array(vao);
         const auto strides = compute_strides();
+        uint32_t current_buffer_id = 0;
+        uint32_t offset = 0;
         std::vector<VertexAttribute> attributes;
         for (size_t i = 0; i < definitions_.size(); ++i)
         {
             const auto& def = definitions_[i];
-            if (def.type == VertexAttributeDataType::NONE)
+            if (def.data_type == VertexAttributeDataType::NONE)
                 continue;
             if (strides[i] > UINT8_MAX)
                 TUNGSTEN_THROW("Stride exceeds maximum of 255 bytes.");
 
             attributes.push_back({
-                {
-                    def.location,
-                    def.type,
-                    uint8_t(def.count),
-                    def.attribute_type
-                },
+                def.location,
                 def.buffer_id,
-                uint8_t(def.divisor),
-                uint8_t(0),
+                uint8_t(def.count),
+                uint8_t(offset),
                 uint8_t(strides[i]),
+                uint8_t(def.divisor),
+                def.data_type,
+                def.type,
             });
+            if (def.buffer_id != current_buffer_id)
+            {
+                Tungsten::bind_buffer(BufferTarget::ARRAY, def.buffer_id);
+                current_buffer_id = def.buffer_id;
+                offset = 0;
+            }
             define_vertex_attribute_pointer(def.location, def.count,
-                                            def.type, strides[i], 0);
+                                            def.data_type, strides[i], offset);
             enable_vertex_attribute(def.location);
+            offset += get_byte_size(def);
         }
         return {std::move(vao), std::move(attributes)};
+    }
+
+    VertexArrayObjectBuilder&
+    VertexArrayObjectBuilder::add(uint32_t location, uint8_t count,
+                                  VertexAttributeDataType data_type,
+                                  VertexAttributeType type)
+    {
+        if (!current_buffer_id_)
+            TUNGSTEN_THROW("No buffer bound for attribute.");
+        if (location == UINT32_MAX && data_type != VertexAttributeDataType::NONE)
+            TUNGSTEN_THROW("Attribute location must be specified.");
+        if (count == 0 || count > UINT8_MAX)
+            TUNGSTEN_THROW("Attribute count must be between 1 and 255.");
+        definitions_.push_back({current_buffer_id_, location, count, data_type, type});
+        return *this;
     }
 
     std::vector<int32_t> VertexArrayObjectBuilder::compute_strides() const
@@ -172,9 +185,9 @@ namespace Tungsten
 
     int32_t VertexArrayObjectBuilder::get_byte_size(const Definition& definition)
     {
-        if (definition.type == VertexAttributeDataType::NONE)
+        if (definition.data_type == VertexAttributeDataType::NONE)
             return definition.count;
-        return get_size_of_type(definition.type) * definition.count;
+        return get_size_of_type(definition.data_type) * definition.count;
     }
 
     int32_t VertexArrayObjectBuilder::compute_stride() const

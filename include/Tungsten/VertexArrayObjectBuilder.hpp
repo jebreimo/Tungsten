@@ -8,6 +8,7 @@
 #pragma once
 #include "Gl/GlTypes.hpp"
 #include "VertexArrayObject.hpp"
+#include "VertexAttributeDefinition.hpp"
 
 namespace Tungsten
 {
@@ -49,12 +50,17 @@ namespace Tungsten
             uint32_t buffer_id = 0;
             uint32_t location = UINT32_MAX;
             uint8_t count = 0;
-            VertexAttributeDataType type = VertexAttributeDataType::FLOAT;
-            VertexAttributeType attribute_type = VertexAttributeType::CUSTOM;
+            VertexAttributeDataType data_type = VertexAttributeDataType::FLOAT;
+            VertexAttributeType type = VertexAttributeType::CUSTOM;
             uint32_t divisor = 0;
         };
 
-        [[nodiscard]] static int32_t get_byte_size(const Definition& definition);
+        VertexArrayObjectBuilder& add(uint32_t location,
+                                      uint8_t count,
+                                      VertexAttributeDataType data_type,
+                                      VertexAttributeType type);
+
+        [[nodiscard]] static int32_t get_byte_size(const Definition& def);
 
         [[nodiscard]] int32_t compute_stride() const;
 

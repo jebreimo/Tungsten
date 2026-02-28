@@ -30,13 +30,26 @@ namespace Tungsten
     void set_buffer_data(BufferTarget target, ptrdiff_t size,
                          const void* data, BufferUsage usage);
 
+    template <typename T>
+    void set_buffer_data(BufferTarget target,
+                         std::span<T> data,
+                         BufferUsage usage)
+    {
+        set_buffer_data(target,
+                        ptrdiff_t(data.size_bytes()),
+                        data.data(),
+                        usage);
+    }
+
     void set_buffer_subdata(BufferTarget target, ptrdiff_t offset,
                             ptrdiff_t size, const void* data);
 
-    void set_element_array_buffer(uint32_t buffer_id,
-                                  ptrdiff_t value_count,
-                                  const uint16_t* values,
-                                  BufferUsage usage);
+    template <typename T>
+    void set_buffer_subdata(BufferTarget target, ptrdiff_t offset,
+                            std::span<T> data)
+    {
+        set_buffer_subdata(target, offset, ptrdiff_t(data.size_bytes()), data.data());
+    }
 
     [[nodiscard]]
     bool is_buffer(uint32_t buffer);

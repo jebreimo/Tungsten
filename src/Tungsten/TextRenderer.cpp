@@ -15,6 +15,7 @@
 #include "Tungsten/VertexArrayDataBuilder.hpp"
 #include "Tungsten/VertexArrayObjectBuilder.hpp"
 #include "Tungsten/YimageGl.hpp"
+#include "Tungsten/Gl/GlBuffer.hpp"
 
 namespace Tungsten
 {
@@ -157,6 +158,8 @@ namespace Tungsten
         TextureHandle texture;
         Detail::RenderTextShaderProgram program;
         VertexArrayObject vao;
+        BufferHandle vertex_buffer;
+        BufferHandle element_buffer;
         bool auto_blend = true;
         Yconvert::Converter converter;
 
@@ -164,7 +167,9 @@ namespace Tungsten
             : font(&font),
               texture(generate_texture()),
               converter(Yconvert::Encoding::UTF_8,
-                        Yconvert::Encoding::UTF_32_NATIVE)
+                        Yconvert::Encoding::UTF_32_NATIVE),
+              vertex_buffer(generate_buffer()),
+              element_buffer(generate_buffer())
         {
             converter.set_error_policy(Yconvert::ErrorPolicy::THROW);
             bind_texture(TextureTarget::TEXTURE_2D, texture);
@@ -180,8 +185,6 @@ namespace Tungsten
 
             program.use();
 
-            // TODO make buffers members
-            auto vertex_buffer = generate_buffer();
             vao = VertexArrayObjectBuilder()
                 .bind_buffer(vertex_buffer)
                 .add(program.attribute_definitions())
@@ -275,7 +278,12 @@ namespace Tungsten
 
         auto [buffer, rect] = make_text_array_buffer(*data_->font, text,
                                                      properties.line_gap);
-        data_->vao.set_data<TextVertex>(buffer.vertices, buffer.indices);
+        bind_buffer(BufferTarget::ARRAY, data_->vertex_buffer);
+        set_buffer_data(BufferTarget::ARRAY, std::span(buffer.vertices), BufferUsage::STATIC_DRAW);
+        bind_buffer(BufferTarget::ELEMENT_ARRAY, data_->element_buffer);
+        set_buffer_data(BufferTarget::ELEMENT_ARRAY, std::span(buffer.indices),
+                        BufferUsage::STATIC_DRAW);
+        auto count = int32_t(buffer.indices.size());
 
         data_->program.color.set(to_vector(properties.color));
         auto adjusted_pos = pos - rect.placement.origin * 2.0f / screen_size;
@@ -283,7 +291,7 @@ namespace Tungsten
         using namespace Xyz::affine;
         data_->program.mvp_matrix.set(translate3(adjusted_pos[0], adjusted_pos[1], 0.f)
                                       * scale3(scale_x, scale_y, 1.0f));
-        draw_triangle_elements_16(0, data_->vao.element_count);
+        draw_triangle_elements_16(0, count);
 
         set_blend_enabled(default_blend);
     }

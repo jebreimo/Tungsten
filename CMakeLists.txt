@@ -112,6 +112,8 @@ add_library(Tungsten STATIC
     include/Tungsten/VertexArrayDataBuilder.hpp
     include/Tungsten/VertexArrayObject.hpp
     include/Tungsten/VertexArrayObjectBuilder.hpp
+    include/Tungsten/VertexAttributeDefinition.hpp
+    include/Tungsten/VertexAttributeType.hpp
     include/Tungsten/Viewport.hpp
     include/Tungsten/WindowParameters.hpp
     include/Tungsten/YimageGl.hpp
@@ -161,6 +163,7 @@ add_library(Tungsten STATIC
     src/Tungsten/TungstenException.cpp
     src/Tungsten/VertexArrayObject.cpp
     src/Tungsten/VertexArrayObjectBuilder.cpp
+    src/Tungsten/VertexAttributeType.cpp
     src/Tungsten/Viewport.cpp
     src/Tungsten/YimageGl.cpp
 )

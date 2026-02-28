@@ -11,6 +11,7 @@
 #include "../Gl/GlProgram.hpp"
 #include "../ShaderPreprocessor.hpp"
 #include "../VertexArrayObject.hpp"
+#include "../VertexAttributeDefinition.hpp"
 
 namespace Tungsten
 {
@@ -39,6 +40,7 @@ namespace Tungsten
                       const ShaderPreprocessor& preprocessor);
 
         void set_attribute_definitions(std::vector<VertexAttributeDefinition> definitions);
+
     private:
         std::string name_;
         std::unordered_map<ShaderType, std::string> sources_;

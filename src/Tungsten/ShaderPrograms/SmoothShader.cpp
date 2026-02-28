@@ -33,20 +33,15 @@ namespace Tungsten
           material("u_material.", *this),
           directional_light("u_dir_light.", *this)
     {
+        std::vector<VertexAttributeDefinition> attr_defs;
         position_attr = get_vertex_attribute(handle(), "a_position");
+        attr_defs.emplace_back(position_attr, VertexAttributeType::POSITION_3F);
         normal_attr = get_vertex_attribute(handle(), "a_normal");
+        attr_defs.emplace_back(normal_attr, VertexAttributeType::NORMAL_3F);
         texture_coord_attr = get_vertex_attribute(handle(), "a_tex_coord");
-        set_attribute_definitions({
-            {
-                position_attr, VertexAttributeType::POSITION_3F
-            },
-            {
-                normal_attr, VertexAttributeType::NORMAL_3F
-            },
-            {
-                texture_coord_attr, VertexAttributeType::TEX_COORD_2F
-            }
-        });
+        if (texture_coord_attr != INVALID_VERTEX_ATTRIBUTE)
+            attr_defs.emplace_back(texture_coord_attr, VertexAttributeType::TEX_COORD_2F);
+        set_attribute_definitions(std::move(attr_defs));
 
         model_view_matrix = get_uniform<Xyz::Matrix4F>(handle(), "u_model_view_matrix");
         normal_matrix = get_uniform<Xyz::Matrix3F>(handle(), "u_normal_matrix");
@@ -59,7 +54,7 @@ namespace Tungsten
         model_view_matrix.set(mv);
         if (update_normal_matrix)
         {
-            normal_matrix.set(Xyz::make_submatrix<3, 3>(invert(mv)), false);
+            normal_matrix.set(Xyz::make_submatrix<3, 3>(invert(mv), {}), false);
         }
     }
 

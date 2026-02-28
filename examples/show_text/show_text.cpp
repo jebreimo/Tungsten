@@ -48,6 +48,7 @@ public:
                             {.color = {0xFF, 0, 0xFF, 0xFF}});
         text_renderer_.draw(text, {1.f - size[0], 1.f - size[1]},
                             screen_size, {.color = {0xFF, 0xFF, 0xFF, 0xFF}});
+        Tungsten::set_ogl_tracing_enabled(false);
     }
 private:
     Tungsten::TextRenderer text_renderer_;

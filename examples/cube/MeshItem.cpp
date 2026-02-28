@@ -10,9 +10,15 @@
 #include "Tungsten/ShaderPrograms/SmoothShader.hpp"
 
 MeshItem::MeshItem(Tungsten::VertexArrayObject vao,
+                   Tungsten::BufferHandle vertex_buffer,
+                   Tungsten::BufferHandle element_buffer,
+                   int32_t num_elements,
                    const Tungsten::ColorMaterial& material,
                    bool wireframe)
     : vao_(std::move(vao)),
+      vertex_buffer_(std::move(vertex_buffer)),
+      element_buffer_(std::move(element_buffer)),
+      num_elements_(num_elements),
       material_(material),
       wireframe_(wireframe)
 {
@@ -51,7 +57,7 @@ void MeshItem::draw(const Tungsten::Camera& camera,
     );
     vao_.bind();
     if (wireframe_)
-        Tungsten::draw_line_elements_16(0, vao_.element_count);
+        Tungsten::draw_line_elements_16(0, num_elements_);
     else
-        Tungsten::draw_triangle_elements_16(0, vao_.element_count);
+        Tungsten::draw_triangle_elements_16(0, num_elements_);
 }

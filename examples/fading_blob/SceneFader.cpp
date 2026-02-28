@@ -15,6 +15,7 @@
 #include "Tungsten/VertexArrayObjectBuilder.hpp"
 #include "Tungsten/ShaderPreprocessor.hpp"
 #include "Resources.hpp"
+#include "Tungsten/Gl/GlBuffer.hpp"
 
 namespace
 {
@@ -62,7 +63,11 @@ public:
         Tungsten::generate_textures(textures_);
         set_window_size(window_size);
 
+        vertex_buffer_ = Tungsten::generate_buffer();
+        element_buffer_ = Tungsten::generate_buffer();
+
         vertex_array_ = Tungsten::VertexArrayObjectBuilder()
+            .bind_buffer(vertex_buffer_)
             .add_float(program_.position_attr, 2)
             .add_float(program_.tex_position_attr, 2)
             .build();
@@ -75,7 +80,10 @@ public:
             .add_vertex({{-1, 1}, {0, 1}});
         builder.add_indexes(0, 1, 2)
             .add_indexes(0, 2, 3);
-        vertex_array_.set_data<TextureFaderVertex>(buffer.vertices, buffer.indices);
+        Tungsten::bind_buffer(Tungsten::BufferTarget::ARRAY, vertex_buffer_);
+        Tungsten::set_buffer_data(Tungsten::BufferTarget::ARRAY, std::span(buffer.vertices), Tungsten::BufferUsage::STATIC_DRAW);
+        Tungsten::bind_buffer(Tungsten::BufferTarget::ELEMENT_ARRAY, element_buffer_);
+        Tungsten::set_buffer_data(Tungsten::BufferTarget::ELEMENT_ARRAY, std::span(buffer.indices), Tungsten::BufferUsage::STATIC_DRAW);
     }
 
     void set_window_size(Tungsten::Size2I size)
@@ -128,6 +136,8 @@ private:
     Tungsten::FramebufferHandle frame_buffer_;
     std::array<Tungsten::TextureHandle, 2> textures_;
     Tungsten::VertexArrayObject vertex_array_;
+    Tungsten::BufferHandle vertex_buffer_;
+    Tungsten::BufferHandle element_buffer_;
     TextureFaderProgram program_;
     int index_ = 0;
 };

@@ -11,28 +11,6 @@
 
 namespace Tungsten
 {
-    std::pair<VertexAttributeDataType, uint32_t>
-    get_data_type_and_count(VertexAttributeType type)
-    {
-        switch (type)
-        {
-        case VertexAttributeType::POSITION_2F:
-        case VertexAttributeType::NORMAL_2F:
-        case VertexAttributeType::TEX_COORD_2F:
-            return {VertexAttributeDataType::FLOAT, 2};
-        case VertexAttributeType::POSITION_3F:
-        case VertexAttributeType::NORMAL_3F:
-        case VertexAttributeType::TANGENT_3F:
-        case VertexAttributeType::BITANGENT_3F:
-        case VertexAttributeType::COLOR_3F:
-            return {VertexAttributeDataType::FLOAT, 3};
-        case VertexAttributeType::COLOR_4F:
-            return {VertexAttributeDataType::FLOAT, 4};
-        default:
-            TUNGSTEN_THROW("Unsupported type" + std::to_string(int(type)));
-        }
-    }
-
     void VertexArrayObject::bind() const
     {
         bind_vertex_array(vao_);

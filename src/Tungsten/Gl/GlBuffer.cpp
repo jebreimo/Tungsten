@@ -67,18 +67,6 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
-    void set_element_array_buffer(uint32_t buffer_id,
-                                  ptrdiff_t value_count,
-                                  const uint16_t* values,
-                                  BufferUsage usage)
-    {
-        bind_buffer(BufferTarget::ELEMENT_ARRAY, buffer_id);
-        set_buffer_data(BufferTarget::ELEMENT_ARRAY,
-                        ptrdiff_t(value_count * sizeof(uint16_t)),
-                        values,
-                        usage);
-    }
-
     bool is_buffer(uint32_t buffer)
     {
         return get_ogl_wrapper().is_buffer(buffer) != 0;

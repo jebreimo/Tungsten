@@ -7,62 +7,22 @@
 //****************************************************************************
 #pragma once
 #include <span>
+
+#include "VertexAttributeType.hpp"
 #include "Gl/GlVertexArray.hpp"
 
 namespace Tungsten
 {
-    enum class VertexAttributeType : uint8_t
-    {
-        POSITION_2F,
-        POSITION_3F,
-        NORMAL_2F,
-        NORMAL_3F,
-        TEX_COORD_2F,
-        COLOR_3F,
-        COLOR_4F,
-        TANGENT_3F,
-        BITANGENT_3F,
-        CUSTOM
-    };
-
-    [[nodiscard]] std::pair<VertexAttributeDataType, uint32_t>
-    get_data_type_and_count(VertexAttributeType type);
-
-    struct VertexAttributeDefinition
-    {
-        uint32_t location = UINT32_MAX;
-        VertexAttributeDataType dataType = VertexAttributeDataType::FLOAT;
-        uint8_t count = 0;
-        VertexAttributeType type = VertexAttributeType::CUSTOM;
-
-        VertexAttributeDefinition() = default;
-
-        VertexAttributeDefinition(uint32_t location, VertexAttributeType type)
-            : location(location),
-              type(type)
-        {
-            std::tie(dataType, count) = get_data_type_and_count(type);
-        }
-
-        VertexAttributeDefinition(uint32_t location,
-                                  VertexAttributeDataType data_type,
-                                  uint8_t count,
-                                  VertexAttributeType type = VertexAttributeType::CUSTOM)
-            : location(location),
-              dataType(data_type),
-              count(count),
-              type(type)
-        {
-        }
-    };
-
     struct VertexAttribute
     {
-        VertexAttributeDefinition definition;
+        uint32_t location = UINT32_MAX;
         uint32_t buffer_id = 0;
-        uint8_t divisor = 0;
+        uint8_t count = 0;
         uint8_t offset = 0;
         uint8_t stride = 0;
+        uint8_t divisor = 0;
+        VertexAttributeDataType data_type = VertexAttributeDataType::FLOAT;
+        VertexAttributeType type = VertexAttributeType::CUSTOM;
     };
 
     class VertexArrayObject

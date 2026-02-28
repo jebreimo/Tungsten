@@ -11,7 +11,12 @@
 class MeshItem
 {
 public:
+    MeshItem() = default;
+
     MeshItem(Tungsten::VertexArrayObject vao,
+             Tungsten::BufferHandle vertex_buffer,
+             Tungsten::BufferHandle element_buffer,
+             int32_t num_elements,
              const Tungsten::ColorMaterial& material,
              bool wireframe = false);
 
@@ -32,6 +37,9 @@ public:
 private:
     Xyz::Matrix4F model_matrix_ = Xyz::Matrix4F::identity();
     Tungsten::VertexArrayObject vao_;
+    Tungsten::BufferHandle vertex_buffer_;
+    Tungsten::BufferHandle element_buffer_;
+    int32_t num_elements_;
     Tungsten::ColorMaterial material_;
     std::optional<int32_t> texture_handle_;
     bool wireframe_;

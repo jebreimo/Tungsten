@@ -14,7 +14,7 @@
 #include "MeshItem.hpp"
 #include "Resources.hpp"
 
-Tungsten::VertexArrayObject
+std::tuple<Tungsten::VertexArrayObject, Tungsten::BufferHandle, Tungsten::BufferHandle, int32_t>
 make_cube_vao(const Tungsten::SmoothShader& program,
               bool wireframe)
 {
@@ -33,14 +33,25 @@ make_cube_vao(const Tungsten::SmoothShader& program,
         Tungsten::write_line_segments(std::cout, cube.indices);
     }
 
-    int32_t extra_stride = sizeof(Xyz::Vector2F);
-    // if (!dynamic_cast<const Tungsten::TexturedSmoothShader*>(&program))
-    //     extra_stride = sizeof(Xyz::Vector2F);
-    auto vao = program.create_vao(extra_stride);
+    auto vertex_buffer = Tungsten::generate_buffer();
+    auto vao = Tungsten::VertexArrayObjectBuilder()
+        .bind_buffer(vertex_buffer)
+        .add(program.attribute_definitions())
+        .add_padding(8)
+        .build();
 
-    vao.set_data(cube.vertices, cube.indices);
+    Tungsten::bind_buffer(Tungsten::BufferTarget::ARRAY, vertex_buffer);
+    Tungsten::set_buffer_data(Tungsten::BufferTarget::ARRAY, std::span(cube.vertices),
+                              Tungsten::BufferUsage::STATIC_DRAW);
+    auto element_buffer = Tungsten::generate_buffer();
+    Tungsten::bind_buffer(Tungsten::BufferTarget::ELEMENT_ARRAY, element_buffer);
+    Tungsten::set_buffer_data(Tungsten::BufferTarget::ELEMENT_ARRAY, std::span(cube.indices),
+                              Tungsten::BufferUsage::STATIC_DRAW);
 
-    return vao;
+    return {
+        std::move(vao), std::move(vertex_buffer), std::move(element_buffer),
+        int32_t(cube.indices.size())
+    };
 }
 
 Tungsten::SmoothShader& get_shader(Tungsten::BuiltinShader shader_type)
@@ -87,14 +98,22 @@ class Cube : public Tungsten::EventLoop
 {
 public:
     Cube(Tungsten::SdlApplication& app,
-                 Tungsten::BuiltinShader shader_type,
-                 bool wireframe)
+         Tungsten::BuiltinShader shader_type,
+         bool wireframe)
         : EventLoop(app),
           texture_(make_texture(get_image())),
           program(get_shader(shader_type)),
-          item(make_cube_vao(program, wireframe), {}, wireframe),
           camera{make_camera(app.viewport())}
     {
+        auto [vao, vertex_buffer, element_buffer, index_count] = make_cube_vao(program, wireframe);
+        item = {
+            std::move(vao),
+            std::move(vertex_buffer),
+            std::move(element_buffer),
+            index_count,
+            {},
+            wireframe
+        };
         item.set_texture(texture_);
         item.set_material(Tungsten::get_default_material(Tungsten::DefaultMaterial::GOLD));
         std::cout << Tungsten::get_device_info() << '\n';
@@ -188,7 +207,7 @@ int main(int argc, char** argv)
         app.read_command_line_options(args);
         Tungsten::set_ogl_tracing_enabled(true);
         app.run<Cube>(get_shader_type(args),
-                              args.value("--wireframe").as_bool(false));
+                      args.value("--wireframe").as_bool(false));
     }
     catch (const std::exception& e)
     {
