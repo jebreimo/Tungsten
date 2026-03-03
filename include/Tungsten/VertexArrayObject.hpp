@@ -31,7 +31,7 @@ namespace Tungsten
         VertexArrayObject() = default;
 
         VertexArrayObject(VertexArrayHandle vao,
-                           std::vector<VertexAttribute> attributes)
+                          std::vector<VertexAttribute> attributes)
             : vao_(std::move(vao)),
               attributes_(std::move(attributes))
         {

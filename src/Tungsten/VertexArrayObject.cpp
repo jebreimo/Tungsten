@@ -7,8 +7,6 @@
 //****************************************************************************
 #include "Tungsten/VertexArrayObject.hpp"
 
-#include "Tungsten/TungstenException.hpp"
-
 namespace Tungsten
 {
     void VertexArrayObject::bind() const

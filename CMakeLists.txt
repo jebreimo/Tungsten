@@ -61,7 +61,6 @@ find_package(OpenGL REQUIRED)
 find_package(SDL3 REQUIRED)
 
 add_library(Tungsten STATIC
-    include/Tungsten/Buffer.hpp
     include/Tungsten/Camera.hpp
     include/Tungsten/Commands/Command.cpp
     include/Tungsten/Commands/Command.hpp

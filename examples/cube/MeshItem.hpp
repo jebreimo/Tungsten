@@ -39,8 +39,8 @@ private:
     Tungsten::VertexArrayObject vao_;
     Tungsten::BufferHandle vertex_buffer_;
     Tungsten::BufferHandle element_buffer_;
-    int32_t num_elements_;
+    int32_t num_elements_ = 0;
     Tungsten::ColorMaterial material_;
     std::optional<int32_t> texture_handle_;
-    bool wireframe_;
+    bool wireframe_ = false;
 };
