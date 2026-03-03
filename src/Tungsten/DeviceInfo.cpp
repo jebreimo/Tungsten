@@ -12,6 +12,7 @@
 
 #include "Tungsten/Gl/IOglWrapper.hpp"
 #include "Tungsten/TungstenException.hpp"
+#include "Tungsten/Gl/GlStateManagement.hpp"
 
 namespace Tungsten
 {
@@ -52,23 +53,6 @@ namespace Tungsten
 
     namespace
     {
-        std::string get_string_or_empty(GLenum name)
-        {
-            auto& ogl = get_ogl_wrapper();
-            const char* str = reinterpret_cast<const char*>(ogl.get_string(name));
-            THROW_IF_GL_ERROR();
-            return str ? str : "";
-        }
-
-        int32_t get_integer(GLenum name)
-        {
-            auto& ogl = get_ogl_wrapper();
-            int32_t value;
-            ogl.get_integer(name, &value);
-            THROW_IF_GL_ERROR();
-            return value;
-        }
-
         std::vector<std::string> get_extension_list()
         {
             auto& ogl = get_ogl_wrapper();
@@ -94,35 +78,34 @@ namespace Tungsten
 
     DeviceInfo get_device_info()
     {
-        auto& ogl = get_ogl_wrapper();
         return {
-            .vendor = get_string_or_empty(GL_VENDOR),
-            .renderer = get_string_or_empty(GL_RENDERER),
-            .version = get_string_or_empty(GL_VERSION),
-            .shader_language_version = get_string_or_empty(GL_SHADING_LANGUAGE_VERSION),
-            .max_vertex_attribs = get_integer(GL_MAX_VERTEX_ATTRIBS),
-            .max_vertex_uniform_vectors = get_integer(GL_MAX_VERTEX_UNIFORM_VECTORS),
-            .max_vertex_output_components = get_integer(GL_MAX_VERTEX_OUTPUT_COMPONENTS),
-            .max_fragment_input_components = get_integer(GL_MAX_FRAGMENT_INPUT_COMPONENTS),
-            .max_vertex_texture_image_units = get_integer(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS),
-            .max_combined_texture_image_units = get_integer(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS),
-            .max_texture_image_units = get_integer(GL_MAX_TEXTURE_IMAGE_UNITS),
-            .max_fragment_uniform_vectors = get_integer(GL_MAX_FRAGMENT_UNIFORM_VECTORS),
-            .max_draw_buffers = get_integer(GL_MAX_DRAW_BUFFERS),
-            .min_program_texel_offset = get_integer(GL_MIN_PROGRAM_TEXEL_OFFSET),
-            .max_program_texel_offset = get_integer(GL_MAX_PROGRAM_TEXEL_OFFSET),
+            .vendor = get_string_value(GL_VENDOR),
+            .renderer = get_string_value(GL_RENDERER),
+            .version = get_string_value(GL_VERSION),
+            .shader_language_version = get_string_value(GL_SHADING_LANGUAGE_VERSION),
+            .max_vertex_attribs = get_int32_value(GL_MAX_VERTEX_ATTRIBS),
+            .max_vertex_uniform_vectors = get_int32_value(GL_MAX_VERTEX_UNIFORM_VECTORS),
+            .max_vertex_output_components = get_int32_value(GL_MAX_VERTEX_OUTPUT_COMPONENTS),
+            .max_fragment_input_components = get_int32_value(GL_MAX_FRAGMENT_INPUT_COMPONENTS),
+            .max_vertex_texture_image_units = get_int32_value(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS),
+            .max_combined_texture_image_units = get_int32_value(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS),
+            .max_texture_image_units = get_int32_value(GL_MAX_TEXTURE_IMAGE_UNITS),
+            .max_fragment_uniform_vectors = get_int32_value(GL_MAX_FRAGMENT_UNIFORM_VECTORS),
+            .max_draw_buffers = get_int32_value(GL_MAX_DRAW_BUFFERS),
+            .min_program_texel_offset = get_int32_value(GL_MIN_PROGRAM_TEXEL_OFFSET),
+            .max_program_texel_offset = get_int32_value(GL_MAX_PROGRAM_TEXEL_OFFSET),
             .extensions = get_extension_list()
         };
     }
 
     [[nodiscard]] std::string get_gl_version()
     {
-        return get_string_or_empty(GL_VERSION);
+        return get_string_value(GL_VERSION);
     }
 
     std::string get_shader_language_version()
     {
-        return get_string_or_empty(GL_SHADING_LANGUAGE_VERSION);
+        return get_string_value(GL_SHADING_LANGUAGE_VERSION);
     }
 
     std::string get_shader_language_version_string()

@@ -51,6 +51,10 @@ namespace Tungsten
         set_buffer_subdata(target, offset, ptrdiff_t(data.size_bytes()), data.data());
     }
 
+    void copy_buffer_subdata(BufferTarget read_target, BufferTarget write_target,
+                             ptrdiff_t read_offset, ptrdiff_t write_offset,
+                             ptrdiff_t size);
+
     [[nodiscard]]
     bool is_buffer(uint32_t buffer);
 
@@ -59,4 +63,7 @@ namespace Tungsten
 
     [[nodiscard]]
     BufferUsage get_buffer_usage(BufferTarget target);
+
+    [[nodiscard]]
+    uint32_t get_bound_buffer(BufferTarget target);
 }

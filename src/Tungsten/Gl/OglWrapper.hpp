@@ -211,9 +211,24 @@ namespace Tungsten
             return glGetAttribLocation(program, name);
         }
 
+        void get_boolean(GLenum pname, GLboolean* params) override
+        {
+            glGetBooleanv(pname, params);
+        }
+
         void get_buffer_parameter(GLenum target, GLenum pname, GLint* params) override
         {
             glGetBufferParameteriv(target, pname, params);
+        }
+
+        void get_buffer_parameter64(GLenum target, GLenum pname, GLint64* params) override
+        {
+            glGetBufferParameteri64v(target, pname, params);
+        }
+
+        void get_buffer_pointer(GLenum target, GLenum pname, void** params) override
+        {
+            glGetBufferPointerv(target, pname, params);
         }
 
         GLenum get_error() override
@@ -221,9 +236,19 @@ namespace Tungsten
             return glGetError();
         }
 
+        void get_float(GLenum pname, GLfloat* params) override
+        {
+            glGetFloatv(pname, params);
+        }
+
         void get_integer(GLenum pname, GLint* params) override
         {
             glGetIntegerv(pname, params);
+        }
+
+        void get_integer64(GLenum pname, GLint64* params) override
+        {
+            glGetInteger64v(pname, params);
         }
 
         void get_program_info_log(GLuint program, GLsizei bufSize, GLsizei* length, GLchar* infoLog) override

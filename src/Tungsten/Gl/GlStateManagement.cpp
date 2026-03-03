@@ -10,61 +10,125 @@
 #include <GL/glew.h>
 #include "Tungsten/Gl/IOglWrapper.hpp"
 #include "GlTypeConversion.hpp"
+#include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
 {
     bool is_blend_enabled()
     {
-        return get_ogl_wrapper().is_enabled(GL_BLEND);
+        return is_enabled(GL_BLEND);
     }
 
     void set_blend_enabled(bool enabled)
     {
         if (enabled)
-            get_ogl_wrapper().enable(GL_BLEND);
+            enable(GL_BLEND);
         else
-            get_ogl_wrapper().disable(GL_BLEND);
+            disable(GL_BLEND);
     }
 
     void set_blend_function(BlendFunction src, BlendFunction dst)
     {
         get_ogl_wrapper().blend_func(to_ogl_blend_function(src),
-                                    to_ogl_blend_function(dst));
+                                     to_ogl_blend_function(dst));
+        THROW_IF_GL_ERROR();
     }
 
     bool is_depth_test_enabled()
     {
-        return get_ogl_wrapper().is_enabled(GL_DEPTH_TEST);
+        return is_enabled(GL_DEPTH_TEST);
     }
 
     void set_depth_test_enabled(bool enabled)
     {
-        if (enabled)
-            get_ogl_wrapper().enable(GL_DEPTH_TEST);
-        else
-            get_ogl_wrapper().disable(GL_DEPTH_TEST);
+        set_enabled(GL_DEPTH_TEST, enabled);
     }
 
     bool is_face_culling_enabled()
     {
-        return get_ogl_wrapper().is_enabled(GL_CULL_FACE);
+        return is_enabled(GL_CULL_FACE);
     }
 
     void set_face_culling_enabled(bool enabled)
     {
-        if (enabled)
-            get_ogl_wrapper().enable(GL_CULL_FACE);
-        else
-            get_ogl_wrapper().disable(GL_CULL_FACE);
+        set_enabled(GL_CULL_FACE, enabled);
     }
 
     void set_face_culling_mode(FaceCullingMode mode)
     {
         get_ogl_wrapper().cull_face(to_ogl_cull_mode(mode));
+        THROW_IF_GL_ERROR();
     }
 
     void set_viewport(int x, int y, int width, int height)
     {
         get_ogl_wrapper().viewport(x, y, width, height);
+        THROW_IF_GL_ERROR();
+    }
+
+    bool get_boolean_value(unsigned parameter_name)
+    {
+        GLboolean value;
+        get_ogl_wrapper().get_boolean(parameter_name, &value);
+        THROW_IF_GL_ERROR();
+        return value;
+    }
+
+    float get_float_value(unsigned parameter_name)
+    {
+        float value;
+        get_ogl_wrapper().get_float(parameter_name, &value);
+        THROW_IF_GL_ERROR();
+        return value;
+    }
+
+    int32_t get_int32_value(unsigned parameter_name)
+    {
+        int32_t value;
+        get_ogl_wrapper().get_integer(parameter_name, &value);
+        THROW_IF_GL_ERROR();
+        return value;
+    }
+
+    int64_t get_int64_value(unsigned parameter_name)
+    {
+        int64_t value;
+        get_ogl_wrapper().get_integer64(parameter_name, &value);
+        THROW_IF_GL_ERROR();
+        return value;
+    }
+
+    std::string get_string_value(unsigned parameter_name)
+    {
+        const auto str = reinterpret_cast<const char*>(get_ogl_wrapper().get_string(parameter_name));
+        THROW_IF_GL_ERROR();
+        return str ? str : "";
+    }
+
+    bool is_enabled(unsigned capability)
+    {
+        const auto result = get_ogl_wrapper().is_enabled(capability) != 0;
+        THROW_IF_GL_ERROR();
+        return result;
+    }
+
+    void set_enabled(unsigned capability, bool enabled)
+    {
+        if (enabled)
+            enable(capability);
+        else
+            disable(capability);
+    }
+
+    void enable(unsigned capability)
+    {
+        get_ogl_wrapper().enable(capability);
+        THROW_IF_GL_ERROR();
+    }
+
+    void disable(unsigned capability)
+    {
+        get_ogl_wrapper().disable(capability);
+        THROW_IF_GL_ERROR();
     }
 }

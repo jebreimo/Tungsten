@@ -268,11 +268,31 @@ namespace Tungsten
             return wrapper->get_attrib_location(program, name);
         }
 
+        void get_boolean(GLenum pname, GLboolean* params) override
+        {
+            log("glGetBooleanv({}, {})", pname, static_cast<const void*>(params));
+            wrapper->get_boolean(pname, params);
+        }
+
         void get_buffer_parameter(GLenum target, GLenum pname, GLint* params) override
         {
             log("glGetBufferParameteriv({}, {}, {})", target, pname,
                 static_cast<const void*>(params));
             wrapper->get_buffer_parameter(target, pname, params);
+        }
+
+        void get_buffer_parameter64(GLenum target, GLenum pname, GLint64* params) override
+        {
+            log("glGetBufferParameteri64v({}, {}, {})", target, pname,
+                static_cast<const void*>(params));
+            wrapper->get_buffer_parameter64(target, pname, params);
+        }
+
+        void get_buffer_pointer(GLenum target, GLenum pname, void** params) override
+        {
+            log("glGetBufferPointerv({}, {}, {})", target, pname,
+                static_cast<const void*>(params));
+            wrapper->get_buffer_pointer(target, pname, params);
         }
 
         GLenum get_error() override
@@ -283,10 +303,22 @@ namespace Tungsten
             return error;
         }
 
+        void get_float(GLenum pname, GLfloat* params) override
+        {
+            log("glGetFloatv({}, {})", pname, static_cast<const void*>(params));
+            wrapper->get_float(pname, params);
+        }
+
         void get_integer(GLenum pname, GLint* params) override
         {
             log("glGetIntegerv({}, {})", pname, static_cast<const void*>(params));
             wrapper->get_integer(pname, params);
+        }
+
+        void get_integer64(GLenum pname, GLint64* params) override
+        {
+            log("glGetInteger64v({}, {})", pname, static_cast<const void*>(params));
+            wrapper->get_integer64(pname, params);
         }
 
         void get_program_info_log(GLuint program, GLsizei bufSize, GLsizei* length,

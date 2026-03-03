@@ -7,6 +7,7 @@
 //****************************************************************************
 #pragma once
 #include "GlTypes.hpp"
+#include <string>
 
 namespace Tungsten
 {
@@ -27,4 +28,22 @@ namespace Tungsten
     void set_face_culling_mode(FaceCullingMode mode);
 
     void set_viewport(int x, int y, int width, int height);
+
+    bool get_boolean_value(unsigned parameter_name);
+
+    float get_float_value(unsigned parameter_name);
+
+    int32_t get_int32_value(unsigned parameter_name);
+
+    int64_t get_int64_value(unsigned parameter_name);
+
+    std::string get_string_value(unsigned parameter_name);
+
+    bool is_enabled(unsigned capability);
+
+    void set_enabled(unsigned capability, bool enabled);
+
+    void enable(unsigned capability);
+
+    void disable(unsigned capability);
 }

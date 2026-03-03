@@ -18,6 +18,12 @@ namespace Tungsten
         {
         case BufferTarget::ARRAY: return GL_ARRAY_BUFFER;
         case BufferTarget::ELEMENT_ARRAY: return GL_ELEMENT_ARRAY_BUFFER;
+        case BufferTarget::COPY_READ: return GL_COPY_READ_BUFFER;
+        case BufferTarget::COPY_WRITE: return GL_COPY_WRITE_BUFFER;
+        case BufferTarget::PIXEL_PACK: return GL_PIXEL_PACK_BUFFER;
+        case BufferTarget::PIXEL_UNPACK: return GL_PIXEL_UNPACK_BUFFER;
+        case BufferTarget::UNIFORM: return GL_UNIFORM_BUFFER;
+        case BufferTarget::TRANSFORM_FEEDBACK: return GL_TRANSFORM_FEEDBACK_BUFFER;
         default:
             TUNGSTEN_THROW(
                 "Unsupported buffer target: " + std::to_string(static_cast<int>(target)));
@@ -310,7 +316,6 @@ namespace Tungsten
             TUNGSTEN_THROW("Unsupported texture wrap mode: "
                 + std::to_string(static_cast<int>(mode)));
         }
-
     }
 
     TextureWrapMode from_ogl_texture_wrap_mode(GLint mode)

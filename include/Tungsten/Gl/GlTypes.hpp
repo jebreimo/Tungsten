@@ -35,7 +35,13 @@ namespace Tungsten
     enum class BufferTarget
     {
         ARRAY,
-        ELEMENT_ARRAY
+        ELEMENT_ARRAY,
+        COPY_READ,
+        COPY_WRITE,
+        PIXEL_PACK,
+        PIXEL_UNPACK,
+        UNIFORM,
+        TRANSFORM_FEEDBACK
     };
 
     enum class BufferUsage

@@ -176,7 +176,19 @@ namespace Tungsten
             return 0;
         }
 
+        void get_boolean(GLenum pname, GLboolean* params) override
+        {
+        }
+
         void get_buffer_parameter(GLenum target, GLenum pname, GLint* params) override
+        {
+        }
+
+        void get_buffer_parameter64(GLenum target, GLenum pname, GLint64* params) override
+        {
+        }
+
+        void get_buffer_pointer(GLenum target, GLenum pname, void** params) override
         {
         }
 
@@ -185,7 +197,15 @@ namespace Tungsten
             return 0;
         }
 
+        void get_float(GLenum pname, GLfloat* params) override
+        {
+        }
+
         void get_integer(GLenum pname, GLint* params) override
+        {
+        }
+
+        void get_integer64(GLenum pname, GLint64* params) override
         {
         }
 
