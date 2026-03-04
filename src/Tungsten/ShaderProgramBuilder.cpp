@@ -19,13 +19,13 @@ namespace Tungsten
     ShaderProgramBuilder::add_shader(ShaderType type, const std::string& src)
     {
         auto shader = create_shader(type, src);
-        attach_shader(program_, shader);
+        attach_shader(program_.id(), shader.id());
         return *this;
     }
 
     ProgramHandle ShaderProgramBuilder::build()
     {
-        link_program(program_);
+        link_program(program_.id());
         return std::move(program_);
     }
 }

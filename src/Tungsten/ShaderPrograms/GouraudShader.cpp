@@ -20,8 +20,8 @@ namespace Tungsten
                             {ShaderType::FRAGMENT, ShaderSources::GOURAUD_FRAGMENT}
                         })
     {
-        position_attr = get_vertex_attribute(handle(), "a_position");
-        normal_attr = get_vertex_attribute(handle(), "a_normal");
+        position_attr = get_vertex_attribute(id(), "a_position");
+        normal_attr = get_vertex_attribute(id(), "a_normal");
         set_attribute_definitions({
             {
                 position_attr, VertexAttributeType::POSITION_3F
@@ -31,13 +31,13 @@ namespace Tungsten
             }
         });
 
-        mv_matrix = get_uniform<Xyz::Matrix4F>(handle(), "u_mv_matrix");
-        proj_matrix = get_uniform<Xyz::Matrix4F>(handle(), "u_proj_matrix");
+        mv_matrix = get_uniform<Xyz::Matrix4F>(id(), "u_mv_matrix");
+        proj_matrix = get_uniform<Xyz::Matrix4F>(id(), "u_proj_matrix");
 
-        light_pos = get_uniform<Xyz::Vector3F>(handle(), "u_light_pos");
-        diffuse_albedo = get_uniform<Xyz::Vector3F>(handle(), "u_diffuse_albedo");
-        specular_albedo = get_uniform<Xyz::Vector3F>(handle(), "u_specular_albedo");
-        specular_power = get_uniform<float>(handle(), "u_specular_power");
-        ambient = get_uniform<Xyz::Vector3F>(handle(), "u_ambient");
+        light_pos = get_uniform<Xyz::Vector3F>(id(), "u_light_pos");
+        diffuse_albedo = get_uniform<Xyz::Vector3F>(id(), "u_diffuse_albedo");
+        specular_albedo = get_uniform<Xyz::Vector3F>(id(), "u_specular_albedo");
+        specular_power = get_uniform<float>(id(), "u_specular_power");
+        ambient = get_uniform<Xyz::Vector3F>(id(), "u_ambient");
     }
 }

@@ -33,7 +33,7 @@ namespace Tungsten
     BufferHandle generate_buffer(BufferTarget target)
     {
         auto buffer = generate_buffer();
-        bind_buffer(target, buffer);
+        bind_buffer(target, buffer.id());
         return buffer;
     }
 

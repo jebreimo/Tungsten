@@ -35,16 +35,16 @@ make_cube_vao(const Tungsten::SmoothShader& program,
 
     auto vertex_buffer = Tungsten::generate_buffer();
     auto vao = Tungsten::VertexArrayObjectBuilder()
-        .bind_buffer(vertex_buffer)
+        .bind_buffer(vertex_buffer.id())
         .add(program.attribute_definitions())
         .add_padding(8)
         .build();
 
-    Tungsten::bind_buffer(Tungsten::BufferTarget::ARRAY, vertex_buffer);
+    Tungsten::bind_buffer(Tungsten::BufferTarget::ARRAY, vertex_buffer.id());
     Tungsten::assign_buffer(Tungsten::BufferTarget::ARRAY, std::span(cube.vertices),
                             Tungsten::BufferUsage::STATIC_DRAW);
     auto element_buffer = Tungsten::generate_buffer();
-    Tungsten::bind_buffer(Tungsten::BufferTarget::ELEMENT_ARRAY, element_buffer);
+    Tungsten::bind_buffer(Tungsten::BufferTarget::ELEMENT_ARRAY, element_buffer.id());
     Tungsten::assign_buffer(Tungsten::BufferTarget::ELEMENT_ARRAY, std::span(cube.indices),
                             Tungsten::BufferUsage::STATIC_DRAW);
 
@@ -74,7 +74,7 @@ Tungsten::Camera make_camera(const Tungsten::Viewport viewport)
 Tungsten::TextureHandle make_texture(const Yimage::Image& image)
 {
     auto handle = Tungsten::generate_texture();
-    bind_texture(Tungsten::TextureTarget::TEXTURE_2D, handle);
+    bind_texture(Tungsten::TextureTarget::TEXTURE_2D, handle.id());
     set_min_filter(Tungsten::TextureTarget::TEXTURE_2D, Tungsten::TextureMinFilter::LINEAR);
     set_mag_filter(Tungsten::TextureTarget::TEXTURE_2D, Tungsten::TextureMagFilter::LINEAR);
     set_wrap(Tungsten::TextureTarget::TEXTURE_2D, Tungsten::TextureWrapMode::CLAMP_TO_EDGE);
@@ -114,7 +114,7 @@ public:
             {},
             wireframe
         };
-        item.set_texture(texture_);
+        item.set_texture(texture_.id());
         item.set_material(Tungsten::get_default_material(Tungsten::DefaultMaterial::GOLD));
         std::cout << Tungsten::get_device_info() << '\n';
         Tungsten::set_swap_interval(app, Tungsten::SwapInterval::VSYNC);

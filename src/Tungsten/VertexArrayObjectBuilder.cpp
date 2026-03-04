@@ -105,7 +105,7 @@ namespace Tungsten
         BufferRestorer array_restorer(BufferTarget::ARRAY);
 
         VertexArrayHandle vao = generate_vertex_array();
-        bind_vertex_array(vao);
+        bind_vertex_array(vao.id());
         const auto strides = compute_strides();
         uint32_t current_buffer_id = 0;
         uint32_t offset = 0;

@@ -11,7 +11,7 @@ namespace Tungsten
 {
     void VertexArrayObject::bind() const
     {
-        bind_vertex_array(vao_);
+        bind_vertex_array(vao_.id());
     }
 
     VertexArrayObject::operator bool() const
@@ -19,9 +19,9 @@ namespace Tungsten
         return bool(vao_);
     }
 
-    uint32_t VertexArrayObject::handle() const
+    uint32_t VertexArrayObject::id() const
     {
-        return vao_;
+        return vao_.id();
     }
 
     const std::vector<VertexAttribute>& VertexArrayObject::attributes() const

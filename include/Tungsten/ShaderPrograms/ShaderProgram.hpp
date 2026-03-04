@@ -28,6 +28,8 @@ namespace Tungsten
 
         [[nodiscard]] const ProgramHandle& handle() const;
 
+        [[nodiscard]] uint32_t id() const;
+
         [[nodiscard]]
         const std::vector<VertexAttributeDefinition>& attribute_definitions() const;
 

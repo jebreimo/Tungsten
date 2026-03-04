@@ -48,12 +48,17 @@ namespace Tungsten
 
     void ShaderProgram::use() const
     {
-        use_program(program_);
+        use_program(program_.id());
     }
 
     const ProgramHandle& ShaderProgram::handle() const
     {
         return program_;
+    }
+
+    uint32_t ShaderProgram::id() const
+    {
+        return program_.id();
     }
 
     const std::vector<VertexAttributeDefinition>&

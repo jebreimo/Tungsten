@@ -34,18 +34,18 @@ namespace Tungsten
           directional_light("u_dir_light.", *this)
     {
         std::vector<VertexAttributeDefinition> attr_defs;
-        position_attr = get_vertex_attribute(handle(), "a_position");
+        position_attr = get_vertex_attribute(id(), "a_position");
         attr_defs.emplace_back(position_attr, VertexAttributeType::POSITION_3F);
-        normal_attr = get_vertex_attribute(handle(), "a_normal");
+        normal_attr = get_vertex_attribute(id(), "a_normal");
         attr_defs.emplace_back(normal_attr, VertexAttributeType::NORMAL_3F);
-        texture_coord_attr = get_vertex_attribute(handle(), "a_tex_coord");
+        texture_coord_attr = get_vertex_attribute(id(), "a_tex_coord");
         if (texture_coord_attr != INVALID_VERTEX_ATTRIBUTE)
             attr_defs.emplace_back(texture_coord_attr, VertexAttributeType::TEX_COORD_2F);
         set_attribute_definitions(std::move(attr_defs));
 
-        model_view_matrix = get_uniform<Xyz::Matrix4F>(handle(), "u_model_view_matrix");
-        normal_matrix = get_uniform<Xyz::Matrix3F>(handle(), "u_normal_matrix");
-        proj_matrix = get_uniform<Xyz::Matrix4F>(handle(), "u_proj_matrix");
+        model_view_matrix = get_uniform<Xyz::Matrix4F>(id(), "u_model_view_matrix");
+        normal_matrix = get_uniform<Xyz::Matrix3F>(id(), "u_normal_matrix");
+        proj_matrix = get_uniform<Xyz::Matrix4F>(id(), "u_proj_matrix");
     }
 
     void SmoothShader::set_model_view_matrix(const Xyz::Matrix4F& mv,

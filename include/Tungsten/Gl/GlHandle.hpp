@@ -44,7 +44,12 @@ namespace Tungsten
             return *this;
         }
 
-        operator uint32_t() const
+        explicit operator bool() const
+        {
+            return id_ != 0;
+        }
+
+        [[nodiscard]] uint32_t id() const
         {
             return id_;
         }
@@ -58,7 +63,7 @@ namespace Tungsten
 
         uint32_t release()
         {
-            auto id = id_;
+            const auto id = id_;
             id_ = 0;
             return id;
         }

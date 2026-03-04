@@ -13,10 +13,10 @@ namespace Tungsten
 {
     DirectionalLightUniform::DirectionalLightUniform(const std::string& prefix,
                                                      const ShaderProgram& shader_program)
-        : direction(get_uniform<Xyz::Vector3F>(shader_program.handle(), prefix + "direction")),
-          ambient(get_uniform<Xyz::Vector3F>(shader_program.handle(), prefix + "ambient")),
-          diffuse(get_uniform<Xyz::Vector3F>(shader_program.handle(), prefix + "diffuse")),
-          specular(get_uniform<Xyz::Vector3F>(shader_program.handle(), prefix + "specular"))
+        : direction(get_uniform<Xyz::Vector3F>(shader_program.id(), prefix + "direction")),
+          ambient(get_uniform<Xyz::Vector3F>(shader_program.id(), prefix + "ambient")),
+          diffuse(get_uniform<Xyz::Vector3F>(shader_program.id(), prefix + "diffuse")),
+          specular(get_uniform<Xyz::Vector3F>(shader_program.id(), prefix + "specular"))
     {
     }
 

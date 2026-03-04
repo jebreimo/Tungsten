@@ -172,7 +172,7 @@ namespace Tungsten
               element_buffer(generate_buffer())
         {
             converter.set_error_policy(Yconvert::ErrorPolicy::THROW);
-            bind_texture(TextureTarget::TEXTURE_2D, texture);
+            bind_texture(TextureTarget::TEXTURE_2D, texture.id());
 
             set_min_filter(TextureTarget::TEXTURE_2D, TextureMinFilter::LINEAR);
             set_mag_filter(TextureTarget::TEXTURE_2D, TextureMagFilter::LINEAR);
@@ -186,7 +186,7 @@ namespace Tungsten
             program.use();
 
             vao = VertexArrayObjectBuilder()
-                .bind_buffer(vertex_buffer)
+                .bind_buffer(vertex_buffer.id())
                 .add(program.attribute_definitions())
                 .build();
 
@@ -274,17 +274,17 @@ namespace Tungsten
         data_->program.use();
 
         activate_texture_unit(0);
-        bind_texture(TextureTarget::TEXTURE_2D, data_->texture);
+        bind_texture(TextureTarget::TEXTURE_2D, data_->texture.id());
 
         auto [buffer, rect] = make_text_array_buffer(*data_->font, text,
                                                      properties.line_gap);
         BufferRestorer array_restorer(BufferTarget::ARRAY);
-        bind_buffer(BufferTarget::ARRAY, data_->vertex_buffer);
+        bind_buffer(BufferTarget::ARRAY, data_->vertex_buffer.id());
         assign_buffer(BufferTarget::ARRAY, std::span(buffer.vertices),
                       BufferUsage::STATIC_DRAW);
 
         BufferRestorer element_restorer(BufferTarget::ELEMENT_ARRAY);
-        bind_buffer(BufferTarget::ELEMENT_ARRAY, data_->element_buffer);
+        bind_buffer(BufferTarget::ELEMENT_ARRAY, data_->element_buffer.id());
         assign_buffer(BufferTarget::ELEMENT_ARRAY, std::span(buffer.indices),
                       BufferUsage::STATIC_DRAW);
         auto count = int32_t(buffer.indices.size());

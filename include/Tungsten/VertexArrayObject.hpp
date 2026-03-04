@@ -51,7 +51,7 @@ namespace Tungsten
 
         [[nodiscard]] explicit operator bool() const;
 
-        [[nodiscard]] uint32_t handle() const;
+        [[nodiscard]] uint32_t id() const;
 
         [[nodiscard]] const std::vector<VertexAttribute>& attributes() const;
 

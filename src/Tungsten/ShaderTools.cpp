@@ -43,8 +43,8 @@ namespace Tungsten
                                          const std::string& source_code)
     {
         auto shader = create_shader(shader_type);
-        set_shader_source(shader, source_code);
-        compile_shader(shader);
+        set_shader_source(shader.id(), source_code);
+        compile_shader(shader.id());
         return shader;
     }
 

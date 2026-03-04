@@ -19,8 +19,8 @@ namespace Tungsten::Detail
                             {ShaderType::FRAGMENT, ShaderSources::RENDER_TEXT_FRAGMENT}
                         })
     {
-        position = get_vertex_attribute(handle(), "a_Position");
-        texture_coord = get_vertex_attribute(handle(), "a_TextureCoord");
+        position = get_vertex_attribute(id(), "a_Position");
+        texture_coord = get_vertex_attribute(id(), "a_TextureCoord");
         set_attribute_definitions({
             {
                 position, VertexAttributeType::POSITION_2F
@@ -30,8 +30,8 @@ namespace Tungsten::Detail
             }
         });
 
-        mvp_matrix = Tungsten::get_uniform<Xyz::Matrix4F>(handle(), "u_MvpMatrix");
-        texture = Tungsten::get_uniform<int32_t>(handle(), "u_Texture");
-        color = Tungsten::get_uniform<Xyz::Vector4F>(handle(), "u_TextColor");
+        mvp_matrix = Tungsten::get_uniform<Xyz::Matrix4F>(id(), "u_MvpMatrix");
+        texture = Tungsten::get_uniform<int32_t>(id(), "u_Texture");
+        color = Tungsten::get_uniform<Xyz::Vector4F>(id(), "u_TextColor");
     }
 }
