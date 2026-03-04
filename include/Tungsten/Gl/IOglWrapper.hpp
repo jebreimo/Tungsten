@@ -128,8 +128,6 @@ namespace Tungsten
 
         virtual void get_buffer_parameter64(GLenum target, GLenum pname, GLint64* params) = 0;
 
-        virtual void get_buffer_pointer(GLenum target, GLenum pname, void** params) = 0;
-
         virtual GLenum get_error() = 0;
 
         virtual void get_float(GLenum pname, GLfloat* params) = 0;

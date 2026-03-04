@@ -116,6 +116,20 @@ namespace Tungsten
             wrapper->compile_shader(shader);
         }
 
+        void copy_buffer_sub_data(GLenum read_target,
+                                  GLenum write_target,
+                                  GLintptr read_offset,
+                                  GLintptr write_offset,
+                                  GLsizeiptr size) override
+        {
+            log("glCopyBufferSubData({}, {}, {}, {}, {})",
+                read_target, write_target, read_offset,
+                write_offset, size);
+            wrapper->copy_buffer_sub_data(read_target, write_target,
+                                          read_offset, write_offset,
+                                          size);
+        }
+
         void copy_tex_sub_image_2d(GLenum target, GLint level, GLint xOffset, GLint yOffset,
                                    GLint x, GLint y,
                                    GLsizei width, GLsizei height) override
@@ -286,13 +300,6 @@ namespace Tungsten
             log("glGetBufferParameteri64v({}, {}, {})", target, pname,
                 static_cast<const void*>(params));
             wrapper->get_buffer_parameter64(target, pname, params);
-        }
-
-        void get_buffer_pointer(GLenum target, GLenum pname, void** params) override
-        {
-            log("glGetBufferPointerv({}, {}, {})", target, pname,
-                static_cast<const void*>(params));
-            wrapper->get_buffer_pointer(target, pname, params);
         }
 
         GLenum get_error() override

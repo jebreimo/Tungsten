@@ -81,9 +81,9 @@ public:
         builder.add_indexes(0, 1, 2)
             .add_indexes(0, 2, 3);
         Tungsten::bind_buffer(Tungsten::BufferTarget::ARRAY, vertex_buffer_);
-        Tungsten::set_buffer_data(Tungsten::BufferTarget::ARRAY, std::span(buffer.vertices), Tungsten::BufferUsage::STATIC_DRAW);
+        Tungsten::assign_buffer(Tungsten::BufferTarget::ARRAY, std::span(buffer.vertices), Tungsten::BufferUsage::STATIC_DRAW);
         Tungsten::bind_buffer(Tungsten::BufferTarget::ELEMENT_ARRAY, element_buffer_);
-        Tungsten::set_buffer_data(Tungsten::BufferTarget::ELEMENT_ARRAY, std::span(buffer.indices), Tungsten::BufferUsage::STATIC_DRAW);
+        Tungsten::assign_buffer(Tungsten::BufferTarget::ELEMENT_ARRAY, std::span(buffer.indices), Tungsten::BufferUsage::STATIC_DRAW);
     }
 
     void set_window_size(Tungsten::Size2I size)

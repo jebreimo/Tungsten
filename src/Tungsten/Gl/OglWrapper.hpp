@@ -54,7 +54,8 @@ namespace Tungsten
             glBufferData(target, size, data, usage);
         }
 
-        void buffer_sub_data(GLenum target, GLintptr offset, GLsizeiptr size, const void* data) override
+        void buffer_sub_data(GLenum target, GLintptr offset, GLsizeiptr size,
+                             const void* data) override
         {
             glBufferSubData(target, offset, size, data);
         }
@@ -89,8 +90,20 @@ namespace Tungsten
             glCompileShader(shader);
         }
 
-        void copy_tex_sub_image_2d(GLenum target, GLint level, GLint xOffset, GLint yOffset, GLint x, GLint y,
-                               GLsizei width, GLsizei height) override
+        void copy_buffer_sub_data(GLenum read_target,
+                                  GLenum write_target,
+                                  GLintptr read_offset,
+                                  GLintptr write_offset,
+                                  GLsizeiptr size) override
+        {
+            glCopyBufferSubData(read_target, write_target, read_offset, write_offset, size);
+        }
+
+        void copy_tex_sub_image_2d(GLenum target,
+                                   GLint level,
+                                   GLint xOffset, GLint yOffset,
+                                   GLint x, GLint y,
+                                   GLsizei width, GLsizei height) override
         {
             glCopyTexSubImage2D(target, level, xOffset, yOffset, x, y, width, height);
         }
@@ -175,8 +188,9 @@ namespace Tungsten
             glFinish();
         }
 
-        void framebuffer_texture_2d(GLenum target, GLenum attachment, GLenum texTarget, GLuint texture,
-                                  GLint level) override
+        void framebuffer_texture_2d(GLenum target, GLenum attachment, GLenum texTarget,
+                                    GLuint texture,
+                                    GLint level) override
         {
             glFramebufferTexture2D(target, attachment, texTarget, texture, level);
         }
@@ -226,11 +240,6 @@ namespace Tungsten
             glGetBufferParameteri64v(target, pname, params);
         }
 
-        void get_buffer_pointer(GLenum target, GLenum pname, void** params) override
-        {
-            glGetBufferPointerv(target, pname, params);
-        }
-
         GLenum get_error() override
         {
             return glGetError();
@@ -251,7 +260,8 @@ namespace Tungsten
             glGetInteger64v(pname, params);
         }
 
-        void get_program_info_log(GLuint program, GLsizei bufSize, GLsizei* length, GLchar* infoLog) override
+        void get_program_info_log(GLuint program, GLsizei bufSize, GLsizei* length,
+                                  GLchar* infoLog) override
         {
             glGetProgramInfoLog(program, bufSize, length, infoLog);
         }
@@ -261,7 +271,8 @@ namespace Tungsten
             glGetProgramiv(program, pname, param);
         }
 
-        void get_shader_info_log(GLuint shader, GLsizei bufSize, GLsizei* length, GLchar* infoLog) override
+        void get_shader_info_log(GLuint shader, GLsizei bufSize, GLsizei* length,
+                                 GLchar* infoLog) override
         {
             glGetShaderInfoLog(shader, bufSize, length, infoLog);
         }
@@ -311,15 +322,18 @@ namespace Tungsten
             glLinkProgram(program);
         }
 
-        void shader_source(GLuint shader, GLsizei count, const GLchar* const * string, const GLint* length) override
+        void shader_source(GLuint shader, GLsizei count, const GLchar* const * string,
+                           const GLint* length) override
         {
             glShaderSource(shader, count, string, length);
         }
 
-        void tex_image_2d(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border,
-                        GLenum format, GLenum type, const void* pixels) override
+        void tex_image_2d(GLenum target, GLint level, GLint internalformat, GLsizei width,
+                          GLsizei height, GLint border,
+                          GLenum format, GLenum type, const void* pixels) override
         {
-            glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
+            glTexImage2D(target, level, internalformat, width, height, border, format, type,
+                         pixels);
         }
 
         void tex_parameter_f(GLenum target, GLenum pname, GLfloat param) override
@@ -332,13 +346,15 @@ namespace Tungsten
             glTexParameteri(target, pname, param);
         }
 
-        void tex_storage_2d(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height) override
+        void tex_storage_2d(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width,
+                            GLsizei height) override
         {
             glTexStorage2D(target, levels, internalformat, width, height);
         }
 
-        void tex_sub_image_2d(GLenum target, GLint level, GLint xOffset, GLint yOffset, GLsizei width, GLsizei height,
-                           GLenum format, GLenum type, const void* pixels) override
+        void tex_sub_image_2d(GLenum target, GLint level, GLint xOffset, GLint yOffset,
+                              GLsizei width, GLsizei height,
+                              GLenum format, GLenum type, const void* pixels) override
         {
             glTexSubImage2D(target, level, xOffset, yOffset, width, height, format, type, pixels);
         }
@@ -423,17 +439,20 @@ namespace Tungsten
             glUniform4iv(location, count, value);
         }
 
-        void uniform_matrix2(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) override
+        void uniform_matrix2(GLint location, GLsizei count, GLboolean transpose,
+                             const GLfloat* value) override
         {
             glUniformMatrix2fv(location, count, transpose, value);
         }
 
-        void uniform_matrix3(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) override
+        void uniform_matrix3(GLint location, GLsizei count, GLboolean transpose,
+                             const GLfloat* value) override
         {
             glUniformMatrix3fv(location, count, transpose, value);
         }
 
-        void uniform_matrix4(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) override
+        void uniform_matrix4(GLint location, GLsizei count, GLboolean transpose,
+                             const GLfloat* value) override
         {
             glUniformMatrix4fv(location, count, transpose, value);
         }
@@ -443,8 +462,9 @@ namespace Tungsten
             glUseProgram(program);
         }
 
-        void vertex_attrib_pointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride,
-                                 const void* pointer) override
+        void vertex_attrib_pointer(GLuint index, GLint size, GLenum type, GLboolean normalized,
+                                   GLsizei stride,
+                                   const void* pointer) override
         {
             glVertexAttribPointer(index, size, type, normalized, stride, pointer);
         }

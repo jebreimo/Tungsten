@@ -102,6 +102,8 @@ namespace Tungsten
 
     VertexArrayObject VertexArrayObjectBuilder::build() const
     {
+        BufferRestorer array_restorer(BufferTarget::ARRAY);
+
         VertexArrayHandle vao = generate_vertex_array();
         bind_vertex_array(vao);
         const auto strides = compute_strides();

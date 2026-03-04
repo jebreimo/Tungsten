@@ -103,12 +103,12 @@ Shape2D Shape2DRenderer::create_shape(const Buffer& buffer, const Xyz::Vector4F&
         .bind_buffer(vertex_buffer)
         .add_float(program_->position_attr, 2)
         .build();
-    Tungsten::set_buffer_data(Tungsten::BufferTarget::ARRAY, std::span(buffer.vertices),
-                              Tungsten::BufferUsage::STATIC_DRAW);
+    Tungsten::assign_buffer(Tungsten::BufferTarget::ARRAY, std::span(buffer.vertices),
+                            Tungsten::BufferUsage::STATIC_DRAW);
     auto element_buffer = Tungsten::generate_buffer();
     Tungsten::bind_buffer(Tungsten::BufferTarget::ELEMENT_ARRAY, element_buffer);
-    Tungsten::set_buffer_data(Tungsten::BufferTarget::ELEMENT_ARRAY, std::span(buffer.indices),
-                              Tungsten::BufferUsage::STATIC_DRAW);
+    Tungsten::assign_buffer(Tungsten::BufferTarget::ELEMENT_ARRAY, std::span(buffer.indices),
+                            Tungsten::BufferUsage::STATIC_DRAW);
     return {
         std::move(vertex_array),
         std::move(vertex_buffer),

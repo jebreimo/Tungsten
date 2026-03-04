@@ -278,11 +278,15 @@ namespace Tungsten
 
         auto [buffer, rect] = make_text_array_buffer(*data_->font, text,
                                                      properties.line_gap);
+        BufferRestorer array_restorer(BufferTarget::ARRAY);
         bind_buffer(BufferTarget::ARRAY, data_->vertex_buffer);
-        set_buffer_data(BufferTarget::ARRAY, std::span(buffer.vertices), BufferUsage::STATIC_DRAW);
+        assign_buffer(BufferTarget::ARRAY, std::span(buffer.vertices),
+                      BufferUsage::STATIC_DRAW);
+
+        BufferRestorer element_restorer(BufferTarget::ELEMENT_ARRAY);
         bind_buffer(BufferTarget::ELEMENT_ARRAY, data_->element_buffer);
-        set_buffer_data(BufferTarget::ELEMENT_ARRAY, std::span(buffer.indices),
-                        BufferUsage::STATIC_DRAW);
+        assign_buffer(BufferTarget::ELEMENT_ARRAY, std::span(buffer.indices),
+                      BufferUsage::STATIC_DRAW);
         auto count = int32_t(buffer.indices.size());
 
         data_->program.color.set(to_vector(properties.color));

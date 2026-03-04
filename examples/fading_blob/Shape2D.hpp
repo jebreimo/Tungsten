@@ -9,7 +9,7 @@
 #include <memory>
 #include <Xyz/Matrix.hpp>
 
-#include "Tungsten/Buffer.hpp"
+#include "Tungsten/Gl/GlBuffer.hpp"
 #include "Tungsten/VertexArrayDataBuilder.hpp"
 #include "Tungsten/VertexArrayObject.hpp"
 

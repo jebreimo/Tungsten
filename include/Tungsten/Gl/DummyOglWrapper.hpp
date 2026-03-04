@@ -75,6 +75,14 @@ namespace Tungsten
         {
         }
 
+        void copy_buffer_sub_data(GLenum read_target,
+                                  GLenum write_target,
+                                  GLintptr read_offset,
+                                  GLintptr write_offset,
+                                  GLsizeiptr size) override
+        {
+        }
+
         void copy_tex_sub_image_2d(GLenum target, GLint level, GLint x_offset, GLint y_offset,
                                    GLint x, GLint y, GLsizei width, GLsizei height) override
         {
@@ -185,10 +193,6 @@ namespace Tungsten
         }
 
         void get_buffer_parameter64(GLenum target, GLenum pname, GLint64* params) override
-        {
-        }
-
-        void get_buffer_pointer(GLenum target, GLenum pname, void** params) override
         {
         }
 

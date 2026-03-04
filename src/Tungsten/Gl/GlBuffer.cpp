@@ -30,6 +30,20 @@ namespace Tungsten
         return BufferHandle(id);
     }
 
+    BufferHandle generate_buffer(BufferTarget target)
+    {
+        auto buffer = generate_buffer();
+        bind_buffer(target, buffer);
+        return buffer;
+    }
+
+    BufferHandle generate_buffer(BufferTarget target, ptrdiff_t size, BufferUsage usage)
+    {
+        auto buffer = generate_buffer(target);
+        allocate_buffer(target, size, usage);
+        return buffer;
+    }
+
     void generate_buffers(std::span<BufferHandle> buffers)
     {
         auto ids = std::vector<uint32_t>(size_t(buffers.size()));
@@ -69,8 +83,34 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
-    void copy_buffer_subdata(BufferTarget read_target, BufferTarget write_target,
-                             ptrdiff_t read_offset, ptrdiff_t write_offset, ptrdiff_t size)
+    void resize_buffer(BufferTarget target, ptrdiff_t size)
+    {
+        const auto current_size = get_buffer_size(target);
+        if (current_size == size)
+            return;
+
+        if (current_size == 0)
+            TUNGSTEN_THROW("Cannot resize an uninitialized buffer with!");
+        if (target == BufferTarget::COPY_WRITE || target == BufferTarget::COPY_READ)
+            TUNGSTEN_THROW("Cannot resize a buffer bound to a copy target.");
+
+        const auto content_size = std::min(current_size, size);
+        BufferRestorer read_binding(BufferTarget::COPY_READ);
+        const auto temp_buffer = generate_buffer(BufferTarget::COPY_READ,
+                                                 content_size,
+                                                 BufferUsage::DYNAMIC_DRAW);
+        copy_buffer(target, 0, BufferTarget::COPY_WRITE, 0, content_size);
+        allocate_buffer(target, size, get_buffer_usage(target));
+
+        BufferRestorer write_binding(BufferTarget::COPY_WRITE);
+        copy_buffer(BufferTarget::COPY_READ, 0, target, 0, content_size);
+    }
+
+    void copy_buffer(BufferTarget read_target,
+                     ptrdiff_t read_offset,
+                     BufferTarget write_target,
+                     ptrdiff_t write_offset,
+                     ptrdiff_t size)
     {
         get_ogl_wrapper().copy_buffer_sub_data(to_ogl_buffer_target(read_target),
                                                to_ogl_buffer_target(write_target),
@@ -83,10 +123,11 @@ namespace Tungsten
         return get_ogl_wrapper().is_buffer(buffer) != 0;
     }
 
-    int32_t get_buffer_size(BufferTarget target)
+    ptrdiff_t get_buffer_size(BufferTarget target)
     {
-        int32_t size;
-        get_ogl_wrapper().get_buffer_parameter(to_ogl_buffer_target(target), GL_BUFFER_SIZE, &size);
+        int64_t size;
+        get_ogl_wrapper().get_buffer_parameter64(to_ogl_buffer_target(target), GL_BUFFER_SIZE,
+                                                 &size);
         THROW_IF_GL_ERROR();
         return size;
     }
@@ -100,33 +141,63 @@ namespace Tungsten
         return from_ogl_buffer_usage(usage);
     }
 
-    unsigned to_ogl_buffer_binding(BufferTarget target)
+    namespace
     {
-        switch (target)
+        GLenum to_ogl_buffer_binding(BufferTarget target)
         {
-        case BufferTarget::ARRAY:
-            return GL_ARRAY_BUFFER_BINDING;
-        case BufferTarget::ELEMENT_ARRAY:
-            return GL_ELEMENT_ARRAY_BUFFER_BINDING;
-        case BufferTarget::COPY_READ:
-            return GL_COPY_READ_BUFFER_BINDING;
-        case BufferTarget::COPY_WRITE:
-            return GL_COPY_WRITE_BUFFER_BINDING;
-        case BufferTarget::PIXEL_PACK:
-            return GL_PIXEL_PACK_BUFFER_BINDING;
-        case BufferTarget::PIXEL_UNPACK:
-            return GL_PIXEL_UNPACK_BUFFER_BINDING;
-        case BufferTarget::TRANSFORM_FEEDBACK:
-            return GL_TRANSFORM_FEEDBACK_BUFFER_BINDING;
-        case BufferTarget::UNIFORM:
-            return GL_UNIFORM_BUFFER_BINDING;
-        default:
-            TUNGSTEN_THROW("Invalid buffer target!");
+            switch (target)
+            {
+            case BufferTarget::ARRAY:
+                return GL_ARRAY_BUFFER_BINDING;
+            case BufferTarget::ELEMENT_ARRAY:
+                return GL_ELEMENT_ARRAY_BUFFER_BINDING;
+            case BufferTarget::COPY_READ:
+                return GL_COPY_READ_BUFFER_BINDING;
+            case BufferTarget::COPY_WRITE:
+                return GL_COPY_WRITE_BUFFER_BINDING;
+            case BufferTarget::PIXEL_PACK:
+                return GL_PIXEL_PACK_BUFFER_BINDING;
+            case BufferTarget::PIXEL_UNPACK:
+                return GL_PIXEL_UNPACK_BUFFER_BINDING;
+            case BufferTarget::TRANSFORM_FEEDBACK:
+                return GL_TRANSFORM_FEEDBACK_BUFFER_BINDING;
+            case BufferTarget::UNIFORM:
+                return GL_UNIFORM_BUFFER_BINDING;
+            default:
+                TUNGSTEN_THROW("Invalid buffer target!");
+            }
         }
     }
 
     uint32_t get_bound_buffer(BufferTarget target)
     {
         return get_int32_value(to_ogl_buffer_binding(target));
+    }
+
+    bool is_buffer_mapped(BufferTarget target)
+    {
+        int32_t value;
+        get_ogl_wrapper().get_buffer_parameter(to_ogl_buffer_target(target), GL_BUFFER_MAPPED,
+                                               &value);
+        THROW_IF_GL_ERROR();
+        return value != 0;
+    }
+
+    BufferRestorer::BufferRestorer(BufferTarget target)
+        : target_(target),
+          previous_buffer_id_(get_bound_buffer(target))
+    {
+    }
+
+    BufferRestorer::BufferRestorer(BufferTarget target,
+                                             uint32_t previous_buffer_id)
+        : target_(target),
+          previous_buffer_id_(previous_buffer_id)
+    {
+    }
+
+    BufferRestorer::~BufferRestorer()
+    {
+        bind_buffer(target_, previous_buffer_id_);
     }
 }

@@ -41,12 +41,12 @@ make_cube_vao(const Tungsten::SmoothShader& program,
         .build();
 
     Tungsten::bind_buffer(Tungsten::BufferTarget::ARRAY, vertex_buffer);
-    Tungsten::set_buffer_data(Tungsten::BufferTarget::ARRAY, std::span(cube.vertices),
-                              Tungsten::BufferUsage::STATIC_DRAW);
+    Tungsten::assign_buffer(Tungsten::BufferTarget::ARRAY, std::span(cube.vertices),
+                            Tungsten::BufferUsage::STATIC_DRAW);
     auto element_buffer = Tungsten::generate_buffer();
     Tungsten::bind_buffer(Tungsten::BufferTarget::ELEMENT_ARRAY, element_buffer);
-    Tungsten::set_buffer_data(Tungsten::BufferTarget::ELEMENT_ARRAY, std::span(cube.indices),
-                              Tungsten::BufferUsage::STATIC_DRAW);
+    Tungsten::assign_buffer(Tungsten::BufferTarget::ELEMENT_ARRAY, std::span(cube.indices),
+                            Tungsten::BufferUsage::STATIC_DRAW);
 
     return {
         std::move(vao), std::move(vertex_buffer), std::move(element_buffer),
