@@ -85,6 +85,7 @@ namespace Tungsten
 
         void set_projection_parameters(const ProjectionParameters& parameters);
 
+        Xyz::Matrix4F orthographic_screen_matrix();
     private:
         Viewport viewport_;
         ViewParameters view_parameters_;
@@ -95,7 +96,7 @@ namespace Tungsten
 
     std::ostream& operator<<(std::ostream& stream, const Camera& camera);
 
-    struct CameraBuilder
+    class CameraBuilder
     {
     public:
         CameraBuilder();

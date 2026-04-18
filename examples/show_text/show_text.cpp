@@ -7,22 +7,87 @@
 //****************************************************************************
 #include <iostream>
 #include <thread>
+#include <Tungsten/TextRenderer2.hpp>
 #include <Tungsten/Tungsten.hpp>
+
+Xyz::Vector4F RED = {1.f, 0.f, 0.f, 1.f};
+Xyz::Vector4F BLUE = {0.f, 0.f, 1.f, 1.f};
+Xyz::Vector4F GREEN = {0.f, 0.f, 1.f, 1.f};
+Xyz::Vector4F BLACK = {0.f, 0.f, 0.f, 1.f};
+Xyz::Vector4F WHITE = {1.f, 1.f, 1.f, 1.f};
+
+auto get_horizontal_alignment(float x)
+    -> Tungsten::HorizontalAlignment
+{
+    if (x == 0)
+        return Tungsten::HorizontalAlignment::LEFT;
+    if (x == 1)
+        return Tungsten::HorizontalAlignment::RIGHT;
+    return Tungsten::HorizontalAlignment::CENTER;
+}
+
+auto get_horizontal_anchor(float x)
+    -> Tungsten::HorizontalAnchor
+{
+    if (x == 0)
+        return Tungsten::HorizontalAnchor::LEFT;
+    if (x == 1)
+        return Tungsten::HorizontalAnchor::RIGHT;
+    return Tungsten::HorizontalAnchor::CENTER;
+}
+
+auto get_vertical_anchor(float y)
+    -> Tungsten::VerticalAnchor
+{
+    if (y == 0)
+        return Tungsten::VerticalAnchor::BOTTOM;
+    if (y == 1)
+        return Tungsten::VerticalAnchor::TOP;
+    return Tungsten::VerticalAnchor::CENTER;
+}
+
+auto make_text_item(Tungsten::TextRenderer2& renderer,
+                    std::shared_ptr<Tungsten::TextStyle> base_style,
+                    const Xyz::Vector4F& color,
+                    const Xyz::Vector2F& position)
+    -> std::shared_ptr<Tungsten::TextItem>
+{
+    auto style = std::make_shared<Tungsten::TextStyle>(std::move(base_style));
+    style->set_color(color)
+        .set_horizontal_alignment(get_horizontal_alignment(position.x()))
+        .set_horizontal_anchor(get_horizontal_anchor(position.x()))
+        .set_vertical_anchor(get_vertical_anchor(position.y()));
+    auto item = std::make_shared<Tungsten::TextItem>("", std::move(style));
+    renderer.add_text(item, Tungsten::RelativePosition(position));
+    return item;
+}
 
 class ShowText : public Tungsten::EventLoop
 {
 public:
     explicit ShowText(Tungsten::SdlApplication& app)
         : EventLoop(app),
-          text_renderer_(Tungsten::FontManager::instance().default_font())
-    {}
+          text_manager_(std::make_shared<Tungsten::TextRenderer2>())
+    {
+        base_style_ = std::make_shared<Tungsten::TextStyle>(font_manager_.default_font());
+        text_items_[0] = make_text_item(*text_manager_, base_style_, RED, {0.f, 0.f});
+        text_items_[1] = make_text_item(*text_manager_, base_style_, GREEN, {0.f, 1.f});
+        text_items_[2] = make_text_item(*text_manager_, base_style_, BLUE, {1.f, 0.f});
+        text_items_[3] = make_text_item(*text_manager_, base_style_, BLACK, {1.f, 1.f});
+        text_items_[4] = make_text_item(*text_manager_, base_style_, WHITE, {0.5f, 0.5f});
+    }
 
     void on_update() override
     {
-        auto current_second = SDL_GetTicks() / 1000;
+        const auto current_second = SDL_GetTicks() / 1000;
         if (current_second != second_)
         {
             second_ = current_second;
+            const auto text = "Jan Erik Breimo\nNatasha Barrett\nTime: " + std::to_string(second_);
+            for (const auto& item : text_items_)
+            {
+                item->set_text(text);
+            }
             redraw();
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -32,26 +97,21 @@ public:
     {
         Tungsten::set_clear_color(0.4, 0.6, 0.8, 1);
         Tungsten::clear(Tungsten::ClearBits::COLOR_DEPTH);
-        auto [w, h] = application().window_size();
-        Tungsten::set_viewport(0, 0, w, h);
-        const auto screen_size = Xyz::Vector2F(float(w), float(h));
-        const auto text = "Jan Erik Breimo\nNatasha Barrett\nTime: " + std::to_string(second_);
+        const auto viewport = application().viewport();
+        Tungsten::set_viewport(viewport);
+        const Tungsten::Camera camera(viewport, {}, {});
 
-        auto size = text_renderer_.get_size(text) * 2.f / screen_size;
-        text_renderer_.draw(text, {-size[0] / 2, -size[1] / 2}, screen_size,
-                            {.color = {0xFF, 0, 0, 0xFF}});
-        text_renderer_.draw(text, {-1.f, 1.f - size[1]}, screen_size,
-                            {.color = {0, 0xFF, 0, 0xFF}});
-        text_renderer_.draw(text, {-1.f, -1.f}, screen_size,
-                            {.color = {0, 0, 0xFF, 0xFF}});
-        text_renderer_.draw(text, {1.f - size[0], -1.f}, screen_size,
-                            {.color = {0xFF, 0, 0xFF, 0xFF}});
-        text_renderer_.draw(text, {1.f - size[0], 1.f - size[1]},
-                            screen_size, {.color = {0xFF, 0xFF, 0xFF, 0xFF}});
+        text_manager_->prepare(camera);
+        text_manager_->render(camera);
+
         Tungsten::set_ogl_tracing_enabled(false);
     }
+
 private:
-    Tungsten::TextRenderer text_renderer_;
+    Tungsten::FontManager font_manager_;
+    std::shared_ptr<Tungsten::TextRenderer2> text_manager_;
+    std::shared_ptr<Tungsten::TextStyle> base_style_;
+    std::shared_ptr<Tungsten::TextItem> text_items_[5];
     uint32_t second_ = UINT32_MAX;
 };
 

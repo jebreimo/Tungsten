@@ -66,6 +66,12 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
+    void set_viewport(const Viewport& viewport)
+    {
+        set_viewport(int(viewport.origin.x()), int(viewport.origin.y()),
+                     int(viewport.size.x()), int(viewport.size.y()));
+    }
+
     bool get_boolean_value(unsigned parameter_name)
     {
         GLboolean value;

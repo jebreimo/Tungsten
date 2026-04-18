@@ -107,10 +107,12 @@ public:
     {
         auto [vao, vertex_buffer, element_buffer, index_count] = make_cube_vao(program, wireframe);
         item = {
-            std::move(vao),
-            std::move(vertex_buffer),
-            std::move(element_buffer),
-            index_count,
+            {
+                std::move(vao),
+                std::move(vertex_buffer),
+                std::move(element_buffer),
+                index_count
+            },
             {},
             wireframe
         };

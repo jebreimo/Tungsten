@@ -42,6 +42,8 @@ namespace Tungsten
 
     void draw_elements_16(TopologyType topology, int32_t offset, int32_t count);
 
+    void draw_elements_32(TopologyType topology, int32_t offset, int32_t count);
+
     inline void draw_line_array(int32_t offset, int32_t count)
     {
         draw_array(TopologyType::LINES, offset, count);

@@ -56,6 +56,10 @@ FetchContent_Declare(yimage
 
 FetchContent_MakeAvailable(argos cppembed xyz yconvert yimage)
 
+if (NOT EMSCRIPTEN)
+    find_package(Freetype REQUIRED)
+endif ()
+
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(SDL3 REQUIRED)
@@ -165,6 +169,14 @@ add_library(Tungsten STATIC
     src/Tungsten/VertexAttributeType.cpp
     src/Tungsten/Viewport.cpp
     src/Tungsten/YimageGl.cpp
+    src/Tungsten/TextRenderer2.cpp
+    include/Tungsten/TextRenderer2.hpp
+    include/Tungsten/Renderable.hpp
+    include/Tungsten/TextItem.hpp
+    src/Tungsten/TextStyle.cpp
+    src/Tungsten/TextItem.cpp
+    src/Tungsten/TextUtilities.cpp
+    src/Tungsten/TextUtilities.hpp
 )
 
 target_link_libraries(Tungsten
@@ -178,6 +190,13 @@ target_link_libraries(Tungsten
     PRIVATE
         Argos
 )
+
+if (NOT EMSCRIPTEN)
+    target_link_libraries(Tungsten
+        PUBLIC
+            Freetype::Freetype
+    )
+endif ()
 
 add_library(Tungsten::Tungsten ALIAS Tungsten)
 

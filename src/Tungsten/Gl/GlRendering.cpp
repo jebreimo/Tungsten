@@ -67,7 +67,7 @@ namespace Tungsten
 
     void draw_elements(TopologyType topology, ElementIndexType type, int32_t offset, int32_t count)
     {
-        intptr_t tmp_offset = offset * get_type_size(type);
+        const intptr_t tmp_offset = offset * get_type_size(type);
         get_ogl_wrapper().draw_elements(to_ogl_draw_mode(topology),
                                        count,
                                        to_ogl_element_index_type(type),
@@ -78,5 +78,10 @@ namespace Tungsten
     void draw_elements_16(TopologyType topology, int32_t offset, int32_t count)
     {
         draw_elements(topology, ElementIndexType::UINT16, offset, count);
+    }
+
+    void draw_elements_32(TopologyType topology, int32_t offset, int32_t count)
+    {
+        draw_elements(topology, ElementIndexType::UINT32, offset, count);
     }
 }

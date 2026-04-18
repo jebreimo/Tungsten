@@ -87,7 +87,7 @@ namespace Tungsten
                         continue;
                 }
 
-                auto& glyph = it->second;
+                const auto& glyph = it->second;
                 if (!is_empty(glyph.glyph_rect))
                 {
                     auto glyph_rect = glyph.glyph_rect;
@@ -154,7 +154,7 @@ namespace Tungsten
 
     struct TextRenderer::Data
     {
-        const Font* font = nullptr;
+        std::shared_ptr<Font> font;
         TextureHandle texture;
         Detail::RenderTextShaderProgram program;
         VertexArrayObject vao;
@@ -163,13 +163,13 @@ namespace Tungsten
         bool auto_blend = true;
         Yconvert::Converter converter;
 
-        explicit Data(const Font& font)
-            : font(&font),
+        explicit Data(std::shared_ptr<Font> font)
+            : font(std::move(font)),
               texture(generate_texture()),
-              converter(Yconvert::Encoding::UTF_8,
-                        Yconvert::Encoding::UTF_32_NATIVE),
               vertex_buffer(generate_buffer()),
-              element_buffer(generate_buffer())
+              element_buffer(generate_buffer()),
+              converter(Yconvert::Encoding::UTF_8,
+                        Yconvert::Encoding::UTF_32_NATIVE)
         {
             converter.set_error_policy(Yconvert::ErrorPolicy::THROW);
             bind_texture(TextureTarget::TEXTURE_2D, texture.id());
@@ -180,8 +180,8 @@ namespace Tungsten
 
             set_texture_image_2d(TextureTarget2D::TEXTURE_2D, 0,
                                  image_size(),
-                                 get_ogl_pixel_type(font.image.pixel_type()),
-                                 font.image.data());
+                                 get_ogl_pixel_type(font->image.pixel_type()),
+                                 font->image.data());
 
             program.use();
 
@@ -199,8 +199,8 @@ namespace Tungsten
         }
     };
 
-    TextRenderer::TextRenderer(const Font& font)
-        : data_(std::make_unique<Data>(font))
+    TextRenderer::TextRenderer(std::shared_ptr<Font> font)
+        : data_(std::make_unique<Data>(std::move(font)))
     {
     }
 
@@ -210,9 +210,9 @@ namespace Tungsten
 
     TextRenderer& TextRenderer::operator=(TextRenderer&&) noexcept = default;
 
-    const Font& TextRenderer::font() const
+    const std::shared_ptr<Font>& TextRenderer::font() const
     {
-        return *data_->font;
+        return data_->font;
     }
 
     bool TextRenderer::auto_blend() const

@@ -6,6 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include <Xyz/ProjectionMatrix.hpp>
 #include <Xyz/Vector.hpp>
 
 namespace Tungsten
@@ -19,7 +20,14 @@ namespace Tungsten
         {
             return size[1] == 0.0f ? 1.0f : size[0] / size[1];
         }
+
+        [[nodiscard]] Xyz::Matrix4F orthographic_transform() const
+        {
+            return Xyz::make_orthographic_matrix(origin.x(), origin.x() + size.x(),
+                                                 origin.y(), origin.y() + size.y(),
+                                                 10000.0f, -10000.0f);
+        }
     };
 
-    std::ostream &operator<<(std::ostream &os, const Viewport &viewport);
+    std::ostream& operator<<(std::ostream& os, const Viewport& viewport);
 } // Tungsten

@@ -9,16 +9,13 @@
 
 #include "Tungsten/ShaderPrograms/SmoothShader.hpp"
 
-MeshItem::MeshItem(Tungsten::VertexArrayObject vao,
-                   Tungsten::BufferHandle vertex_buffer,
-                   Tungsten::BufferHandle element_buffer,
-                   int32_t num_elements,
+MeshItem::MeshItem(MeshBuffers buffers,
                    const Tungsten::ColorMaterial& material,
                    bool wireframe)
-    : vao_(std::move(vao)),
-      vertex_buffer_(std::move(vertex_buffer)),
-      element_buffer_(std::move(element_buffer)),
-      num_elements_(num_elements),
+    : vao_(std::move(buffers.vao)),
+      vertex_buffer_(std::move(buffers.vertex_buffer)),
+      element_buffer_(std::move(buffers.element_buffer)),
+      num_elements_(buffers.num_elements),
       material_(material),
       wireframe_(wireframe)
 {

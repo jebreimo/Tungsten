@@ -9,6 +9,8 @@
 #include "GlTypes.hpp"
 #include <string>
 
+#include "Tungsten/Viewport.hpp"
+
 namespace Tungsten
 {
     bool is_blend_enabled();
@@ -28,6 +30,8 @@ namespace Tungsten
     void set_face_culling_mode(FaceCullingMode mode);
 
     void set_viewport(int x, int y, int width, int height);
+
+    void set_viewport(const Viewport& viewport);
 
     bool get_boolean_value(unsigned parameter_name);
 

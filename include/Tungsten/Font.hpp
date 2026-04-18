@@ -11,6 +11,7 @@
 #include <Yimage/Image.hpp>
 #include <unordered_map>
 #include <utility>
+#include "Detail/GenericBitmaskOperators.hpp"
 
 namespace Tungsten
 {
@@ -24,12 +25,15 @@ namespace Tungsten
     struct FontId
     {
         std::string family;
+        std::string style;
         size_t size;
     };
 
     inline bool operator==(const FontId& a, const FontId& b)
     {
-        return a.family == b.family && a.size == b.size;
+        return a.family == b.family
+               && a.style == b.style
+               && a.size == b.size;
     }
 
     inline bool operator!=(const FontId& a, const FontId& b)
@@ -41,17 +45,19 @@ namespace Tungsten
     {
         if (a.family != b.family)
             return a.family < b.family;
+        if (a.style != b.style)
+            return a.style < b.style;
         return a.size < b.size;
     }
 
     struct Font
     {
         Font(FontId identifier,
-             Xyz::Rectangle2F max_glyph,
+             const Xyz::Rectangle2F& max_glyph,
              std::unordered_map<char32_t, Glyph> glyphs,
              Yimage::Image image)
             : identifier{std::move(identifier)},
-              max_glyph(std::move(max_glyph)),
+              max_glyph(max_glyph),
               glyphs(std::move(glyphs)),
               image(std::move(image))
         {

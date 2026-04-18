@@ -14,16 +14,14 @@ namespace Tungsten
     class FontManager
     {
     public:
-        static FontManager& instance();
-
-        [[nodiscard]] const Font& default_font() const;
-
-        void add_font(std::unique_ptr<Font> font);
-
-    private:
         FontManager();
 
-        std::map<FontId, std::unique_ptr<Font>> fonts_;
+        [[nodiscard]] const std::shared_ptr<Font>& default_font() const;
+
+        void add_font(std::shared_ptr<Font> font);
+
+    private:
+        std::map<FontId, std::shared_ptr<Font>> fonts_;
         FontId default_font_id_;
     };
 }

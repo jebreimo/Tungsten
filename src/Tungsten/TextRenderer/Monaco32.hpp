@@ -507,7 +507,7 @@ namespace
 std::unique_ptr<Tungsten::Font> get_monaco_32()
 {
     return std::make_unique<Tungsten::Font>(
-        Tungsten::FontId{"Monaco", 32},
+        Tungsten::FontId{"Monaco", "Normal", 32},
         Xyz::Rectangle2F({{0, -7}}, {20, 33}),
         std::unordered_map<char32_t, Tungsten::Glyph>{
             {

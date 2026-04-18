@@ -8,15 +8,20 @@
 #pragma once
 #include <Tungsten/Tungsten.hpp>
 
+struct MeshBuffers
+{
+    Tungsten::VertexArrayObject vao;
+    Tungsten::BufferHandle vertex_buffer;
+    Tungsten::BufferHandle element_buffer;
+    int32_t num_elements = 0;
+};
+
 class MeshItem
 {
 public:
     MeshItem() = default;
 
-    MeshItem(Tungsten::VertexArrayObject vao,
-             Tungsten::BufferHandle vertex_buffer,
-             Tungsten::BufferHandle element_buffer,
-             int32_t num_elements,
+    MeshItem(MeshBuffers buffers,
              const Tungsten::ColorMaterial& material,
              bool wireframe = false);
 

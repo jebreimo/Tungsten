@@ -20,7 +20,7 @@ namespace Tungsten
     class TextRenderer
     {
     public:
-        explicit TextRenderer(const Font& font);
+        explicit TextRenderer(std::shared_ptr<Font> font);
 
         ~TextRenderer();
 
@@ -30,7 +30,7 @@ namespace Tungsten
         TextRenderer(TextRenderer&&) noexcept;
         TextRenderer& operator=(TextRenderer&&) noexcept;
 
-        [[nodiscard]] const Font& font() const;
+        [[nodiscard]] const std::shared_ptr<Font>& font() const;
 
         [[nodiscard]] bool auto_blend() const;
 

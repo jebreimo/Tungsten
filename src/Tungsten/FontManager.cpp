@@ -10,12 +10,6 @@
 
 namespace Tungsten
 {
-    FontManager& FontManager::instance()
-    {
-        static FontManager manager;
-        return manager;
-    }
-
     FontManager::FontManager()
     {
         auto default_font = get_monaco_32();
@@ -23,13 +17,13 @@ namespace Tungsten
         add_font(std::move(default_font));
     }
 
-    void FontManager::add_font(std::unique_ptr<Font> font)
+    void FontManager::add_font(std::shared_ptr<Font> font)
     {
         fonts_.insert({font->identifier, std::move(font)});
     }
 
-    const Font& FontManager::default_font() const
+    const std::shared_ptr<Font>& FontManager::default_font() const
     {
-        return *fonts_.find(default_font_id_)->second;
+        return fonts_.find(default_font_id_)->second;
     }
 }

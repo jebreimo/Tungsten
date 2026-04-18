@@ -179,6 +179,14 @@ namespace Tungsten
             viewport_.aspect_ratio());
     }
 
+    Xyz::Matrix4F Camera::orthographic_screen_matrix()
+    {
+        return Xyz::make_orthographic_matrix(
+            0.0f, viewport_.size[0],
+            0.0f, viewport_.size[1],
+            -1.0f, 1.0f);
+    }
+
     std::ostream& operator<<(std::ostream& stream, const Camera& camera)
     {
         stream << "{\n"
