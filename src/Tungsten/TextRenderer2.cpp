@@ -67,6 +67,33 @@ namespace Tungsten
 
         Xyz::Matrix3F make_transform(const TextItem& item, const Xyz::RectangleF& rect)
         {
+            // Xyz::Vector2F offset;
+            //     switch (item.style()->horizontal_anchor)
+            //     {
+            //     case HorizontalAnchor::LEFT:
+            //         break;
+            //     case HorizontalAnchor::CENTER:
+            //         offset.x() = -rect.size.x() / 2;
+            //         break;
+            //     case HorizontalAnchor::RIGHT:
+            //         offset.x() = -rect.size.x();
+            //         break;
+            //     }
+            //
+            //     switch (item.style()->vertical_anchor)
+            //     {
+            //     case VerticalAnchor::TOP:
+            //         break;
+            //     case VerticalAnchor::CENTER:
+            //         offset.y() = rect.size.y() / 2;
+            //         break;
+            //     case VerticalAnchor::BOTTOM:
+            //         offset.y() = rect.size.y();
+            //         break;
+            //     case VerticalAnchor::BASELINE:
+            //         offset.y() = rect.origin.y();
+            //         break;
+            //     }
             auto t = Xyz::affine::translate2(item.position())
                      * Xyz::affine::rotate2(item.rotation())
                      * Xyz::affine::translate2(-rect.origin);
@@ -125,6 +152,10 @@ namespace Tungsten
 
     void TextRenderer2::add_text(const std::shared_ptr<TextItem>& item)
     {
+        if (!item->font())
+            TUNGSTEN_THROW("Text item has no font assigned. (Text: " + item->text() + ")");
+        if (data_->text_entries_.contains(item))
+            TUNGSTEN_THROW("Text item is already added to the renderer.");
         data_->text_entries_.insert(item);
         data_->dirty_items_.insert(item);
     }
@@ -148,11 +179,15 @@ namespace Tungsten
         std::vector<int32_t> indexes;
         for (auto& item : data_->dirty_items_)
         {
-            auto font_it = data_->font_data_.find(item->style()->resolve_font());
+            const auto& font = item->font();
+            if (!font)
+                TUNGSTEN_THROW("Text item has no font assigned. (Text: " + item->text() + ")");
+
+            auto font_it = data_->font_data_.find(item->font());
             if (font_it == data_->font_data_.end())
             {
-                auto font_data = make_font_data(item->style()->resolve_font());
-                font_it = data_->font_data_.emplace(item->style()->resolve_font(),
+                auto font_data = make_font_data(item->font());
+                font_it = data_->font_data_.emplace(item->font(),
                                                     std::move(font_data)).first;
             }
 
@@ -174,15 +209,15 @@ namespace Tungsten
                 bind_buffer(BufferTarget::ELEMENT_ARRAY, rd_it->second->ebo.id());
             }
 
-            rd_it->second->color = item->style()->color();
+            rd_it->second->color = item->color();
 
             vertexes.resize(0);
             indexes.resize(0);
 
             const auto text32 = utf8_to_utf32(item->text());
-            auto rect = add_vertexes(vertexes, indexes, *item->style()->resolve_font(),
-                                     text32, item->style()->line_gap(),
-                                     item->style()->horizontal_alignment());
+            auto rect = add_vertexes(vertexes, indexes, *font,
+                                     text32, item->line_gap(),
+                                     item->horizontal_alignment());
             rd_it->second->transform = Xyz::affine::translate2(item->position());
             set_buffer_data(BufferTarget::ARRAY, std::span(vertexes),
                             BufferUsage::DYNAMIC_DRAW);

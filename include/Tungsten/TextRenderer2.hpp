@@ -10,7 +10,6 @@
 
 #include "Renderable.hpp"
 #include "TextItem.hpp"
-#include "TextStyle.hpp"
 
 namespace Tungsten
 {

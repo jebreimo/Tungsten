@@ -47,18 +47,18 @@ auto get_vertical_anchor(float y)
 }
 
 auto make_text_item(Tungsten::TextRenderer2& renderer,
-                    std::shared_ptr<Tungsten::TextStyle> base_style,
+                    std::shared_ptr<Tungsten::Font> font,
                     const Xyz::Vector4F& color,
                     const Xyz::Vector2F& position)
     -> std::shared_ptr<Tungsten::TextItem>
 {
-    auto style = std::make_shared<Tungsten::TextStyle>(std::move(base_style));
-    style->set_color(color)
-        .set_horizontal_alignment(get_horizontal_alignment(position.x()))
-        .set_horizontal_anchor(get_horizontal_anchor(position.x()))
-        .set_vertical_anchor(get_vertical_anchor(position.y()));
-    auto item = std::make_shared<Tungsten::TextItem>("", std::move(style));
-    renderer.add_text(item, Tungsten::RelativePosition(position));
+    auto item = std::make_shared<Tungsten::TextItem>("", std::move(font));
+    item->set_color(color);
+    item->set_position(position);
+    item->set_horizontal_alignment(get_horizontal_alignment(position.x()));
+    item->set_horizontal_anchor(get_horizontal_anchor(position.x()));
+    item->set_vertical_anchor(get_vertical_anchor(position.y()));
+    renderer.add_text(item);
     return item;
 }
 
@@ -69,12 +69,12 @@ public:
         : EventLoop(app),
           text_manager_(std::make_shared<Tungsten::TextRenderer2>())
     {
-        base_style_ = std::make_shared<Tungsten::TextStyle>(font_manager_.default_font());
-        text_items_[0] = make_text_item(*text_manager_, base_style_, RED, {0.f, 0.f});
-        text_items_[1] = make_text_item(*text_manager_, base_style_, GREEN, {0.f, 1.f});
-        text_items_[2] = make_text_item(*text_manager_, base_style_, BLUE, {1.f, 0.f});
-        text_items_[3] = make_text_item(*text_manager_, base_style_, BLACK, {1.f, 1.f});
-        text_items_[4] = make_text_item(*text_manager_, base_style_, WHITE, {0.5f, 0.5f});
+        auto style = Tungsten::TextStyleData{.font = font_manager_.default_font()};
+        text_items_[0] = make_text_item(*text_manager_, style, RED, {0.f, 0.f});
+        text_items_[1] = make_text_item(*text_manager_, style, GREEN, {0.f, 1.f});
+        text_items_[2] = make_text_item(*text_manager_, style, BLUE, {1.f, 0.f});
+        text_items_[3] = make_text_item(*text_manager_, style, BLACK, {1.f, 1.f});
+        text_items_[4] = make_text_item(*text_manager_, style, WHITE, {0.5f, 0.5f});
     }
 
     void on_update() override

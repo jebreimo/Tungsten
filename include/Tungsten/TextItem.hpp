@@ -6,7 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include "TextStyle.hpp"
+#include "TextStyleData.hpp"
 
 namespace Tungsten
 {
@@ -19,8 +19,9 @@ namespace Tungsten
     public:
         TextItem() = default;
 
-        explicit TextItem(std::string text,
-                          std::shared_ptr<TextStyle> style);
+        TextItem(std::string text, std::shared_ptr<Font> style);
+
+        TextItem(std::string text, const TextStyleData& style);
 
         [[nodiscard]] const std::string& text() const;
 
@@ -34,16 +35,41 @@ namespace Tungsten
 
         void set_rotation(float rotation);
 
-        [[nodiscard]] const std::shared_ptr<TextStyle>& style() const;
+        [[nodiscard]] const std::shared_ptr<Font>& font() const;
 
-        void set_style(std::shared_ptr<TextStyle> style);
+        void set_font(std::shared_ptr<Font> font);
 
-        [[nodiscard]] Xyz::Vector2F size() const;
+        [[nodiscard]] float line_gap() const;
+
+        void set_line_gap(float gap);
+
+        [[nodiscard]] Xyz::Vector4F color() const;
+
+        void set_color(Xyz::Vector4F color);
+
+        [[nodiscard]] HorizontalAlignment horizontal_alignment() const;
+
+        void set_horizontal_alignment(HorizontalAlignment alignment);
+
+        [[nodiscard]] HorizontalAnchor horizontal_anchor() const;
+
+        void set_horizontal_anchor(HorizontalAnchor anchor);
+
+        [[nodiscard]] VerticalAnchor vertical_anchor() const;
+
+        void set_vertical_anchor(VerticalAnchor anchor);
+
+        [[nodiscard]] Xyz::Vector2F caclulate_size() const;
 
     private:
         std::string text_;
         Xyz::Vector2F position_;
-        float rotation_;
-        std::shared_ptr<TextStyle> style_;
+        float rotation_ = 0.f;
+        std::shared_ptr<Font> font_;
+        float line_gap_ = 0.5;
+        Xyz::Vector4F color_ = {0.f, 0.f, 0.f, 1.f};
+        HorizontalAlignment horizontal_alignment_ = HorizontalAlignment::LEFT;
+        HorizontalAnchor horizontal_anchor_ = HorizontalAnchor::LEFT;
+        VerticalAnchor vertical_anchor_ = VerticalAnchor::TOP;
     };
 }

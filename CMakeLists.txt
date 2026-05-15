@@ -172,7 +172,6 @@ add_library(Tungsten STATIC
     src/Tungsten/TextRenderer/RenderTextShaderProgram.cpp
     src/Tungsten/TextRenderer/RenderTextShaderProgram.hpp
     src/Tungsten/TextRenderer2.cpp
-    src/Tungsten/TextStyle.cpp
     src/Tungsten/TextUtilities.cpp
     src/Tungsten/TextUtilities.hpp
     src/Tungsten/TungstenException.cpp
