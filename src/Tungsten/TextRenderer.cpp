@@ -28,10 +28,10 @@ namespace Tungsten
         };
 
         void add_rectangle(VertexArrayData<TextVertex>& buffer,
-                           const Xyz::Rectangle2F& vertex_rect,
-                           const Xyz::Rectangle2F& tex_rect)
+                           const Xyz::RectangleF& vertex_rect,
+                           const Xyz::RectangleF& tex_rect)
         {
-            VertexArrayDataBuilder<TextVertex> builder(buffer);
+            VertexArrayDataBuilder builder(buffer);
             builder.reserve_vertexes(4);
             builder.add_vertex({
                 vertex_rect[0],
@@ -55,7 +55,7 @@ namespace Tungsten
         }
 
         [[nodiscard]]
-        std::pair<VertexArrayData<TextVertex>, Xyz::Rectangle2F>
+        std::pair<VertexArrayData<TextVertex>, Xyz::RectangleF>
         make_text_array_buffer(
             const Font& font,
             std::u32string_view text,
@@ -91,7 +91,7 @@ namespace Tungsten
                 if (!is_empty(glyph.glyph_rect))
                 {
                     auto glyph_rect = glyph.glyph_rect;
-                    glyph_rect.placement.origin += pos;
+                    glyph_rect.origin += pos;
                     add_rectangle(buffer,
                                   glyph_rect,
                                   glyph.tex_rect);
@@ -103,54 +103,55 @@ namespace Tungsten
             max_width = std::max(max_width, pos[0]);
             auto height =
                 (float(lines) * (1 + line_separator) - line_separator) * font.max_glyph.size[1];
-            auto y = font.max_glyph.placement.origin.y()
+            auto y = font.max_glyph.origin.y()
                      - float(lines - 1) * (1 + line_separator) * font.max_glyph.size[1];
-            Xyz::Rectangle2F rect({{font.max_glyph.placement.origin.x(), y}}, {max_width, height});
+            Xyz::RectangleF rect({font.max_glyph.origin.x(), y}, {max_width, height});
             return {buffer, rect};
         }
-    }
 
-    Xyz::Rectangle2F get_text_size(
-        const Font& font,
-        std::u32string_view text,
-        float line_separator)
-    {
-        const auto& glyphs = font.glyphs;
-        if (glyphs.empty() || text.empty())
-            return {};
-
-        unsigned lines = 0;
-        float max_width = 0;
-        float width = 0;
-        for (char32_t c : text)
+        Xyz::RectangleF get_text_size(
+            const Font& font,
+            std::u32string_view text,
+            float line_separator)
         {
-            if (c == '\n')
-            {
-                ++lines;
-                max_width = std::max(max_width, width);
-                width = 0;
-            }
+            const auto& glyphs = font.glyphs;
+            if (glyphs.empty() || text.empty())
+                return {};
 
-            auto it = glyphs.find(c);
-            if (it == glyphs.end())
+            unsigned lines = 0;
+            float max_width = 0;
+            float width = 0;
+            for (char32_t c : text)
             {
-                it = glyphs.find('?');
+                if (c == '\n')
+                {
+                    ++lines;
+                    max_width = std::max(max_width, width);
+                    width = 0;
+                }
+
+                auto it = glyphs.find(c);
                 if (it == glyphs.end())
-                    continue;
-            }
+                {
+                    it = glyphs.find('?');
+                    if (it == glyphs.end())
+                        continue;
+                }
 
-            auto& glyph = it->second;
-            width += glyph.advance;
+                auto& glyph = it->second;
+                width += glyph.advance;
+            }
+            if (width > 0)
+                ++lines;
+            max_width = std::max(max_width, width);
+            auto height = (float(lines) * (1 + line_separator) - line_separator)
+                          * font.max_glyph.size[1];
+            auto y = font.max_glyph.origin.y() - float(lines - 1) * (1 + line_separator)
+                     * font.max_glyph.size[1];
+            return {{font.max_glyph.origin.x(), y}, {max_width, height}};
         }
-        if (width > 0)
-            ++lines;
-        max_width = std::max(max_width, width);
-        auto height = (float(lines) * (1 + line_separator) - line_separator)
-                      * font.max_glyph.size[1];
-        auto y = font.max_glyph.placement.origin.y() - float(lines - 1) * (1 + line_separator)
-                 * font.max_glyph.size[1];
-        return {{{font.max_glyph.placement.origin.x(), y}}, {max_width, height}};
     }
+
 
     struct TextRenderer::Data
     {
@@ -280,17 +281,17 @@ namespace Tungsten
                                                      properties.line_gap);
         BufferRestorer array_restorer(BufferTarget::ARRAY);
         bind_buffer(BufferTarget::ARRAY, data_->vertex_buffer.id());
-        assign_buffer(BufferTarget::ARRAY, std::span(buffer.vertices),
+        set_buffer_data(BufferTarget::ARRAY, std::span(buffer.vertices),
                       BufferUsage::STATIC_DRAW);
 
         BufferRestorer element_restorer(BufferTarget::ELEMENT_ARRAY);
         bind_buffer(BufferTarget::ELEMENT_ARRAY, data_->element_buffer.id());
-        assign_buffer(BufferTarget::ELEMENT_ARRAY, std::span(buffer.indices),
+        set_buffer_data(BufferTarget::ELEMENT_ARRAY, std::span(buffer.indices),
                       BufferUsage::STATIC_DRAW);
-        auto count = int32_t(buffer.indices.size());
+        const auto count = int32_t(buffer.indices.size());
 
         data_->program.color.set(to_vector(properties.color));
-        auto adjusted_pos = pos - rect.placement.origin * 2.0f / screen_size;
+        auto adjusted_pos = pos - rect.origin * 2.0f / screen_size;
         auto [scale_x, scale_y] = 2.0f / screen_size;
         using namespace Xyz::affine;
         data_->program.mvp_matrix.set(translate3(adjusted_pos[0], adjusted_pos[1], 0.f)

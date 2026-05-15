@@ -12,16 +12,17 @@
 
 namespace ParserTools
 {
+    template <typename CharT = char>
     struct FindSubstring
     {
         FindSubstring() = default;
 
-        explicit FindSubstring(std::string_view str)
+        explicit FindSubstring(std::basic_string_view<CharT> str)
             : substring_(str)
         {
         }
 
-        std::pair<size_t, size_t> operator()(std::string_view str) const
+        std::pair<size_t, size_t> operator()(std::basic_string_view<CharT> str) const
         {
             if (substring_.empty())
                 return {str.size(), str.size()};
@@ -33,19 +34,20 @@ namespace ParserTools
         }
 
     private:
-        std::string_view substring_;
+        std::basic_string_view<CharT> substring_;
     };
 
+    template <typename CharT = char>
     struct FindChar
     {
         FindChar() = default;
 
-        explicit FindChar(char ch)
+        explicit FindChar(CharT ch)
             : char_(ch)
         {
         }
 
-        std::pair<size_t, size_t> operator()(std::string_view str) const
+        std::pair<size_t, size_t> operator()(std::basic_string_view<CharT> str) const
         {
             const auto it = std::find(str.begin(), str.end(), char_);
             auto start = std::distance(str.begin(), it);
@@ -54,18 +56,19 @@ namespace ParserTools
         }
 
     private:
-        char char_ = '\0';
+        CharT char_ = CharT('\0');
     };
 
+    template <typename CharT = char>
     struct FindNewline
     {
-        std::pair<size_t, size_t> operator()(std::string_view str) const
+        std::pair<size_t, size_t> operator()(std::basic_string_view<CharT> str) const
         {
             auto from = std::find_if(str.begin(), str.end(),
-                                     [](char c) { return c == '\n' || c == '\r'; });
+                                     [](CharT c) { return c == CharT('\n') || c == CharT('\r'); });
             auto to = from;
-            if (to != str.end() && *to++ == '\r'
-                && to != str.end() && *to == '\n')
+            if (to != str.end() && *to++ == CharT('\r')
+                && to != str.end() && *to == CharT('\n'))
             {
                 ++to;
             }
@@ -76,18 +79,19 @@ namespace ParserTools
         }
     };
 
+    template <typename CharT = char>
     struct FindWhitespace
     {
-        std::pair<size_t, size_t> operator()(std::string_view str) const
+        std::pair<size_t, size_t> operator()(std::basic_string_view<CharT> str) const
         {
-            auto from = std::find_if(str.begin(), str.end(), [](char c)
+            auto from = std::find_if(str.begin(), str.end(), [](CharT c)
             {
-                return isspace(c) != 0;
+                return std::isspace(static_cast<unsigned char>(c)) != 0;
             });
 
-            auto to = std::find_if(from, str.end(), [](char c)
+            auto to = std::find_if(from, str.end(), [](CharT c)
             {
-                return isspace(c) == 0;
+                return std::isspace(static_cast<unsigned char>(c)) == 0;
             });
 
             return {
@@ -97,18 +101,19 @@ namespace ParserTools
         }
     };
 
+    template <typename CharT = char>
     struct FindSequenceOf
     {
         FindSequenceOf() = default;
 
-        explicit FindSequenceOf(std::string_view characters)
+        explicit FindSequenceOf(std::basic_string_view<CharT> characters)
             : characters_(characters)
         {
         }
 
-        std::pair<size_t, size_t> operator()(std::string_view str) const
+        std::pair<size_t, size_t> operator()(std::basic_string_view<CharT> str) const
         {
-            auto match = [this](char c)
+            auto match = [this](CharT c)
             {
                 return std::find(characters_.begin(),
                                  characters_.end(),
@@ -123,6 +128,6 @@ namespace ParserTools
         }
 
     private:
-        std::string_view characters_;
+        std::basic_string_view<CharT> characters_;
     };
 }

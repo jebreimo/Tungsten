@@ -38,7 +38,6 @@ namespace Tungsten
     struct TextStyleData
     {
         std::shared_ptr<Font> font;
-        float rotation = 0;
         float line_gap = 0.5;
         Xyz::Vector4F color = {0.f, 0.f, 0.f, 1.f};
         HorizontalAlignment horizontal_alignment = HorizontalAlignment::LEFT;

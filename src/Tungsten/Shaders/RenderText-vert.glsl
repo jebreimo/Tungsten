@@ -12,8 +12,8 @@
     precision highp float;
 #endif
 
-in vec2 a_Position;
-in vec2 a_TextureCoord;
+layout(location = 0) in vec2 a_Position;
+layout(location = 1) in vec2 a_TextureCoord;
 
 uniform mat4 u_MvpMatrix;
 

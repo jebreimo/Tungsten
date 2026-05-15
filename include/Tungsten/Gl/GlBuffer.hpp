@@ -43,37 +43,37 @@ namespace Tungsten
         set_buffer_data(target, size, nullptr, usage);
     }
 
-    inline void assign_buffer(BufferTarget target,
-                              std::span<const std::byte> data,
-                              BufferUsage usage)
+    inline void set_buffer_data(BufferTarget target,
+                                std::span<const std::byte> data,
+                                BufferUsage usage)
     {
         set_buffer_data(target, ptrdiff_t(data.size()), data.data(), usage);
     }
 
     template <typename T>
-    void assign_buffer(BufferTarget target,
-                       std::span<T> data,
-                       BufferUsage usage)
+    void set_buffer_data(BufferTarget target,
+                         std::span<T> data,
+                         BufferUsage usage)
     {
-        assign_buffer(target, std::as_bytes(data), usage);
+        set_buffer_data(target, std::as_bytes(data), usage);
     }
 
     void set_buffer_subdata(BufferTarget target, ptrdiff_t offset,
                             ptrdiff_t size, const void* data);
 
-    inline void write_to_buffer(BufferTarget target,
-                                std::span<const std::byte> data,
-                                ptrdiff_t offset = 0)
+    inline void set_buffer_subdata(BufferTarget target,
+                                   std::span<const std::byte> data,
+                                   ptrdiff_t offset = 0)
     {
         set_buffer_subdata(target, offset, ptrdiff_t(data.size()), data.data());
     }
 
     template <typename T>
-    void write_to_buffer(BufferTarget target,
-                         std::span<T> data,
-                         ptrdiff_t offset = 0)
+    void set_buffer_subdata(BufferTarget target,
+                            std::span<T> data,
+                            ptrdiff_t offset = 0)
     {
-        write_to_buffer(target, std::as_bytes(data), offset);
+        set_buffer_subdata(target, std::as_bytes(data), offset);
     }
 
     void resize_buffer(BufferTarget target, ptrdiff_t size);
@@ -96,9 +96,6 @@ namespace Tungsten
     [[nodiscard]]
     uint32_t get_bound_buffer(BufferTarget target);
 
-    [[nodiscard]]
-    bool is_buffer_mapped(BufferTarget target);
-
     class BufferRestorer
     {
     public:
@@ -107,6 +104,7 @@ namespace Tungsten
         BufferRestorer(BufferTarget target, uint32_t previous_buffer_id);
 
         ~BufferRestorer();
+
     private:
         BufferTarget target_;
         uint32_t previous_buffer_id_;

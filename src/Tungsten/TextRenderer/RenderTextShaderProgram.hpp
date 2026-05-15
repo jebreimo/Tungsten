@@ -7,8 +7,7 @@
 //****************************************************************************
 #pragma once
 #include "Tungsten/Gl/GlUniform.hpp"
-#include "../../../include/Tungsten/ShaderPrograms/ShaderProgram.hpp"
-#include "Tungsten/VertexArrayObject.hpp"
+#include "Tungsten/ShaderPrograms/ShaderProgram.hpp"
 
 namespace Tungsten::Detail
 {

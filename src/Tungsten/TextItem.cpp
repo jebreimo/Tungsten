@@ -26,40 +26,24 @@ namespace Tungsten
         text_ = std::move(text);
     }
 
-    Xyz::Vector2F TextItem::size() const
+    const Xyz::Vector2F& TextItem::position() const
     {
-        const auto& font = style_->resolve_font();
-        const auto text32 = utf8_to_utf32(text_);
-        Xyz::Vector2F min(MAXFLOAT, MAXFLOAT);
-        Xyz::Vector2F max(-MAXFLOAT, -MAXFLOAT);
-        Xyz::Vector2F pos;
-        for (auto c : text32)
-        {
-            if (c == '\n')
-            {
-                pos[0] = 0;
-                pos[1] -= font->max_glyph.size[1] * (1 + style_->line_gap());
-                continue;
-            }
+        return position_;
+    }
 
-            auto it = font->glyphs.find(c);
-            if (it == font->glyphs.end())
-            {
-                if (it = font->glyphs.find('?'); it == font->glyphs.end())
-                    continue;
-            }
+    void TextItem::set_position(const Xyz::Vector2F& position)
+    {
+        position_ = position;
+    }
 
-            const auto& glyph = it->second;
-            if (!is_empty(glyph.glyph_rect))
-            {
-                const auto& bl = glyph.glyph_rect.placement.origin;
-                const auto& ur = glyph.glyph_rect.placement.origin + glyph.glyph_rect.size;
-                min = get_min(min, pos + bl);
-                max = get_max(max, pos + ur);
-            }
-        }
+    float TextItem::rotation() const
+    {
+        return rotation_;
+    }
 
-        return max - min;
+    void TextItem::set_rotation(float rotation)
+    {
+        rotation_ = rotation;
     }
 
     const std::shared_ptr<TextStyle>& TextItem::style() const
@@ -70,5 +54,11 @@ namespace Tungsten
     void TextItem::set_style(std::shared_ptr<TextStyle> style)
     {
         style_ = std::move(style);
+    }
+
+    Xyz::Vector2F TextItem::size() const
+    {
+        const auto& font = style_->resolve_font();
+        return get_text_rect(*font, text_, style_->line_gap(), true).size;
     }
 }

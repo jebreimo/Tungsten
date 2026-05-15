@@ -58,6 +58,12 @@ namespace Tungsten
         return image;
     }
 
+    Xyz::Vector2I get_size(const Yimage::Image& image)
+    {
+        auto view = image.view();
+        return {int(view.width()), int(view.height())};
+    }
+
     Xyz::Vector4F to_vector(Yimage::Rgba8 rgba)
     {
         constexpr float D = 255.0f;

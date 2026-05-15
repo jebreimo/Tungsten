@@ -22,5 +22,8 @@ namespace Tungsten
     Yimage::Image read_image(const void* buffer, size_t size);
 
     [[nodiscard]]
+    Xyz::Vector2I get_size(const Yimage::Image& image);
+
+    [[nodiscard]]
     Xyz::Vector4F to_vector(Yimage::Rgba8 rgba);
 }

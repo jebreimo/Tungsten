@@ -11,13 +11,12 @@
 
 namespace Tungsten
 {
-    constexpr uint8_t HAS_ROTATION = 0x01;
-    constexpr uint8_t HAS_LINE_GAP = 0x02;
-    constexpr uint8_t HAS_COLOR = 0x04;
-    constexpr uint8_t HAS_HORIZONTAL_ALIGNMENT = 0x08;
-    constexpr uint8_t HAS_HORIZONTAL_ANCHOR = 0x10;
-    constexpr uint8_t HAS_VERTICAL_ANCHOR = 0x20;
-    constexpr uint8_t HAS_ALL = 0x3F;
+    constexpr uint8_t HAS_LINE_GAP = 0x01;
+    constexpr uint8_t HAS_COLOR = 0x02;
+    constexpr uint8_t HAS_HORIZONTAL_ALIGNMENT = 0x04;
+    constexpr uint8_t HAS_HORIZONTAL_ANCHOR = 0x08;
+    constexpr uint8_t HAS_VERTICAL_ANCHOR = 0x10;
+    constexpr uint8_t HAS_ALL = 0x1F;
 
     TextStyle::TextStyle(std::shared_ptr<Font> font)
         : assigned_values_(HAS_ALL)
@@ -80,38 +79,6 @@ namespace Tungsten
         if (!parent_)
             TUNGSTEN_THROW("Style has no font.");
         return parent_->resolve_font();
-    }
-
-    float TextStyle::rotation() const
-    {
-        return data_.rotation;
-    }
-
-    TextStyle& TextStyle::set_rotation(float rotation)
-    {
-        data_.rotation = rotation;
-        assigned_values_ |= HAS_ROTATION;
-        return *this;
-    }
-
-    bool TextStyle::has_rotation() const
-    {
-        return assigned_values_ & HAS_ROTATION;
-    }
-
-    TextStyle& TextStyle::clear_rotation()
-    {
-        assigned_values_ &= ~HAS_ROTATION;
-        return *this;
-    }
-
-    float TextStyle::resolve_rotation() const // NOLINT(*-no-recursion)
-    {
-        if (assigned_values_ & HAS_ROTATION)
-            return data_.rotation;
-        if (!parent_)
-            TUNGSTEN_THROW("Style has no rotation.");
-        return parent_->resolve_rotation();
     }
 
     float TextStyle::line_gap() const

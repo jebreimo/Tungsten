@@ -9,16 +9,26 @@
 
 #include <cassert>
 #include <string_view>
+#include <concepts>
+#include <type_traits>
+#include <utility>
 
 namespace ParserTools
 {
-    template <typename FindDelimiterFunc>
+    template <typename F, typename CharT>
+    concept FindDelimiterFunc =
+        std::invocable<F, std::basic_string_view<CharT>> &&
+        std::same_as<std::invoke_result_t<F, std::basic_string_view<CharT>>,
+                     std::pair<std::size_t, std::size_t>>;
+
+    template <typename FindDelimiterFuncT, typename CharT = char>
+        requires FindDelimiterFunc<FindDelimiterFuncT, CharT>
     class StringDelimiterIterator
     {
     public:
         StringDelimiterIterator() = default;
 
-        StringDelimiterIterator(std::string_view str, FindDelimiterFunc func)
+        StringDelimiterIterator(std::basic_string_view<CharT> str, FindDelimiterFuncT func)
             : str_(str),
               find_delimiter_func_(std::move(func))
         {
@@ -47,28 +57,28 @@ namespace ParserTools
          *  current delimiter if there is no previous delimiter.
          */
         [[nodiscard]]
-        std::string_view string() const
+        std::basic_string_view<CharT> string() const
         {
             return str_.substr(0, delimiter_start_);
         }
 
         [[nodiscard]]
-        std::string_view delimiter() const
+        std::basic_string_view<CharT> delimiter() const
         {
             return str_.substr(delimiter_start_,
                                delimiter_end_ - delimiter_start_);
         }
 
         [[nodiscard]]
-        std::string_view remainder() const
+        std::basic_string_view<CharT> remainder() const
         {
             return str_.substr(delimiter_end_);
         }
 
     private:
-        std::string_view str_;
+        std::basic_string_view<CharT> str_;
         size_t delimiter_start_ = 0;
         size_t delimiter_end_ = 0;
-        FindDelimiterFunc find_delimiter_func_;
+        FindDelimiterFuncT find_delimiter_func_;
     };
 }

@@ -174,15 +174,6 @@ namespace Tungsten
         return get_int32_value(to_ogl_buffer_binding(target));
     }
 
-    bool is_buffer_mapped(BufferTarget target)
-    {
-        int32_t value;
-        get_ogl_wrapper().get_buffer_parameter(to_ogl_buffer_target(target), GL_BUFFER_MAPPED,
-                                               &value);
-        THROW_IF_GL_ERROR();
-        return value != 0;
-    }
-
     BufferRestorer::BufferRestorer(BufferTarget target)
         : target_(target),
           previous_buffer_id_(get_bound_buffer(target))

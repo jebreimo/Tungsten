@@ -11,14 +11,13 @@
 #include <Yimage/Image.hpp>
 #include <unordered_map>
 #include <utility>
-#include "Detail/GenericBitmaskOperators.hpp"
 
 namespace Tungsten
 {
     struct Glyph
     {
-        Xyz::Rectangle2F tex_rect;
-        Xyz::Rectangle2F glyph_rect;
+        Xyz::RectangleF tex_rect;
+        Xyz::RectangleF glyph_rect;
         float advance = 0.0;
     };
 
@@ -53,7 +52,7 @@ namespace Tungsten
     struct Font
     {
         Font(FontId identifier,
-             const Xyz::Rectangle2F& max_glyph,
+             const Xyz::RectangleF& max_glyph,
              std::unordered_map<char32_t, Glyph> glyphs,
              Yimage::Image image)
             : identifier{std::move(identifier)},
@@ -64,8 +63,18 @@ namespace Tungsten
         }
 
         FontId identifier;
-        Xyz::Rectangle2F max_glyph;
+        Xyz::RectangleF max_glyph;
         std::unordered_map<char32_t, Glyph> glyphs;
         Yimage::Image image;
     };
+
+    Xyz::RectangleF get_text_rect(const Font& font,
+                                  std::u32string_view text,
+                                  float line_gap,
+                                  bool use_full_line_height);
+
+    Xyz::RectangleF get_text_rect(const Font& font,
+                                  std::string_view text,
+                                  float line_gap,
+                                  bool use_full_line_height);
 }

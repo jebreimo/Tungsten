@@ -102,7 +102,7 @@ namespace Tungsten
     template <typename... T>
     void add_rect_pn(
         VertexArrayDataBuilder<std::tuple<Xyz::Vector3F, Xyz::Vector3F, T...>>& builder,
-        const Xyz::Rectangle3F& rect)
+        const Xyz::OrientedRectangle3F& rect)
     {
         const auto base_index = builder.max_index();
         const auto normal = rect.normal_vector();
@@ -130,7 +130,7 @@ namespace Tungsten
         using O3F = Xyz::Orientation3F;
         auto pn = [](float x, float y, float z, float yaw, float roll)
         {
-            return Xyz::Rectangle3F{
+            return Xyz::OrientedRectangle3F{
                 {{x, y, z}, O3F{yaw, 0, roll}},
                 {2, 2}
             };
@@ -157,8 +157,8 @@ namespace Tungsten
     template <typename... T>
     void add_rect_pnt(
         VertexArrayDataBuilder<std::tuple<Xyz::Vector3F, Xyz::Vector3F, Xyz::Vector2F, T...>>& builder,
-        const Xyz::Rectangle3F& rect,
-        const Xyz::Rectangle2F& uv_rect
+        const Xyz::OrientedRectangle3F& rect,
+        const Xyz::OrientedRectangle2F& uv_rect
     )
     {
         const auto base_index = builder.max_index();
@@ -195,14 +195,14 @@ namespace Tungsten
         using O3F = Xyz::Orientation3F;
         auto pn = [](float x, float y, float z, float yaw, float roll)
         {
-            return Xyz::Rectangle3F{
+            return Xyz::OrientedRectangle3F{
                 {{x, y, z}, O3F{yaw, 0, roll}},
                 {2, 2}
             };
         };
         auto t = [](float f)
         {
-            return Xyz::Rectangle2F{{{f / 6, 0.f}}, {1.f / 6, 1}};
+            return Xyz::OrientedRectangle2F{{{f / 6, 0.f}}, {1.f / 6, 1}};
         };
         add_rect_pnt(builder, pn(-1, -1, 1, 0, 0), t(0));
         add_rect_pnt(builder, pn(-1, 1, -1, -PI / 2, PI / 2), t(1));

@@ -69,7 +69,7 @@ namespace Tungsten
                                    const std::filesystem::path& current_dir) const
     {
         std::string result;
-        ParserTools::StringDelimiterIterator<ParserTools::FindNewline> it(source, {});
+        ParserTools::StringDelimiterIterator<ParserTools::FindNewline<>> it(source, {});
         while (it.next())
         {
             auto line = it.string();

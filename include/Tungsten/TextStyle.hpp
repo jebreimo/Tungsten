@@ -41,16 +41,6 @@ namespace Tungsten
 
         [[nodiscard]] const std::shared_ptr<Font>& resolve_font() const;
 
-        [[nodiscard]] float rotation() const;
-
-        TextStyle& set_rotation(float rotation);
-
-        [[nodiscard]] bool has_rotation() const;
-
-        TextStyle& clear_rotation();
-
-        [[nodiscard]] float resolve_rotation() const;
-
         [[nodiscard]] float line_gap() const;
 
         TextStyle& set_line_gap(float gap);

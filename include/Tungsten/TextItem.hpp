@@ -26,11 +26,19 @@ namespace Tungsten
 
         void set_text(std::string text);
 
-        [[nodiscard]] Xyz::Vector2F size() const;
+        [[nodiscard]] const Xyz::Vector2F& position() const;
+
+        void set_position(const Xyz::Vector2F& position);
+
+        [[nodiscard]] float rotation() const;
+
+        void set_rotation(float rotation);
 
         [[nodiscard]] const std::shared_ptr<TextStyle>& style() const;
 
         void set_style(std::shared_ptr<TextStyle> style);
+
+        [[nodiscard]] Xyz::Vector2F size() const;
 
     private:
         std::string text_;
