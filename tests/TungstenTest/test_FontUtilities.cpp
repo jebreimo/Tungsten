@@ -19,8 +19,8 @@ TEST_CASE("FontUtilities: add_vertexes with left anchor")
     auto rect = Tungsten::add_vertexes(vertexes, indexes, *font, text, 0.5f, Tungsten::HorizontalAlignment::LEFT);
     REQUIRE(vertexes.size() == text.size() * 4);
     REQUIRE(indexes.size() == text.size() * 6);
-    REQUIRE(rect.origin == Xyz::Vector2F(1, -7));
-    REQUIRE(rect.size == Xyz::Vector2F(106, font->max_glyph.size.y()));
+    REQUIRE(rect.origin == Xyz::Vector2F(0, -7));
+    REQUIRE(rect.size == Xyz::Vector2F(107, font->max_glyph.size.y()));
 }
 
 TEST_CASE("FontUtilities: add_vertexes with center anchor")
@@ -33,8 +33,8 @@ TEST_CASE("FontUtilities: add_vertexes with center anchor")
     auto rect = Tungsten::add_vertexes(vertexes, indexes, *font, text, 0.5f, Tungsten::HorizontalAlignment::CENTER);
     REQUIRE(vertexes.size() == text.size() * 4);
     REQUIRE(indexes.size() == text.size() * 6);
-    REQUIRE(rect.origin == Xyz::Vector2F(-52, -7));
-    REQUIRE(rect.size == Xyz::Vector2F(106, font->max_glyph.size.y()));
+    REQUIRE(rect.origin == Xyz::Vector2F(-53, -7));
+    REQUIRE(rect.size == Xyz::Vector2F(107, font->max_glyph.size.y()));
 }
 
 TEST_CASE("FontUtilities: add_vertexes with right anchor")
@@ -47,6 +47,6 @@ TEST_CASE("FontUtilities: add_vertexes with right anchor")
     auto rect = Tungsten::add_vertexes(vertexes, indexes, *font, text, 0.5f, Tungsten::HorizontalAlignment::RIGHT);
     REQUIRE(vertexes.size() == text.size() * 4);
     REQUIRE(indexes.size() == text.size() * 6);
-    REQUIRE(rect.origin == Xyz::Vector2F(-105, -7));
-    REQUIRE(rect.size == Xyz::Vector2F(106, font->max_glyph.size.y()));
+    REQUIRE(rect.origin == Xyz::Vector2F(-106, -7));
+    REQUIRE(rect.size == Xyz::Vector2F(107, font->max_glyph.size.y()));
 }

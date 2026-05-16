@@ -38,7 +38,10 @@ namespace Tungsten
     {
         vertexes.reserve(vertexes.size() + text.size() * 4);
         indexes.reserve(indexes.size() + text.size() * 6);
-        Xyz::RectangleF text_rect;
+        Xyz::RectangleF text_rect = {
+            {position.x(), position.y() + font.max_glyph.origin.y()},
+            {0, font.max_glyph.size.y()}
+        };
         for (char32_t c : text)
         {
             auto it = font.glyphs.find(c);
@@ -56,7 +59,7 @@ namespace Tungsten
                 Xyz::RectangleF rect(position + g_rect.origin, g_rect.size);
                 add_quad(vertexes, rect, t_rect);
                 add_quad_indexes(indexes, int32_t(vertexes.size() - 4));
-                text_rect = is_empty(text_rect) ? rect : get_union(text_rect, rect);
+                text_rect = get_union(text_rect, rect);
             }
             position.x() += glyph.advance;
         }
