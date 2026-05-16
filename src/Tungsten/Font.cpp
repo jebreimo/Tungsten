@@ -28,7 +28,10 @@ namespace Tungsten
             if (c == '\n')
             {
                 pos[0] = 0;
-                pos[1] -= font.max_glyph.size[1] * (1 + line_gap);
+                const float line_height = std::ceil(font.max_glyph.size[1] * (1 + line_gap));
+                pos[1] -= line_height;
+                if (use_full_line_height)
+                    min.y() -= line_height;
                 continue;
             }
 
