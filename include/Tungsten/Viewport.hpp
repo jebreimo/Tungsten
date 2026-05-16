@@ -27,6 +27,36 @@ namespace Tungsten
                                                  origin.y(), origin.y() + size.y(),
                                                  10000.0f, -10000.0f);
         }
+
+        [[nodiscard]] Xyz::Vector2F pixel_to_screen(const Xyz::Vector2F& pixel_pos) const
+        {
+            return origin + pixel_pos;
+        }
+
+        [[nodiscard]] Xyz::Vector2F screen_to_pixel(const Xyz::Vector2F& screen_pos) const
+        {
+            return screen_pos - origin;
+        }
+
+        [[nodiscard]] Xyz::Vector2F normalized_to_screen(const Xyz::Vector2F& normalized_pos) const
+        {
+            return origin + normalized_pos * size;
+        }
+
+        [[nodiscard]] Xyz::Vector2F screen_to_normalized(const Xyz::Vector2F& screen_pos) const
+        {
+            return (screen_pos - origin) / size;
+        }
+
+        [[nodiscard]] Xyz::Vector2F normalized_to_pixel(const Xyz::Vector2F& normalized_pos) const
+        {
+            return normalized_pos * size;
+        }
+
+        [[nodiscard]] Xyz::Vector2F pixel_to_normalized(const Xyz::Vector2F& pixel_pos) const
+        {
+            return pixel_pos / size;
+        }
     };
 
     std::ostream& operator<<(std::ostream& os, const Viewport& viewport);

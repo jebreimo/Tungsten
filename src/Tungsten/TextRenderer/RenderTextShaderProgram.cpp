@@ -30,7 +30,7 @@ namespace Tungsten::Detail
             }
         });
 
-        mvp_matrix = Tungsten::get_uniform<Xyz::Matrix4F>(id(), "u_MvpMatrix");
+        mvp_matrix = Tungsten::get_uniform<Xyz::Matrix3F>(id(), "u_MvpMatrix");
         texture = Tungsten::get_uniform<int32_t>(id(), "u_Texture");
         color = Tungsten::get_uniform<Xyz::Vector4F>(id(), "u_TextColor");
     }

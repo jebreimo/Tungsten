@@ -31,7 +31,7 @@ namespace Tungsten
     class TextRenderer2 : public Renderable
     {
     public:
-        explicit TextRenderer2(Xyz::Vector2F position = {});
+        explicit TextRenderer2();
 
         ~TextRenderer2() override;
 
@@ -42,14 +42,6 @@ namespace Tungsten
         TextRenderer2& operator=(const TextRenderer2&) = delete;
 
         TextRenderer2& operator=(TextRenderer2&&) noexcept;
-
-        [[nodiscard]] HorizontalAnchor horizontal_anchor() const;
-
-        void set_horizontal_anchor(HorizontalAnchor anchor);
-
-        [[nodiscard]] VerticalAnchor vertical_anchor() const;
-
-        void set_vertical_anchor(VerticalAnchor alignment);
 
         void add_text(const std::shared_ptr<TextItem>& item);
 
@@ -63,7 +55,6 @@ namespace Tungsten
     private:
         std::unique_ptr<TextRenderData>
         make_render_data(const std::shared_ptr<TextItem>& item);
-
 
         static std::unique_ptr<FontRenderData>
         make_font_data(const std::shared_ptr<Font>& font);

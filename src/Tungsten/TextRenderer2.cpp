@@ -12,11 +12,13 @@
 
 #include "FontUtilities.hpp"
 #include "TextUtilities.hpp"
+#include "TextRenderer/RenderTextShaderProgram.hpp"
 #include "Tungsten/TungstenException.hpp"
 #include "Tungsten/VertexArrayObjectBuilder.hpp"
 #include "Tungsten/YimageGl.hpp"
 #include "Tungsten/Gl/GlBuffer.hpp"
 #include "Tungsten/Gl/GlProgram.hpp"
+#include "Tungsten/Gl/GlRendering.hpp"
 #include "Tungsten/Gl/GlTexture.hpp"
 
 namespace Tungsten
@@ -26,8 +28,9 @@ namespace Tungsten
         VertexArrayObject vao;
         BufferHandle vbo;
         BufferHandle ebo;
-        Xyz::Matrix3F transform;
-        Xyz::Vector4F color;
+        int32_t element_count = 0;
+        Xyz::RectangleF rectangle;
+        std::shared_ptr<TextItem> item;
         FontRenderData* font_data = nullptr;
     };
 
@@ -35,7 +38,6 @@ namespace Tungsten
     {
         TextureHandle texture;
         std::vector<TextRenderData*> textures;
-        ProgramHandle program;
     };
 
     namespace
@@ -65,54 +67,58 @@ namespace Tungsten
             font_data.textures.push_back(&render_data);
         }
 
-        Xyz::Matrix3F make_transform(const TextItem& item, const Xyz::RectangleF& rect)
+        Xyz::Matrix3F make_transform(const TextItem& item,
+                                     const Xyz::RectangleF& rect,
+                                     const Viewport& viewport)
         {
-            // Xyz::Vector2F offset;
-            //     switch (item.style()->horizontal_anchor)
-            //     {
-            //     case HorizontalAnchor::LEFT:
-            //         break;
-            //     case HorizontalAnchor::CENTER:
-            //         offset.x() = -rect.size.x() / 2;
-            //         break;
-            //     case HorizontalAnchor::RIGHT:
-            //         offset.x() = -rect.size.x();
-            //         break;
-            //     }
-            //
-            //     switch (item.style()->vertical_anchor)
-            //     {
-            //     case VerticalAnchor::TOP:
-            //         break;
-            //     case VerticalAnchor::CENTER:
-            //         offset.y() = rect.size.y() / 2;
-            //         break;
-            //     case VerticalAnchor::BOTTOM:
-            //         offset.y() = rect.size.y();
-            //         break;
-            //     case VerticalAnchor::BASELINE:
-            //         offset.y() = rect.origin.y();
-            //         break;
-            //     }
-            auto t = Xyz::affine::translate2(item.position())
-                     * Xyz::affine::rotate2(item.rotation())
-                     * Xyz::affine::translate2(-rect.origin);
+            Xyz::Vector2F offset;
+            switch (item.horizontal_anchor())
+            {
+            case HorizontalAnchor::LEFT:
+                offset.x() = rect.origin.x();
+                break;
+            case HorizontalAnchor::CENTER:
+                offset.x() = rect.origin.x() + rect.size.x() / 2;
+                break;
+            case HorizontalAnchor::RIGHT:
+                offset.x() = rect.origin.x() + rect.size.x();
+                break;
+            }
+
+            switch (item.vertical_anchor())
+            {
+            case VerticalAnchor::TOP:
+                offset.y() = rect.origin.y() + rect.size.y();
+                break;
+            case VerticalAnchor::CENTER:
+                offset.y() = rect.origin.y() + rect.size.y() / 2;
+                break;
+            case VerticalAnchor::BOTTOM:
+                offset.y() = rect.origin.y();
+                break;
+            case VerticalAnchor::BASELINE:
+                offset.y() = 0;
+                break;
+            }
+
+            using namespace Xyz::affine;
+            return scale2(1 / viewport.size)
+                   * translate2(item.position() - viewport.size / 2.f)
+                   * rotate2(item.rotation())
+                   * translate2(-offset);
         }
     }
 
     struct TextRenderer2::Data
     {
-        Xyz::Vector2F position_;
-        Xyz::Vector2F size_;
-        HorizontalAnchor horizontal_anchor_ = HorizontalAnchor::LEFT;
-        VerticalAnchor vertical_anchor_ = VerticalAnchor::TOP;
         std::unordered_set<std::shared_ptr<TextItem>> text_entries_;
         std::unordered_set<std::shared_ptr<TextItem>> dirty_items_;
         std::unordered_map<std::shared_ptr<TextItem>, std::unique_ptr<TextRenderData>> text_data_;
         std::unordered_map<std::shared_ptr<Font>, std::unique_ptr<FontRenderData>> font_data_;
+        Detail::RenderTextShaderProgram program;
     };
 
-    TextRenderer2::TextRenderer2(Xyz::Vector2F position)
+    TextRenderer2::TextRenderer2()
         : data_(std::make_unique<Data>())
     {
     }
@@ -128,26 +134,6 @@ namespace Tungsten
     {
         data_ = std::move(rhs.data_);
         return *this;
-    }
-
-    HorizontalAnchor TextRenderer2::horizontal_anchor() const
-    {
-        return data_->horizontal_anchor_;
-    }
-
-    void TextRenderer2::set_horizontal_anchor(HorizontalAnchor anchor)
-    {
-        data_->horizontal_anchor_ = anchor;
-    }
-
-    VerticalAnchor TextRenderer2::vertical_anchor() const
-    {
-        return data_->vertical_anchor_;
-    }
-
-    void TextRenderer2::set_vertical_anchor(VerticalAnchor alignment)
-    {
-        data_->vertical_anchor_ = alignment;
     }
 
     void TextRenderer2::add_text(const std::shared_ptr<TextItem>& item)
@@ -195,8 +181,9 @@ namespace Tungsten
             if (rd_it == data_->text_data_.end())
             {
                 auto rd = std::make_unique<TextRenderData>();
-                rd->vbo = generate_buffer(BufferTarget::ARRAY);
-                rd->ebo = generate_buffer(BufferTarget::ELEMENT_ARRAY);
+                rd->item = item;
+                rd->vbo = generate_buffer();
+                rd->ebo = generate_buffer();
                 rd->vao = create_vertex_array(rd->vbo.id());
                 rd->font_data = font_it->second.get();
                 font_it->second->textures.push_back(rd.get());
@@ -205,24 +192,48 @@ namespace Tungsten
             else if (rd_it->second->font_data != font_it->second.get())
             {
                 replace_font(*rd_it->second, *font_it->second);
-                bind_buffer(BufferTarget::ARRAY, rd_it->second->vbo.id());
-                bind_buffer(BufferTarget::ELEMENT_ARRAY, rd_it->second->ebo.id());
             }
-
-            rd_it->second->color = item->color();
 
             vertexes.resize(0);
             indexes.resize(0);
 
             const auto text32 = utf8_to_utf32(item->text());
-            auto rect = add_vertexes(vertexes, indexes, *font,
-                                     text32, item->line_gap(),
-                                     item->horizontal_alignment());
-            rd_it->second->transform = Xyz::affine::translate2(item->position());
+            const auto rect = add_vertexes(vertexes, indexes, *font,
+                                           text32, item->line_gap(),
+                                           item->horizontal_alignment());
+            rd_it->second->element_count = int32_t(indexes.size());
+            rd_it->second->rectangle = rect;
+            bind_buffer(BufferTarget::ARRAY, rd_it->second->vbo.id());
             set_buffer_data(BufferTarget::ARRAY, std::span(vertexes),
                             BufferUsage::DYNAMIC_DRAW);
+            bind_buffer(BufferTarget::ELEMENT_ARRAY, rd_it->second->ebo.id());
             set_buffer_data(BufferTarget::ELEMENT_ARRAY, std::span(indexes),
                             BufferUsage::DYNAMIC_DRAW);
+        }
+
+        data_->dirty_items_.clear();
+    }
+
+    void TextRenderer2::render(const Camera& camera) const
+    {
+        if (data_->text_entries_.empty())
+            return;
+
+        data_->program.use();
+        for (auto& [font, font_data] : data_->font_data_)
+        {
+            activate_texture_unit(0);
+            bind_texture(TextureTarget::TEXTURE_2D, font_data->texture.id());
+            for (auto& rd : font_data->textures)
+            {
+                const auto transform = make_transform(*rd->item, rd->rectangle, camera.viewport());
+                data_->program.mvp_matrix.set(transform);
+                data_->program.color.set(rd->item->color());
+                rd->vao.bind();
+                bind_buffer(BufferTarget::ARRAY, rd->vbo.id());
+                bind_buffer(BufferTarget::ELEMENT_ARRAY, rd->ebo.id());
+                draw_elements_32(TopologyType::TRIANGLES, 0, rd->element_count);
+            }
         }
     }
 

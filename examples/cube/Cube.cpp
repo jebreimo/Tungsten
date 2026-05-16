@@ -62,7 +62,7 @@ Tungsten::SmoothShader& get_shader(Tungsten::BuiltinShader shader_type)
 
 Tungsten::Camera make_camera(const Tungsten::Viewport viewport)
 {
-    const auto fov_y = Tungsten::calculate_fov_y(
+    const auto fov_y = Tungsten::calc_fov_y(
         Xyz::to_radians(50.f), Xyz::to_radians(50.f), viewport.aspect_ratio());
     return Tungsten::CameraBuilder()
         .viewport(viewport)

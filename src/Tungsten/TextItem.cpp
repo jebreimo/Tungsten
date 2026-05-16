@@ -57,7 +57,67 @@ namespace Tungsten
         rotation_ = rotation;
     }
 
-    Xyz::Vector2F TextItem::caclulate_size() const
+    const std::shared_ptr<Font>& TextItem::font() const
+    {
+        return font_;
+    }
+
+    void TextItem::set_font(std::shared_ptr<Font> font)
+    {
+        font_ = std::move(font);
+    }
+
+    float TextItem::line_gap() const
+    {
+        return line_gap_;
+    }
+
+    void TextItem::set_line_gap(float gap)
+    {
+        line_gap_ = gap;
+    }
+
+    const Xyz::Vector4F& TextItem::color() const
+    {
+        return color_;
+    }
+
+    void TextItem::set_color(const Xyz::Vector4F& color)
+    {
+        color_ = color;
+    }
+
+    HorizontalAlignment TextItem::horizontal_alignment() const
+    {
+        return horizontal_alignment_;
+    }
+
+    void TextItem::set_horizontal_alignment(HorizontalAlignment alignment)
+    {
+        horizontal_alignment_ = alignment;
+    }
+
+    HorizontalAnchor TextItem::horizontal_anchor() const
+    {
+        return horizontal_anchor_;
+    }
+
+    void TextItem::set_horizontal_anchor(HorizontalAnchor anchor)
+    {
+        horizontal_anchor_ = anchor;
+    }
+
+    VerticalAnchor TextItem::vertical_anchor() const
+    {
+        return vertical_anchor_;
+    }
+
+    void TextItem::set_vertical_anchor(VerticalAnchor anchor)
+    {
+        vertical_anchor_ = anchor;
+    }
+
+    Xyz::Vector2F TextItem::calc_size() const
     {
         return get_text_rect(*font_, text_, line_gap_, true).size;
     }

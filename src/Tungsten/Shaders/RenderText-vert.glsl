@@ -15,12 +15,13 @@
 layout(location = 0) in vec2 a_Position;
 layout(location = 1) in vec2 a_TextureCoord;
 
-uniform mat4 u_MvpMatrix;
+uniform mat3 u_MvpMatrix;
 
 out vec2 v_TextureCoord;
 
 void main()
 {
-    gl_Position = u_MvpMatrix * vec4(a_Position, 0, 1);
+    vec3 pos = u_MvpMatrix * vec3(a_Position, 1);
+    gl_Position = vec4(pos.xy, 0, pos.z);
     v_TextureCoord = a_TextureCoord;
 }

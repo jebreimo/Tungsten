@@ -21,11 +21,7 @@ namespace Tungsten
 {
     namespace
     {
-        struct TextVertex
-        {
-            Xyz::Vector2F pos;
-            Xyz::Vector2F texture;
-        };
+        using TextVertex = std::tuple<Xyz::Vector2F, Xyz::Vector2F>;
 
         void add_rectangle(VertexArrayData<TextVertex>& buffer,
                            const Xyz::RectangleF& vertex_rect,
@@ -291,11 +287,11 @@ namespace Tungsten
         const auto count = int32_t(buffer.indices.size());
 
         data_->program.color.set(to_vector(properties.color));
-        auto adjusted_pos = pos - rect.origin * 2.0f / screen_size;
+        const auto adjusted_pos = pos - rect.origin * 2.0f / screen_size;
         auto [scale_x, scale_y] = 2.0f / screen_size;
         using namespace Xyz::affine;
-        data_->program.mvp_matrix.set(translate3(adjusted_pos[0], adjusted_pos[1], 0.f)
-                                      * scale3(scale_x, scale_y, 1.0f));
+        data_->program.mvp_matrix.set(translate2(adjusted_pos)
+                                      * scale2(scale_x, scale_y));
         draw_triangle_elements_16(0, count);
 
         set_blend_enabled(default_blend);

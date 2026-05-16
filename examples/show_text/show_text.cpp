@@ -54,7 +54,6 @@ auto make_text_item(Tungsten::TextRenderer2& renderer,
 {
     auto item = std::make_shared<Tungsten::TextItem>("", std::move(font));
     item->set_color(color);
-    item->set_position(position);
     item->set_horizontal_alignment(get_horizontal_alignment(position.x()));
     item->set_horizontal_anchor(get_horizontal_anchor(position.x()));
     item->set_vertical_anchor(get_vertical_anchor(position.y()));
@@ -69,12 +68,12 @@ public:
         : EventLoop(app),
           text_manager_(std::make_shared<Tungsten::TextRenderer2>())
     {
-        auto style = Tungsten::TextStyleData{.font = font_manager_.default_font()};
-        text_items_[0] = make_text_item(*text_manager_, style, RED, {0.f, 0.f});
-        text_items_[1] = make_text_item(*text_manager_, style, GREEN, {0.f, 1.f});
-        text_items_[2] = make_text_item(*text_manager_, style, BLUE, {1.f, 0.f});
-        text_items_[3] = make_text_item(*text_manager_, style, BLACK, {1.f, 1.f});
-        text_items_[4] = make_text_item(*text_manager_, style, WHITE, {0.5f, 0.5f});
+        auto font = font_manager_.default_font();
+        text_items_[0] = make_text_item(*text_manager_, font, RED, positions_[0]);
+        text_items_[1] = make_text_item(*text_manager_, font, GREEN, positions_[1]);
+        text_items_[2] = make_text_item(*text_manager_, font, BLUE, positions_[2]);
+        text_items_[3] = make_text_item(*text_manager_, font, BLACK, positions_[3]);
+        text_items_[4] = make_text_item(*text_manager_, font, WHITE, positions_[4]);
     }
 
     void on_update() override
@@ -99,8 +98,12 @@ public:
         Tungsten::clear(Tungsten::ClearBits::COLOR_DEPTH);
         const auto viewport = application().viewport();
         Tungsten::set_viewport(viewport);
-        const Tungsten::Camera camera(viewport, {}, {});
+        for (size_t i = 0; i < 5; ++i)
+        {
+            text_items_[i]->set_position(viewport.normalized_to_pixel(positions_[i]));
+        }
 
+        const Tungsten::Camera camera(viewport, {}, {});
         text_manager_->prepare(camera);
         text_manager_->render(camera);
 
@@ -110,8 +113,14 @@ public:
 private:
     Tungsten::FontManager font_manager_;
     std::shared_ptr<Tungsten::TextRenderer2> text_manager_;
-    std::shared_ptr<Tungsten::TextStyle> base_style_;
     std::shared_ptr<Tungsten::TextItem> text_items_[5];
+    std::array<Xyz::Vector2F, 5> positions_{
+        Xyz::Vector2F(0.f, 0.f),
+        Xyz::Vector2F(0.f, 1.f),
+        Xyz::Vector2F(1.f, 0.f),
+        Xyz::Vector2F(1.f, 1.f),
+        Xyz::Vector2F(0.5f, 0.5f)
+    };
     uint32_t second_ = UINT32_MAX;
 };
 

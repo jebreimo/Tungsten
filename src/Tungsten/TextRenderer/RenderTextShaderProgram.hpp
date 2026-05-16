@@ -18,7 +18,7 @@ namespace Tungsten::Detail
 
         RenderTextShaderProgram();
 
-        Uniform<Xyz::Matrix4F> mvp_matrix;
+        Uniform<Xyz::Matrix3F> mvp_matrix;
         Uniform<int32_t> texture;
         Uniform<Xyz::Vector4F> color;
 

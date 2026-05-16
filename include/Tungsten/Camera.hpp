@@ -154,7 +154,7 @@ namespace Tungsten
      * @param aspect The aspect ratio (width / height).
      * @return The vertical field of view in radians.
      */
-    inline float calculate_fov_y(float min_fov_x, float min_fov_y, float aspect)
+    inline float calc_fov_y(float min_fov_x, float min_fov_y, float aspect)
     {
         const auto fov_x = std::max(min_fov_x, min_fov_y * aspect);
         return 2.0f * std::atan(std::tan(fov_x * 0.5f) / aspect);

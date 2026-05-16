@@ -43,9 +43,9 @@ namespace Tungsten
 
         void set_line_gap(float gap);
 
-        [[nodiscard]] Xyz::Vector4F color() const;
+        [[nodiscard]] const Xyz::Vector4F& color() const;
 
-        void set_color(Xyz::Vector4F color);
+        void set_color(const Xyz::Vector4F& color);
 
         [[nodiscard]] HorizontalAlignment horizontal_alignment() const;
 
@@ -59,7 +59,7 @@ namespace Tungsten
 
         void set_vertical_anchor(VerticalAnchor anchor);
 
-        [[nodiscard]] Xyz::Vector2F caclulate_size() const;
+        [[nodiscard]] Xyz::Vector2F calc_size() const;
 
     private:
         std::string text_;
