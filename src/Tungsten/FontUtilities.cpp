@@ -98,7 +98,7 @@ namespace Tungsten
             const auto& line = lines[i];
             auto line_rect = get_text_rect(font, line, 0.f, true);
             float x = get_x_factor(horizontal_alignment) * line_rect.size.x();
-            float y = float(-i) * (font.max_glyph.size.y() * (1.f + line_gap));
+            float y = std::ceil(-float(i) * (font.max_glyph.size.y() * (1.f + line_gap)));
             auto vertex_rect = add_quads(vertexes, indexes, {x, y}, line, font);
             if (!is_empty(vertex_rect))
             {

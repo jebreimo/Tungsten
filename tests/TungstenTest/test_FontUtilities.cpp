@@ -50,3 +50,17 @@ TEST_CASE("FontUtilities: add_vertexes with right anchor")
     REQUIRE(rect.origin == Xyz::Vector2F(-106, -7));
     REQUIRE(rect.size == Xyz::Vector2F(107, font->max_glyph.size.y()));
 }
+
+TEST_CASE("FontUtilities: add_vertexes with multi-line string")
+{
+    std::u32string text = U"Hello\nWorld!";
+    std::vector<Tungsten::GlyphVertex> vertexes;
+    std::vector<int32_t> indexes;
+    Tungsten::FontManager font_manager;
+    auto& font = font_manager.default_font();
+    auto rect = Tungsten::add_vertexes(vertexes, indexes, *font, text, 0.5f, Tungsten::HorizontalAlignment::LEFT);
+    REQUIRE(vertexes.size() == (text.size() - 1) * 4);
+    REQUIRE(indexes.size() == (text.size() - 1) * 6);
+    REQUIRE(rect.origin == Xyz::Vector2F(0, -56));
+    REQUIRE(rect.size == Xyz::Vector2F(107, 82));
+}

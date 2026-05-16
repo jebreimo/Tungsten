@@ -86,6 +86,7 @@ public:
             for (const auto& item : text_items_)
             {
                 item->set_text(text);
+                text_manager_->refresh(item);
             }
             redraw();
         }
