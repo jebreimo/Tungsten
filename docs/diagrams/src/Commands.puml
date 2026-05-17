@@ -1,0 +1,67 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+class CommandContext
+{
+    + camera: Camera
+}
+
+class Drawable
+{
+    + draw(context: CommandContext)
+}
+
+abstract class Command
+{
+    + run(context: CommandContext)
+}
+
+CommandContext <.. Command
+
+class CompositeCommand
+{
+    + commands: vector<shared_ptr<Command>>
+    + run(context: CommandContext)
+}
+
+Command <|-- CompositeCommand
+
+class DrawCommand
+{
+    + topology: TopologyType
+    + start: uint32_t
+    + count: uint32_t
+    + run(context: CommandContext)
+}
+
+Command <|-- DrawCommand
+
+class BindVaoCommand
+{
+    + vao_id: uint32_t
+    + run(context: CommandContext)
+}
+
+Command <|-- BindVaoCommand
+
+class BindBuffer
+{
+    buffer_id: uint32_t
+}
+
+Command <|-- BindBuffer
+
+enum TopologyType
+{
+    POINTS
+    LINES
+    LINE_STRIP
+    LINE_LOOP
+    TRIANGLES
+    TRIANGLE_STRIP
+    TRIANGLE_FAN
+}
+
+
+
+@enduml

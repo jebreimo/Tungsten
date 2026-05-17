@@ -1,0 +1,7 @@
+{
+  "name": "tungsten",
+  "version-string": "0.8.2",
+  "dependencies": [
+    "freetype"
+  ]
+}
