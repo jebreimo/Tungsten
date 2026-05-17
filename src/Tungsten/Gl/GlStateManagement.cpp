@@ -106,7 +106,8 @@ namespace Tungsten
 
     std::string get_string_value(unsigned parameter_name)
     {
-        const auto str = reinterpret_cast<const char*>(get_ogl_wrapper().get_string(parameter_name));
+        const auto str = reinterpret_cast<const char*>(get_ogl_wrapper().
+            get_string(parameter_name));
         THROW_IF_GL_ERROR();
         return str ? str : "";
     }
@@ -136,5 +137,26 @@ namespace Tungsten
     {
         get_ogl_wrapper().disable(capability);
         THROW_IF_GL_ERROR();
+    }
+
+    BlendRestorer::BlendRestorer()
+    {
+        was_enabled_ = is_blend_enabled();
+        if (was_enabled_)
+        {
+            src_rgb_ = get_int32_value(GL_BLEND_SRC_RGB);
+            dst_rgb_ = get_int32_value(GL_BLEND_DST_RGB);
+            src_alpha_ = get_int32_value(GL_BLEND_SRC_ALPHA);
+            dst_alpha_ = get_int32_value(GL_BLEND_DST_ALPHA);
+        }
+    }
+
+    BlendRestorer::~BlendRestorer()
+    {
+        if (was_enabled_)
+        {
+            get_ogl_wrapper().blend_func_separate(src_rgb_, dst_rgb_, src_alpha_, dst_alpha_);
+        }
+        set_blend_enabled(was_enabled_);
     }
 }

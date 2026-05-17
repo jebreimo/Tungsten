@@ -37,7 +37,24 @@ namespace Tungsten
         {
         }
 
+        void blend_color(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) override
+        {
+        }
+
+        void blend_equation(GLenum mode) override
+        {
+        }
+
+        void blend_equation_separate(GLenum mode_rgb, GLenum mode_alpha) override
+        {
+        }
+
         void blend_func(GLenum sFactor, GLenum dFactor) override
+        {
+        }
+
+        void blend_func_separate(GLenum src_rgb, GLenum dst_rgb,
+                                 GLenum src_alpha, GLenum dst_alpha) override
         {
         }
 

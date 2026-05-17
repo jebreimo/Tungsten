@@ -59,10 +59,35 @@ namespace Tungsten
             wrapper->bind_vertex_array(array);
         }
 
+        void blend_color(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) override
+        {
+            log("glBlendColor({}, {}, {}, {})", red, green, blue, alpha);
+            wrapper->blend_color(red, green, blue, alpha);
+        }
+
+        void blend_equation(GLenum mode) override
+        {
+            log("glBlendEquation({})", mode);
+            wrapper->blend_equation(mode);
+        }
+
+        void blend_equation_separate(GLenum mode_rgb, GLenum mode_alpha) override
+        {
+            log("glBlendEquationSeparate({}, {})", mode_rgb, mode_alpha);
+            wrapper->blend_equation_separate(mode_rgb, mode_alpha);
+        }
+
         void blend_func(GLenum sFactor, GLenum dFactor) override
         {
             log("glBlendFunc({}, {})", sFactor, dFactor);
             wrapper->blend_func(sFactor, dFactor);
+        }
+
+        void blend_func_separate(GLenum src_rgb, GLenum dst_rgb,
+                                 GLenum src_alpha, GLenum dst_alpha) override
+        {
+            log("glBlendFuncSeparate({}, {}, {}, {})", src_rgb, dst_rgb, src_alpha, dst_alpha);
+            wrapper->blend_func_separate(src_rgb, dst_rgb, src_alpha, dst_alpha);
         }
 
         void buffer_data(GLenum target, GLsizeiptr size, const void* data, GLenum usage) override

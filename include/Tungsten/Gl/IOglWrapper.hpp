@@ -41,7 +41,16 @@ namespace Tungsten
 
         virtual void bind_vertex_array(GLuint array) = 0;
 
+        virtual void blend_color(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) = 0;
+
+        virtual void blend_equation(GLenum mode) = 0;
+
+        virtual void blend_equation_separate(GLenum mode_rgb, GLenum mode_alpha) = 0;
+
         virtual void blend_func(GLenum sFactor, GLenum dFactor) = 0;
+
+        virtual void blend_func_separate(GLenum src_rgb, GLenum dst_rgb,
+                                         GLenum src_alpha, GLenum dst_alpha) = 0;
 
         virtual void buffer_data(GLenum target, GLsizeiptr size,
                                  const void* data, GLenum usage) = 0;

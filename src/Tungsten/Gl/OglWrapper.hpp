@@ -44,9 +44,30 @@ namespace Tungsten
             glBindVertexArray(array);
         }
 
+        void blend_color(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) override
+        {
+            glBlendColor(red, green, blue, alpha);
+        }
+
+        void blend_equation(GLenum mode) override
+        {
+            glBlendEquation(mode);
+        }
+
+        void blend_equation_separate(GLenum mode_rgb, GLenum mode_alpha) override
+        {
+            glBlendEquationSeparate(mode_rgb, mode_alpha);
+        }
+
         void blend_func(GLenum sFactor, GLenum dFactor) override
         {
             glBlendFunc(sFactor, dFactor);
+        }
+
+        void blend_func_separate(GLenum src_rgb, GLenum dst_rgb,
+                                 GLenum src_alpha, GLenum dst_alpha) override
+        {
+            glBlendFuncSeparate(src_rgb, dst_rgb, src_alpha, dst_alpha);
         }
 
         void buffer_data(GLenum target, GLsizeiptr size, const void* data, GLenum usage) override

@@ -50,4 +50,18 @@ namespace Tungsten
     void enable(unsigned capability);
 
     void disable(unsigned capability);
+
+    class BlendRestorer
+    {
+    public:
+        BlendRestorer();
+
+        ~BlendRestorer();
+    private:
+        bool was_enabled_;
+        int32_t src_rgb_;
+        int32_t dst_rgb_;
+        int32_t src_alpha_;
+        int32_t dst_alpha_;
+    };
 }

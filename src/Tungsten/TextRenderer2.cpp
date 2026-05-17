@@ -19,6 +19,7 @@
 #include "Tungsten/Gl/GlBuffer.hpp"
 #include "Tungsten/Gl/GlProgram.hpp"
 #include "Tungsten/Gl/GlRendering.hpp"
+#include "Tungsten/Gl/GlStateManagement.hpp"
 #include "Tungsten/Gl/GlTexture.hpp"
 
 namespace Tungsten
@@ -102,7 +103,7 @@ namespace Tungsten
             }
 
             using namespace Xyz::affine;
-            return scale2(1 / viewport.size)
+            return scale2(2.f / viewport.size)
                    * translate2(item.position() - viewport.size / 2.f)
                    * rotate2(item.rotation())
                    * translate2(-offset);
@@ -218,6 +219,10 @@ namespace Tungsten
     {
         if (data_->text_entries_.empty())
             return;
+
+        BlendRestorer blend_restorer;
+        set_blend_enabled(true);
+        set_blend_function(BlendFunction::SRC_ALPHA, BlendFunction::ONE_MINUS_SRC_ALPHA);
 
         data_->program.use();
         for (auto& [font, font_data] : data_->font_data_)
