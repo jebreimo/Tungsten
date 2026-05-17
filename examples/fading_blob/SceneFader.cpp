@@ -32,10 +32,10 @@ namespace
                             pp.preprocess(std::string_view(SCENE_FADER_FRAGMENT)))
                 .build();
 
-            position_attr = get_vertex_attribute(program, "a_position");
-            tex_position_attr = get_vertex_attribute(program, "a_tex_position");
-            texture = Tungsten::get_uniform<int32_t>(program, "u_texture");
-            color_delta = Tungsten::get_uniform<Xyz::Vector3F>(program, "u_color_delta");
+            position_attr = Tungsten::get_vertex_attribute(program.id(), "a_position");
+            tex_position_attr = Tungsten::get_vertex_attribute(program.id(), "a_tex_position");
+            texture = Tungsten::get_uniform<int32_t>(program.id(), "u_texture");
+            color_delta = Tungsten::get_uniform<Xyz::Vector3F>(program.id(), "u_color_delta");
         }
 
         Tungsten::ProgramHandle program;
@@ -67,7 +67,7 @@ public:
         element_buffer_ = Tungsten::generate_buffer();
 
         vertex_array_ = Tungsten::VertexArrayObjectBuilder()
-            .bind_buffer(vertex_buffer_)
+            .bind_buffer(vertex_buffer_.id())
             .add_float(program_.position_attr, 2)
             .add_float(program_.tex_position_attr, 2)
             .build();
@@ -80,9 +80,9 @@ public:
             .add_vertex({{-1, 1}, {0, 1}});
         builder.add_indexes(0, 1, 2)
             .add_indexes(0, 2, 3);
-        Tungsten::bind_buffer(Tungsten::BufferTarget::ARRAY, vertex_buffer_);
+        Tungsten::bind_buffer(Tungsten::BufferTarget::ARRAY, vertex_buffer_.id());
         Tungsten::set_buffer_data(Tungsten::BufferTarget::ARRAY, std::span(buffer.vertices), Tungsten::BufferUsage::STATIC_DRAW);
-        Tungsten::bind_buffer(Tungsten::BufferTarget::ELEMENT_ARRAY, element_buffer_);
+        Tungsten::bind_buffer(Tungsten::BufferTarget::ELEMENT_ARRAY, element_buffer_.id());
         Tungsten::set_buffer_data(Tungsten::BufferTarget::ELEMENT_ARRAY, std::span(buffer.indices), Tungsten::BufferUsage::STATIC_DRAW);
     }
 
@@ -90,7 +90,7 @@ public:
     {
         for (auto& texture : textures_)
         {
-            Tungsten::bind_texture(Tungsten::TextureTarget::TEXTURE_2D, texture);
+            Tungsten::bind_texture(Tungsten::TextureTarget::TEXTURE_2D, texture.id());
             Tungsten::set_texture_image_2d(Tungsten::TextureTarget2D::TEXTURE_2D, 0, size,
                                            Tungsten::RGB_TEXTURE);
             Tungsten::set_min_filter(Tungsten::TextureTarget::TEXTURE_2D,
@@ -102,15 +102,15 @@ public:
 
     void draw_previous_scene(float fadeout)
     {
-        Tungsten::bind_framebuffer(Tungsten::FramebufferTarget::FRAMEBUFFER, frame_buffer_);
+        Tungsten::bind_framebuffer(Tungsten::FramebufferTarget::FRAMEBUFFER, frame_buffer_.id());
         Tungsten::framebuffer_texture_2d(Tungsten::FramebufferTarget::FRAMEBUFFER,
                                          Tungsten::FrameBufferAttachment::COLOR0,
                                          Tungsten::TextureTarget2D::TEXTURE_2D,
-                                         textures_[index_]);
+                                         textures_[index_].id());
 
         Tungsten::activate_texture_unit(0);
-        Tungsten::bind_texture(Tungsten::TextureTarget::TEXTURE_2D, textures_[1 - index_]);
-        use_program(program_.program);
+        Tungsten::bind_texture(Tungsten::TextureTarget::TEXTURE_2D, textures_[1 - index_].id());
+        Tungsten::use_program(program_.program.id());
         program_.texture.set(0);
         program_.color_delta.set({-1.f / 256.f, -1.f / 256.f, -1.f / 256.f});
         vertex_array_.bind();
@@ -121,8 +121,8 @@ public:
     {
         Tungsten::bind_framebuffer(Tungsten::FramebufferTarget::FRAMEBUFFER, 0);
         Tungsten::activate_texture_unit(0);
-        Tungsten::bind_texture(Tungsten::TextureTarget::TEXTURE_2D, textures_[1 - index_]);
-        use_program(program_.program);
+        Tungsten::bind_texture(Tungsten::TextureTarget::TEXTURE_2D, textures_[1 - index_].id());
+        Tungsten::use_program(program_.program.id());
         program_.texture.set(0);
         program_.color_delta.set({0.f, 0.f, 0.f});
         vertex_array_.bind();

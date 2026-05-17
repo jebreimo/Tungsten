@@ -42,6 +42,7 @@ namespace Tungsten
     {
         get_ogl_wrapper().finish();
     }
+
     namespace
     {
         int32_t get_type_size(ElementIndexType type)
@@ -69,9 +70,9 @@ namespace Tungsten
     {
         const intptr_t tmp_offset = offset * get_type_size(type);
         get_ogl_wrapper().draw_elements(to_ogl_draw_mode(topology),
-                                       count,
-                                       to_ogl_element_index_type(type),
-                                       reinterpret_cast<void*>(tmp_offset));
+                                        count,
+                                        to_ogl_element_index_type(type),
+                                        reinterpret_cast<void*>(tmp_offset));
         THROW_IF_GL_ERROR();
     }
 

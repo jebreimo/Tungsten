@@ -26,11 +26,12 @@ public:
                         pp.preprocess(std::string_view(BASIC2D_FRAGMENT)))
             .build();
 
-        position_attr = Tungsten::get_vertex_attribute(program, "a_position");
-        model_view_matrix = Tungsten::get_uniform<Xyz::Matrix3F>(program, "u_model_view_matrix");
-        projection_matrix = Tungsten::get_uniform<Xyz::Matrix3F>(program, "u_projection_matrix");
-        color = Tungsten::get_uniform<Xyz::Vector4F>(program, "u_color");
-        z = Tungsten::get_uniform<float>(program, "u_z");
+        position_attr = Tungsten::get_vertex_attribute(program.id(), "a_position");
+        model_view_matrix = Tungsten::get_uniform<Xyz::Matrix3F>(program.id(), "u_model_view_matrix");
+        projection_matrix = Tungsten::get_uniform<Xyz::Matrix3F>(program.id(), "u_projection_matrix");
+        color = Tungsten::get_uniform<Xyz::Vector4F>(program.id(), "u_color");
+        z = Tungsten::get_uniform<float>(program.id(), "u_z");
+        point_size = Tungsten::get_uniform<float>(program.id(), "u_point_size");
     }
 
     Tungsten::ProgramHandle program;
@@ -72,6 +73,12 @@ const Tungsten::VertexArrayObject& Shape2D::vertex_array() const
     return vertex_array_;
 }
 
+void Shape2D::bind() const
+{
+    vertex_array_.bind();
+    Tungsten::bind_buffer(Tungsten::BufferTarget::ELEMENT_ARRAY, element_buffer_.id());
+}
+
 Shape2DRenderer::Shape2DRenderer()
     : program_(std::make_unique<Basic2DProgram>()),
       model_view_matrix_(Xyz::Matrix3F::identity()),
@@ -97,16 +104,17 @@ Shape2DRenderer& Shape2DRenderer::operator=(Shape2DRenderer&& rhs) noexcept
 
 Shape2D Shape2DRenderer::create_shape(const Buffer& buffer, const Xyz::Vector4F& color) const
 {
-    Tungsten::use_program(program_->program);
+    Tungsten::use_program(program_->program.id());
     auto vertex_buffer = Tungsten::generate_buffer();
     auto vertex_array = Tungsten::VertexArrayObjectBuilder()
-        .bind_buffer(vertex_buffer)
+        .bind_buffer(vertex_buffer.id())
         .add_float(program_->position_attr, 2)
         .build();
+    Tungsten::bind_buffer(Tungsten::BufferTarget::ARRAY, vertex_buffer.id());
     Tungsten::set_buffer_data(Tungsten::BufferTarget::ARRAY, std::span(buffer.vertices),
                             Tungsten::BufferUsage::STATIC_DRAW);
     auto element_buffer = Tungsten::generate_buffer();
-    Tungsten::bind_buffer(Tungsten::BufferTarget::ELEMENT_ARRAY, element_buffer);
+    Tungsten::bind_buffer(Tungsten::BufferTarget::ELEMENT_ARRAY, element_buffer.id());
     Tungsten::set_buffer_data(Tungsten::BufferTarget::ELEMENT_ARRAY, std::span(buffer.indices),
                             Tungsten::BufferUsage::STATIC_DRAW);
     return {
@@ -130,8 +138,8 @@ void Shape2DRenderer::set_projection_matrix(const Xyz::Matrix3F& matrix)
 
 void Shape2DRenderer::draw(const Shape2D& shape)
 {
-    shape.vertex_array().bind();
-    Tungsten::use_program(program_->program);
+    shape.bind();
+    Tungsten::use_program(program_->program.id());
     program_->color.set(shape.color());
     program_->model_view_matrix.set(model_view_matrix_);
     program_->projection_matrix.set(projection_matrix_);

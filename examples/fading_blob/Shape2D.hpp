@@ -30,6 +30,7 @@ public:
 
     [[nodiscard]] const Tungsten::VertexArrayObject& vertex_array() const;
 
+    void bind() const;
 private:
     Tungsten::VertexArrayObject vertex_array_;
     Tungsten::BufferHandle vertex_buffer_;
