@@ -1,72 +1,69 @@
 //****************************************************************************
-// Copyright © 2023 Jan Erik Breimo. All rights reserved.
-// Created by Jan Erik Breimo on 2023-08-13.
+// Copyright © 2026 Jan Erik Breimo. All rights reserved.
+// Created by Jan Erik Breimo on 2026-03-10.
 //
-// This file is distributed under the BSD License.
+// This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include "Font.hpp"
-#include "Gl/GlTypes.hpp"
+#include <string>
+
+#include "Renderable.hpp"
+#include "TextItem.hpp"
 
 namespace Tungsten
 {
-    struct TextProperties
+    struct RelativePosition
     {
-        Yimage::Rgba8 color = Yimage::Rgba8(0xFFFFFFFF);
-        float line_gap = 0.1;
+        Xyz::Vector2F pos;
     };
 
-    class TextRenderer
+    struct AbsolutePosition
+    {
+        Xyz::Vector2F pos;
+    };
+
+    using TextPosition = std::variant<RelativePosition, AbsolutePosition>;
+
+    struct TextRenderItem;
+    struct FontRenderData;
+
+    class TextRenderer : public Renderable
     {
     public:
-        explicit TextRenderer(std::shared_ptr<Font> font);
+        explicit TextRenderer();
 
-        ~TextRenderer();
+        ~TextRenderer() override;
 
         TextRenderer(const TextRenderer&) = delete;
-        TextRenderer& operator=(const TextRenderer&) = delete;
 
         TextRenderer(TextRenderer&&) noexcept;
+
+        TextRenderer& operator=(const TextRenderer&) = delete;
+
         TextRenderer& operator=(TextRenderer&&) noexcept;
 
-        [[nodiscard]] const std::shared_ptr<Font>& font() const;
+        size_t add_text_item(std::unique_ptr<TextItem> item);
 
-        [[nodiscard]] bool auto_blend() const;
+        std::unique_ptr<TextItem> remove_text_item(size_t id);
 
-        void set_auto_blend(bool value);
+        void clear_text_items();
 
-        [[nodiscard]] Xyz::Vector2F
-        get_size(std::string_view text, float line_gap = 0.1) const;
+        const TextItem* get_text_item(size_t id) const;
 
-        [[nodiscard]] Xyz::Vector2F
-        get_size(std::u8string_view text, float line_gap = 0.1) const;
+        TextItem* get_text_item(size_t id);
 
-        [[nodiscard]] Xyz::Vector2F
-        get_size(std::u32string_view text, float line_gap = 0.1) const;
+        void prepare(const Camera& camera) override;
 
-        void draw(std::string_view text,
-                  const Xyz::Vector2F& pos,
-                  const Xyz::Vector2F& screen_size,
-                  const TextProperties& properties = {}) const;
-
-        void draw(std::u8string_view text,
-                  const Xyz::Vector2F& pos,
-                  const Xyz::Vector2F& screen_size,
-                  const TextProperties& properties = {}) const;
-
-        void draw(std::u32string_view text,
-                  const Xyz::Vector2F& pos,
-                  const Xyz::Vector2F& screen_size,
-                  const TextProperties& properties = {}) const;
+        void render(const Camera& camera) const override;
     private:
-        [[nodiscard]] Size2I image_size() const;
+        std::unique_ptr<TextRenderItem>
+        make_render_data(const TextItem& item);
 
-        template <typename CharT>
-        [[nodiscard]] std::u32string
-        to_u32(std::basic_string_view<CharT> str) const;
+        static std::unique_ptr<FontRenderData>
+        make_font_data(const std::shared_ptr<Font>& font);
 
         struct Data;
         std::unique_ptr<Data> data_;
     };
-}
+} // Tungsten

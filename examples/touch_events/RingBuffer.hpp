@@ -20,6 +20,8 @@ namespace Chorasmia
         using reference = const T&;
         using iterator_category = std::bidirectional_iterator_tag;
 
+        RingBufferIterator() = default;
+
         RingBufferIterator(const T* current, const T* first)
             : current_(current), first_(first)
         {
@@ -43,7 +45,7 @@ namespace Chorasmia
             return *this;
         }
 
-        const RingBufferIterator operator++(int)
+        RingBufferIterator operator++(int)
         {
             auto result = *this;
             if (std::distance(first_, ++current_) == N + 1)
@@ -60,7 +62,7 @@ namespace Chorasmia
             return *this;
         }
 
-        const RingBufferIterator operator--(int)
+        RingBufferIterator operator--(int)
         {
             auto result = *this;
             if (first_ != current_)
@@ -111,6 +113,8 @@ namespace Chorasmia
     public:
         using iterator = RingBufferIterator<T, N>;
 
+        RingBuffer() = default;
+
         void push_back(T value)
         {
             auto index = (start_index_ + size_) % (N + 1);
@@ -149,6 +153,12 @@ namespace Chorasmia
         bool empty() const
         {
             return size_ == 0;
+        }
+
+        [[nodiscard]]
+        bool full() const
+        {
+            return size_ == N;
         }
 
         [[nodiscard]]

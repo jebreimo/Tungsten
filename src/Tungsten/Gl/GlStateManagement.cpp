@@ -60,6 +60,16 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
+    bool is_multisampling_enabled()
+    {
+        return is_enabled(GL_MULTISAMPLE);
+    }
+
+    void set_multisampling_enabled(bool enabled)
+    {
+        set_enabled(GL_MULTISAMPLE, enabled);
+    }
+
     void set_viewport(int x, int y, int width, int height)
     {
         get_ogl_wrapper().viewport(x, y, width, height);

@@ -115,7 +115,6 @@ add_library(Tungsten STATIC
     include/Tungsten/ShaderTools.hpp
     include/Tungsten/TextItem.hpp
     include/Tungsten/TextRenderer.hpp
-    include/Tungsten/TextRenderer2.hpp
     include/Tungsten/Tungsten.hpp
     include/Tungsten/TungstenException.hpp
     include/Tungsten/VertexArrayDataBuilder.hpp
@@ -166,12 +165,11 @@ add_library(Tungsten STATIC
     src/Tungsten/ShaderSources.hpp
     src/Tungsten/ShaderTools.cpp
     src/Tungsten/TextItem.cpp
-    src/Tungsten/TextRenderer.cpp
     src/Tungsten/TextRenderer/Monaco32.hpp
     src/Tungsten/TextRenderer/Monaco64.hpp
     src/Tungsten/TextRenderer/RenderTextShaderProgram.cpp
     src/Tungsten/TextRenderer/RenderTextShaderProgram.hpp
-    src/Tungsten/TextRenderer2.cpp
+    src/Tungsten/TextRenderer.cpp
     src/Tungsten/TextUtilities.cpp
     src/Tungsten/TextUtilities.hpp
     src/Tungsten/TungstenException.cpp

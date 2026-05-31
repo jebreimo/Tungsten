@@ -14,7 +14,6 @@ TEST_CASE("Font: get_text_rec exact size")
     Tungsten::FontManager font_manager;
     auto& font = font_manager.default_font();
     auto rect = Tungsten::get_text_rect(*font, std::string_view("Hello_World!"), 0.5f, false);
-    const auto& cap_h = font->glyphs.find('H')->second.glyph_rect;
     REQUIRE(rect.origin == Xyz::Vector2F(1, -2));
     REQUIRE(rect.size == Xyz::Vector2F{220, 27});
 }
@@ -24,7 +23,6 @@ TEST_CASE("Font: get_text_rec with full line height")
     Tungsten::FontManager font_manager;
     auto& font = font_manager.default_font();
     auto rect = Tungsten::get_text_rect(*font, std::string_view("Hello_World!"), 0.5f, true);
-    const auto& cap_h = font->glyphs.find('H')->second.glyph_rect;
     REQUIRE(rect.origin == Xyz::Vector2F(1, -7));
     REQUIRE(rect.size == Xyz::Vector2F{220, 33});
 }
@@ -34,7 +32,6 @@ TEST_CASE("Font: get_text_rec with multi-line string")
     Tungsten::FontManager font_manager;
     auto& font = font_manager.default_font();
     auto rect = Tungsten::get_text_rect(*font, std::string_view("Hello\nWorld!"), 0.5f, true);
-    const auto& cap_h = font->glyphs.find('H')->second.glyph_rect;
     REQUIRE(rect.origin == Xyz::Vector2F(0, -57));
     REQUIRE(rect.size == Xyz::Vector2F{107, 83});
 }

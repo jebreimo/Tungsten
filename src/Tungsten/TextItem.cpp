@@ -34,7 +34,11 @@ namespace Tungsten
 
     void TextItem::set_text(std::string text)
     {
-        text_ = std::move(text);
+        if (text != text_)
+        {
+            dirty_flags_ |= DirtyFlags::TEXT;
+            text_ = std::move(text);
+        }
     }
 
     const Xyz::Vector2F& TextItem::position() const
@@ -44,7 +48,11 @@ namespace Tungsten
 
     void TextItem::set_position(const Xyz::Vector2F& position)
     {
-        position_ = position;
+        if (position != position_)
+        {
+            dirty_flags_ |= DirtyFlags::POSITION;
+            position_ = position;
+        }
     }
 
     float TextItem::rotation() const
@@ -54,7 +62,11 @@ namespace Tungsten
 
     void TextItem::set_rotation(float rotation)
     {
-        rotation_ = rotation;
+        if (rotation != rotation_)
+        {
+            dirty_flags_ |= DirtyFlags::ROTATION;
+            rotation_ = rotation;
+        }
     }
 
     const std::shared_ptr<Font>& TextItem::font() const
@@ -64,7 +76,11 @@ namespace Tungsten
 
     void TextItem::set_font(std::shared_ptr<Font> font)
     {
-        font_ = std::move(font);
+        if (font != font_)
+        {
+            dirty_flags_ |= DirtyFlags::FONT;
+            font_ = std::move(font);
+        }
     }
 
     float TextItem::line_gap() const
@@ -74,7 +90,11 @@ namespace Tungsten
 
     void TextItem::set_line_gap(float gap)
     {
-        line_gap_ = gap;
+        if (gap != line_gap_)
+        {
+            dirty_flags_ |= DirtyFlags::LINE_GAP;
+            line_gap_ = gap;
+        }
     }
 
     const Xyz::Vector4F& TextItem::color() const
@@ -84,7 +104,11 @@ namespace Tungsten
 
     void TextItem::set_color(const Xyz::Vector4F& color)
     {
-        color_ = color;
+        if (color != color_)
+        {
+            dirty_flags_ |= DirtyFlags::COLOR;
+            color_ = color;
+        }
     }
 
     HorizontalAlignment TextItem::horizontal_alignment() const
@@ -94,7 +118,11 @@ namespace Tungsten
 
     void TextItem::set_horizontal_alignment(HorizontalAlignment alignment)
     {
-        horizontal_alignment_ = alignment;
+        if (alignment != horizontal_alignment_)
+        {
+            dirty_flags_ |= DirtyFlags::HORIZONTAL_ALIGNMENT;
+            horizontal_alignment_ = alignment;
+        }
     }
 
     HorizontalAnchor TextItem::horizontal_anchor() const
@@ -104,7 +132,11 @@ namespace Tungsten
 
     void TextItem::set_horizontal_anchor(HorizontalAnchor anchor)
     {
-        horizontal_anchor_ = anchor;
+        if (anchor != horizontal_anchor_)
+        {
+            dirty_flags_ |= DirtyFlags::HORIZONTAL_ANCHOR;
+            horizontal_anchor_ = anchor;
+        }
     }
 
     VerticalAnchor TextItem::vertical_anchor() const
@@ -114,11 +146,39 @@ namespace Tungsten
 
     void TextItem::set_vertical_anchor(VerticalAnchor anchor)
     {
-        vertical_anchor_ = anchor;
+        if (anchor != vertical_anchor_)
+        {
+            dirty_flags_ |= DirtyFlags::VERTICAL_ANCHOR;
+            vertical_anchor_ = anchor;
+        }
+    }
+
+    bool TextItem::is_visible() const
+    {
+        return visible_;
+    }
+
+    void TextItem::set_visible(bool visible)
+    {
+        if (visible != visible_)
+        {
+            dirty_flags_ |= DirtyFlags::VISIBLE;
+            visible_ = visible;
+        }
     }
 
     Xyz::Vector2F TextItem::calc_size() const
     {
         return get_text_rect(*font_, text_, line_gap_, true).size;
+    }
+
+    TextItem::DirtyFlags TextItem::dirty_flags() const
+    {
+        return dirty_flags_;
+    }
+
+    void TextItem::set_dirty_flags(DirtyFlags flags)
+    {
+        dirty_flags_ = flags;
     }
 }

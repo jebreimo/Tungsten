@@ -7,7 +7,7 @@
 //****************************************************************************
 #include <iostream>
 #include <thread>
-#include <Tungsten/TextRenderer2.hpp>
+#include <Tungsten/TextRenderer.hpp>
 #include <Tungsten/Tungsten.hpp>
 
 Xyz::Vector4F RED = {1.f, 0.f, 0.f, 1.f};
@@ -46,19 +46,17 @@ auto get_vertical_anchor(float y)
     return Tungsten::VerticalAnchor::CENTER;
 }
 
-auto make_text_item(Tungsten::TextRenderer2& renderer,
-                    std::shared_ptr<Tungsten::Font> font,
-                    const Xyz::Vector4F& color,
-                    const Xyz::Vector2F& position)
-    -> std::shared_ptr<Tungsten::TextItem>
+size_t make_text_item(Tungsten::TextRenderer& renderer,
+                      std::shared_ptr<Tungsten::Font> font,
+                      const Xyz::Vector4F& color,
+                      const Xyz::Vector2F& position)
 {
-    auto item = std::make_shared<Tungsten::TextItem>("", std::move(font));
+    auto item = std::make_unique<Tungsten::TextItem>("", std::move(font));
     item->set_color(color);
     item->set_horizontal_alignment(get_horizontal_alignment(position.x()));
     item->set_horizontal_anchor(get_horizontal_anchor(position.x()));
     item->set_vertical_anchor(get_vertical_anchor(position.y()));
-    renderer.add_text(item);
-    return item;
+    return renderer.add_text_item(std::move(item));
 }
 
 class ShowText : public Tungsten::EventLoop
@@ -66,14 +64,15 @@ class ShowText : public Tungsten::EventLoop
 public:
     explicit ShowText(Tungsten::SdlApplication& app)
         : EventLoop(app),
-          text_manager_(std::make_shared<Tungsten::TextRenderer2>())
+          text_manager_(std::make_shared<Tungsten::TextRenderer>()),
+          text_item_ids_{}
     {
-        auto font = font_manager_.default_font();
-        text_items_[0] = make_text_item(*text_manager_, font, RED, positions_[0]);
-        text_items_[1] = make_text_item(*text_manager_, font, GREEN, positions_[1]);
-        text_items_[2] = make_text_item(*text_manager_, font, BLUE, positions_[2]);
-        text_items_[3] = make_text_item(*text_manager_, font, BLACK, positions_[3]);
-        text_items_[4] = make_text_item(*text_manager_, font, WHITE, positions_[4]);
+        const auto font = font_manager_.default_font();
+        text_item_ids_[0] = make_text_item(*text_manager_, font, RED, positions_[0]);
+        text_item_ids_[1] = make_text_item(*text_manager_, font, GREEN, positions_[1]);
+        text_item_ids_[2] = make_text_item(*text_manager_, font, BLUE, positions_[2]);
+        text_item_ids_[3] = make_text_item(*text_manager_, font, BLACK, positions_[3]);
+        text_item_ids_[4] = make_text_item(*text_manager_, font, WHITE, positions_[4]);
     }
 
     void on_update() override
@@ -83,10 +82,10 @@ public:
         {
             second_ = current_second;
             const auto text = "Jan Erik Breimo\nNatasha Barrett\nTime: " + std::to_string(second_);
-            for (const auto& item : text_items_)
+            for (const auto id : text_item_ids_)
             {
+                const auto item = text_manager_->get_text_item(id);
                 item->set_text(text);
-                text_manager_->refresh(item);
             }
             redraw();
         }
@@ -101,7 +100,9 @@ public:
         Tungsten::set_viewport(viewport);
         for (size_t i = 0; i < 5; ++i)
         {
-            text_items_[i]->set_position(viewport.normalized_to_pixel(positions_[i]));
+            const auto id = text_item_ids_[i];
+            const auto item = text_manager_->get_text_item(id);
+            item->set_position(viewport.normalized_to_pixel(positions_[i]));
         }
 
         const Tungsten::Camera camera(viewport, {}, {});
@@ -113,8 +114,8 @@ public:
 
 private:
     Tungsten::FontManager font_manager_;
-    std::shared_ptr<Tungsten::TextRenderer2> text_manager_;
-    std::shared_ptr<Tungsten::TextItem> text_items_[5];
+    std::shared_ptr<Tungsten::TextRenderer> text_manager_;
+    size_t text_item_ids_[5];
     std::array<Xyz::Vector2F, 5> positions_{
         Xyz::Vector2F(0.f, 0.f),
         Xyz::Vector2F(0.f, 1.f),

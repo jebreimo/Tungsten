@@ -13,37 +13,41 @@
 
 namespace Tungsten
 {
-    bool is_blend_enabled();
+    [[nodiscard]] bool is_blend_enabled();
 
     void set_blend_enabled(bool enabled);
 
     void set_blend_function(BlendFunction src, BlendFunction dst);
 
-    bool is_depth_test_enabled();
+    [[nodiscard]] bool is_depth_test_enabled();
 
     void set_depth_test_enabled(bool enabled);
 
-    bool is_face_culling_enabled();
+    [[nodiscard]] bool is_face_culling_enabled();
 
     void set_face_culling_enabled(bool enabled);
 
     void set_face_culling_mode(FaceCullingMode mode);
 
+    [[nodiscard]] bool is_multisampling_enabled();
+
+    void set_multisampling_enabled(bool enabled);
+
     void set_viewport(int x, int y, int width, int height);
 
     void set_viewport(const Viewport& viewport);
 
-    bool get_boolean_value(unsigned parameter_name);
+    [[nodiscard]] bool get_boolean_value(unsigned parameter_name);
 
-    float get_float_value(unsigned parameter_name);
+    [[nodiscard]] float get_float_value(unsigned parameter_name);
 
-    int32_t get_int32_value(unsigned parameter_name);
+    [[nodiscard]] int32_t get_int32_value(unsigned parameter_name);
 
-    int64_t get_int64_value(unsigned parameter_name);
+    [[nodiscard]] int64_t get_int64_value(unsigned parameter_name);
 
-    std::string get_string_value(unsigned parameter_name);
+    [[nodiscard]] std::string get_string_value(unsigned parameter_name);
 
-    bool is_enabled(unsigned capability);
+    [[nodiscard]] bool is_enabled(unsigned capability);
 
     void set_enabled(unsigned capability, bool enabled);
 
@@ -57,6 +61,7 @@ namespace Tungsten
         BlendRestorer();
 
         ~BlendRestorer();
+
     private:
         bool was_enabled_;
         int32_t src_rgb_;

@@ -1,310 +1,306 @@
 //****************************************************************************
-// Copyright © 2023 Jan Erik Breimo. All rights reserved.
-// Created by Jan Erik Breimo on 2023-08-13.
+// Copyright © 2026 Jan Erik Breimo. All rights reserved.
+// Created by Jan Erik Breimo on 2026-03-10.
 //
-// This file is distributed under the BSD License.
+// This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
 #include "Tungsten/TextRenderer.hpp"
 
-#include "Yconvert/Convert.hpp"
-#include "Tungsten/Gl/GlRendering.hpp"
-#include "Tungsten/Gl/GlStateManagement.hpp"
-#include "Tungsten/Gl/GlTexture.hpp"
-#include "Tungsten/TextRenderer/RenderTextShaderProgram.hpp"
-#include "Tungsten/VertexArrayDataBuilder.hpp"
+#include <algorithm>
+#include <unordered_set>
+
+#include "FontUtilities.hpp"
+#include "TextUtilities.hpp"
+#include "TextRenderer/RenderTextShaderProgram.hpp"
+#include "Tungsten/TungstenException.hpp"
 #include "Tungsten/VertexArrayObjectBuilder.hpp"
 #include "Tungsten/YimageGl.hpp"
 #include "Tungsten/Gl/GlBuffer.hpp"
+#include "Tungsten/Gl/GlProgram.hpp"
+#include "Tungsten/Gl/GlRendering.hpp"
+#include "Tungsten/Gl/GlStateManagement.hpp"
+#include "Tungsten/Gl/GlTexture.hpp"
 
 namespace Tungsten
 {
+    constexpr auto DIRTY_VERTEX_DATA_MASK = TextItem::DirtyFlags::TEXT
+                                            | TextItem::DirtyFlags::FONT
+                                            | TextItem::DirtyFlags::LINE_GAP
+                                            | TextItem::DirtyFlags::HORIZONTAL_ALIGNMENT;
+
+    struct TextRenderItem
+    {
+        VertexArrayObject vao;
+        BufferHandle vbo;
+        BufferHandle ebo;
+        int32_t element_count = 0;
+        Xyz::RectangleF rectangle;
+        TextItem* item;
+        FontRenderData* font_data = nullptr;
+    };
+
+    struct FontRenderData
+    {
+        TextureHandle texture;
+        std::vector<TextRenderItem*> render_items;
+    };
+
     namespace
     {
-        using TextVertex = std::tuple<Xyz::Vector2F, Xyz::Vector2F>;
+        using GlyphVertex = std::tuple<Xyz::Vector2F, Xyz::Vector2F>;
 
-        void add_rectangle(VertexArrayData<TextVertex>& buffer,
-                           const Xyz::RectangleF& vertex_rect,
-                           const Xyz::RectangleF& tex_rect)
+        VertexArrayObject create_vertex_array(uint32_t vertex_buffer)
         {
-            VertexArrayDataBuilder builder(buffer);
-            builder.reserve_vertexes(4);
-            builder.add_vertex({
-                vertex_rect[0],
-                tex_rect[0]
-            });
-            builder.add_vertex({
-                vertex_rect[1],
-                tex_rect[1]
-            });
-            builder.add_vertex({
-                vertex_rect[3],
-                tex_rect[3]
-            });
-            builder.add_vertex({
-                vertex_rect[2],
-                tex_rect[2]
-            });
-            builder.reserve_indexes(6);
-            builder.add_indexes(0, 1, 2);
-            builder.add_indexes(2, 1, 3);
+            return VertexArrayObjectBuilder()
+                .bind_buffer(vertex_buffer)
+                .add(0, VertexAttributeType::POSITION_2F)
+                .add(1, VertexAttributeType::TEX_COORD_2F)
+                .build();
         }
 
-        [[nodiscard]]
-        std::pair<VertexArrayData<TextVertex>, Xyz::RectangleF>
-        make_text_array_buffer(
-            const Font& font,
-            std::u32string_view text,
-            float line_separator)
+        void replace_font(TextRenderItem& render_data, FontRenderData& font_data)
         {
-            const auto& glyphs = font.glyphs;
-            if (glyphs.empty() || text.empty())
-                return {};
-
-            VertexArrayData<TextVertex> buffer;
-
-            unsigned lines = 0;
-            float max_width = 0;
-            Xyz::Vector2F pos;
-            for (const auto c : text)
+            if (render_data.font_data)
             {
-                if (c == '\n')
-                {
-                    ++lines;
-                    max_width = std::max(max_width, pos[0]);
-                    pos = {0, pos[1] - (1.f + line_separator) * font.max_glyph.size[1]};
-                    continue;
-                }
-
-                auto it = glyphs.find(c);
-                if (it == glyphs.end())
-                {
-                    if (it = glyphs.find('?'); it == glyphs.end())
-                        continue;
-                }
-
-                const auto& glyph = it->second;
-                if (!is_empty(glyph.glyph_rect))
-                {
-                    auto glyph_rect = glyph.glyph_rect;
-                    glyph_rect.origin += pos;
-                    add_rectangle(buffer,
-                                  glyph_rect,
-                                  glyph.tex_rect);
-                }
-                pos[0] += glyph.advance;
+                std::erase_if(render_data.font_data->render_items,
+                              [&](const auto& rd)
+                              {
+                                  return rd == &render_data;
+                              });
             }
-            if (pos[0] > 0)
-                ++lines;
-            max_width = std::max(max_width, pos[0]);
-            auto height =
-                (float(lines) * (1 + line_separator) - line_separator) * font.max_glyph.size[1];
-            auto y = font.max_glyph.origin.y()
-                     - float(lines - 1) * (1 + line_separator) * font.max_glyph.size[1];
-            Xyz::RectangleF rect({font.max_glyph.origin.x(), y}, {max_width, height});
-            return {buffer, rect};
+            render_data.font_data = &font_data;
+            font_data.render_items.push_back(&render_data);
         }
 
-        Xyz::RectangleF get_text_size(
-            const Font& font,
-            std::u32string_view text,
-            float line_separator)
+        Xyz::Matrix3F make_transform(const TextItem& item,
+                                     const Xyz::RectangleF& rect,
+                                     const Viewport& viewport)
         {
-            const auto& glyphs = font.glyphs;
-            if (glyphs.empty() || text.empty())
-                return {};
-
-            unsigned lines = 0;
-            float max_width = 0;
-            float width = 0;
-            for (char32_t c : text)
+            Xyz::Vector2F offset;
+            switch (item.horizontal_anchor())
             {
-                if (c == '\n')
-                {
-                    ++lines;
-                    max_width = std::max(max_width, width);
-                    width = 0;
-                }
-
-                auto it = glyphs.find(c);
-                if (it == glyphs.end())
-                {
-                    it = glyphs.find('?');
-                    if (it == glyphs.end())
-                        continue;
-                }
-
-                auto& glyph = it->second;
-                width += glyph.advance;
+            case HorizontalAnchor::LEFT:
+                offset.x() = rect.origin.x();
+                break;
+            case HorizontalAnchor::CENTER:
+                offset.x() = rect.origin.x() + rect.size.x() / 2;
+                break;
+            case HorizontalAnchor::RIGHT:
+                offset.x() = rect.origin.x() + rect.size.x();
+                break;
             }
-            if (width > 0)
-                ++lines;
-            max_width = std::max(max_width, width);
-            auto height = (float(lines) * (1 + line_separator) - line_separator)
-                          * font.max_glyph.size[1];
-            auto y = font.max_glyph.origin.y() - float(lines - 1) * (1 + line_separator)
-                     * font.max_glyph.size[1];
-            return {{font.max_glyph.origin.x(), y}, {max_width, height}};
+
+            switch (item.vertical_anchor())
+            {
+            case VerticalAnchor::TOP:
+                offset.y() = rect.origin.y() + rect.size.y();
+                break;
+            case VerticalAnchor::CENTER:
+                offset.y() = rect.origin.y() + rect.size.y() / 2;
+                break;
+            case VerticalAnchor::BOTTOM:
+                offset.y() = rect.origin.y();
+                break;
+            case VerticalAnchor::BASELINE:
+                offset.y() = 0;
+                break;
+            }
+
+            using namespace Xyz::affine;
+            return scale2(2.f / viewport.size)
+                   * translate2(item.position() - viewport.size / 2.f)
+                   * rotate2(item.rotation())
+                   * translate2(-offset);
         }
     }
-
 
     struct TextRenderer::Data
     {
-        std::shared_ptr<Font> font;
-        TextureHandle texture;
+        std::unordered_map<size_t, std::unique_ptr<TextItem>> text_entries_;
+        std::unordered_map<size_t, std::unique_ptr<TextRenderItem>> text_data_;
+        std::unordered_map<std::shared_ptr<Font>, std::unique_ptr<FontRenderData>> font_data_;
         Detail::RenderTextShaderProgram program;
-        VertexArrayObject vao;
-        BufferHandle vertex_buffer;
-        BufferHandle element_buffer;
-        bool auto_blend = true;
-        Yconvert::Converter converter;
-
-        explicit Data(std::shared_ptr<Font> font)
-            : font(std::move(font)),
-              texture(generate_texture()),
-              vertex_buffer(generate_buffer()),
-              element_buffer(generate_buffer()),
-              converter(Yconvert::Encoding::UTF_8,
-                        Yconvert::Encoding::UTF_32_NATIVE)
-        {
-            converter.set_error_policy(Yconvert::ErrorPolicy::THROW);
-            bind_texture(TextureTarget::TEXTURE_2D, texture.id());
-
-            set_min_filter(TextureTarget::TEXTURE_2D, TextureMinFilter::LINEAR);
-            set_mag_filter(TextureTarget::TEXTURE_2D, TextureMagFilter::LINEAR);
-            set_wrap(TextureTarget::TEXTURE_2D, TextureWrapMode::CLAMP_TO_EDGE);
-
-            set_texture_image_2d(TextureTarget2D::TEXTURE_2D, 0,
-                                 image_size(),
-                                 get_ogl_pixel_type(font->image.pixel_type()),
-                                 font->image.data());
-
-            program.use();
-
-            vao = VertexArrayObjectBuilder()
-                .bind_buffer(vertex_buffer.id())
-                .add(program.attribute_definitions())
-                .build();
-
-            program.texture.set(0);
-        }
-
-        [[nodiscard]] Size2I image_size() const
-        {
-            return {int32_t(font->image.width()), int32_t(font->image.height())};
-        }
+        size_t next_id_ = 1;
     };
 
-    TextRenderer::TextRenderer(std::shared_ptr<Font> font)
-        : data_(std::make_unique<Data>(std::move(font)))
+    TextRenderer::TextRenderer()
+        : data_(std::make_unique<Data>())
     {
     }
-
-    TextRenderer::TextRenderer(TextRenderer&&) noexcept = default;
 
     TextRenderer::~TextRenderer() = default;
 
-    TextRenderer& TextRenderer::operator=(TextRenderer&&) noexcept = default;
-
-    const std::shared_ptr<Font>& TextRenderer::font() const
+    TextRenderer::TextRenderer(TextRenderer&& rhs) noexcept
+        : data_(std::move(rhs.data_))
     {
-        return data_->font;
     }
 
-    bool TextRenderer::auto_blend() const
+    TextRenderer& TextRenderer::operator=(TextRenderer&& rhs) noexcept
     {
-        return data_->auto_blend;
+        data_ = std::move(rhs.data_);
+        return *this;
     }
 
-    void TextRenderer::set_auto_blend(bool value)
+    size_t TextRenderer::add_text_item(std::unique_ptr<TextItem> item)
     {
-        data_->auto_blend = value;
+        if (!item->font())
+            TUNGSTEN_THROW("Text item has no font assigned. (Text: " + item->text() + ")");
+        const auto id = data_->next_id_++;
+        auto [it, _] = data_->text_entries_.insert({id, std::move(item)});
+        it->second->set_dirty_flags(TextItem::DirtyFlags::ALL);
+        return id;
     }
 
-    Xyz::Vector2F TextRenderer::get_size(std::string_view text, float line_gap) const
+    std::unique_ptr<TextItem> TextRenderer::remove_text_item(size_t id)
     {
-        return get_size(to_u32(text), line_gap);
-    }
-
-    Xyz::Vector2F TextRenderer::get_size(std::u8string_view text, float line_gap) const
-    {
-        return get_size(to_u32(text), line_gap);
-    }
-
-    Xyz::Vector2F
-    TextRenderer::get_size(std::u32string_view text, float line_gap) const
-    {
-        auto rect = get_text_size(*data_->font, text, line_gap);
-        return {rect.size[0], rect.size[1]};
-    }
-
-    void TextRenderer::draw(std::string_view text,
-                            const Xyz::Vector2F& pos,
-                            const Xyz::Vector2F& screen_size,
-                            const TextProperties& properties) const
-    {
-        draw(to_u32(text), pos, screen_size, properties);
-    }
-
-    void TextRenderer::draw(std::u8string_view text,
-                            const Xyz::Vector2F& pos,
-                            const Xyz::Vector2F& screen_size,
-                            const TextProperties& properties) const
-    {
-        draw(to_u32(text), pos, screen_size, properties);
-    }
-
-    void TextRenderer::draw(std::u32string_view text,
-                            const Xyz::Vector2F& pos,
-                            const Xyz::Vector2F& screen_size,
-                            const TextProperties& properties) const
-    {
-        const bool default_blend = is_blend_enabled();
-        if (data_->auto_blend)
+        auto it = data_->text_entries_.find(id);
+        if (it == data_->text_entries_.end())
+            TUNGSTEN_THROW("No text item with id " + std::to_string(id) + " found.");
+        auto item = std::move(it->second);
+        data_->text_entries_.erase(it);
+        auto render_it = data_->text_data_.find(id);
+        if (render_it != data_->text_data_.end())
         {
-            if (!default_blend)
-                set_blend_enabled(true);
-            set_blend_function(BlendFunction::SRC_ALPHA, BlendFunction::ONE_MINUS_SRC_ALPHA);
+            if (render_it->second->font_data)
+            {
+                std::erase_if(render_it->second->font_data->render_items,
+                              [&](const auto& rd)
+                              {
+                                  return rd == render_it->second.get();
+                              });
+            }
+            data_->text_data_.erase(render_it);
         }
+        return item;
+    }
+
+    void TextRenderer::clear_text_items()
+    {
+        data_->text_entries_.clear();
+        data_->text_data_.clear();
+    }
+
+    const TextItem* TextRenderer::get_text_item(size_t id) const
+    {
+        auto it = data_->text_entries_.find(id);
+        if (it == data_->text_entries_.end())
+            TUNGSTEN_THROW("No text item with id " + std::to_string(id) + " found.");
+        return it->second.get();
+    }
+
+    TextItem* TextRenderer::get_text_item(size_t id)
+    {
+        auto it = data_->text_entries_.find(id);
+        if (it == data_->text_entries_.end())
+            TUNGSTEN_THROW("No text item with id " + std::to_string(id) + " found.");
+        return it->second.get();
+    }
+
+    void TextRenderer::prepare(const Camera& camera)
+    {
+        std::vector<GlyphVertex> vertexes;
+        std::vector<int32_t> indexes;
+        for (auto& [id, item] : data_->text_entries_)
+        {
+            const auto dirty_flags = item->dirty_flags();
+            if (!item->is_visible())
+                continue;
+
+            item->set_dirty_flags(TextItem::DirtyFlags::NONE);
+            if ((dirty_flags & DIRTY_VERTEX_DATA_MASK) == TextItem::DirtyFlags::NONE)
+                continue;
+
+            const auto& font = item->font();
+            if (!font)
+                TUNGSTEN_THROW("Text item has no font assigned. (Text: " + item->text() + ")");
+
+            auto font_it = data_->font_data_.find(item->font());
+            if (font_it == data_->font_data_.end())
+            {
+                auto font_data = make_font_data(item->font());
+                font_it = data_->font_data_.emplace(item->font(),
+                                                    std::move(font_data)).first;
+            }
+
+            auto rd_it = data_->text_data_.find(id);
+            if (rd_it == data_->text_data_.end())
+            {
+                auto rd = std::make_unique<TextRenderItem>();
+                rd->item = item.get();
+                rd->vbo = generate_buffer();
+                rd->ebo = generate_buffer();
+                rd->vao = create_vertex_array(rd->vbo.id());
+                rd->font_data = font_it->second.get();
+                font_it->second->render_items.push_back(rd.get());
+                rd_it = data_->text_data_.emplace(id, std::move(rd)).first;
+            }
+            else if (rd_it->second->font_data != font_it->second.get())
+            {
+                replace_font(*rd_it->second, *font_it->second);
+            }
+
+            vertexes.resize(0);
+            indexes.resize(0);
+
+            const auto text32 = utf8_to_utf32(item->text());
+            const auto rect = add_vertexes(vertexes, indexes, *font,
+                                           text32, item->line_gap(),
+                                           item->horizontal_alignment());
+            rd_it->second->element_count = int32_t(indexes.size());
+            rd_it->second->rectangle = rect;
+            bind_buffer(BufferTarget::ARRAY, rd_it->second->vbo.id());
+            set_buffer_data(BufferTarget::ARRAY, std::span(vertexes),
+                            BufferUsage::DYNAMIC_DRAW);
+            bind_buffer(BufferTarget::ELEMENT_ARRAY, rd_it->second->ebo.id());
+            set_buffer_data(BufferTarget::ELEMENT_ARRAY, std::span(indexes),
+                            BufferUsage::DYNAMIC_DRAW);
+        }
+    }
+
+    void TextRenderer::render(const Camera& camera) const
+    {
+        if (data_->text_entries_.empty())
+            return;
+
+        BlendRestorer blend_restorer;
+        set_blend_enabled(true);
+        set_blend_function(BlendFunction::SRC_ALPHA, BlendFunction::ONE_MINUS_SRC_ALPHA);
 
         data_->program.use();
-
-        activate_texture_unit(0);
-        bind_texture(TextureTarget::TEXTURE_2D, data_->texture.id());
-
-        auto [buffer, rect] = make_text_array_buffer(*data_->font, text,
-                                                     properties.line_gap);
-        BufferRestorer array_restorer(BufferTarget::ARRAY);
-        bind_buffer(BufferTarget::ARRAY, data_->vertex_buffer.id());
-        set_buffer_data(BufferTarget::ARRAY, std::span(buffer.vertices),
-                      BufferUsage::STATIC_DRAW);
-
-        BufferRestorer element_restorer(BufferTarget::ELEMENT_ARRAY);
-        bind_buffer(BufferTarget::ELEMENT_ARRAY, data_->element_buffer.id());
-        set_buffer_data(BufferTarget::ELEMENT_ARRAY, std::span(buffer.indices),
-                      BufferUsage::STATIC_DRAW);
-        const auto count = int32_t(buffer.indices.size());
-
-        data_->program.color.set(to_vector(properties.color));
-        const auto adjusted_pos = pos - rect.origin * 2.0f / screen_size;
-        auto [scale_x, scale_y] = 2.0f / screen_size;
-        using namespace Xyz::affine;
-        data_->program.mvp_matrix.set(translate2(adjusted_pos)
-                                      * scale2(scale_x, scale_y));
-        draw_triangle_elements_16(0, count);
-
-        set_blend_enabled(default_blend);
+        for (auto& [font, font_data] : data_->font_data_)
+        {
+            activate_texture_unit(0);
+            bind_texture(TextureTarget::TEXTURE_2D, font_data->texture.id());
+            for (auto& item : font_data->render_items)
+            {
+                if (!item->item->is_visible())
+                    continue;
+                const auto transform = make_transform(*item->item, item->rectangle, camera.viewport());
+                data_->program.mvp_matrix.set(transform);
+                data_->program.color.set(item->item->color());
+                item->vao.bind();
+                bind_buffer(BufferTarget::ARRAY, item->vbo.id());
+                bind_buffer(BufferTarget::ELEMENT_ARRAY, item->ebo.id());
+                draw_elements_32(TopologyType::TRIANGLES, 0, item->element_count);
+            }
+        }
     }
 
-    Size2I TextRenderer::image_size() const
+    std::unique_ptr<FontRenderData>
+    TextRenderer::make_font_data(const std::shared_ptr<Font>& font)
     {
-        return data_->image_size();
-    }
+        auto font_data = std::make_unique<FontRenderData>();
+        font_data->texture = generate_texture();
+        bind_texture(TextureTarget::TEXTURE_2D, font_data->texture.id());
+        set_texture_image_2d(TextureTarget2D::TEXTURE_2D,
+                             0, get_size(font->image),
+                             get_ogl_pixel_type(font->image.pixel_type()),
+                             font->image.data());
+        set_mag_filter(TextureTarget::TEXTURE_2D, TextureMagFilter::LINEAR);
+        set_min_filter(TextureTarget::TEXTURE_2D, TextureMinFilter::LINEAR);
+        set_wrap(TextureTarget::TEXTURE_2D, TextureWrapMode::CLAMP_TO_EDGE);
 
-    template <typename CharT>
-    std::u32string TextRenderer::to_u32(std::basic_string_view<CharT> str) const
-    {
-        return Yconvert::convert_to<std::u32string>(str, data_->converter);
+        return font_data;
     }
-}
+} // Tungsten
