@@ -26,7 +26,7 @@ public:
     {
         texts_.push_back(text);
         auto item = std::make_unique<Tungsten::TextItem>(text, font_);
-        item->set_color({0xFF, 0xFF, 0xFF, 0xFF});
+        item->set_color({1.f, 1.f, 1.f, 1.f});
         item->set_horizontal_alignment(Tungsten::HorizontalAlignment::LEFT);
         item->set_horizontal_anchor(Tungsten::HorizontalAnchor::LEFT);
         item->set_vertical_anchor(Tungsten::VerticalAnchor::BOTTOM);

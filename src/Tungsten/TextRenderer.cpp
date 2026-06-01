@@ -36,7 +36,7 @@ namespace Tungsten
         BufferHandle ebo;
         int32_t element_count = 0;
         Xyz::RectangleF rectangle;
-        TextItem* item;
+        TextItem* item = nullptr;
         FontRenderData* font_data = nullptr;
     };
 
