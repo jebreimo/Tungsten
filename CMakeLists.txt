@@ -180,6 +180,8 @@ add_library(Tungsten STATIC
     src/Tungsten/YimageGl.cpp
     src/Tungsten/FontUtilities.hpp
     src/Tungsten/FontUtilities.cpp
+    src/Tungsten/BuddyAllocator.hpp
+    src/Tungsten/BuddyAllocator.cpp
 )
 
 target_link_libraries(Tungsten

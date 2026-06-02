@@ -15,6 +15,7 @@ FetchContent_Declare(catch
 FetchContent_MakeAvailable(catch)
 
 add_executable(TungstenTest
+    test_BuddyAllocator.cpp
     test_FontUtilities.cpp
     test_TextUtilities.cpp
     text_Font.cpp
