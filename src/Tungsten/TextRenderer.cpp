@@ -166,17 +166,10 @@ namespace Tungsten
         {
             const size_t old_cap = gl.vertex_alloc.capacity();
             const size_t new_cap = old_cap * 2;
-            const auto old_bytes = ptrdiff_t(old_cap * sizeof(GlyphVertex));
             const auto new_bytes = ptrdiff_t(new_cap * sizeof(GlyphVertex));
 
-            auto new_vbo = generate_buffer();
-            bind_buffer(BufferTarget::COPY_READ, gl.vbo.id());
-            bind_buffer(BufferTarget::COPY_WRITE, new_vbo.id());
-            allocate_buffer(BufferTarget::COPY_WRITE, new_bytes, BufferUsage::DYNAMIC_DRAW);
-            copy_buffer(BufferTarget::COPY_READ, 0, BufferTarget::COPY_WRITE, 0, old_bytes);
-
             // The VAO stores the old VBO id in its vertex attribute state; recreate it.
-            gl.vbo = std::move(new_vbo);
+            gl.vbo = reallocate_buffer(gl.vbo.id(), new_bytes);
             gl.vao = create_vertex_array(gl.vbo.id());
 
             BuddyAllocator new_alloc(new_cap);
@@ -194,16 +187,9 @@ namespace Tungsten
         {
             const size_t old_cap = gl.index_alloc.capacity();
             const size_t new_cap = old_cap * 2;
-            const auto old_bytes = ptrdiff_t(old_cap * sizeof(int32_t));
             const auto new_bytes = ptrdiff_t(new_cap * sizeof(int32_t));
 
-            auto new_ebo = generate_buffer();
-            bind_buffer(BufferTarget::COPY_READ, gl.ebo.id());
-            bind_buffer(BufferTarget::COPY_WRITE, new_ebo.id());
-            allocate_buffer(BufferTarget::COPY_WRITE, new_bytes, BufferUsage::DYNAMIC_DRAW);
-            copy_buffer(BufferTarget::COPY_READ, 0, BufferTarget::COPY_WRITE, 0, old_bytes);
-
-            gl.ebo = std::move(new_ebo);
+            gl.ebo = reallocate_buffer(gl.ebo.id(), new_bytes);
 
             BuddyAllocator new_alloc(new_cap);
             for (const auto& [id, rd] : text_data)

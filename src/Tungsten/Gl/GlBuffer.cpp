@@ -83,6 +83,18 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
+    BufferHandle reallocate_buffer(uint32_t buffer_id, ptrdiff_t size)
+    {
+        BufferHandle new_buffer = generate_buffer();
+        bind_buffer(BufferTarget::COPY_READ, buffer_id);
+        const auto usage = get_buffer_usage(BufferTarget::COPY_READ);
+        bind_buffer(BufferTarget::COPY_WRITE, new_buffer.id());
+        allocate_buffer(BufferTarget::COPY_WRITE, size, usage);
+        const auto copy_size = std::min(get_buffer_size(BufferTarget::COPY_READ), size);
+        copy_buffer(BufferTarget::COPY_READ, 0, BufferTarget::COPY_WRITE, 0, copy_size);
+        return new_buffer;
+    }
+
     void copy_buffer(BufferTarget read_target,
                      ptrdiff_t read_offset,
                      BufferTarget write_target,
