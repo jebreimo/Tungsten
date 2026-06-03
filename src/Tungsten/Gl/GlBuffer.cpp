@@ -83,29 +83,6 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
-    void resize_buffer(BufferTarget target, ptrdiff_t size)
-    {
-        const auto current_size = get_buffer_size(target);
-        if (current_size == size)
-            return;
-
-        if (current_size == 0)
-            TUNGSTEN_THROW("Cannot resize an uninitialized buffer with!");
-        if (target == BufferTarget::COPY_WRITE || target == BufferTarget::COPY_READ)
-            TUNGSTEN_THROW("Cannot resize a buffer bound to a copy target.");
-
-        const auto content_size = std::min(current_size, size);
-        BufferRestorer read_binding(BufferTarget::COPY_READ);
-        const auto temp_buffer = generate_buffer(BufferTarget::COPY_READ,
-                                                 content_size,
-                                                 BufferUsage::DYNAMIC_DRAW);
-        copy_buffer(target, 0, BufferTarget::COPY_WRITE, 0, content_size);
-        allocate_buffer(target, size, get_buffer_usage(target));
-
-        BufferRestorer write_binding(BufferTarget::COPY_WRITE);
-        copy_buffer(BufferTarget::COPY_READ, 0, target, 0, content_size);
-    }
-
     void copy_buffer(BufferTarget read_target,
                      ptrdiff_t read_offset,
                      BufferTarget write_target,

@@ -76,8 +76,6 @@ namespace Tungsten
         set_buffer_subdata(target, std::as_bytes(data), offset);
     }
 
-    void resize_buffer(BufferTarget target, ptrdiff_t size);
-
     void copy_buffer(BufferTarget read_target,
                      ptrdiff_t read_offset,
                      BufferTarget write_target,
