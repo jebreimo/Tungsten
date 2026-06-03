@@ -9,7 +9,6 @@
 
 #include <algorithm>
 #include <bit>
-#include <unordered_set>
 
 #include "BuddyAllocator.hpp"
 #include "FontUtilities.hpp"
@@ -51,21 +50,35 @@ namespace Tungsten
 
     struct FontRenderData
     {
-        FontRenderData(size_t v_cap, size_t i_cap)
-            : vertex_alloc(v_cap), index_alloc(i_cap)
-        {}
-
         TextureHandle texture;
-        VertexArrayObject vao;
-        BufferHandle vbo;                   // shared vertex buffer for all items
-        BufferHandle ebo;                   // shared index buffer for all items
-        BuddyAllocator vertex_alloc;        // sub-allocator for vbo (units = vertices)
-        BuddyAllocator index_alloc;         // sub-allocator for ebo (units = indices)
         std::vector<TextRenderItem*> render_items;
+    };
+
+    // Holds the GPU buffers and buddy allocators shared across all fonts.
+    // Defined at namespace scope so anonymous-namespace helpers can reference it.
+    struct TextGlBuffers
+    {
+        VertexArrayObject vao;
+        BufferHandle vbo;
+        BufferHandle ebo;
+        BuddyAllocator vertex_alloc{INITIAL_VERTEX_CAPACITY};
+        BuddyAllocator index_alloc{INITIAL_INDEX_CAPACITY};
+    };
+
+    struct TextRenderer::Data
+    {
+        std::unordered_map<size_t, std::unique_ptr<TextItem>> text_entries_;
+        std::unordered_map<size_t, std::unique_ptr<TextRenderItem>> text_data_;
+        std::unordered_map<std::shared_ptr<Font>, std::unique_ptr<FontRenderData>> font_data_;
+        Detail::RenderTextShaderProgram program;
+        size_t next_id_ = 1;
+        TextGlBuffers gl;
     };
 
     namespace
     {
+        using TextDataMap = std::unordered_map<size_t, std::unique_ptr<TextRenderItem>>;
+
         VertexArrayObject create_vertex_array(uint32_t vbo_id)
         {
             return VertexArrayObjectBuilder()
@@ -75,14 +88,26 @@ namespace Tungsten
                 .build();
         }
 
-        void replace_font(TextRenderItem& rd, FontRenderData& new_font)
+        void init_gl_buffers(TextGlBuffers& gl)
+        {
+            gl.vbo = generate_buffer(BufferTarget::ARRAY,
+                                     ptrdiff_t(INITIAL_VERTEX_CAPACITY * sizeof(GlyphVertex)),
+                                     BufferUsage::DYNAMIC_DRAW);
+            gl.ebo = generate_buffer(BufferTarget::ELEMENT_ARRAY,
+                                     ptrdiff_t(INITIAL_INDEX_CAPACITY * sizeof(int32_t)),
+                                     BufferUsage::DYNAMIC_DRAW);
+            gl.vao = create_vertex_array(gl.vbo.id());
+        }
+
+        void replace_font(TextRenderItem& rd, FontRenderData& new_font,
+                          BuddyAllocator& vertex_alloc, BuddyAllocator& index_alloc)
         {
             if (rd.font_data)
             {
                 if (rd.vertex_offset != UNALLOCATED)
                 {
-                    rd.font_data->vertex_alloc.free(rd.vertex_offset);
-                    rd.font_data->index_alloc.free(rd.index_offset);
+                    vertex_alloc.free(rd.vertex_offset);
+                    index_alloc.free(rd.index_offset);
                     rd.vertex_offset = UNALLOCATED;
                     rd.index_offset  = UNALLOCATED;
                 }
@@ -137,67 +162,58 @@ namespace Tungsten
         // the buddy allocator by re-claiming all live allocations.
         // Uses explicit COPY_READ/COPY_WRITE bindings to avoid the broken
         // resize_buffer path that calls copy_buffer with COPY_WRITE unbound.
-        void grow_vertex_buffer(FontRenderData& fd)
+        void grow_vertex_buffer(TextGlBuffers& gl, const TextDataMap& text_data)
         {
-            const size_t old_cap = fd.vertex_alloc.capacity();
+            const size_t old_cap = gl.vertex_alloc.capacity();
             const size_t new_cap = old_cap * 2;
-            const ptrdiff_t old_bytes = ptrdiff_t(old_cap * sizeof(GlyphVertex));
-            const ptrdiff_t new_bytes = ptrdiff_t(new_cap * sizeof(GlyphVertex));
+            const auto old_bytes = ptrdiff_t(old_cap * sizeof(GlyphVertex));
+            const auto new_bytes = ptrdiff_t(new_cap * sizeof(GlyphVertex));
 
             auto new_vbo = generate_buffer();
-            bind_buffer(BufferTarget::COPY_READ, fd.vbo.id());
+            bind_buffer(BufferTarget::COPY_READ, gl.vbo.id());
             bind_buffer(BufferTarget::COPY_WRITE, new_vbo.id());
             allocate_buffer(BufferTarget::COPY_WRITE, new_bytes, BufferUsage::DYNAMIC_DRAW);
             copy_buffer(BufferTarget::COPY_READ, 0, BufferTarget::COPY_WRITE, 0, old_bytes);
 
             // The VAO stores the old VBO id in its vertex attribute state; recreate it.
-            fd.vbo = std::move(new_vbo);
-            fd.vao = create_vertex_array(fd.vbo.id());
+            gl.vbo = std::move(new_vbo);
+            gl.vao = create_vertex_array(gl.vbo.id());
 
             BuddyAllocator new_alloc(new_cap);
-            for (const TextRenderItem* rd : fd.render_items)
+            for (const auto& [id, rd] : text_data)
             {
                 if (rd->vertex_offset != UNALLOCATED)
                     new_alloc.claim(rd->vertex_offset, rd->vertex_alloc_size);
             }
-            fd.vertex_alloc = std::move(new_alloc);
+            gl.vertex_alloc = std::move(new_alloc);
         }
 
         // Doubles the index buffer, preserving existing content, and rebuilds
         // the buddy allocator.
-        void grow_index_buffer(FontRenderData& fd)
+        void grow_index_buffer(TextGlBuffers& gl, const TextDataMap& text_data)
         {
-            const size_t old_cap = fd.index_alloc.capacity();
+            const size_t old_cap = gl.index_alloc.capacity();
             const size_t new_cap = old_cap * 2;
-            const ptrdiff_t old_bytes = ptrdiff_t(old_cap * sizeof(int32_t));
-            const ptrdiff_t new_bytes = ptrdiff_t(new_cap * sizeof(int32_t));
+            const auto old_bytes = ptrdiff_t(old_cap * sizeof(int32_t));
+            const auto new_bytes = ptrdiff_t(new_cap * sizeof(int32_t));
 
             auto new_ebo = generate_buffer();
-            bind_buffer(BufferTarget::COPY_READ, fd.ebo.id());
+            bind_buffer(BufferTarget::COPY_READ, gl.ebo.id());
             bind_buffer(BufferTarget::COPY_WRITE, new_ebo.id());
             allocate_buffer(BufferTarget::COPY_WRITE, new_bytes, BufferUsage::DYNAMIC_DRAW);
             copy_buffer(BufferTarget::COPY_READ, 0, BufferTarget::COPY_WRITE, 0, old_bytes);
 
-            fd.ebo = std::move(new_ebo);
+            gl.ebo = std::move(new_ebo);
 
             BuddyAllocator new_alloc(new_cap);
-            for (const TextRenderItem* rd : fd.render_items)
+            for (const auto& [id, rd] : text_data)
             {
                 if (rd->index_offset != UNALLOCATED)
                     new_alloc.claim(rd->index_offset, rd->index_alloc_size);
             }
-            fd.index_alloc = std::move(new_alloc);
+            gl.index_alloc = std::move(new_alloc);
         }
     }
-
-    struct TextRenderer::Data
-    {
-        std::unordered_map<size_t, std::unique_ptr<TextItem>> text_entries_;
-        std::unordered_map<size_t, std::unique_ptr<TextRenderItem>> text_data_;
-        std::unordered_map<std::shared_ptr<Font>, std::unique_ptr<FontRenderData>> font_data_;
-        Detail::RenderTextShaderProgram program;
-        size_t next_id_ = 1;
-    };
 
     TextRenderer::TextRenderer()
         : data_(std::make_unique<Data>())
@@ -229,7 +245,7 @@ namespace Tungsten
 
     std::unique_ptr<TextItem> TextRenderer::remove_text_item(size_t id)
     {
-        auto it = data_->text_entries_.find(id);
+        const auto it = data_->text_entries_.find(id);
         if (it == data_->text_entries_.end())
             TUNGSTEN_THROW("No text item with id " + std::to_string(id) + " found.");
         auto item = std::move(it->second);
@@ -243,8 +259,8 @@ namespace Tungsten
             {
                 if (rd->vertex_offset != UNALLOCATED)
                 {
-                    rd->font_data->vertex_alloc.free(rd->vertex_offset);
-                    rd->font_data->index_alloc.free(rd->index_offset);
+                    data_->gl.vertex_alloc.free(rd->vertex_offset);
+                    data_->gl.index_alloc.free(rd->index_offset);
                 }
                 std::erase(rd->font_data->render_items, rd);
             }
@@ -258,11 +274,14 @@ namespace Tungsten
         data_->text_entries_.clear();
         data_->text_data_.clear();
         data_->font_data_.clear();
+        // Reset allocators to current capacity (all free); GPU buffers are reused as-is.
+        data_->gl.vertex_alloc = BuddyAllocator(data_->gl.vertex_alloc.capacity());
+        data_->gl.index_alloc  = BuddyAllocator(data_->gl.index_alloc.capacity());
     }
 
     const TextItem* TextRenderer::get_text_item(size_t id) const
     {
-        auto it = data_->text_entries_.find(id);
+        const auto it = data_->text_entries_.find(id);
         if (it == data_->text_entries_.end())
             TUNGSTEN_THROW("No text item with id " + std::to_string(id) + " found.");
         return it->second.get();
@@ -270,7 +289,7 @@ namespace Tungsten
 
     TextItem* TextRenderer::get_text_item(size_t id)
     {
-        auto it = data_->text_entries_.find(id);
+        const auto it = data_->text_entries_.find(id);
         if (it == data_->text_entries_.end())
             TUNGSTEN_THROW("No text item with id " + std::to_string(id) + " found.");
         return it->second.get();
@@ -288,8 +307,7 @@ namespace Tungsten
             Xyz::RectangleF rectangle;
         };
 
-        // Group pending work by font so GL buffer operations can be batched.
-        std::unordered_map<FontRenderData*, std::vector<PendingItem>> by_font;
+        std::vector<PendingItem> pending;
 
         for (auto& [id, item] : data_->text_entries_)
         {
@@ -309,6 +327,8 @@ namespace Tungsten
             auto font_it = data_->font_data_.find(font);
             if (font_it == data_->font_data_.end())
             {
+                if (!data_->gl.vbo.id())
+                    init_gl_buffers(data_->gl);
                 auto fd = make_font_data(font);
                 font_it = data_->font_data_.emplace(font, std::move(fd)).first;
             }
@@ -326,7 +346,8 @@ namespace Tungsten
             }
             else if (rd_it->second->font_data != fd)
             {
-                replace_font(*rd_it->second, *fd);
+                replace_font(*rd_it->second, *fd,
+                             data_->gl.vertex_alloc, data_->gl.index_alloc);
             }
 
             TextRenderItem* rd = rd_it->second.get();
@@ -337,92 +358,89 @@ namespace Tungsten
             pi.rectangle = add_vertexes(pi.vertexes, pi.indexes, *font,
                                         text32, item->line_gap(),
                                         item->horizontal_alignment());
-            by_font[fd].push_back(std::move(pi));
+            pending.push_back(std::move(pi));
         }
 
-        if (by_font.empty())
+        if (pending.empty())
             return;
 
         // --- Phase 2: free old allocations, grow if needed, upload ---
 
-        for (auto& [fd, pending] : by_font)
+        // Release the GPU ranges that will be replaced.
+        for (auto& pi : pending)
         {
-            // Release the GPU ranges that will be replaced.
-            for (auto& pi : pending)
+            TextRenderItem* rd = pi.rd;
+            if (rd->vertex_offset != UNALLOCATED)
             {
-                TextRenderItem* rd = pi.rd;
-                if (rd->vertex_offset != UNALLOCATED)
+                data_->gl.vertex_alloc.free(rd->vertex_offset);
+                data_->gl.index_alloc.free(rd->index_offset);
+                rd->vertex_offset = UNALLOCATED;
+                rd->index_offset  = UNALLOCATED;
+            }
+        }
+
+        // Allocate space for each item, growing buffers on demand.
+        for (auto& pi : pending)
+        {
+            TextRenderItem* rd = pi.rd;
+
+            if (pi.vertexes.empty())
+            {
+                rd->element_count = 0;
+                rd->rectangle = {};
+                continue;
+            }
+
+            std::optional<size_t> v_off;
+            std::optional<size_t> i_off;
+
+            while (true)
+            {
+                v_off = data_->gl.vertex_alloc.allocate(pi.vertexes.size());
+                i_off = v_off ? data_->gl.index_alloc.allocate(pi.indexes.size())
+                              : std::nullopt;
+                if (v_off && i_off)
+                    break;
+
+                // Release whichever succeeded before growing the right buffer.
+                if (v_off && !i_off)
                 {
-                    fd->vertex_alloc.free(rd->vertex_offset);
-                    fd->index_alloc.free(rd->index_offset);
-                    rd->vertex_offset = UNALLOCATED;
-                    rd->index_offset  = UNALLOCATED;
+                    data_->gl.vertex_alloc.free(*v_off);
+                    grow_index_buffer(data_->gl, data_->text_data_);
+                }
+                else
+                {
+                    grow_vertex_buffer(data_->gl, data_->text_data_);
                 }
             }
 
-            // Allocate space for each item, growing buffers on demand.
-            for (auto& pi : pending)
-            {
-                TextRenderItem* rd = pi.rd;
+            rd->vertex_offset     = *v_off;
+            rd->vertex_alloc_size = std::bit_ceil(pi.vertexes.size());
+            rd->index_offset      = *i_off;
+            rd->index_alloc_size  = std::bit_ceil(pi.indexes.size());
+            rd->element_count     = int32_t(pi.indexes.size());
+            rd->rectangle         = pi.rectangle;
 
-                if (pi.vertexes.empty())
-                {
-                    rd->element_count = 0;
-                    rd->rectangle = {};
-                    continue;
-                }
+            // Upload vertex data into the shared VBO at the allocated slot.
+            bind_buffer(BufferTarget::ARRAY, data_->gl.vbo.id());
+            set_buffer_subdata(BufferTarget::ARRAY,
+                               std::span(pi.vertexes),
+                               ptrdiff_t(*v_off * sizeof(GlyphVertex)));
 
-                std::optional<size_t> v_off;
-                std::optional<size_t> i_off;
-
-                while (true)
-                {
-                    v_off = fd->vertex_alloc.allocate(pi.vertexes.size());
-                    i_off = v_off ? fd->index_alloc.allocate(pi.indexes.size())
-                                  : std::nullopt;
-                    if (v_off && i_off)
-                        break;
-
-                    // Release whichever succeeded before growing.
-                    if (v_off && !i_off)
-                    {
-                        fd->vertex_alloc.free(*v_off);
-                        grow_index_buffer(*fd);
-                    }
-                    else
-                    {
-                        grow_vertex_buffer(*fd);
-                    }
-                }
-
-                rd->vertex_offset     = *v_off;
-                rd->vertex_alloc_size = std::bit_ceil(pi.vertexes.size());
-                rd->index_offset      = *i_off;
-                rd->index_alloc_size  = std::bit_ceil(pi.indexes.size());
-                rd->element_count     = int32_t(pi.indexes.size());
-                rd->rectangle         = pi.rectangle;
-
-                // Upload vertex data into the shared VBO at the allocated slot.
-                bind_buffer(BufferTarget::ARRAY, fd->vbo.id());
-                set_buffer_subdata(BufferTarget::ARRAY,
-                                   std::span(pi.vertexes),
-                                   ptrdiff_t(*v_off * sizeof(GlyphVertex)));
-
-                // Adjust indices from item-local to global vertex positions,
-                // then upload into the shared EBO at the allocated slot.
-                for (auto& idx : pi.indexes)
-                    idx += int32_t(*v_off);
-                bind_buffer(BufferTarget::ELEMENT_ARRAY, fd->ebo.id());
-                set_buffer_subdata(BufferTarget::ELEMENT_ARRAY,
-                                   std::span(pi.indexes),
-                                   ptrdiff_t(*i_off * sizeof(int32_t)));
-            }
+            // Adjust indices from item-local to global vertex positions,
+            // then upload into the shared EBO at the allocated slot.
+            for (auto& idx : pi.indexes)
+                idx += int32_t(*v_off);
+            bind_buffer(BufferTarget::ELEMENT_ARRAY, data_->gl.ebo.id());
+            set_buffer_subdata(BufferTarget::ELEMENT_ARRAY,
+                               std::span(pi.indexes),
+                               ptrdiff_t(*i_off * sizeof(int32_t)));
         }
     }
 
     void TextRenderer::render(const Camera& camera) const
     {
-        if (data_->text_entries_.empty())
+        if (data_->font_data_.empty())
             return;
 
         BlendRestorer blend_restorer;
@@ -430,6 +448,8 @@ namespace Tungsten
         set_blend_function(BlendFunction::SRC_ALPHA, BlendFunction::ONE_MINUS_SRC_ALPHA);
 
         data_->program.use();
+        data_->gl.vao.bind();
+        bind_buffer(BufferTarget::ELEMENT_ARRAY, data_->gl.ebo.id());
 
         for (auto& [font, fd] : data_->font_data_)
         {
@@ -438,10 +458,6 @@ namespace Tungsten
 
             activate_texture_unit(0);
             bind_texture(TextureTarget::TEXTURE_2D, fd->texture.id());
-
-            // Bind the font's shared VAO (vertex attributes) and EBO (indices).
-            fd->vao.bind();
-            bind_buffer(BufferTarget::ELEMENT_ARRAY, fd->ebo.id());
 
             for (const TextRenderItem* rd : fd->render_items)
             {
@@ -464,10 +480,8 @@ namespace Tungsten
     std::unique_ptr<FontRenderData>
     TextRenderer::make_font_data(const std::shared_ptr<Font>& font)
     {
-        auto fd = std::make_unique<FontRenderData>(INITIAL_VERTEX_CAPACITY,
-                                                   INITIAL_INDEX_CAPACITY);
+        auto fd = std::make_unique<FontRenderData>();
 
-        // Upload the font glyph atlas as a texture.
         fd->texture = generate_texture();
         bind_texture(TextureTarget::TEXTURE_2D, fd->texture.id());
         set_texture_image_2d(TextureTarget2D::TEXTURE_2D,
@@ -477,16 +491,6 @@ namespace Tungsten
         set_mag_filter(TextureTarget::TEXTURE_2D, TextureMagFilter::LINEAR);
         set_min_filter(TextureTarget::TEXTURE_2D, TextureMinFilter::LINEAR);
         set_wrap(TextureTarget::TEXTURE_2D, TextureWrapMode::CLAMP_TO_EDGE);
-
-        // One shared VBO and EBO for all text items using this font.
-        fd->vbo = generate_buffer(BufferTarget::ARRAY,
-                                  ptrdiff_t(INITIAL_VERTEX_CAPACITY * sizeof(GlyphVertex)),
-                                  BufferUsage::DYNAMIC_DRAW);
-        fd->ebo = generate_buffer(BufferTarget::ELEMENT_ARRAY,
-                                  ptrdiff_t(INITIAL_INDEX_CAPACITY * sizeof(int32_t)),
-                                  BufferUsage::DYNAMIC_DRAW);
-
-        fd->vao = create_vertex_array(fd->vbo.id());
 
         return fd;
     }

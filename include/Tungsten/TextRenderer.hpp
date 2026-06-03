@@ -57,9 +57,6 @@ namespace Tungsten
 
         void render(const Camera& camera) const override;
     private:
-        std::unique_ptr<TextRenderItem>
-        make_render_data(const TextItem& item);
-
         static std::unique_ptr<FontRenderData>
         make_font_data(const std::shared_ptr<Font>& font);
 
