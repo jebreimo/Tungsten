@@ -52,10 +52,7 @@ public:
             visible_count++;
             height += text_size.y() + (visible_count ? line_gap_ : 0);
             if (height >= viewport.size.y())
-            {
-                height = viewport.size.y();
                 break;
-            }
         }
 
         float y = 0;

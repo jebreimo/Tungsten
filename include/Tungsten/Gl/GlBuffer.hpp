@@ -76,7 +76,11 @@ namespace Tungsten
         set_buffer_subdata(target, std::as_bytes(data), offset);
     }
 
-    BufferHandle reallocate_buffer(uint32_t buffer_id, ptrdiff_t size);
+    void reallocate_buffer(uint32_t buffer_id,
+                           ptrdiff_t new_size);
+
+    BufferHandle clone_buffer(uint32_t buffer_id,
+                              ptrdiff_t size = PTRDIFF_MAX);
 
     void copy_buffer(BufferTarget read_target,
                      ptrdiff_t read_offset,

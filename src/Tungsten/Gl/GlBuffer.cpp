@@ -83,10 +83,31 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
-    BufferHandle reallocate_buffer(uint32_t buffer_id, ptrdiff_t size)
+    void reallocate_buffer(uint32_t buffer_id, ptrdiff_t new_size)
+    {
+        bind_buffer(BufferTarget::COPY_READ, buffer_id);
+
+        const auto old_size = get_buffer_size(BufferTarget::COPY_READ);
+        const auto transfer_size = std::min(new_size, old_size);
+        const auto usage = get_buffer_usage(BufferTarget::COPY_READ);
+
+        BufferHandle tmp_buffer = generate_buffer();
+        bind_buffer(BufferTarget::COPY_WRITE, tmp_buffer.id());
+        allocate_buffer(BufferTarget::COPY_WRITE, transfer_size, usage);
+        copy_buffer(BufferTarget::COPY_READ, 0, BufferTarget::COPY_WRITE, 0, transfer_size);
+
+        bind_buffer(BufferTarget::COPY_WRITE, buffer_id);
+        allocate_buffer(BufferTarget::COPY_WRITE, new_size, usage);
+        bind_buffer(BufferTarget::COPY_READ, tmp_buffer.id());
+        copy_buffer(BufferTarget::COPY_READ, 0, BufferTarget::COPY_WRITE, 0, transfer_size);
+    }
+
+    BufferHandle clone_buffer(uint32_t buffer_id, ptrdiff_t size)
     {
         BufferHandle new_buffer = generate_buffer();
         bind_buffer(BufferTarget::COPY_READ, buffer_id);
+        if (size == PTRDIFF_MAX)
+            size = get_buffer_size(BufferTarget::COPY_READ);
         const auto usage = get_buffer_usage(BufferTarget::COPY_READ);
         bind_buffer(BufferTarget::COPY_WRITE, new_buffer.id());
         allocate_buffer(BufferTarget::COPY_WRITE, size, usage);

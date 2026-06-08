@@ -30,8 +30,8 @@ namespace Tungsten
                                             | TextItem::DirtyFlags::LINE_GAP
                                             | TextItem::DirtyFlags::HORIZONTAL_ALIGNMENT;
 
-    constexpr size_t INITIAL_VERTEX_CAPACITY = 256; // 64 quads
-    constexpr size_t INITIAL_INDEX_CAPACITY  = 512; // next pow2 above 64*6=384
+    constexpr size_t INITIAL_VERTEX_CAPACITY = 4096; // 1024 quads
+    constexpr size_t INITIAL_INDEX_CAPACITY = 8192; // next pow2 above 1024*6=6144
 
     // Sentinel: this render item has no GPU allocation yet.
     constexpr size_t UNALLOCATED = SIZE_MAX;
@@ -39,7 +39,7 @@ namespace Tungsten
     struct TextRenderItem
     {
         size_t vertex_offset = UNALLOCATED;
-        size_t vertex_alloc_size = 0;   // power-of-2 block size in the buddy allocator
+        size_t vertex_alloc_size = 0; // power-of-2 block size in the buddy allocator
         size_t index_offset = UNALLOCATED;
         size_t index_alloc_size = 0;
         int32_t element_count = 0;
@@ -109,7 +109,7 @@ namespace Tungsten
                     vertex_alloc.free(rd.vertex_offset);
                     index_alloc.free(rd.index_offset);
                     rd.vertex_offset = UNALLOCATED;
-                    rd.index_offset  = UNALLOCATED;
+                    rd.index_offset = UNALLOCATED;
                 }
                 std::erase(rd.font_data->render_items, &rd);
             }
@@ -167,10 +167,7 @@ namespace Tungsten
             const size_t old_cap = gl.vertex_alloc.capacity();
             const size_t new_cap = old_cap * 2;
             const auto new_bytes = ptrdiff_t(new_cap * sizeof(GlyphVertex));
-
-            // The VAO stores the old VBO id in its vertex attribute state; recreate it.
-            gl.vbo = reallocate_buffer(gl.vbo.id(), new_bytes);
-            gl.vao = create_vertex_array(gl.vbo.id());
+            reallocate_buffer(gl.vbo.id(), new_bytes);
 
             BuddyAllocator new_alloc(new_cap);
             for (const auto& [id, rd] : text_data)
@@ -189,7 +186,7 @@ namespace Tungsten
             const size_t new_cap = old_cap * 2;
             const auto new_bytes = ptrdiff_t(new_cap * sizeof(int32_t));
 
-            gl.ebo = reallocate_buffer(gl.ebo.id(), new_bytes);
+            reallocate_buffer(gl.ebo.id(), new_bytes);
 
             BuddyAllocator new_alloc(new_cap);
             for (const auto& [id, rd] : text_data)
@@ -262,7 +259,7 @@ namespace Tungsten
         data_->font_data_.clear();
         // Reset allocators to current capacity (all free); GPU buffers are reused as-is.
         data_->gl.vertex_alloc = BuddyAllocator(data_->gl.vertex_alloc.capacity());
-        data_->gl.index_alloc  = BuddyAllocator(data_->gl.index_alloc.capacity());
+        data_->gl.index_alloc = BuddyAllocator(data_->gl.index_alloc.capacity());
     }
 
     const TextItem* TextRenderer::get_text_item(size_t id) const
@@ -361,7 +358,7 @@ namespace Tungsten
                 data_->gl.vertex_alloc.free(rd->vertex_offset);
                 data_->gl.index_alloc.free(rd->index_offset);
                 rd->vertex_offset = UNALLOCATED;
-                rd->index_offset  = UNALLOCATED;
+                rd->index_offset = UNALLOCATED;
             }
         }
 
@@ -383,8 +380,9 @@ namespace Tungsten
             while (true)
             {
                 v_off = data_->gl.vertex_alloc.allocate(pi.vertexes.size());
-                i_off = v_off ? data_->gl.index_alloc.allocate(pi.indexes.size())
-                              : std::nullopt;
+                i_off = v_off
+                            ? data_->gl.index_alloc.allocate(pi.indexes.size())
+                            : std::nullopt;
                 if (v_off && i_off)
                     break;
 
@@ -400,12 +398,12 @@ namespace Tungsten
                 }
             }
 
-            rd->vertex_offset     = *v_off;
+            rd->vertex_offset = *v_off;
             rd->vertex_alloc_size = std::bit_ceil(pi.vertexes.size());
-            rd->index_offset      = *i_off;
-            rd->index_alloc_size  = std::bit_ceil(pi.indexes.size());
-            rd->element_count     = int32_t(pi.indexes.size());
-            rd->rectangle         = pi.rectangle;
+            rd->index_offset = *i_off;
+            rd->index_alloc_size = std::bit_ceil(pi.indexes.size());
+            rd->element_count = int32_t(pi.indexes.size());
+            rd->rectangle = pi.rectangle;
 
             // Upload vertex data into the shared VBO at the allocated slot.
             bind_buffer(BufferTarget::ARRAY, data_->gl.vbo.id());
