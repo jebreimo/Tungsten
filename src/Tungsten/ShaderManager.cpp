@@ -8,18 +8,12 @@
 #include "Tungsten/ShaderManager.hpp"
 
 #include "Tungsten/ShaderPrograms/SmoothShader.hpp"
-#include "Tungsten/ShaderPrograms/GouraudShader.hpp"
-#include "Tungsten/ShaderPrograms/PhongShader.hpp"
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
 {
     BuiltinShader to_builtin_shader(const std::string& name)
     {
-        if (name == "GOURAUD" || name == GouraudShader::NAME)
-            return BuiltinShader::GOURAUD;
-        if (name == "PHONG" || name == PhongShader::NAME)
-            return BuiltinShader::PHONG;
         if (name == "SMOOTH" || name == SmoothShader::NAME)
             return BuiltinShader::SMOOTH;
         TUNGSTEN_THROW("Unknown built-in shader program name: '" + name + "'.");
@@ -57,10 +51,6 @@ namespace Tungsten
     {
         switch (program)
         {
-        case BuiltinShader::GOURAUD:
-            return get_or_create_builtin_program<GouraudShader>();
-        case BuiltinShader::PHONG:
-            return get_or_create_builtin_program<PhongShader>();
         case BuiltinShader::SMOOTH:
             return get_or_create_builtin_program<SmoothShader>();
         default:

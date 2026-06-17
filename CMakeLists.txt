@@ -105,10 +105,8 @@ add_library(Tungsten STATIC
     include/Tungsten/ShaderManager.hpp
     include/Tungsten/ShaderPreprocessor.hpp
     include/Tungsten/ShaderProgramBuilder.hpp
-    include/Tungsten/ShaderPrograms/GouraudShader.hpp
     include/Tungsten/ShaderPrograms/LightUniforms.hpp
     include/Tungsten/ShaderPrograms/MaterialUniforms.hpp
-    include/Tungsten/ShaderPrograms/PhongShader.hpp
     include/Tungsten/ShaderPrograms/ShaderProgram.hpp
     include/Tungsten/ShaderPrograms/SmoothShader.hpp
     include/Tungsten/ShaderTools.hpp
@@ -155,10 +153,8 @@ add_library(Tungsten STATIC
     src/Tungsten/ShaderPreprocessor.cpp
     src/Tungsten/ShaderProgram.cpp
     src/Tungsten/ShaderProgramBuilder.cpp
-    src/Tungsten/ShaderPrograms/GouraudShader.cpp
     src/Tungsten/ShaderPrograms/LightUniforms.cpp
     src/Tungsten/ShaderPrograms/MaterialUniforms.cpp
-    src/Tungsten/ShaderPrograms/PhongShader.cpp
     src/Tungsten/ShaderPrograms/SmoothShader.cpp
     src/Tungsten/ShaderSources.cpp.in
     src/Tungsten/ShaderSources.hpp
