@@ -111,7 +111,6 @@ add_library(Tungsten STATIC
     include/Tungsten/ShaderPrograms/PhongShader.hpp
     include/Tungsten/ShaderPrograms/ShaderProgram.hpp
     include/Tungsten/ShaderPrograms/SmoothShader.hpp
-    include/Tungsten/ShaderPrograms2/ShaderProgram.hpp
     include/Tungsten/ShaderTools.hpp
     include/Tungsten/TextItem.hpp
     include/Tungsten/TextRenderer.hpp

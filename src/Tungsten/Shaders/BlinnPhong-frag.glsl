@@ -12,8 +12,11 @@
     precision highp float;
 #endif
 
-#if defined(USE_DIFFUSE_MAP) || defined(USE_SPECULAR_MAP)
-    #define USE_TEXTURE_COORD
+// MAX_POINT_LIGHTS sizes the point-light array, so it must be known at
+// compile time. Everything else is controlled at runtime by the uniform
+// flags below.
+#ifndef MAX_POINT_LIGHTS
+#define MAX_POINT_LIGHTS 4
 #endif
 
 layout (location = 0) out vec4 color;
@@ -23,29 +26,22 @@ in VS_OUT
     vec3 frag_pos;
     vec3 view_pos;
     vec3 normal;
-    #ifdef USE_TEXTURE_COORD
     vec2 texcoord;
-    #endif
 } fs_in;
 
 struct Material
 {
-    #ifdef USE_DIFFUSE_MAP
-    sampler2D diffuse;
-    #else
+    sampler2D diffuse_map;
+    sampler2D specular_map;
     vec3 ambient;
     vec3 diffuse;
-    #endif
-
-    #ifdef USE_SPECULAR_MAP
-    sampler2D specular;
-    #else
     vec3 specular;
-    #endif
     float shininess;
 };
 
 uniform Material u_material;
+uniform bool u_use_diffuse_map;
+uniform bool u_use_specular_map;
 
 struct ColorMaterial
 {
@@ -59,25 +55,25 @@ ColorMaterial get_material()
 {
     ColorMaterial material;
 
-    #ifdef USE_DIFFUSE_MAP
-    material.ambient = vec3(texture(u_material.diffuse, fs_in.texcoord)) * 0.1;
-    material.diffuse = vec3(texture(u_material.diffuse, fs_in.texcoord));
-    #else
-    material.ambient = u_material.ambient;
-    material.diffuse = u_material.diffuse;
-    #endif
+    if (u_use_diffuse_map)
+    {
+        vec3 diffuse = vec3(texture(u_material.diffuse_map, fs_in.texcoord));
+        material.ambient = diffuse * 0.1;
+        material.diffuse = diffuse;
+    }
+    else
+    {
+        material.ambient = u_material.ambient;
+        material.diffuse = u_material.diffuse;
+    }
 
-    #ifdef USE_SPECULAR_MAP
-    material.specular = vec3(texture(u_material.specular, fs_in.texcoord));
-    #else
-    material.specular = u_material.specular;
-    #endif
+    material.specular = u_use_specular_map
+        ? vec3(texture(u_material.specular_map, fs_in.texcoord))
+        : u_material.specular;
 
     material.shininess = u_material.shininess;
     return material;
 }
-
-#ifdef USE_DIRECTIONAL_LIGHT
 
 struct DirectionalLight
 {
@@ -89,31 +85,24 @@ struct DirectionalLight
 };
 
 uniform DirectionalLight u_dir_light;
+uniform bool u_use_directional_light;
 
-vec3 calc_dir_light(DirectionalLight light, vec3 normal, vec3 view_dir)
+vec3 calc_dir_light(DirectionalLight light, ColorMaterial material,
+                    vec3 normal, vec3 view_dir)
 {
     vec3 light_dir = normalize(-light.direction);
     // diffuse shading
     float diff = max(dot(normal, light_dir), 0.0);
     // specular shading
     vec3 halfway = normalize(light_dir + view_dir);
+    float spec = pow(max(dot(normal, halfway), 0.0), material.shininess);
 
     // combine results
-    ColorMaterial col_material = get_material();
-    float spec = pow(max(dot(normal, halfway), 0.0), col_material.shininess);
-    vec3 ambient = light.ambient * col_material.ambient;
-    vec3 diffuse = light.diffuse * diff * col_material.diffuse;
-    vec3 specular = light.specular * spec * col_material.specular;
+    vec3 ambient = light.ambient * material.ambient;
+    vec3 diffuse = light.diffuse * diff * material.diffuse;
+    vec3 specular = light.specular * spec * material.specular;
     return (ambient + diffuse + specular);
 }
-
-#endif // USE_DIRECTIONAL_LIGHT
-
-#ifdef USE_POINT_LIGHTS
-
-#ifndef MAX_POINT_LIGHTS
-#define MAX_POINT_LIGHTS 4
-#endif
 
 struct PointLight
 {
@@ -128,37 +117,33 @@ struct PointLight
     float quadratic;
 };
 
+uniform PointLight u_point_lights[MAX_POINT_LIGHTS];
+uniform int u_num_point_lights;
+
 // calculates the color when using a point light.
-vec3 calc_point_light(PointLight light, vec3 normal, vec3 frag_pos, vec3 view_dir)
+vec3 calc_point_light(PointLight light, ColorMaterial material,
+                      vec3 normal, vec3 frag_pos, vec3 view_dir)
 {
     vec3 light_dir = normalize(light.position - frag_pos);
     // diffuse shading
     float diff = max(dot(normal, light_dir), 0.0);
     // specular shading
     vec3 halfway = normalize(light_dir + view_dir);
+    float spec = pow(max(dot(normal, halfway), 0.0), material.shininess);
     // attenuation
     float distance = length(light.position - frag_pos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
 
     // combine results
-    ColorMaterial col_material = get_material();
-    float spec = pow(max(dot(normal, halfway), 0.0), col_material.shininess);
-    vec3 ambient = light.ambient * col_material.ambient;
-    vec3 diffuse = light.diffuse * diff * col_material.diffuse;
-    vec3 specular = light.specular * spec * col_material.specular;
+    vec3 ambient = light.ambient * material.ambient;
+    vec3 diffuse = light.diffuse * diff * material.diffuse;
+    vec3 specular = light.specular * spec * material.specular;
 
     ambient *= attenuation;
     diffuse *= attenuation;
     specular *= attenuation;
     return (ambient + diffuse + specular);
 }
-
-uniform PointLight u_point_lights[MAX_POINT_LIGHTS];
-uniform int u_num_point_lights;
-
-#endif // USE_POINT_LIGHTS
-
-#ifdef USE_SPOT_LIGHT
 
 struct SpotLight
 {
@@ -176,14 +161,19 @@ struct SpotLight
     float quadratic;
 };
 
+uniform SpotLight u_spot_light;
+uniform bool u_use_spot_light;
+
 // calculates the color when using a spot light.
-vec3 calc_spot_light(SpotLight light, vec3 normal, vec3 frag_pos, vec3 view_dir)
+vec3 calc_spot_light(SpotLight light, ColorMaterial material,
+                     vec3 normal, vec3 frag_pos, vec3 view_dir)
 {
     vec3 light_dir = normalize(light.position - frag_pos);
     // diffuse shading
     float diff = max(dot(normal, light_dir), 0.0);
     // specular shading
     vec3 halfway = normalize(light_dir + view_dir);
+    float spec = pow(max(dot(normal, halfway), 0.0), material.shininess);
     // attenuation
     float distance = length(light.position - frag_pos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
@@ -193,11 +183,9 @@ vec3 calc_spot_light(SpotLight light, vec3 normal, vec3 frag_pos, vec3 view_dir)
     float intensity = clamp((theta - light.outer_cut_off) / epsilon, 0.0, 1.0);
 
     // combine results
-    ColorMaterial col_material = get_material();
-    float spec = pow(max(dot(normal, halfway), 0.0), col_material.shininess);
-    vec3 ambient = light.ambient * col_material.ambient;
-    vec3 diffuse = light.diffuse * diff * col_material.diffuse;
-    vec3 specular = light.specular * spec * col_material.specular;
+    vec3 ambient = light.ambient * material.ambient;
+    vec3 diffuse = light.diffuse * diff * material.diffuse;
+    vec3 specular = light.specular * spec * material.specular;
 
     ambient *= attenuation * intensity;
     diffuse *= attenuation * intensity;
@@ -206,29 +194,22 @@ vec3 calc_spot_light(SpotLight light, vec3 normal, vec3 frag_pos, vec3 view_dir)
     return (ambient + diffuse + specular);
 }
 
-uniform SpotLight u_spot_light;
-
-#endif // USE_SPOT_LIGHT
-
 void main()
 {
     vec3 normal = normalize(fs_in.normal);
     vec3 view_dir = normalize(fs_in.view_pos);
 
+    ColorMaterial material = get_material();
     vec3 result = vec3(0.0);
 
-    #ifdef USE_DIRECTIONAL_LIGHT
-    result += calc_dir_light(u_dir_light, normal, view_dir);
-    #endif
+    if (u_use_directional_light)
+        result += calc_dir_light(u_dir_light, material, normal, view_dir);
 
-    #ifdef USE_POINT_LIGHTS
     for (int i = 0; i < u_num_point_lights; i++)
-        result += calc_point_light(u_point_lights[i], normal, fs_in.frag_pos, view_dir);
-    #endif
+        result += calc_point_light(u_point_lights[i], material, normal, fs_in.frag_pos, view_dir);
 
-    #ifdef USE_SPOT_LIGHT
-    result += calc_spot_light(u_spot_light, normal, fs_in.frag_pos, view_dir);
-    #endif
+    if (u_use_spot_light)
+        result += calc_spot_light(u_spot_light, material, normal, fs_in.frag_pos, view_dir);
 
     color = vec4(result, 1.0);
 }

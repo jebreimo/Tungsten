@@ -13,37 +13,10 @@
 
 namespace Tungsten
 {
-    struct ShaderFeature
-    {
-        std::string name;
-        std::string description;
-        std::string definition_name;
-        std::string definition_value;
-    };
-
-    enum class MaterialType
-    {
-        COLORED,
-        DIFFUSE_MAP,
-        SPECULAR_MAP,
-        DIFFUSE_SPECULAR_MAP
-    };
-
-    struct SmoothShaderFeatures
-    {
-        MaterialType material_type = MaterialType::COLORED;
-        bool use_directional_light = true;
-        bool use_point_light = false;
-        bool use_spotlight = false;
-        unsigned int max_point_lights = 4;
-    };
-
     class SmoothShader : public ShaderProgram
     {
     public:
         static constexpr std::string_view NAME = "builtin::SmoothMesh";
-
-        static std::vector<ShaderFeature> get_features();
 
         using VertexType = std::tuple<Xyz::Vector3F, Xyz::Vector3F>;
 
@@ -60,6 +33,19 @@ namespace Tungsten
 
         void set_normal_matrix(const Xyz::Matrix3F& norm);
 
+        // Runtime feature flags. These replace the former compile-time
+        // USE_* defines: the shader is a single program and each light
+        // type and material map is switched on or off via these uniforms.
+        void set_use_diffuse_map(bool enabled);
+
+        void set_use_specular_map(bool enabled);
+
+        void set_use_directional_light(bool enabled);
+
+        void set_num_point_lights(int count);
+
+        void set_use_spot_light(bool enabled);
+
         ColorMaterialUniform material;
 
         DirectionalLightUniform directional_light;
@@ -67,6 +53,12 @@ namespace Tungsten
         Uniform<Xyz::Matrix4F> model_view_matrix;
         Uniform<Xyz::Matrix3F> normal_matrix;
         Uniform<Xyz::Matrix4F> proj_matrix;
+
+        Uniform<int32_t> use_diffuse_map;
+        Uniform<int32_t> use_specular_map;
+        Uniform<int32_t> use_directional_light;
+        Uniform<int32_t> num_point_lights;
+        Uniform<int32_t> use_spot_light;
 
         uint32_t position_attr;
         uint32_t normal_attr;

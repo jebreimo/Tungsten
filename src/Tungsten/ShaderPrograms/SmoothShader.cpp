@@ -12,24 +12,12 @@
 
 namespace Tungsten
 {
-    std::vector<ShaderFeature> SmoothShader::get_features()
-    {
-        return {
-            {"diffuse map", "Use diffuse map (texture)", "USE_DIFFUSE_MAP", {}},
-            {"specular map", "Use specular map", "USE_SPECULAR_MAP", {}},
-            {"directional_light", "Use directional light", "USE_DIRECTIONAL_LIGHT", {}},
-            {"point_lights", "Use point lights", "USE_POINT_LIGHTS", {}},
-            {"spotlight", "Use spotlight", "USE_SPOTLIGHT", {}}
-        };
-    }
-
     SmoothShader::SmoothShader()
         : ShaderProgram(std::string(NAME),
                         {
                             {ShaderType::VERTEX, ShaderSources::BLINN_PHONG_VERTEX},
                             {ShaderType::FRAGMENT, ShaderSources::BLINN_PHONG_FRAGMENT}
-                        },
-                        ShaderPreprocessor().add_define("USE_DIRECTIONAL_LIGHT")),
+                        }),
           material("u_material.", *this),
           directional_light("u_dir_light.", *this)
     {
@@ -38,14 +26,56 @@ namespace Tungsten
         attr_defs.emplace_back(position_attr, VertexAttributeType::POSITION_3F);
         normal_attr = get_vertex_attribute(id(), "a_normal");
         attr_defs.emplace_back(normal_attr, VertexAttributeType::NORMAL_3F);
+        // a_tex_coord is always present in the shader now, but is only fed
+        // real data when a mesh carries texture coordinates. It is left out
+        // of the default vertex format (position + normal); callers that use
+        // material maps add it to their vertex layout explicitly.
         texture_coord_attr = get_vertex_attribute(id(), "a_tex_coord");
-        if (texture_coord_attr != INVALID_VERTEX_ATTRIBUTE)
-            attr_defs.emplace_back(texture_coord_attr, VertexAttributeType::TEX_COORD_2F);
         set_attribute_definitions(std::move(attr_defs));
 
         model_view_matrix = get_uniform<Xyz::Matrix4F>(id(), "u_model_view_matrix");
         normal_matrix = get_uniform<Xyz::Matrix3F>(id(), "u_normal_matrix");
         proj_matrix = get_uniform<Xyz::Matrix4F>(id(), "u_proj_matrix");
+
+        use_diffuse_map = get_uniform<int32_t>(id(), "u_use_diffuse_map");
+        use_specular_map = get_uniform<int32_t>(id(), "u_use_specular_map");
+        use_directional_light = get_uniform<int32_t>(id(), "u_use_directional_light");
+        num_point_lights = get_uniform<int32_t>(id(), "u_num_point_lights");
+        use_spot_light = get_uniform<int32_t>(id(), "u_use_spot_light");
+
+        // Default to the previous compile-time configuration: a single
+        // directional light lighting a colour-only material.
+        use();
+        set_use_diffuse_map(false);
+        set_use_specular_map(false);
+        set_use_directional_light(true);
+        set_num_point_lights(0);
+        set_use_spot_light(false);
+    }
+
+    void SmoothShader::set_use_diffuse_map(bool enabled)
+    {
+        use_diffuse_map.set(enabled ? 1 : 0);
+    }
+
+    void SmoothShader::set_use_specular_map(bool enabled)
+    {
+        use_specular_map.set(enabled ? 1 : 0);
+    }
+
+    void SmoothShader::set_use_directional_light(bool enabled)
+    {
+        use_directional_light.set(enabled ? 1 : 0);
+    }
+
+    void SmoothShader::set_num_point_lights(int count)
+    {
+        num_point_lights.set(count);
+    }
+
+    void SmoothShader::set_use_spot_light(bool enabled)
+    {
+        use_spot_light.set(enabled ? 1 : 0);
     }
 
     void SmoothShader::set_model_view_matrix(const Xyz::Matrix4F& mv,
