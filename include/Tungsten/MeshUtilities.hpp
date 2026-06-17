@@ -100,7 +100,7 @@ namespace Tungsten
      * @param rect The rectangle to add.
      */
     template <typename... T>
-    void add_rect_pn(
+    void add_quad_pn(
         VertexArrayDataBuilder<std::tuple<Xyz::Vector3F, Xyz::Vector3F, T...>>& builder,
         const Xyz::OrientedRectangle3F& rect)
     {
@@ -135,12 +135,12 @@ namespace Tungsten
                 {2, 2}
             };
         };
-        add_rect_pn(builder, pn(-1, -1, 1, 0, 0));
-        add_rect_pn(builder, pn(-1, 1, -1, -PI / 2, PI / 2));
-        add_rect_pn(builder, pn(-1, -1, -1, 0, PI / 2));
-        add_rect_pn(builder, pn(1, -1, -1, PI / 2, PI / 2));
-        add_rect_pn(builder, pn(1, 1, -1, PI, PI / 2));
-        add_rect_pn(builder, pn(-1, 1, -1, 0, PI));
+        add_quad_pn(builder, pn(-1, -1, 1, 0, 0));
+        add_quad_pn(builder, pn(-1, 1, -1, -PI / 2, PI / 2));
+        add_quad_pn(builder, pn(-1, -1, -1, 0, PI / 2));
+        add_quad_pn(builder, pn(1, -1, -1, PI / 2, PI / 2));
+        add_quad_pn(builder, pn(1, 1, -1, PI, PI / 2));
+        add_quad_pn(builder, pn(-1, 1, -1, 0, PI));
     }
 
     /**
@@ -155,14 +155,14 @@ namespace Tungsten
      * @param uv_rect The texture coordinates for the rectangle.
      */
     template <typename... T>
-    void add_rect_pnt(
+    void add_quad_pnt(
         VertexArrayDataBuilder<std::tuple<Xyz::Vector3F, Xyz::Vector3F, Xyz::Vector2F, T...>>& builder,
         const Xyz::OrientedRectangle3F& rect,
         const Xyz::OrientedRectangle2F& uv_rect
     )
     {
         const auto base_index = builder.max_index();
-        add_rect_pn(builder, rect);
+        add_quad_pn(builder, rect);
         std::get<2>(builder.vertex(base_index + 0)) = uv_rect[0];
         std::get<2>(builder.vertex(base_index + 1)) = uv_rect[1];
         std::get<2>(builder.vertex(base_index + 2)) = uv_rect[2];
@@ -204,11 +204,11 @@ namespace Tungsten
         {
             return Xyz::OrientedRectangle2F{{{f / 6, 0.f}}, {1.f / 6, 1}};
         };
-        add_rect_pnt(builder, pn(-1, -1, 1, 0, 0), t(0));
-        add_rect_pnt(builder, pn(-1, 1, -1, -PI / 2, PI / 2), t(1));
-        add_rect_pnt(builder, pn(-1, -1, -1, 0, PI / 2), t(2));
-        add_rect_pnt(builder, pn(1, -1, -1, PI / 2, PI / 2), t(3));
-        add_rect_pnt(builder, pn(1, 1, -1, PI, PI / 2), t(4));
-        add_rect_pnt(builder, pn(-1, 1, -1, 0, PI), t(5));
+        add_quad_pnt(builder, pn(-1, -1, 1, 0, 0), t(0));
+        add_quad_pnt(builder, pn(-1, 1, -1, -PI / 2, PI / 2), t(1));
+        add_quad_pnt(builder, pn(-1, -1, -1, 0, PI / 2), t(2));
+        add_quad_pnt(builder, pn(1, -1, -1, PI / 2, PI / 2), t(3));
+        add_quad_pnt(builder, pn(1, 1, -1, PI, PI / 2), t(4));
+        add_quad_pnt(builder, pn(-1, 1, -1, 0, PI), t(5));
     }
 }
