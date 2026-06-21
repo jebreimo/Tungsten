@@ -2,6 +2,7 @@ classDiagram
     namespace SceneSide {
         class Scene {
             +vector~Node~ roots
+            +DoubleBuffer~RenderSnapshot~ snapshots
             +add(node: Node)
             +remove(node: Node)
             +update(dt: float)
@@ -10,12 +11,18 @@ classDiagram
         class Node {
             +Transform localTransform
             +vector~Node~ children
-            +weak_ptr~Node~ parent
+            +Node* parent
             +vector~Component~ components
-            -bool dirty
-            +addChild(node: Node)
-            +removeChild(node: Node)
-            +markDirty()
+            -mat4 worldMatrix
+            -uint64 worldVersion
+            -uint64 parentVersionSeen
+            -bool localDirty
+            +AABB worldBounds
+            +world_matrix() mat4
+            +add_child(node: Node)
+            +remove_child(node: Node)
+            +reparent(new_parent: Node)
+            +mark_local_dirty()
         }
 
         class Transform {
@@ -23,14 +30,14 @@ classDiagram
             +quat rotation
             +vec3 scale
             -mat4 localMatrix
-            -bool dirty
-            +getLocalMatrix() mat4
-            +markDirty()
+            -bool localDirty
+            +local_matrix() mat4
+            +mark_dirty()
         }
 
         class Component {
             <<abstract>>
-            +Node owner
+            +Node* owner
         }
 
         class RenderableComponent {
@@ -42,31 +49,53 @@ classDiagram
         }
 
         class CameraComponent {
+            +ProjectionMode mode
             +float fov
             +float near
             +float far
-            +getViewMatrix() mat4
-            +getProjectionMatrix() mat4
+            +float orthoSize
+            +get_view_matrix() mat4
+            +get_projection_matrix() mat4
+        }
+
+        class ProjectionMode {
+            <<enumeration>>
+            PERSPECTIVE
+            ORTHOGRAPHIC
         }
 
         class LightComponent {
             +LightType type
             +vec3 color
             +float intensity
+            +float range
         }
 
         class TransformUpdater {
-            +update(scene: Scene)
-            -propagate(node: Node, parentWorld: mat4)
+            +resolve(scene: Scene)
+            -resolve_node(node: Node)
+            -propagate_bounds(node: Node)
         }
     }
 
     namespace Bridge {
+        class Handle~T~ {
+            +uint32_t index
+            +uint32_t generation
+        }
+
         class SnapshotBuilder {
-            +build(scene: Scene, camera: CameraComponent) RenderSnapshot
-            -extractItem(node: Node, component: RenderableComponent) RenderItem
-            -computeSortKey(item: RenderItem) uint64
-            -computeNormalMatrix(world: mat4) mat3
+            +build(scene: Scene, camera: CameraComponent, out: RenderSnapshot)
+            -extract_item(node: Node, component: RenderableComponent) RenderItem
+            -cull(camera: CameraComponent, bounds: AABB) bool
+            -compute_sort_key(item: RenderItem) uint64
+            -compute_normal_matrix(world: mat4) mat3
+        }
+
+        class DoubleBuffer~T~ {
+            +back() T
+            +front() T
+            +swap()
         }
 
         class RenderSnapshot {
@@ -75,6 +104,7 @@ classDiagram
             +mat4 viewMatrix
             +mat4 projectionMatrix
             +vector~LightData~ lights
+            +float time
         }
 
         class RenderItem {
@@ -85,17 +115,27 @@ classDiagram
             +uint64_t sortKey
             +AABB worldBounds
         }
+
+        class LightData {
+            +LightType type
+            +vec3 position
+            +vec3 direction
+            +vec3 color
+            +float intensity
+            +float range
+        }
     }
 
     namespace ResourceSide {
         class ResourceManager {
-            +getMesh(handle: MeshHandle) Mesh
-            +getMaterial(handle: MaterialHandle) Material
-            +getShader(handle: ShaderProgramHandle) ShaderProgram
-            +getTexture(handle: TextureHandle) Texture
-            +registerShaderVariant(key: ShaderVariantKey) ShaderProgramHandle
+            +get_mesh(handle: MeshHandle) Mesh
+            +get_material(handle: MaterialHandle) Material
+            +get_shader(handle: ShaderProgramHandle) ShaderProgram
+            +get_texture(handle: TextureRef) Texture
+            +register_shader_variant(key: ShaderVariantKey) ShaderProgramHandle
+            +get_vao(buffers, layout: VertexLayout) VertexArrayHandle
             -deferredDeletionQueue
-            +processDeletions()
+            +process_deletions()
         }
 
         class AttributeSemantic {
@@ -120,6 +160,11 @@ classDiagram
             +uint16_t offsetInStream
         }
 
+        class VertexLayout {
+            +vector~VertexAttribute~ attributes
+            +uint16_t stride
+        }
+
         class VertexStream {
             +SharedBuffer vbo
             +uint32_t firstVertex
@@ -127,33 +172,53 @@ classDiagram
             +uint32_t vertexCount
         }
 
+        class IndexType {
+            <<enumeration>>
+            UNSIGNED_SHORT
+            UNSIGNED_INT
+        }
+
         class Mesh {
-            +GLuint vao
+            +VertexArrayHandle vao
             +vector~VertexStream~ streams
-            +vector~VertexAttribute~ attributes
+            +VertexLayout layout
             +SharedBuffer ebo
             +uint32_t firstIndex
             +uint32_t indexCount
+            +IndexType indexType
             +PrimitiveType primitive
-            +VertexLayout layout()
+        }
+
+        class SharedBuffer {
+            +BufferHandle buffer
+            +uint32_t offset
+            +uint32_t count
+        }
+
+        class BufferArena {
+            +BufferHandle buffer
+            +BufferUsage usage
+            +uint16_t alignment
+            +allocate(count: uint32, stride: uint16) SharedBuffer
+            +free(alloc: SharedBuffer)
         }
 
         class Material {
             +ShaderProgramHandle shader
             +vector~uint8_t~ parameterData
-            +vector~TextureHandle~ textures
+            +vector~TextureRef~ textures
             +uint32_t id
         }
 
         class ShaderProgram {
-            +GLuint glHandle
+            +ProgramHandle glHandle
             +uint32_t id
             +ShaderVariantKey variantKey
             +VertexLayout requiredLayout
         }
 
         class Texture {
-            +GLuint glHandle
+            +TextureHandle glHandle
             +uint32_t width
             +uint32_t height
             +TextureFormat format
@@ -162,39 +227,46 @@ classDiagram
 
     namespace RenderSide {
         class Renderer {
-            +submit(snapshot: RenderSnapshot)
-            -sortItems(items: RenderItem[])
-            -drawItem(item: RenderItem)
-            -bindMaterial(mat: Material)
+            +render(snapshot: RenderSnapshot)
+            -sort_items(items: RenderItem[])
+            -draw_item(item: RenderItem)
+            -bind_per_frame(snapshot: RenderSnapshot)
+            -bind_material(mat: Material)
             -glStateCache: GLStateCache
         }
 
         class GLStateCache {
-            -currentShader: GLuint
-            -currentVAO: GLuint
+            -currentShader: ProgramHandle
+            -currentVAO: VertexArrayHandle
+            -currentMaterialUbo: BufferHandle
             -boundTextures: map
-            +useProgram(id: GLuint)
-            +bindVAO(id: GLuint)
-            +bindTexture(slot: int, id: GLuint)
+            +use_program(p: ProgramHandle)
+            +bind_vao(v: VertexArrayHandle)
+            +bind_texture(slot: int, t: TextureHandle)
         }
     }
 
     Scene "1" *-- "1..*" Node
+    Scene "1" *-- "1" DoubleBuffer
     Node "1" *-- "1" Transform
     Node "1" *-- "0..*" Component
     Node "1" *-- "0..*" Node : children
+    Node "0..*" --> "1" Node : parent (raw)
     RenderableComponent --|> Component
     CameraComponent --|> Component
     LightComponent --|> Component
+    CameraComponent --> ProjectionMode : uses
 
-    TransformUpdater ..> Scene : reads
-    SnapshotBuilder ..> Scene : reads
+    TransformUpdater ..> Scene : resolves dirty subtrees
+    SnapshotBuilder ..> Scene : reads finalized world data
     SnapshotBuilder ..> ResourceManager : resolves handles
-    SnapshotBuilder ..> RenderSnapshot : produces
+    SnapshotBuilder ..> RenderSnapshot : writes back buffer
 
+    DoubleBuffer "1" *-- "2" RenderSnapshot
     RenderSnapshot "1" *-- "0..*" RenderItem
+    RenderSnapshot "1" *-- "0..*" LightData
 
-    Renderer ..> RenderSnapshot : consumes
+    Renderer ..> RenderSnapshot : consumes front buffer
     Renderer ..> ResourceManager : fetches GL objects
     Renderer "1" *-- "1" GLStateCache
 
@@ -202,12 +274,16 @@ classDiagram
     ResourceManager "1" *-- "0..*" Material
     ResourceManager "1" *-- "0..*" ShaderProgram
     ResourceManager "1" *-- "0..*" Texture
+    ResourceManager "1" *-- "1..*" BufferArena
 
+    BufferArena ..> SharedBuffer : sub-allocates
     Mesh "1" *-- "1..*" VertexStream
-    Mesh "1" *-- "1..*" VertexAttribute
-
+    Mesh --> VertexLayout : describes
+    Mesh --> IndexType : uses
+    VertexLayout "1" *-- "1..*" VertexAttribute
     VertexAttribute --> AttributeSemantic : defines
 
     Material --> ShaderProgram : references
+    ShaderProgram --> VertexLayout : requires
     RenderableComponent --> Mesh : handle
     RenderableComponent --> Material : handle
