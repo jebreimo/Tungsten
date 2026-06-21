@@ -7,10 +7,7 @@
 //****************************************************************************
 #include "Shape2D.hpp"
 
-#include "Tungsten/Gl/GlRendering.hpp"
-#include "Tungsten/ShaderProgramBuilder.hpp"
-#include "Tungsten/VertexArrayObjectBuilder.hpp"
-#include "Tungsten/ShaderPreprocessor.hpp"
+#include "Tungsten/Tungsten.hpp"
 #include "Resources.hpp"
 
 class Shape2DRenderer::Basic2DProgram

@@ -7,7 +7,7 @@
 //****************************************************************************
 #include <iostream>
 #include <thread>
-#include <Tungsten/TextRenderer.hpp>
+#include <Tungsten/Render/TextRenderer.hpp>
 #include <Tungsten/Tungsten.hpp>
 
 Xyz::Vector4F RED = {1.f, 0.f, 0.f, 1.f};

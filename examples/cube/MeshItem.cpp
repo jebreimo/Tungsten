@@ -7,7 +7,7 @@
 //****************************************************************************
 #include "MeshItem.hpp"
 
-#include "Tungsten/ShaderPrograms/SmoothShader.hpp"
+#include "Tungsten/Render/ShaderPrograms/SmoothShader.hpp"
 
 MeshItem::MeshItem(MeshBuffers buffers,
                    const Tungsten::ColorMaterial& material,

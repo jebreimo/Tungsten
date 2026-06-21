@@ -11,7 +11,7 @@
 
 #include "Tungsten/Gl/GlBuffer.hpp"
 #include "Tungsten/MeshDataBuilder.hpp"
-#include "Tungsten/VertexArrayObject.hpp"
+#include "Tungsten/Render/VertexArrayObject.hpp"
 
 class Shape2D
 {

@@ -9,7 +9,7 @@
 #include "GlTypes.hpp"
 #include <string>
 
-#include "Tungsten/Viewport.hpp"
+#include "../Viewport.hpp"
 
 namespace Tungsten
 {

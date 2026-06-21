@@ -7,15 +7,8 @@
 //****************************************************************************
 #include "SceneFader.hpp"
 
-#include "Tungsten/MeshDataBuilder.hpp"
-#include "Tungsten/Gl/GlFramebuffer.hpp"
-#include "Tungsten/Gl/GlRendering.hpp"
-#include "Tungsten/Gl/GlTexture.hpp"
-#include "Tungsten/ShaderProgramBuilder.hpp"
-#include "Tungsten/VertexArrayObjectBuilder.hpp"
-#include "Tungsten/ShaderPreprocessor.hpp"
+#include "Tungsten/Tungsten.hpp"
 #include "Resources.hpp"
-#include "Tungsten/Gl/GlBuffer.hpp"
 
 namespace
 {

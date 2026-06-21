@@ -72,9 +72,6 @@ add_library(Tungsten STATIC
     include/Tungsten/Detail/GenericBitmaskOperators.hpp
     include/Tungsten/DeviceInfo.hpp
     include/Tungsten/Environment.hpp
-    include/Tungsten/Font.hpp
-    include/Tungsten/FontManager.hpp
-    include/Tungsten/FontManager.hpp
     include/Tungsten/Gl/DummyOglWrapper.hpp
     include/Tungsten/Gl/GlBuffer.hpp
     include/Tungsten/Gl/GlFramebuffer.hpp
@@ -87,41 +84,42 @@ add_library(Tungsten STATIC
     include/Tungsten/Gl/GlUniform.hpp
     include/Tungsten/Gl/GlVertexArray.hpp
     include/Tungsten/Gl/IOglWrapper.hpp
-    include/Tungsten/Sdl/SdlGlContext.hpp
-    include/Tungsten/Sdl/SdlGlParameters.hpp
-    include/Tungsten/Lights.hpp
-    include/Tungsten/Materials.hpp
+    include/Tungsten/MeshDataBuilder.hpp
     include/Tungsten/MeshUtilities.hpp
-    include/Tungsten/Renderable.hpp
+    include/Tungsten/Render/Font.hpp
+    include/Tungsten/Render/FontManager.hpp
+    include/Tungsten/Render/FontManager.hpp
+    include/Tungsten/Render/Lights.hpp
+    include/Tungsten/Render/Materials.hpp
+    include/Tungsten/Render/Renderable.hpp
+    include/Tungsten/Render/ShaderManager.hpp
+    include/Tungsten/Render/ShaderPreprocessor.hpp
+    include/Tungsten/Render/ShaderProgramBuilder.hpp
+    include/Tungsten/Render/ShaderPrograms/LightUniforms.hpp
+    include/Tungsten/Render/ShaderPrograms/MaterialUniforms.hpp
+    include/Tungsten/Render/ShaderPrograms/ShaderProgram.hpp
+    include/Tungsten/Render/ShaderPrograms/SmoothShader.hpp
+    include/Tungsten/Render/ShaderTools.hpp
+    include/Tungsten/Render/TextItem.hpp
+    include/Tungsten/Render/TextRenderer.hpp
+    include/Tungsten/Render/VertexArrayObject.hpp
+    include/Tungsten/Render/VertexArrayObjectBuilder.hpp
+    include/Tungsten/Render/VertexAttributeDefinition.hpp
+    include/Tungsten/Render/VertexAttributeType.hpp
     include/Tungsten/Sdl/SdlApplication.hpp
     include/Tungsten/Sdl/SdlDisplay.hpp
+    include/Tungsten/Sdl/SdlGlContext.hpp
+    include/Tungsten/Sdl/SdlGlParameters.hpp
     include/Tungsten/Sdl/SdlSession.hpp
-    include/Tungsten/ShaderManager.hpp
-    include/Tungsten/ShaderPreprocessor.hpp
-    include/Tungsten/ShaderProgramBuilder.hpp
-    include/Tungsten/ShaderPrograms/LightUniforms.hpp
-    include/Tungsten/ShaderPrograms/MaterialUniforms.hpp
-    include/Tungsten/ShaderPrograms/ShaderProgram.hpp
-    include/Tungsten/ShaderPrograms/SmoothShader.hpp
-    include/Tungsten/ShaderTools.hpp
-    include/Tungsten/TextItem.hpp
-    include/Tungsten/TextRenderer.hpp
+    include/Tungsten/Sdl/WindowParameters.hpp
     include/Tungsten/Tungsten.hpp
     include/Tungsten/TungstenException.hpp
-    include/Tungsten/MeshDataBuilder.hpp
-    include/Tungsten/VertexArrayObject.hpp
-    include/Tungsten/VertexArrayObjectBuilder.hpp
-    include/Tungsten/VertexAttributeDefinition.hpp
-    include/Tungsten/VertexAttributeType.hpp
     include/Tungsten/Viewport.hpp
-    include/Tungsten/Sdl/WindowParameters.hpp
     include/Tungsten/YimageGl.hpp
     src/Tungsten/Camera.cpp
-    src/Tungsten/Sdl/CommandLine.cpp
-    src/Tungsten/Sdl/CommandLine.hpp
+    src/Tungsten/Detail/BuddyAllocator.cpp
+    src/Tungsten/Detail/BuddyAllocator.hpp
     src/Tungsten/DeviceInfo.cpp
-    src/Tungsten/Font.cpp
-    src/Tungsten/FontManager.cpp
     src/Tungsten/Gl/GlBuffer.cpp
     src/Tungsten/Gl/GlFramebuffer.cpp
     src/Tungsten/Gl/GlProgram.cpp
@@ -136,41 +134,43 @@ add_library(Tungsten STATIC
     src/Tungsten/Gl/IOglWrapper.cpp
     src/Tungsten/Gl/OglWrapper.hpp
     src/Tungsten/Gl/TracingOglWrapper.hpp
-    src/Tungsten/Sdl/SdlGlContext.cpp
-    src/Tungsten/Sdl/SdlGlParameters.cpp
-    src/Tungsten/Materials.cpp
     src/Tungsten/MeshUtilities.cpp
+    src/Tungsten/Render/Font.cpp
+    src/Tungsten/Render/FontManager.cpp
+    src/Tungsten/Render/FontUtilities.cpp
+    src/Tungsten/Render/FontUtilities.hpp
+    src/Tungsten/Render/Materials.cpp
+    src/Tungsten/Render/ShaderManager.cpp
+    src/Tungsten/Render/ShaderPreprocessor.cpp
+    src/Tungsten/Render/ShaderProgram.cpp
+    src/Tungsten/Render/ShaderProgramBuilder.cpp
+    src/Tungsten/Render/ShaderPrograms/LightUniforms.cpp
+    src/Tungsten/Render/ShaderPrograms/MaterialUniforms.cpp
+    src/Tungsten/Render/ShaderPrograms/SmoothShader.cpp
+    src/Tungsten/Render/ShaderSources.cpp.in
+    src/Tungsten/Render/ShaderSources.hpp
+    src/Tungsten/Render/ShaderTools.cpp
+    src/Tungsten/Render/TextItem.cpp
+    src/Tungsten/Render/TextRenderer.cpp
+    src/Tungsten/Render/TextRenderer/Monaco32.hpp
+    src/Tungsten/Render/TextRenderer/Monaco64.hpp
+    src/Tungsten/Render/TextRenderer/RenderTextShaderProgram.cpp
+    src/Tungsten/Render/TextRenderer/RenderTextShaderProgram.hpp
+    src/Tungsten/Render/TextUtilities.cpp
+    src/Tungsten/Render/TextUtilities.hpp
+    src/Tungsten/Render/VertexArrayObject.cpp
+    src/Tungsten/Render/VertexArrayObjectBuilder.cpp
+    src/Tungsten/Render/VertexAttributeType.cpp
+    src/Tungsten/Sdl/CommandLine.cpp
+    src/Tungsten/Sdl/CommandLine.hpp
     src/Tungsten/Sdl/SdlApplication.cpp
     src/Tungsten/Sdl/SdlDisplay.cpp
+    src/Tungsten/Sdl/SdlGlContext.cpp
+    src/Tungsten/Sdl/SdlGlParameters.cpp
     src/Tungsten/Sdl/SdlSession.cpp
-    src/Tungsten/ShaderManager.cpp
-    src/Tungsten/ShaderPreprocessor.cpp
-    src/Tungsten/ShaderProgram.cpp
-    src/Tungsten/ShaderProgramBuilder.cpp
-    src/Tungsten/ShaderPrograms/LightUniforms.cpp
-    src/Tungsten/ShaderPrograms/MaterialUniforms.cpp
-    src/Tungsten/ShaderPrograms/SmoothShader.cpp
-    src/Tungsten/ShaderSources.cpp.in
-    src/Tungsten/ShaderSources.hpp
-    src/Tungsten/ShaderTools.cpp
-    src/Tungsten/TextItem.cpp
-    src/Tungsten/TextRenderer/Monaco32.hpp
-    src/Tungsten/TextRenderer/Monaco64.hpp
-    src/Tungsten/TextRenderer/RenderTextShaderProgram.cpp
-    src/Tungsten/TextRenderer/RenderTextShaderProgram.hpp
-    src/Tungsten/TextRenderer.cpp
-    src/Tungsten/TextUtilities.cpp
-    src/Tungsten/TextUtilities.hpp
     src/Tungsten/TungstenException.cpp
-    src/Tungsten/VertexArrayObject.cpp
-    src/Tungsten/VertexArrayObjectBuilder.cpp
-    src/Tungsten/VertexAttributeType.cpp
     src/Tungsten/Viewport.cpp
     src/Tungsten/YimageGl.cpp
-    src/Tungsten/FontUtilities.hpp
-    src/Tungsten/FontUtilities.cpp
-    src/Tungsten/BuddyAllocator.hpp
-    src/Tungsten/BuddyAllocator.cpp
 )
 
 target_link_libraries(Tungsten
@@ -206,7 +206,7 @@ list(APPEND CMAKE_MODULE_PATH ${cppembed_SOURCE_DIR}/cmake)
 include(TargetEmbedCppData)
 target_embed_cpp_data(Tungsten
     FILES
-        src/Tungsten/ShaderSources.cpp.in
+    src/Tungsten/Render/ShaderSources.cpp.in
 )
 
 ##

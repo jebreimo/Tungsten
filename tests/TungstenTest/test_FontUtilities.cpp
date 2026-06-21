@@ -5,8 +5,8 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "../../src/Tungsten/FontUtilities.hpp"
-#include "Tungsten/FontManager.hpp"
+#include "../../src/Tungsten/Render/FontUtilities.hpp"
+#include "Tungsten/Render/FontManager.hpp"
 #include <catch2/catch_test_macros.hpp>
 
 TEST_CASE("FontUtilities: add_vertexes with left anchor")
