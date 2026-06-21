@@ -69,12 +69,6 @@ find_package(SDL3 REQUIRED)
 
 add_library(Tungsten STATIC
     include/Tungsten/Camera.hpp
-    include/Tungsten/Commands/Command.cpp
-    include/Tungsten/Commands/Command.hpp
-    include/Tungsten/Commands/CompositeCommand.cpp
-    include/Tungsten/Commands/CompositeCommand.hpp
-    include/Tungsten/Commands/DrawElementsCommand.cpp
-    include/Tungsten/Commands/DrawElementsCommand.hpp
     include/Tungsten/Detail/GenericBitmaskOperators.hpp
     include/Tungsten/DeviceInfo.hpp
     include/Tungsten/Environment.hpp
