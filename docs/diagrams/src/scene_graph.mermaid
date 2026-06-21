@@ -1,0 +1,213 @@
+classDiagram
+    namespace SceneSide {
+        class Scene {
+            +vector~Node~ roots
+            +add(node: Node)
+            +remove(node: Node)
+            +update(dt: float)
+        }
+
+        class Node {
+            +Transform localTransform
+            +vector~Node~ children
+            +weak_ptr~Node~ parent
+            +vector~Component~ components
+            -bool dirty
+            +addChild(node: Node)
+            +removeChild(node: Node)
+            +markDirty()
+        }
+
+        class Transform {
+            +vec3 translation
+            +quat rotation
+            +vec3 scale
+            -mat4 localMatrix
+            -bool dirty
+            +getLocalMatrix() mat4
+            +markDirty()
+        }
+
+        class Component {
+            <<abstract>>
+            +Node owner
+        }
+
+        class RenderableComponent {
+            +MeshHandle mesh
+            +MaterialHandle material
+            +AABB localBounds
+            +bool visible
+            +uint32_t renderLayer
+        }
+
+        class CameraComponent {
+            +float fov
+            +float near
+            +float far
+            +getViewMatrix() mat4
+            +getProjectionMatrix() mat4
+        }
+
+        class LightComponent {
+            +LightType type
+            +vec3 color
+            +float intensity
+        }
+
+        class TransformUpdater {
+            +update(scene: Scene)
+            -propagate(node: Node, parentWorld: mat4)
+        }
+    }
+
+    namespace Bridge {
+        class SnapshotBuilder {
+            +build(scene: Scene, camera: CameraComponent) RenderSnapshot
+            -extractItem(node: Node, component: RenderableComponent) RenderItem
+            -computeSortKey(item: RenderItem) uint64
+            -computeNormalMatrix(world: mat4) mat3
+        }
+
+        class RenderSnapshot {
+            +vector~RenderItem~ opaqueItems
+            +vector~RenderItem~ transparentItems
+            +mat4 viewMatrix
+            +mat4 projectionMatrix
+            +vector~LightData~ lights
+        }
+
+        class RenderItem {
+            +mat4 worldTransform
+            +mat3 normalMatrix
+            +MeshHandle mesh
+            +MaterialHandle material
+            +uint64_t sortKey
+            +AABB worldBounds
+        }
+    }
+
+    namespace ResourceSide {
+        class ResourceManager {
+            +getMesh(handle: MeshHandle) Mesh
+            +getMaterial(handle: MaterialHandle) Material
+            +getShader(handle: ShaderProgramHandle) ShaderProgram
+            +getTexture(handle: TextureHandle) Texture
+            +registerShaderVariant(key: ShaderVariantKey) ShaderProgramHandle
+            -deferredDeletionQueue
+            +processDeletions()
+        }
+
+        class AttributeSemantic {
+            <<enumeration>>
+            Position
+            Normal
+            Tangent
+            Bitangent
+            TexCoord0
+            TexCoord1
+            Color0
+            BoneIndices
+            BoneWeights
+        }
+
+        class VertexAttribute {
+            +AttributeSemantic semantic
+            +uint8_t streamIndex
+            +GLenum type
+            +uint8_t componentCount
+            +bool normalized
+            +uint16_t offsetInStream
+        }
+
+        class VertexStream {
+            +SharedBuffer vbo
+            +uint32_t firstVertex
+            +uint16_t stride
+            +uint32_t vertexCount
+        }
+
+        class Mesh {
+            +GLuint vao
+            +vector~VertexStream~ streams
+            +vector~VertexAttribute~ attributes
+            +SharedBuffer ebo
+            +uint32_t firstIndex
+            +uint32_t indexCount
+            +PrimitiveType primitive
+            +VertexLayout layout()
+        }
+
+        class Material {
+            +ShaderProgramHandle shader
+            +vector~uint8_t~ parameterData
+            +vector~TextureHandle~ textures
+            +uint32_t id
+        }
+
+        class ShaderProgram {
+            +GLuint glHandle
+            +uint32_t id
+            +ShaderVariantKey variantKey
+            +VertexLayout requiredLayout
+        }
+
+        class Texture {
+            +GLuint glHandle
+            +uint32_t width
+            +uint32_t height
+            +TextureFormat format
+        }
+    }
+
+    namespace RenderSide {
+        class Renderer {
+            +submit(snapshot: RenderSnapshot)
+            -sortItems(items: RenderItem[])
+            -drawItem(item: RenderItem)
+            -bindMaterial(mat: Material)
+            -glStateCache: GLStateCache
+        }
+
+        class GLStateCache {
+            -currentShader: GLuint
+            -currentVAO: GLuint
+            -boundTextures: map
+            +useProgram(id: GLuint)
+            +bindVAO(id: GLuint)
+            +bindTexture(slot: int, id: GLuint)
+        }
+    }
+
+    Scene "1" *-- "1..*" Node
+    Node "1" *-- "1" Transform
+    Node "1" *-- "0..*" Component
+    Node "1" *-- "0..*" Node : children
+    RenderableComponent --|> Component
+    CameraComponent --|> Component
+    LightComponent --|> Component
+
+    TransformUpdater ..> Scene : reads
+    SnapshotBuilder ..> Scene : reads
+    SnapshotBuilder ..> ResourceManager : resolves handles
+    SnapshotBuilder ..> RenderSnapshot : produces
+
+    RenderSnapshot "1" *-- "0..*" RenderItem
+
+    Renderer ..> RenderSnapshot : consumes
+    Renderer ..> ResourceManager : fetches GL objects
+    Renderer "1" *-- "1" GLStateCache
+
+    ResourceManager "1" *-- "0..*" Mesh
+    ResourceManager "1" *-- "0..*" Material
+    ResourceManager "1" *-- "0..*" ShaderProgram
+    ResourceManager "1" *-- "0..*" Texture
+
+    Mesh "1" *-- "1..*" VertexStream
+    Mesh "1" *-- "1..*" VertexAttribute
+
+    VertexAttribute --> AttributeSemantic : defines
+
+    Material --> ShaderProgram : references
+    RenderableComponent --> Mesh : handle
+    RenderableComponent --> Material : handle
