@@ -5,57 +5,57 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/GlParameters.hpp"
+#include "Tungsten/Sdl/SdlGlParameters.hpp"
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
 {
-    bool GlVersion::is_es() const
+    bool SdlGlVersion::is_es() const
     {
         return profile == SDL_GL_CONTEXT_PROFILE_ES;
     }
 
-    bool GlVersion::is_core() const
+    bool SdlGlVersion::is_core() const
     {
         return profile == SDL_GL_CONTEXT_PROFILE_CORE;
     }
 
-    GlVersionCode get_sdl_gl_version_code()
+    SdlGlVersionCode get_sdl_gl_version_code()
     {
         auto [profile, maj, min] = get_sdl_gl_version();
         if (profile == SDL_GL_CONTEXT_PROFILE_ES)
         {
             if (maj == 2)
-                return GlVersionCode::ES_2;
+                return SdlGlVersionCode::ES_2;
             if (maj == 3)
-                return GlVersionCode::ES_3;
+                return SdlGlVersionCode::ES_3;
         }
         else if (profile == SDL_GL_CONTEXT_PROFILE_CORE)
         {
             if (maj == 3 && min >= 1)
-                return GlVersionCode::CORE_3_1;
+                return SdlGlVersionCode::CORE_3_1;
             if (maj == 4 && min >= 1)
-                return GlVersionCode::CORE_4_1;
+                return SdlGlVersionCode::CORE_4_1;
         }
         TUNGSTEN_THROW("Unsupported OpenGL version.");
     }
 
-    GlVersion make_gl_version(GlVersionCode version_code)
+    SdlGlVersion make_gl_version(SdlGlVersionCode version_code)
     {
         switch (version_code)
         {
 #if defined(__EMSCRIPTEN__) || defined(__arm__)
-        case GlVersionCode::ES_2:
-        case GlVersionCode::CORE_3_1:
+        case SdlGlVersionCode::ES_2:
+        case SdlGlVersionCode::CORE_3_1:
             return {SDL_GL_CONTEXT_PROFILE_ES, 2, 0};
-        case GlVersionCode::ES_3:
+        case SdlGlVersionCode::ES_3:
             return {SDL_GL_CONTEXT_PROFILE_ES, 3, 0};
 #else
-        case GlVersionCode::ES_2:
-        case GlVersionCode::ES_3:
-        case GlVersionCode::CORE_3_1:
+        case SdlGlVersionCode::ES_2:
+        case SdlGlVersionCode::ES_3:
+        case SdlGlVersionCode::CORE_3_1:
             return {SDL_GL_CONTEXT_PROFILE_CORE, 3, 3};
-        case GlVersionCode::CORE_4_1:
+        case SdlGlVersionCode::CORE_4_1:
             return {SDL_GL_CONTEXT_PROFILE_CORE, 4, 1};
 #endif
         default:
@@ -63,7 +63,7 @@ namespace Tungsten
         }
     }
 
-    GlVersion get_sdl_gl_version()
+    SdlGlVersion get_sdl_gl_version()
     {
         int p, ma, mi;
         if (!SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &p)
@@ -76,7 +76,7 @@ namespace Tungsten
         return {SDL_GLProfile(p), ma, mi};
     }
 
-    void set_sdl_gl_version(const GlVersion& version)
+    void set_sdl_gl_version(const SdlGlVersion& version)
     {
         if (!SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
                                  int(version.profile))
@@ -89,7 +89,7 @@ namespace Tungsten
         }
     }
 
-    GlMultiSampling get_sdl_gl_multi_sampling()
+    SdlGlMultiSampling get_sdl_gl_multi_sampling()
     {
         int buffers, samples;
         if (!SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &buffers)
@@ -100,7 +100,7 @@ namespace Tungsten
         return {buffers, samples};
     }
 
-    void set_sdl_gl_multi_sampling(const GlMultiSampling& multi_sampling)
+    void set_sdl_gl_multi_sampling(const SdlGlMultiSampling& multi_sampling)
     {
         if (!SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS,
                                 multi_sampling.buffers)
@@ -111,12 +111,12 @@ namespace Tungsten
         }
     }
 
-    void set_sdl_gl_parameters(const GlParamaters& params)
+    void set_sdl_gl_parameters(const GlParameters& params)
     {
         if (params.version)
             set_sdl_gl_version(params.version);
         else
-            set_sdl_gl_version(make_gl_version(GlVersionCode::ES_3));
+            set_sdl_gl_version(make_gl_version(SdlGlVersionCode::ES_3));
 
         if (params.multi_sampling)
             set_sdl_gl_multi_sampling(params.multi_sampling);

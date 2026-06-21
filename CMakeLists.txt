@@ -87,15 +87,15 @@ add_library(Tungsten STATIC
     include/Tungsten/Gl/GlUniform.hpp
     include/Tungsten/Gl/GlVertexArray.hpp
     include/Tungsten/Gl/IOglWrapper.hpp
-    include/Tungsten/GlContext.hpp
-    include/Tungsten/GlParameters.hpp
+    include/Tungsten/Sdl/SdlGlContext.hpp
+    include/Tungsten/Sdl/SdlGlParameters.hpp
     include/Tungsten/Lights.hpp
     include/Tungsten/Materials.hpp
     include/Tungsten/MeshUtilities.hpp
     include/Tungsten/Renderable.hpp
-    include/Tungsten/SdlApplication.hpp
-    include/Tungsten/SdlDisplay.hpp
-    include/Tungsten/SdlSession.hpp
+    include/Tungsten/Sdl/SdlApplication.hpp
+    include/Tungsten/Sdl/SdlDisplay.hpp
+    include/Tungsten/Sdl/SdlSession.hpp
     include/Tungsten/ShaderManager.hpp
     include/Tungsten/ShaderPreprocessor.hpp
     include/Tungsten/ShaderProgramBuilder.hpp
@@ -114,11 +114,11 @@ add_library(Tungsten STATIC
     include/Tungsten/VertexAttributeDefinition.hpp
     include/Tungsten/VertexAttributeType.hpp
     include/Tungsten/Viewport.hpp
-    include/Tungsten/WindowParameters.hpp
+    include/Tungsten/Sdl/WindowParameters.hpp
     include/Tungsten/YimageGl.hpp
     src/Tungsten/Camera.cpp
-    src/Tungsten/CommandLine.cpp
-    src/Tungsten/CommandLine.hpp
+    src/Tungsten/Sdl/CommandLine.cpp
+    src/Tungsten/Sdl/CommandLine.hpp
     src/Tungsten/DeviceInfo.cpp
     src/Tungsten/Font.cpp
     src/Tungsten/FontManager.cpp
@@ -136,13 +136,13 @@ add_library(Tungsten STATIC
     src/Tungsten/Gl/IOglWrapper.cpp
     src/Tungsten/Gl/OglWrapper.hpp
     src/Tungsten/Gl/TracingOglWrapper.hpp
-    src/Tungsten/GlContext.cpp
-    src/Tungsten/GlParameters.cpp
+    src/Tungsten/Sdl/SdlGlContext.cpp
+    src/Tungsten/Sdl/SdlGlParameters.cpp
     src/Tungsten/Materials.cpp
     src/Tungsten/MeshUtilities.cpp
-    src/Tungsten/SdlApplication.cpp
-    src/Tungsten/SdlDisplay.cpp
-    src/Tungsten/SdlSession.cpp
+    src/Tungsten/Sdl/SdlApplication.cpp
+    src/Tungsten/Sdl/SdlDisplay.cpp
+    src/Tungsten/Sdl/SdlSession.cpp
     src/Tungsten/ShaderManager.cpp
     src/Tungsten/ShaderPreprocessor.cpp
     src/Tungsten/ShaderProgram.cpp

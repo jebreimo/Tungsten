@@ -9,7 +9,7 @@
 
 #include "OglWrapper.hpp"
 #include "TracingOglWrapper.hpp"
-#include "../../../include/Tungsten/Gl/DummyOglWrapper.hpp"
+#include "Tungsten/Gl/DummyOglWrapper.hpp"
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten

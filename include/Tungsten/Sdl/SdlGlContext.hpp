@@ -10,27 +10,27 @@
 
 namespace Tungsten
 {
-    class GlContext
+    class SdlGlContext
     {
     public:
-        static GlContext create(SDL_Window* window);
+        static SdlGlContext create(SDL_Window* window);
 
-        GlContext();
+        SdlGlContext();
 
-        GlContext(GlContext& other) = delete;
+        SdlGlContext(SdlGlContext& other) = delete;
 
-        GlContext(GlContext&& other) noexcept;
+        SdlGlContext(SdlGlContext&& other) noexcept;
 
-        ~GlContext();
+        ~SdlGlContext();
 
-        GlContext& operator=(GlContext& other) = delete;
+        SdlGlContext& operator=(SdlGlContext& other) = delete;
 
-        GlContext& operator=(GlContext&& other) noexcept;
+        SdlGlContext& operator=(SdlGlContext&& other) noexcept;
 
         operator SDL_GLContext() const;
 
     private:
-        GlContext(SDL_Window* window);
+        SdlGlContext(SDL_Window* window);
 
         SDL_GLContext context_;
     };

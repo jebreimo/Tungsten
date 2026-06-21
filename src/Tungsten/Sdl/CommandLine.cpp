@@ -5,15 +5,15 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "CommandLine.hpp"
+#include "../CommandLine.hpp"
 
 #include <iostream>
 #include <SDL3/SDL.h>
 #include <Argos/ArgumentParser.hpp>
-#include <Tungsten/SdlSession.hpp>
-#include <Tungsten/SdlApplication.hpp>
+#include <Tungsten/Sdl/SdlSession.hpp>
+#include <Tungsten/Sdl/SdlApplication.hpp>
 
-#include "Tungsten/SdlDisplay.hpp"
+#include "Tungsten/Sdl/SdlDisplay.hpp"
 
 namespace Tungsten
 {

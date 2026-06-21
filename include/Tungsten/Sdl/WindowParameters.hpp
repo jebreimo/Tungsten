@@ -6,7 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include "GlParameters.hpp"
+#include "SdlGlParameters.hpp"
 
 namespace Tungsten
 {
@@ -57,7 +57,7 @@ namespace Tungsten
     {
         WindowSize window_size;
         FullScreenMode full_screen_mode;
-        GlParamaters gl_parameters;
+        GlParameters gl_parameters;
         uint32_t sdl_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
     };
 }

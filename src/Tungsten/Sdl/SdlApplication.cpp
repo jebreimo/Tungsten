@@ -5,18 +5,18 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/SdlApplication.hpp"
+#include "Tungsten/Sdl/SdlApplication.hpp"
 
 #include <iostream>
 #include <memory>
 #include <GL/glew.h>
 #include <Argos/ArgumentParser.hpp>
-#include "Tungsten/EventLoop.hpp"
-#include "Tungsten/GlContext.hpp"
-#include "Tungsten/GlParameters.hpp"
+#include "Tungsten/Sdl/EventLoop.hpp"
+#include "Tungsten/Sdl/SdlDisplay.hpp"
+#include "Tungsten/Sdl/SdlGlContext.hpp"
+#include "Tungsten/Sdl/SdlGlParameters.hpp"
 #include "Tungsten/TungstenException.hpp"
 #include "CommandLine.hpp"
-#include "Tungsten/SdlDisplay.hpp"
 
 #ifdef __EMSCRIPTEN__
     #include <emscripten.h>
@@ -74,7 +74,7 @@ namespace Tungsten
         EventLoopMode event_loop_mode = EventLoopMode::UPDATE_CONTINUOUSLY;
         int status = 0;
         SDL_Window* window = nullptr;
-        GlContext gl_context;
+        SdlGlContext gl_context;
         bool enable_touch_events = false;
         double seconds_per_frame = 0;
     };
@@ -198,7 +198,7 @@ namespace Tungsten
 
         set_window(create_window(tmpWindowParams));
 
-        data_->gl_context = GlContext::create(window());
+        data_->gl_context = SdlGlContext::create(window());
 
         glewExperimental = GL_TRUE;
         glewInit();

@@ -5,18 +5,18 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/GlContext.hpp"
+#include "Tungsten/Sdl/SdlGlContext.hpp"
 
 #include <stdexcept>
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
 {
-    GlContext GlContext::create(SDL_Window* window)
+    SdlGlContext SdlGlContext::create(SDL_Window* window)
     {
         try
         {
-            return GlContext{window};
+            return SdlGlContext{window};
         }
         catch (...)
         {
@@ -24,31 +24,31 @@ namespace Tungsten
         }
     }
 
-    GlContext::GlContext()
+    SdlGlContext::SdlGlContext()
             : context_(nullptr)
     {
     }
 
-    GlContext::GlContext(SDL_Window* window)
+    SdlGlContext::SdlGlContext(SDL_Window* window)
             : context_(SDL_GL_CreateContext(window))
     {
         if (!context_)
             THROW_SDL_ERROR();
     }
 
-    GlContext::GlContext(GlContext&& other) noexcept
+    SdlGlContext::SdlGlContext(SdlGlContext&& other) noexcept
         : context_(other.context_)
     {
         other.context_ = nullptr;
     }
 
-    GlContext::~GlContext()
+    SdlGlContext::~SdlGlContext()
     {
         if (context_)
             SDL_GL_DestroyContext(context_);
     }
 
-    GlContext& GlContext::operator=(GlContext&& other) noexcept
+    SdlGlContext& SdlGlContext::operator=(SdlGlContext&& other) noexcept
     {
         if (context_)
             SDL_GL_DestroyContext(context_);
@@ -57,7 +57,7 @@ namespace Tungsten
         return *this;
     }
 
-    GlContext::operator SDL_GLContext() const
+    SdlGlContext::operator SDL_GLContext() const
     {
         return context_;
     }

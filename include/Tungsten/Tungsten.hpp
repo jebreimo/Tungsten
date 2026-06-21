@@ -19,7 +19,7 @@
 #include "Gl/GlTypes.hpp"
 #include "Gl/GlUniform.hpp"
 #include "MeshUtilities.hpp"
-#include "SdlApplication.hpp"
+#include "Sdl/SdlApplication.hpp"
 #include "ShaderManager.hpp"
 #include "ShaderPrograms/SmoothShader.hpp"
 #include "ShaderTools.hpp"

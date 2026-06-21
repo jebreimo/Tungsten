@@ -11,7 +11,7 @@
 
 namespace Tungsten
 {
-    struct GlVersion
+    struct SdlGlVersion
     {
         explicit constexpr operator bool() const
         {
@@ -25,11 +25,11 @@ namespace Tungsten
         [[nodiscard]] bool is_core() const;
     };
 
-    GlVersion get_sdl_gl_version();
+    SdlGlVersion get_sdl_gl_version();
 
-    void set_sdl_gl_version(const GlVersion& version);
+    void set_sdl_gl_version(const SdlGlVersion& version);
 
-    enum class GlVersionCode
+    enum class SdlGlVersionCode
     {
         ES_2,
         ES_3,
@@ -39,11 +39,11 @@ namespace Tungsten
         WEBGL_2 = ES_3
     };
 
-    GlVersionCode get_sdl_gl_version_code();
+    SdlGlVersionCode get_sdl_gl_version_code();
 
-    GlVersion make_gl_version(GlVersionCode version_code);
+    SdlGlVersion make_gl_version(SdlGlVersionCode version_code);
 
-    struct GlMultiSampling
+    struct SdlGlMultiSampling
     {
         explicit constexpr operator bool() const
         {
@@ -54,15 +54,15 @@ namespace Tungsten
         int samples = 0;
     };
 
-    GlMultiSampling get_sdl_gl_multi_sampling();
+    SdlGlMultiSampling get_sdl_gl_multi_sampling();
 
-    void set_sdl_gl_multi_sampling(const GlMultiSampling& multi_sampling);
+    void set_sdl_gl_multi_sampling(const SdlGlMultiSampling& multi_sampling);
 
-    struct GlParamaters
+    struct GlParameters
     {
-        GlVersion version;
-        GlMultiSampling multi_sampling;
+        SdlGlVersion version;
+        SdlGlMultiSampling multi_sampling;
     };
 
-    void set_sdl_gl_parameters(const GlParamaters& params);
+    void set_sdl_gl_parameters(const GlParameters& params);
 }
