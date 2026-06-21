@@ -108,7 +108,7 @@ add_library(Tungsten STATIC
     include/Tungsten/TextRenderer.hpp
     include/Tungsten/Tungsten.hpp
     include/Tungsten/TungstenException.hpp
-    include/Tungsten/VertexArrayDataBuilder.hpp
+    include/Tungsten/MeshDataBuilder.hpp
     include/Tungsten/VertexArrayObject.hpp
     include/Tungsten/VertexArrayObjectBuilder.hpp
     include/Tungsten/VertexAttributeDefinition.hpp

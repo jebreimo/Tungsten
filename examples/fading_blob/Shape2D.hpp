@@ -10,7 +10,7 @@
 #include <Xyz/Matrix.hpp>
 
 #include "Tungsten/Gl/GlBuffer.hpp"
-#include "Tungsten/VertexArrayDataBuilder.hpp"
+#include "Tungsten/MeshDataBuilder.hpp"
 #include "Tungsten/VertexArrayObject.hpp"
 
 class Shape2D
@@ -42,7 +42,7 @@ private:
 class Shape2DRenderer
 {
 public:
-    using Buffer = Tungsten::VertexArrayData<Xyz::Vector2F>;
+    using Buffer = Tungsten::MeshData<Xyz::Vector2F>;
 
     Shape2DRenderer();
 

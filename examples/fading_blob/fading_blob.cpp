@@ -18,7 +18,7 @@ public:
           fader_(app.window_size())
     {
         Shape2DRenderer::Buffer buffer;
-        Tungsten::VertexArrayDataBuilder builder(buffer);
+        Tungsten::MeshDataBuilder builder(buffer);
         builder.add_vertex({-1, -1})
             .add_vertex({1, -1})
             .add_vertex({1, 1})

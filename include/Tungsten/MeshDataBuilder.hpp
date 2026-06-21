@@ -11,7 +11,7 @@
 namespace Tungsten
 {
     template <typename Item>
-    struct VertexArrayData
+    struct MeshData
     {
         using ItemType = Item;
         std::vector<Item> vertices;
@@ -19,28 +19,28 @@ namespace Tungsten
     };
 
     template <typename Item, typename Index = uint16_t>
-    class VertexArrayDataBuilder
+    class MeshDataBuilder
     {
     public:
-        explicit VertexArrayDataBuilder(VertexArrayData<Item>& array)
-            : VertexArrayDataBuilder(array, array.vertices.size())
+        explicit MeshDataBuilder(MeshData<Item>& array)
+            : MeshDataBuilder(array, array.vertices.size())
         {
         }
 
-        explicit VertexArrayDataBuilder(VertexArrayData<Item>& array,
+        explicit MeshDataBuilder(MeshData<Item>& array,
                                        Index base_index)
             : array_(array),
               base_index_(base_index)
         {
         }
 
-        VertexArrayDataBuilder& reserve_vertexes(Index count)
+        MeshDataBuilder& reserve_vertexes(Index count)
         {
             array_.vertices.reserve(base_index_ + count);
             return *this;
         }
 
-        VertexArrayDataBuilder& add_vertex(const Item& vertex)
+        MeshDataBuilder& add_vertex(const Item& vertex)
         {
             array_.vertices.push_back(vertex);
             return *this;
@@ -52,19 +52,19 @@ namespace Tungsten
             return array_.vertices[index];
         }
 
-        VertexArrayDataBuilder& reserve_indexes(size_t count)
+        MeshDataBuilder& reserve_indexes(size_t count)
         {
             array_.indices.reserve(array_.indices.size() + count);
             return *this;
         }
 
-        VertexArrayDataBuilder& add_index(Index a)
+        MeshDataBuilder& add_index(Index a)
         {
             array_.indices.push_back(a + base_index_);
             return *this;
         }
 
-        VertexArrayDataBuilder& add_indexes(Index a, Index b, Index c)
+        MeshDataBuilder& add_indexes(Index a, Index b, Index c)
         {
             array_.indices.push_back(a + base_index_);
             array_.indices.push_back(b + base_index_);
@@ -77,12 +77,12 @@ namespace Tungsten
             return Index(array_.vertices.size()) - base_index_;
         }
 
-        [[nodiscard]] VertexArrayData<Item>& vertex_array()
+        [[nodiscard]] MeshData<Item>& vertex_array()
         {
             return array_;
         }
     private:
-        VertexArrayData<Item>& array_;
+        MeshData<Item>& array_;
         Index base_index_ = 0;
     };
 }

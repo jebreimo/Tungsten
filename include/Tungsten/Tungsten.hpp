@@ -25,6 +25,5 @@
 #include "ShaderTools.hpp"
 #include "TextRenderer.hpp"
 #include "TungstenException.hpp"
-#include "VertexArrayDataBuilder.hpp"
 #include "VertexArrayObjectBuilder.hpp"
 #include "YimageGl.hpp"

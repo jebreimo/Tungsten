@@ -7,7 +7,7 @@
 //****************************************************************************
 #include "SceneFader.hpp"
 
-#include "Tungsten/VertexArrayDataBuilder.hpp"
+#include "Tungsten/MeshDataBuilder.hpp"
 #include "Tungsten/Gl/GlFramebuffer.hpp"
 #include "Tungsten/Gl/GlRendering.hpp"
 #include "Tungsten/Gl/GlTexture.hpp"
@@ -72,8 +72,8 @@ public:
             .add_float(program_.tex_position_attr, 2)
             .build();
 
-        Tungsten::VertexArrayData<TextureFaderVertex> buffer;
-        Tungsten::VertexArrayDataBuilder builder(buffer);
+        Tungsten::MeshData<TextureFaderVertex> buffer;
+        Tungsten::MeshDataBuilder builder(buffer);
         builder.add_vertex({{-1, -1}, {0, 0}})
             .add_vertex({{1, -1}, {1, 0}})
             .add_vertex({{1, 1}, {1, 1}})

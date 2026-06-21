@@ -18,8 +18,8 @@ std::tuple<Tungsten::VertexArrayObject, Tungsten::BufferHandle, Tungsten::Buffer
 make_cube_vao(const Tungsten::SmoothShader& program,
               bool wireframe)
 {
-    Tungsten::VertexArrayData<Tungsten::PositionNormalTexture> cube;
-    Tungsten::VertexArrayDataBuilder builder(cube);
+    Tungsten::MeshData<Tungsten::PositionNormalTexture> cube;
+    Tungsten::MeshDataBuilder builder(cube);
     Tungsten::add_cube_pnt(builder);
     if (!wireframe)
     {

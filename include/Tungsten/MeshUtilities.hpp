@@ -10,7 +10,7 @@
 #include <span>
 #include <Xyz/Xyz.hpp>
 
-#include "VertexArrayDataBuilder.hpp"
+#include "MeshDataBuilder.hpp"
 
 namespace Tungsten
 {
@@ -50,7 +50,7 @@ namespace Tungsten
 
     template <typename... T>
     void write_pn(std::ostream& os,
-                  const VertexArrayData<std::tuple<Xyz::Vector3F, Xyz::Vector3F, T...>>& data)
+                  const MeshData<std::tuple<Xyz::Vector3F, Xyz::Vector3F, T...>>& data)
     {
         os << "Vertices:\n";
         write_pn(os, std::span(data.vertices), true);
@@ -81,7 +81,7 @@ namespace Tungsten
     template <typename... T>
     void write_pnt(
         std::ostream& os,
-        const VertexArrayData<std::tuple<Xyz::Vector3F, Xyz::Vector3F, Xyz::Vector2F, T...>>& data)
+        const MeshData<std::tuple<Xyz::Vector3F, Xyz::Vector3F, Xyz::Vector2F, T...>>& data)
     {
         os << "Vertices:\n";
         write_pnt<T...>(os, std::span(data.vertices), true);
@@ -101,7 +101,7 @@ namespace Tungsten
      */
     template <typename... T>
     void add_quad_pn(
-        VertexArrayDataBuilder<std::tuple<Xyz::Vector3F, Xyz::Vector3F, T...>>& builder,
+        MeshDataBuilder<std::tuple<Xyz::Vector3F, Xyz::Vector3F, T...>>& builder,
         const Xyz::OrientedRectangle3F& rect)
     {
         const auto base_index = builder.max_index();
@@ -124,7 +124,7 @@ namespace Tungsten
      */
     template <typename... T>
     void add_cube_pn(
-        VertexArrayDataBuilder<std::tuple<Xyz::Vector3F, Xyz::Vector3F, T...>>& builder)
+        MeshDataBuilder<std::tuple<Xyz::Vector3F, Xyz::Vector3F, T...>>& builder)
     {
         constexpr auto PI = Xyz::Constants<float>::PI;
         using O3F = Xyz::Orientation3F;
@@ -156,7 +156,7 @@ namespace Tungsten
      */
     template <typename... T>
     void add_quad_pnt(
-        VertexArrayDataBuilder<std::tuple<Xyz::Vector3F, Xyz::Vector3F, Xyz::Vector2F, T...>>& builder,
+        MeshDataBuilder<std::tuple<Xyz::Vector3F, Xyz::Vector3F, Xyz::Vector2F, T...>>& builder,
         const Xyz::OrientedRectangle3F& rect,
         const Xyz::OrientedRectangle2F& uv_rect
     )
@@ -187,7 +187,7 @@ namespace Tungsten
      */
     template <typename... T>
     void add_cube_pnt(
-        VertexArrayDataBuilder<std::tuple<Xyz::Vector3F, Xyz::Vector3F, Xyz::Vector2F, T...>>&
+        MeshDataBuilder<std::tuple<Xyz::Vector3F, Xyz::Vector3F, Xyz::Vector2F, T...>>&
         builder
     )
     {
