@@ -7,7 +7,7 @@
 # ===========================================================================
 cmake_minimum_required(VERSION 3.25)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 FetchContent_Declare(ystring2
     GIT_REPOSITORY "https://github.com/jebreimo/Ystring2.git"

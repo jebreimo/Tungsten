@@ -7,6 +7,7 @@
 //****************************************************************************
 #pragma once
 #include <span>
+#include <vector>
 
 #include "VertexAttributeType.hpp"
 #include "../Gl/GlVertexArray.hpp"

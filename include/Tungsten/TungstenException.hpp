@@ -6,6 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include <exception>
 #include <stdexcept>
 #include <string>
 #include <SDL3/SDL_error.h>

@@ -9,8 +9,7 @@ cmake_minimum_required(VERSION 3.15)
 
 project(Tungsten VERSION 0.8.2)
 
-set(CMAKE_CXX_STANDARD 20)
-
+set(CMAKE_CXX_STANDARD 23)
 # Set TUNGSTEN_MASTER_PROJECT to ON if Xyz is the root level project.
 if (NOT DEFINED TUNGSTEN_MASTER_PROJECT)
     if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
@@ -47,7 +46,7 @@ FetchContent_Declare(cppembed
 
 FetchContent_Declare(xyz
     GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
-    GIT_TAG v0.10.2)
+    GIT_TAG v0.11.0)
 
 FetchContent_Declare(yconvert
     GIT_REPOSITORY "https://github.com/jebreimo/Yconvert.git"
@@ -171,6 +170,11 @@ add_library(Tungsten STATIC
     src/Tungsten/TungstenException.cpp
     src/Tungsten/Viewport.cpp
     src/Tungsten/YimageGl.cpp
+    src/Tungsten/Neo/RenderItem.cpp
+    src/Tungsten/Neo/RenderItem.hpp
+    src/Tungsten/Neo/Handle.hpp
+    src/Tungsten/Neo/Mesh.cpp
+    src/Tungsten/Neo/Mesh.hpp
 )
 
 target_link_libraries(Tungsten

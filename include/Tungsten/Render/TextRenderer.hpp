@@ -6,7 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include <string>
+#include <variant>
 
 #include "Renderable.hpp"
 #include "TextItem.hpp"
