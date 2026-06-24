@@ -122,7 +122,70 @@ handle is `TextureRef` precisely because `TextureHandle` is already the RAII GL 
 meshes and shaders there is no clash: the RAII shader-program handle is `ProgramHandle`, and
 meshes have no single RAII handle, so `MeshHandle` and `ShaderProgramHandle` are unambiguous.)
 
-## 7. 2D / 3D unification
+## 7. Buffer arenas and sub-allocated buffers
+
+GL buffers are not allocated one-per-mesh. A `BufferArena` owns **one** GL
+`BufferHandle` and hands out sub-ranges of it; many meshes share one buffer. This
+is the resource-layer mechanism behind `VertexStream::vbo` and `Mesh::ebo`.
+
+**`SharedBuffer` is a non-owning slice, not shared ownership.** It is a plain
+value `{ BufferArenaHandle arena, uint32 offset, uint32 count }` — trivially
+copyable, no refcount. The name refers to the *buffer being shared* among
+allocations, not to shared ownership of the handle. Concretely it is **not**
+`std::shared_ptr<BufferHandle>`:
+
+- The GL buffer's lifetime belongs to the arena (which `ResourceManager` owns and
+  outlives individual meshes), not to whichever sub-allocation happens to die
+  last. A `shared_ptr` would delete the whole buffer when the last slice drops
+  and let a mesh's destructor take the buffer with it.
+- `shared_ptr` can only reclaim the entire `BufferHandle`; it cannot return an
+  individual range for reuse. Per-range reuse is the arena's free-list, which
+  `shared_ptr` does not model.
+- `BufferHandle` (`GlHandle`) is move-only and deletes its GL id on destruction,
+  so it cannot be stored by value in every copyable slice anyway — each copy
+  would try to delete the same id.
+
+To bind for drawing, the renderer resolves `arena` → `BufferArena` →
+`BufferHandle` through `ResourceManager` (it already fetches GL objects there).
+The arena handle is generational like the other logical handles in §6, so a stale
+slice fails validation rather than aliasing a regrown buffer.
+
+(If a slice ever genuinely needed to keep its storage alive by itself — it does
+not today, the arena does — the unit to share would be the *arena*, not the bare
+handle: `shared_ptr<BufferArena>` with a deleter that returns the range to the
+free-list. Never `shared_ptr<BufferHandle>`.)
+
+**The allocator is `Detail::BuddyAllocator`, already in the tree.** A
+`BufferArena` is `BufferHandle` + `BuddyAllocator` (offset management) + growth
+logic. This pattern is not new: `TextRenderer` already pairs a GL buffer with two
+`BuddyAllocator`s and grows by re-`claim()`ing every live block into a larger
+allocator (`src/Tungsten/Render/TextRenderer.cpp`). `BufferArena` factors that out
+into a named, reusable type. `allocate()` wraps the offset `BuddyAllocator` returns
+in a `SharedBuffer`; `free()` calls `BuddyAllocator::free`; `grow()` reallocates
+the GL buffer and replays `claim()` for every live allocation.
+
+Two decisions this commits to:
+
+- **Buddy's 2× internal fragmentation is accepted.** `BuddyAllocator` rounds each
+  request up to a power of two, so up to half an allocation's space can be wasted.
+  That is ideal for many small, similar allocations (the text path) and cheap to
+  reuse here. For arenas holding a few large, oddly-sized meshes it can waste real
+  VBO space; if that shows up in profiling, switch those arenas to a best-fit
+  free-list allocator behind the same `BufferArena` interface. Start with buddy.
+- **One arena per stride, allocating in vertex/index units.** Then `offset` is
+  directly `VertexStream::firstVertex` and `count` is `vertexCount`, buddy's
+  natural power-of-two alignment subsumes any explicit alignment field, and VAO
+  binding stays simple. A single arena mixing strides would instead allocate in
+  bytes and make stride/alignment do real work; the per-stride split avoids that.
+
+**Growth preserves offsets.** Doubling a buddy allocator's capacity leaves every
+live block at its original offset (the "claim after doubling" test in
+`tests/TungstenTest/test_BuddyAllocator.cpp` checks exactly this). So when an arena
+grows, existing `SharedBuffer{offset,count}` values stay valid — only the GL
+`BufferHandle` is rebound — and the immutable `RenderSnapshot` never needs its
+meshes re-patched.
+
+## 8. 2D / 3D unification
 
 2D and 3D share one `Node`/`Transform`, the whole resource and material layer, the snapshot,
 and the renderer. The only branch is the camera: `CameraComponent::mode` selects
@@ -131,7 +194,7 @@ aspect). A 2D scene is just nodes at `z = 0` with rotation about the z axis, vie
 orthographic camera; draw order for 2D is handled through the existing render-layer / sort-key
 machinery rather than a separate code path.
 
-## 8. Integration with existing Tungsten
+## 9. Integration with existing Tungsten
 
 This is a forward-looking design; current code migrates toward it rather than being replaced
 wholesale:

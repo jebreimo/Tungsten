@@ -190,7 +190,7 @@ classDiagram
         }
 
         class SharedBuffer {
-            +BufferHandle buffer
+            +BufferArenaHandle arena
             +uint32_t offset
             +uint32_t count
         }
@@ -198,9 +198,18 @@ classDiagram
         class BufferArena {
             +BufferHandle buffer
             +BufferUsage usage
-            +uint16_t alignment
-            +allocate(count: uint32, stride: uint16) SharedBuffer
+            +uint16_t stride
+            -BuddyAllocator allocator
+            +allocate(count: uint32) SharedBuffer
             +free(alloc: SharedBuffer)
+            +grow(minCapacity: uint32)
+        }
+
+        class BuddyAllocator {
+            -capacity: size_t
+            +allocate(size: size_t) optional~size_t~
+            +free(offset: size_t)
+            +claim(offset: size_t, size: size_t) bool
         }
 
         class Material {
@@ -277,6 +286,8 @@ classDiagram
     ResourceManager "1" *-- "1..*" BufferArena
 
     BufferArena ..> SharedBuffer : sub-allocates
+    BufferArena "1" *-- "1" BuddyAllocator : manages offsets
+    SharedBuffer --> BufferArena : references (handle)
     Mesh "1" *-- "1..*" VertexStream
     Mesh --> VertexLayout : describes
     Mesh --> IndexType : uses
