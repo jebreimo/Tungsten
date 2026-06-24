@@ -132,6 +132,7 @@ classDiagram
             +get_material(handle: MaterialHandle) Material
             +get_shader(handle: ShaderProgramHandle) ShaderProgram
             +get_texture(handle: TextureRef) Texture
+            +get_arena(handle: BufferArenaHandle) BufferArena
             +register_shader_variant(key: ShaderVariantKey) ShaderProgramHandle
             +get_vao(buffers, layout: VertexLayout) VertexArrayHandle
             -deferredDeletionQueue

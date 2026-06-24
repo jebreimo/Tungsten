@@ -145,10 +145,23 @@ allocations, not to shared ownership of the handle. Concretely it is **not**
   so it cannot be stored by value in every copyable slice anyway — each copy
   would try to delete the same id.
 
-To bind for drawing, the renderer resolves `arena` → `BufferArena` →
-`BufferHandle` through `ResourceManager` (it already fetches GL objects there).
-The arena handle is generational like the other logical handles in §6, so a stale
-slice fails validation rather than aliasing a regrown buffer.
+Resolving `arena` → `BufferArena` → `BufferHandle` goes through
+`ResourceManager::get_arena(BufferArenaHandle)`. This happens at **VAO build
+time** (`get_vao` bakes the VBO and element-buffer bindings into the VAO) and at
+**allocate / upload / free** time — both inside `ResourceManager`. It does *not*
+happen per draw: the renderer binds the mesh's VAO and issues the draw with
+`offset`/`count`, because the buffer bindings are already VAO state. The arena
+handle is generational like the other logical handles in §6, so a stale slice
+fails validation rather than aliasing a regrown buffer.
+
+**VAO identity follows the buffer pairing.** Because the element-array binding is
+VAO state (not a per-draw argument), a VAO is valid only for one specific
+(VBO arena, EBO arena) pairing — `get_vao` bakes both in. Two meshes drawn from
+the same pair of arenas share a VAO; meshes from different arenas need different
+VAOs. The per-stride-arena rule above keeps this stable: a mesh stays within its
+arenas, and the offset-preserving growth means the only time the bindings change
+is when an arena reallocates its `BufferHandle`, at which point the affected VAOs
+are rebuilt anyway.
 
 (If a slice ever genuinely needed to keep its storage alive by itself — it does
 not today, the arena does — the unit to share would be the *arena*, not the bare
