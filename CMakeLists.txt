@@ -170,11 +170,6 @@ add_library(Tungsten STATIC
     src/Tungsten/TungstenException.cpp
     src/Tungsten/Viewport.cpp
     src/Tungsten/YimageGl.cpp
-    src/Tungsten/Neo/RenderItem.cpp
-    src/Tungsten/Neo/RenderItem.hpp
-    src/Tungsten/Neo/Handle.hpp
-    src/Tungsten/Neo/Mesh.cpp
-    src/Tungsten/Neo/Mesh.hpp
 )
 
 target_link_libraries(Tungsten
