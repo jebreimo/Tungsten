@@ -161,7 +161,7 @@ namespace Tungsten
         // the buddy allocator by re-claiming all live allocations.
         // Uses explicit COPY_READ/COPY_WRITE bindings to avoid the broken
         // resize_buffer path that calls copy_buffer with COPY_WRITE unbound.
-        void grow_vertex_buffer(TextGlBuffers& gl, const TextDataMap& text_data)
+        void grow_vertex_buffer(TextGlBuffers& gl)
         {
             const size_t old_cap = gl.vertex_alloc.capacity();
             const size_t new_cap = old_cap * 2;
@@ -172,7 +172,7 @@ namespace Tungsten
 
         // Doubles the index buffer, preserving existing content, and rebuilds
         // the buddy allocator.
-        void grow_index_buffer(TextGlBuffers& gl, const TextDataMap& text_data)
+        void grow_index_buffer(TextGlBuffers& gl)
         {
             const size_t old_cap = gl.index_alloc.capacity();
             const size_t new_cap = old_cap * 2;
@@ -374,11 +374,11 @@ namespace Tungsten
                 if (v_off && !i_off)
                 {
                     data_->gl.vertex_alloc.free(*v_off);
-                    grow_index_buffer(data_->gl, data_->text_data_);
+                    grow_index_buffer(data_->gl);
                 }
                 else
                 {
-                    grow_vertex_buffer(data_->gl, data_->text_data_);
+                    grow_vertex_buffer(data_->gl);
                 }
             }
 
