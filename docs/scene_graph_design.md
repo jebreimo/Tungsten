@@ -180,6 +180,26 @@ grows, existing `SharedBuffer{offset,count}` values stay valid — only the GL
 `BufferHandle` is rebound — and the immutable `RenderSnapshot` never needs its
 meshes re-patched.
 
+**Where the arena ref is stamped, and who retires buffers.** A `BufferArena` does
+**not** know its own `BufferArenaRef` — that `{index, generation}` is
+`ResourceManager`'s slot bookkeeping, and `generation` is authoritative there. So
+the arena hands out *ref-less* slices (`BufferArena::allocate` returns an
+`Allocation{ slice, retired_buffer }` whose `slice.arena` is blank), and
+`ResourceManager::allocate(BufferArenaRef, count)` — the one caller that knows the
+ref — stamps it. This keeps the dependency one-directional (`ResourceManager` →
+`BufferArena`, never the reverse) and makes the same `ResourceManager` boundary the
+place that also (a) retires the displaced GL buffer returned by a grow and (b)
+rebuilds the VAOs invalidated when the arena's buffer id moves. `free` is
+symmetric: it resolves `slice.arena` back through `get_arena` and forwards to the
+arena. See the sketch in `src/Tungsten/Neo/ResourceManager.hpp`.
+
+Because cloning to grow changes the buffer id, the old buffer can still be in use
+by in-flight draws (or, with a render thread, by the snapshot being rendered). It
+is therefore moved onto a frame-tagged retirement queue and freed only once a
+completed frame (single-threaded: the just-drawn frame; threaded: the latest
+passed fence) proves nothing references it — the deferred-deletion half of the
+generational scheme in §6.
+
 ## 8. 2D / 3D unification
 
 2D and 3D share one `Node`/`Transform`, the whole resource and material layer, the snapshot,
