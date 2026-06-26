@@ -173,3 +173,63 @@ TEST_CASE("BuddyAllocator: interleaved alloc/free coalesces correctly")
     REQUIRE(big.has_value());
     REQUIRE(*big == 0);
 }
+
+TEST_CASE("BuddyAllocator: resized to a larger capacity preserves offsets")
+{
+    BuddyAllocator a(8);
+    auto a0 = a.allocate(4); // [0, 4)
+    auto a1 = a.allocate(4); // [4, 8)
+    REQUIRE(a0 == 0);
+    REQUIRE(a1 == 4);
+
+    BuddyAllocator grown = a.resized(16);
+    REQUIRE(grown.capacity() == 16);
+    REQUIRE(grown.allocated() == 8);
+
+    // resized() is const: the source is untouched.
+    REQUIRE(a.capacity() == 8);
+    REQUIRE(a.allocated() == 8);
+
+    // The preserved blocks still occupy their old offsets, so new space only
+    // comes from the grown upper half.
+    auto extra = grown.allocate(8);
+    REQUIRE(extra == 8);
+
+    // The preserved offsets are real allocations: freeing them coalesces.
+    grown.free(*a0);
+    grown.free(*a1);
+    grown.free(*extra);
+    REQUIRE(grown.allocated() == 0);
+    REQUIRE(grown.allocate(16) == 0);
+}
+
+TEST_CASE("BuddyAllocator: resized rounds new capacity up to a power of two")
+{
+    BuddyAllocator a(8);
+    REQUIRE(a.resized(9).capacity() == 16);
+    REQUIRE(a.resized(8).capacity() == 8);
+}
+
+TEST_CASE("BuddyAllocator: resized can shrink when allocations still fit")
+{
+    BuddyAllocator a(16);
+    REQUIRE(a.claim(0, 4));
+    REQUIRE(a.claim(4, 4));
+
+    BuddyAllocator small = a.resized(8);
+    REQUIRE(small.capacity() == 8);
+    REQUIRE(small.allocated() == 8);
+    REQUIRE_FALSE(small.allocate(1).has_value()); // full, both blocks preserved
+}
+
+TEST_CASE("BuddyAllocator: resized throws when an allocation no longer fits")
+{
+    BuddyAllocator a(16);
+    REQUIRE(a.claim(8, 4)); // lives in the upper half, outside [0, 8)
+
+    REQUIRE_THROWS(a.resized(8));
+
+    // A failed resize leaves the source allocator untouched.
+    REQUIRE(a.capacity() == 16);
+    REQUIRE(a.allocated() == 4);
+}

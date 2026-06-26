@@ -44,12 +44,19 @@ namespace Tungsten
         // overlaps an already-claimed block or is out of range.
         bool claim(size_t offset, size_t size);
 
+        // Returns a copy of this allocator backed by new_capacity units
+        // (rounded up to the next power of two on construction), with every
+        // live allocation preserved at its exact current offset. Used to grow
+        // (or shrink) the underlying buffer without invalidating outstanding
+        // allocations. Throws TungstenException when new_capacity is too small
+        // to hold an existing allocation at its offset.
+        [[nodiscard]] BuddyAllocator resized(size_t new_capacity) const;
+
         // Total capacity (rounded up to the next power of two on construction).
         [[nodiscard]] size_t capacity() const;
 
         // Number of units currently in use (sum of all allocated block sizes).
         [[nodiscard]] size_t allocated() const;
-
     private:
         [[nodiscard]] int level_of(size_t size) const;
         [[nodiscard]] size_t block_size(int level) const;

@@ -9,6 +9,7 @@
 
 #include <bit>
 #include <cassert>
+#include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
 {
@@ -123,6 +124,24 @@ namespace Tungsten
         }
 
         return false;
+    }
+
+    BuddyAllocator BuddyAllocator::resized(size_t new_capacity) const
+    {
+        BuddyAllocator result(new_capacity);
+        for (const auto& [offset, level] : allocations_)
+        {
+            const size_t size = block_size(level);
+            if (offset + size > result.capacity_)
+            {
+                TUNGSTEN_THROW("BuddyAllocator: new capacity is too small to"
+                               " preserve an existing allocation.");
+            }
+            const bool claimed = result.claim(offset, size);
+            assert(claimed);
+            (void)claimed;
+        }
+        return result;
     }
 
     size_t BuddyAllocator::capacity() const

@@ -167,14 +167,7 @@ namespace Tungsten
             const size_t new_cap = old_cap * 2;
             const auto new_bytes = ptrdiff_t(new_cap * sizeof(GlyphVertex));
             resize_buffer(gl.vbo.id(), new_bytes);
-
-            BuddyAllocator new_alloc(new_cap);
-            for (const auto& [id, rd] : text_data)
-            {
-                if (rd->vertex_offset != UNALLOCATED)
-                    new_alloc.claim(rd->vertex_offset, rd->vertex_alloc_size);
-            }
-            gl.vertex_alloc = std::move(new_alloc);
+            gl.vertex_alloc = gl.vertex_alloc.resized(new_cap);
         }
 
         // Doubles the index buffer, preserving existing content, and rebuilds
@@ -184,16 +177,8 @@ namespace Tungsten
             const size_t old_cap = gl.index_alloc.capacity();
             const size_t new_cap = old_cap * 2;
             const auto new_bytes = ptrdiff_t(new_cap * sizeof(int32_t));
-
             resize_buffer(gl.ebo.id(), new_bytes);
-
-            BuddyAllocator new_alloc(new_cap);
-            for (const auto& [id, rd] : text_data)
-            {
-                if (rd->index_offset != UNALLOCATED)
-                    new_alloc.claim(rd->index_offset, rd->index_alloc_size);
-            }
-            gl.index_alloc = std::move(new_alloc);
+            gl.index_alloc = gl.index_alloc.resized(new_cap);
         }
     }
 
