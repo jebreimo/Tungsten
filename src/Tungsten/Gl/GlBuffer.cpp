@@ -30,16 +30,10 @@ namespace Tungsten
         return BufferHandle(id);
     }
 
-    BufferHandle generate_buffer(BufferTarget target)
+    BufferHandle generate_buffer(ptrdiff_t size, BufferUsage usage, BufferTarget target)
     {
         auto buffer = generate_buffer();
         bind_buffer(target, buffer.id());
-        return buffer;
-    }
-
-    BufferHandle generate_buffer(BufferTarget target, ptrdiff_t size, BufferUsage usage)
-    {
-        auto buffer = generate_buffer(target);
         allocate_buffer(target, size, usage);
         return buffer;
     }
@@ -83,7 +77,7 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
-    void reallocate_buffer(uint32_t buffer_id, ptrdiff_t new_size)
+    void resize_buffer(uint32_t buffer_id, ptrdiff_t new_size)
     {
         bind_buffer(BufferTarget::COPY_READ, buffer_id);
 
@@ -91,9 +85,7 @@ namespace Tungsten
         const auto transfer_size = std::min(new_size, old_size);
         const auto usage = get_buffer_usage(BufferTarget::COPY_READ);
 
-        BufferHandle tmp_buffer = generate_buffer();
-        bind_buffer(BufferTarget::COPY_WRITE, tmp_buffer.id());
-        allocate_buffer(BufferTarget::COPY_WRITE, transfer_size, usage);
+        BufferHandle tmp_buffer = generate_buffer(transfer_size, usage, BufferTarget::COPY_WRITE);
         copy_buffer(BufferTarget::COPY_READ, 0, BufferTarget::COPY_WRITE, 0, transfer_size);
 
         bind_buffer(BufferTarget::COPY_WRITE, buffer_id);
@@ -104,13 +96,11 @@ namespace Tungsten
 
     BufferHandle clone_buffer(uint32_t buffer_id, ptrdiff_t size)
     {
-        BufferHandle new_buffer = generate_buffer();
         bind_buffer(BufferTarget::COPY_READ, buffer_id);
         if (size == PTRDIFF_MAX)
             size = get_buffer_size(BufferTarget::COPY_READ);
         const auto usage = get_buffer_usage(BufferTarget::COPY_READ);
-        bind_buffer(BufferTarget::COPY_WRITE, new_buffer.id());
-        allocate_buffer(BufferTarget::COPY_WRITE, size, usage);
+        BufferHandle new_buffer = generate_buffer(size, usage, BufferTarget::COPY_WRITE);
         const auto copy_size = std::min(get_buffer_size(BufferTarget::COPY_READ), size);
         copy_buffer(BufferTarget::COPY_READ, 0, BufferTarget::COPY_WRITE, 0, copy_size);
         return new_buffer;

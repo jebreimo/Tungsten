@@ -89,12 +89,12 @@ namespace Tungsten
 
         void init_gl_buffers(TextGlBuffers& gl)
         {
-            gl.vbo = generate_buffer(BufferTarget::ARRAY,
-                                     ptrdiff_t(INITIAL_VERTEX_CAPACITY * sizeof(GlyphVertex)),
-                                     BufferUsage::DYNAMIC_DRAW);
-            gl.ebo = generate_buffer(BufferTarget::ELEMENT_ARRAY,
-                                     ptrdiff_t(INITIAL_INDEX_CAPACITY * sizeof(int32_t)),
-                                     BufferUsage::DYNAMIC_DRAW);
+            gl.vbo = generate_buffer(ptrdiff_t(INITIAL_VERTEX_CAPACITY * sizeof(GlyphVertex)),
+                                     BufferUsage::DYNAMIC_DRAW,
+                                     BufferTarget::ARRAY);
+            gl.ebo = generate_buffer(ptrdiff_t(INITIAL_INDEX_CAPACITY * sizeof(int32_t)),
+                                     BufferUsage::DYNAMIC_DRAW,
+                                     BufferTarget::ELEMENT_ARRAY);
             gl.vao = create_vertex_array(gl.vbo.id());
         }
 
@@ -166,7 +166,7 @@ namespace Tungsten
             const size_t old_cap = gl.vertex_alloc.capacity();
             const size_t new_cap = old_cap * 2;
             const auto new_bytes = ptrdiff_t(new_cap * sizeof(GlyphVertex));
-            reallocate_buffer(gl.vbo.id(), new_bytes);
+            resize_buffer(gl.vbo.id(), new_bytes);
 
             BuddyAllocator new_alloc(new_cap);
             for (const auto& [id, rd] : text_data)
@@ -185,7 +185,7 @@ namespace Tungsten
             const size_t new_cap = old_cap * 2;
             const auto new_bytes = ptrdiff_t(new_cap * sizeof(int32_t));
 
-            reallocate_buffer(gl.ebo.id(), new_bytes);
+            resize_buffer(gl.ebo.id(), new_bytes);
 
             BuddyAllocator new_alloc(new_cap);
             for (const auto& [id, rd] : text_data)

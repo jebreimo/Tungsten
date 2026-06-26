@@ -21,11 +21,9 @@ namespace Tungsten
 
     BufferHandle generate_buffer();
 
-    BufferHandle generate_buffer(BufferTarget target);
-
-    BufferHandle generate_buffer(BufferTarget target,
-                                 ptrdiff_t size,
-                                 BufferUsage usage);
+    BufferHandle generate_buffer(ptrdiff_t size,
+                                 BufferUsage usage,
+                                 BufferTarget target = BufferTarget::COPY_WRITE);
 
     void generate_buffers(std::span<BufferHandle> buffers);
 
@@ -76,8 +74,7 @@ namespace Tungsten
         set_buffer_subdata(target, std::as_bytes(data), offset);
     }
 
-    void reallocate_buffer(uint32_t buffer_id,
-                           ptrdiff_t new_size);
+    void resize_buffer(uint32_t buffer_id, ptrdiff_t new_size);
 
     BufferHandle clone_buffer(uint32_t buffer_id,
                               ptrdiff_t size = PTRDIFF_MAX);
