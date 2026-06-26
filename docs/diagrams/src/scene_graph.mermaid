@@ -41,8 +41,8 @@ classDiagram
         }
 
         class RenderableComponent {
-            +MeshHandle mesh
-            +MaterialHandle material
+            +MeshRef mesh
+            +MaterialRef material
             +AABB localBounds
             +bool visible
             +uint32_t renderLayer
@@ -79,7 +79,7 @@ classDiagram
     }
 
     namespace Bridge {
-        class Handle~T~ {
+        class ResourceRef~T~ {
             +uint32_t index
             +uint32_t generation
         }
@@ -110,8 +110,8 @@ classDiagram
         class RenderItem {
             +mat4 worldTransform
             +mat3 normalMatrix
-            +MeshHandle mesh
-            +MaterialHandle material
+            +MeshRef mesh
+            +MaterialRef material
             +uint64_t sortKey
             +AABB worldBounds
         }
@@ -128,12 +128,12 @@ classDiagram
 
     namespace ResourceSide {
         class ResourceManager {
-            +get_mesh(handle: MeshHandle) Mesh
-            +get_material(handle: MaterialHandle) Material
-            +get_shader(handle: ShaderProgramHandle) ShaderProgram
-            +get_texture(handle: TextureRef) Texture
-            +get_arena(handle: BufferArenaHandle) BufferArena
-            +register_shader_variant(key: ShaderVariantKey) ShaderProgramHandle
+            +get_mesh(ref: MeshRef) Mesh
+            +get_material(ref: MaterialRef) Material
+            +get_shader(ref: ShaderProgramRef) ShaderProgram
+            +get_texture(ref: TextureRef) Texture
+            +get_arena(ref: BufferArenaRef) BufferArena
+            +register_shader_variant(key: ShaderVariantKey) ShaderProgramRef
             +get_vao(buffers, layout: VertexLayout) VertexArrayHandle
             -deferredDeletionQueue
             +process_deletions()
@@ -191,7 +191,7 @@ classDiagram
         }
 
         class SharedBuffer {
-            +BufferArenaHandle arena
+            +BufferArenaRef arena
             +uint32_t offset
             +uint32_t count
         }
@@ -214,7 +214,7 @@ classDiagram
         }
 
         class Material {
-            +ShaderProgramHandle shader
+            +ShaderProgramRef shader
             +vector~uint8_t~ parameterData
             +vector~TextureRef~ textures
             +uint32_t id

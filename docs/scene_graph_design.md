@@ -107,20 +107,14 @@ context on one thread). Its value here is that the renderer never observes half-
 and the "renderer only reads `front()`" contract is exactly the seam where a render thread
 would later add synchronization — adopting it now costs nothing on the web target.
 
-## 6. Resource handles
+## 6. Resource references
 
-Logical resource handles (`MeshHandle`, `MaterialHandle`, `ShaderProgramHandle`, `TextureRef`)
-are `Handle<T>{ uint32 index, uint32 generation }`. The generation is bumped when a slot is
-freed, so a stale handle (held across a deferred deletion + slot reuse) fails validation on
-lookup instead of silently aliasing a different resource.
-
-These are **distinct** from the GL-object RAII handles (`BufferHandle`, `ProgramHandle`,
-`TextureHandle`, `VertexArrayHandle`): the RAII handles own a GL id and live inside
-`Mesh`/`Texture`/`ShaderProgram`; the logical handles are indices into `ResourceManager` that
-callers and `RenderItem`s pass around. Note the names must not collide — the logical texture
-handle is `TextureRef` precisely because `TextureHandle` is already the RAII GL type. (For
-meshes and shaders there is no clash: the RAII shader-program handle is `ProgramHandle`, and
-meshes have no single RAII handle, so `MeshHandle` and `ShaderProgramHandle` are unambiguous.)
+Logical resource references (`MeshRef`, `MaterialRef`, `ShaderProgramRef`, `TextureRef`,
+`BufferArenaRef`) are `ResourceRef<T>{ uint32 index, uint32 generation }`. The generation is
+bumped when a slot is freed, so a stale ref (held across a deferred deletion + slot reuse)
+fails validation on lookup instead of silently aliasing a different resource. A ref is
+therefore **revocable** — it is a key into `ResourceManager`'s slot table, not a stable id, and
+must not be persisted as if it were one.
 
 ## 7. Buffer arenas and sub-allocated buffers
 
@@ -129,29 +123,17 @@ GL buffers are not allocated one-per-mesh. A `BufferArena` owns **one** GL
 is the resource-layer mechanism behind `VertexStream::vbo` and `Mesh::ebo`.
 
 **`SharedBuffer` is a non-owning slice, not shared ownership.** It is a plain
-value `{ BufferArenaHandle arena, uint32 offset, uint32 count }` — trivially
+value `{ BufferArenaRef arena, uint32 offset, uint32 count }` — trivially
 copyable, no refcount. The name refers to the *buffer being shared* among
-allocations, not to shared ownership of the handle. Concretely it is **not**
-`std::shared_ptr<BufferHandle>`:
-
-- The GL buffer's lifetime belongs to the arena (which `ResourceManager` owns and
-  outlives individual meshes), not to whichever sub-allocation happens to die
-  last. A `shared_ptr` would delete the whole buffer when the last slice drops
-  and let a mesh's destructor take the buffer with it.
-- `shared_ptr` can only reclaim the entire `BufferHandle`; it cannot return an
-  individual range for reuse. Per-range reuse is the arena's free-list, which
-  `shared_ptr` does not model.
-- `BufferHandle` (`GlHandle`) is move-only and deletes its GL id on destruction,
-  so it cannot be stored by value in every copyable slice anyway — each copy
-  would try to delete the same id.
+allocations, not to shared ownership of the GL buffer.
 
 Resolving `arena` → `BufferArena` → `BufferHandle` goes through
-`ResourceManager::get_arena(BufferArenaHandle)`. This happens at **VAO build
+`ResourceManager::get_arena(BufferArenaRef)`. This happens at **VAO build
 time** (`get_vao` bakes the VBO and element-buffer bindings into the VAO) and at
 **allocate / upload / free** time — both inside `ResourceManager`. It does *not*
 happen per draw: the renderer binds the mesh's VAO and issues the draw with
 `offset`/`count`, because the buffer bindings are already VAO state. The arena
-handle is generational like the other logical handles in §6, so a stale slice
+ref is generational like the other resource refs in §6, so a stale slice
 fails validation rather than aliasing a regrown buffer.
 
 **VAO identity follows the buffer pairing.** Because the element-array binding is
