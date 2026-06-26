@@ -7,7 +7,7 @@
 //****************************************************************************
 #include "Tungsten/Gl/GlUniform.hpp"
 
-#include "Tungsten/TungstenException.hpp"
+#include "../ExceptionHelpers.hpp"
 
 namespace Tungsten
 {

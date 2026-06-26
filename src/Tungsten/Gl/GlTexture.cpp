@@ -9,8 +9,8 @@
 
 #include <vector>
 
-#include "Tungsten/TungstenException.hpp"
 #include "GlTypeConversion.hpp"
+#include "../ExceptionHelpers.hpp"
 
 namespace Tungsten
 {

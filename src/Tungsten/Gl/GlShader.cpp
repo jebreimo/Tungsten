@@ -8,7 +8,7 @@
 #include "Tungsten/Gl/GlShader.hpp"
 
 #include "GlTypeConversion.hpp"
-#include "Tungsten/TungstenException.hpp"
+#include "../ExceptionHelpers.hpp"
 
 namespace Tungsten
 {

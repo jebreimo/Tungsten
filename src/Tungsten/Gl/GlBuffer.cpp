@@ -11,8 +11,8 @@
 
 #include "GlTypeConversion.hpp"
 #include "Tungsten/Gl/IOglWrapper.hpp"
-#include "Tungsten/TungstenException.hpp"
 #include "Tungsten/Gl/GlStateManagement.hpp"
+#include "../ExceptionHelpers.hpp"
 
 namespace Tungsten
 {

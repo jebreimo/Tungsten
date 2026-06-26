@@ -8,7 +8,7 @@
 #include "Tungsten/Gl/GlProgram.hpp"
 
 #include <GL/glew.h>
-#include "Tungsten/TungstenException.hpp"
+#include "../ExceptionHelpers.hpp"
 
 namespace Tungsten
 {

@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "GlTypeConversion.hpp"
-#include "Tungsten/TungstenException.hpp"
+#include "../ExceptionHelpers.hpp"
 
 namespace Tungsten
 {

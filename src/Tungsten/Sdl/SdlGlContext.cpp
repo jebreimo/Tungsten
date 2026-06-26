@@ -7,7 +7,7 @@
 //****************************************************************************
 #include "Tungsten/Sdl/SdlGlContext.hpp"
 
-#include "Tungsten/TungstenException.hpp"
+#include "../ExceptionHelpers.hpp"
 
 namespace Tungsten
 {

@@ -6,7 +6,8 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #include "Tungsten/Sdl/SdlGlParameters.hpp"
-#include "Tungsten/TungstenException.hpp"
+
+#include "../ExceptionHelpers.hpp"
 
 namespace Tungsten
 {

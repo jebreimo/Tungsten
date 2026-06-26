@@ -7,7 +7,7 @@
 //****************************************************************************
 #include "Tungsten/Sdl/SdlDisplay.hpp"
 
-#include "Tungsten/TungstenException.hpp"
+#include "../ExceptionHelpers.hpp"
 
 namespace Tungsten
 {

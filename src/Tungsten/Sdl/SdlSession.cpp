@@ -7,9 +7,8 @@
 //****************************************************************************
 #include "Tungsten/Sdl/SdlSession.hpp"
 
-#include <stdexcept>
 #include <SDL3/SDL.h>
-#include "Tungsten/TungstenException.hpp"
+#include "../ExceptionHelpers.hpp"
 
 namespace Tungsten
 {

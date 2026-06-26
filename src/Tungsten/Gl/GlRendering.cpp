@@ -8,8 +8,8 @@
 #include "Tungsten/Gl/GlRendering.hpp"
 
 #include "Tungsten/Gl/IOglWrapper.hpp"
-#include "Tungsten/TungstenException.hpp"
 #include "GlTypeConversion.hpp"
+#include "../ExceptionHelpers.hpp"
 
 namespace Tungsten
 {

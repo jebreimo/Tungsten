@@ -15,7 +15,7 @@
 #include "Tungsten/Sdl/SdlDisplay.hpp"
 #include "Tungsten/Sdl/SdlGlContext.hpp"
 #include "Tungsten/Sdl/SdlGlParameters.hpp"
-#include "Tungsten/TungstenException.hpp"
+#include "../ExceptionHelpers.hpp"
 #include "CommandLine.hpp"
 
 #ifdef __EMSCRIPTEN__

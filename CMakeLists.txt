@@ -167,9 +167,10 @@ add_library(Tungsten STATIC
     src/Tungsten/Sdl/SdlGlContext.cpp
     src/Tungsten/Sdl/SdlGlParameters.cpp
     src/Tungsten/Sdl/SdlSession.cpp
-    src/Tungsten/TungstenException.cpp
+    src/Tungsten/ExceptionHelpers.cpp
     src/Tungsten/Viewport.cpp
     src/Tungsten/YimageGl.cpp
+    src/Tungsten/ExceptionHelpers.hpp
 )
 
 target_link_libraries(Tungsten
