@@ -133,8 +133,10 @@ classDiagram
             +get_shader(ref: ShaderProgramRef) ShaderProgram
             +get_texture(ref: TextureRef) Texture
             +get_arena(ref: BufferArenaRef) BufferArena
+            +allocate(ref: BufferArenaRef, count: uint32) SharedBuffer
             +register_shader_variant(key: ShaderVariantKey) ShaderProgramRef
-            +get_vao(buffers, layout: VertexLayout) VertexArrayHandle
+            +get_vao(vboArenas: BufferArenaRef[], eboArena: BufferArenaRef, layout: VertexLayoutRef) uint32
+            -vaoCache: VaoEntry[]
             -deferredDeletionQueue
             +process_deletions()
         }
@@ -180,7 +182,7 @@ classDiagram
         }
 
         class Mesh {
-            +VertexArrayHandle vao
+            +uint32_t vao
             +vector~VertexStream~ streams
             +VertexLayout layout
             +SharedBuffer ebo
@@ -201,9 +203,14 @@ classDiagram
             +BufferUsage usage
             +uint16_t stride
             -BuddyAllocator allocator
-            +allocate(count: uint32) SharedBuffer
-            +free(alloc: SharedBuffer)
+            +allocate(count: uint32) Allocation
+            +free(offset: uint32)
             +grow(minCapacity: uint32)
+        }
+
+        class Allocation {
+            +uint32_t offset
+            +BufferHandle retired_buffer
         }
 
         class BuddyAllocator {
@@ -286,16 +293,18 @@ classDiagram
     ResourceManager "1" *-- "0..*" Texture
     ResourceManager "1" *-- "1..*" BufferArena
 
-    BufferArena ..> SharedBuffer : sub-allocates
+    ResourceManager ..> SharedBuffer : creates (offset + ref)
+    BufferArena ..> Allocation : returns from allocate
     BufferArena "1" *-- "1" BuddyAllocator : manages offsets
-    SharedBuffer --> BufferArena : references (handle)
+    SharedBuffer --> BufferArena : references (ref)
     Mesh "1" *-- "1..*" VertexStream
     Mesh --> VertexLayout : describes
     Mesh --> IndexType : uses
+    Mesh ..> ResourceManager : vao id (cached VAO, owned by ResourceManager)
     VertexLayout "1" *-- "1..*" VertexAttribute
     VertexAttribute --> AttributeSemantic : defines
 
     Material --> ShaderProgram : references
     ShaderProgram --> VertexLayout : requires
-    RenderableComponent --> Mesh : handle
-    RenderableComponent --> Material : handle
+    RenderableComponent --> Mesh : ref
+    RenderableComponent --> Material : ref

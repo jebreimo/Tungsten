@@ -155,9 +155,10 @@ free-list. Never `shared_ptr<BufferHandle>`.)
 logic. This pattern is not new: `TextRenderer` already pairs a GL buffer with two
 `BuddyAllocator`s and grows by re-`claim()`ing every live block into a larger
 allocator (`src/Tungsten/Render/TextRenderer.cpp`). `BufferArena` factors that out
-into a named, reusable type. `allocate()` wraps the offset `BuddyAllocator` returns
-in a `SharedBuffer`; `free()` calls `BuddyAllocator::free`; `grow()` reallocates
-the GL buffer and replays `claim()` for every live allocation.
+into a named, reusable type. `allocate()` returns the byte `offset` the
+`BuddyAllocator` hands out (converted from units via the arena's stride); `free()`
+takes that byte offset and calls `BuddyAllocator::free`; `grow()` reallocates the
+GL buffer and replays `claim()` for every live allocation.
 
 Two decisions this commits to:
 
@@ -180,18 +181,23 @@ grows, existing `SharedBuffer{offset,count}` values stay valid — only the GL
 `BufferHandle` is rebound — and the immutable `RenderSnapshot` never needs its
 meshes re-patched.
 
-**Where the arena ref is stamped, and who retires buffers.** A `BufferArena` does
-**not** know its own `BufferArenaRef` — that `{index, generation}` is
-`ResourceManager`'s slot bookkeeping, and `generation` is authoritative there. So
-the arena hands out *ref-less* slices (`BufferArena::allocate` returns an
-`Allocation{ slice, retired_buffer }` whose `slice.arena` is blank), and
+**The arena deals in byte offsets; `ResourceManager` owns identity.** A
+`BufferArena` does **not** know its own `BufferArenaRef` — that `{index,
+generation}` is `ResourceManager`'s slot bookkeeping, and `generation` is
+authoritative there. Rather than hand out a half-formed slice it cannot fully
+construct, the arena does not traffic in `SharedBuffer` at all: `BufferArena::allocate`
+returns an `Allocation{ uint32 offset, retired_buffer }` (a bare byte offset), and
 `ResourceManager::allocate(BufferArenaRef, count)` — the one caller that knows the
-ref — stamps it. This keeps the dependency one-directional (`ResourceManager` →
-`BufferArena`, never the reverse) and makes the same `ResourceManager` boundary the
-place that also (a) retires the displaced GL buffer returned by a grow and (b)
-rebuilds the VAOs invalidated when the arena's buffer id moves. `free` is
-symmetric: it resolves `slice.arena` back through `get_arena` and forwards to the
-arena. See the sketch in `src/Tungsten/Neo/ResourceManager.hpp`.
+ref — pairs that offset with the ref and the count to form the `SharedBuffer` in one
+shot. This keeps the dependency one-directional (`ResourceManager` → `BufferArena`,
+never the reverse), cleanly splits the two axes (the arena owns **range** /
+offset-and-stride; `ResourceManager` owns **identity** / the ref), and makes the
+same `ResourceManager` boundary the place that also (a) retires the displaced GL
+buffer returned by a grow and (b) rebuilds the VAOs invalidated when the arena's
+buffer id moves. `free` is symmetric: `ResourceManager` resolves `slice.arena`
+through `get_arena` and forwards `slice.offset` to the arena. `SharedBuffer` is thus
+purely a `ResourceManager`-level type; `BufferArena` does not include its header.
+See the sketch in `src/Tungsten/Neo/ResourceManager.hpp`.
 
 Because cloning to grow changes the buffer id, the old buffer can still be in use
 by in-flight draws (or, with a render thread, by the snapshot being rendered). It
@@ -199,6 +205,28 @@ is therefore moved onto a frame-tagged retirement queue and freed only once a
 completed frame (single-threaded: the just-drawn frame; threaded: the latest
 passed fence) proves nothing references it — the deferred-deletion half of the
 generational scheme in §6.
+
+**The VAO cache lives in `ResourceManager`, not in `Mesh`.** Since a VAO is shared
+by every mesh with the same `(vbo arenas, ebo arena, layout)` combination, no
+single `Mesh` can *own* it. `ResourceManager` owns the cache; `get_vao(vboArenas,
+eboArena, layout)` returns a **non-owning VAO id (`uint32`)**, and a `Mesh` stores
+that id — not a `VertexArrayHandle`. (This corrects the earlier diagram, where
+`Mesh` held an owning `VertexArrayHandle`.) Two consequences:
+
+- **The cache is keyed on arena *refs*, not live buffer ids.** A grow changes an
+  arena's buffer id but not which arena a mesh draws from, so keying on the
+  `BufferArenaRef`s keeps the entry valid across growth. `rebuild_vaos_for_arena`
+  then walks the cache, and for every VAO whose key references the grown arena,
+  re-points its baked-in buffer binding at the arena's new id **in place** — the
+  VAO id is unchanged, so every `Mesh` holding it stays valid and nothing in the
+  snapshot is patched. This is why growth never needs to retire VAOs, only the old
+  buffer.
+- **Layouts are referenced by `VertexLayoutRef`**, the same generational-ref
+  family as the other resources (§6). Interning layouts gives them a small,
+  comparable identity that forms part of the VAO key without the cache needing the
+  full `VertexLayout` value.
+
+See the sketch in `src/Tungsten/Neo/ResourceManager.{hpp,cpp}`.
 
 ## 8. 2D / 3D unification
 
