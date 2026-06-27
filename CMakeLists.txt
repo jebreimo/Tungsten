@@ -182,6 +182,8 @@ add_library(Tungsten STATIC
     src/Tungsten/Neo/SharedBuffer.hpp
     src/Tungsten/ExceptionHelpers.hpp
     src/Tungsten/Neo/ResourceManager.cpp
+    src/Tungsten/Neo/LightData.cpp
+    src/Tungsten/Neo/LightData.hpp
 )
 
 target_link_libraries(Tungsten

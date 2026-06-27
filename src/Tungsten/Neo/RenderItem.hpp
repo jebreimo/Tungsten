@@ -8,42 +8,43 @@
 #pragma once
 #include <array>
 #include <Xyz/Matrix.hpp>
+#include <Xyz/Rectangle.hpp>
+
+#include "ResourceRefs.hpp"
 
 namespace Tungsten
 {
     class RenderItem
     {
     public:
-        [[nodiscard]] Xyz::Matrix4F worldTransform() const
-        {
-            Xyz::Matrix4F result;
-            for (size_t i = 0; i < 16; ++i)
-                result[i % 4, i / 4] = data_[i];
-            return result;
-        }
+        [[nodiscard]] Xyz::Matrix4F worldTransform() const;
 
-        void set_world_transform(const Xyz::Matrix4F& transform)
-        {
-            for (size_t i = 0; i < 16; ++i)
-                data_[i] = transform[i % 4, i / 4];
-        }
+        void set_world_transform(const Xyz::Matrix4F& transform);
 
-        void set_normal_matrix(const Xyz::Matrix3F& normal_matrix)
-        {
-            for (size_t i = 0; i < 9; ++i)
-                data_[16 + 4 * (i / 3) + i % 3] = normal_matrix[i % 3, i / 3];
-        }
+        [[nodiscard]] Xyz::Matrix3F normal_matrix() const;
 
-        [[nodiscard]] Xyz::Matrix3F normalMatrix() const
-        {
-            // Data is using the std140 layout, so the normal matrix is stored
-            // in a 4x4 matrix with the last row and column unused.
-            Xyz::Matrix3F result;
-            for (size_t i = 0; i < 9; ++i)
-                result[i % 3, i / 3] = data_[16 + 4 * (i / 3) + i % 3];
-            return result;
-        }
+        void set_normal_matrix(const Xyz::Matrix3F& normal_matrix);
+
+        [[nodiscard]]  MeshRef mesh() const;
+
+        void set_mesh(MeshRef mesh);
+
+        [[nodiscard]] MaterialRef material() const;
+
+        void set_material(MaterialRef material);
+
+        [[nodiscard]] uint64_t sort_key() const;
+
+        void set_sort_key(uint64_t sort_key);
+
+        [[nodiscard]] Xyz::RectangleF bounds() const;
+
+        void set_bounds(const Xyz::RectangleF& bounds);
     private:
         std::array<float, 32> data_ = {};
+        MeshRef mesh_ = {};
+        MaterialRef material_ = {};
+        uint64_t sort_key_ = 0;
+        Xyz::RectangleF bounds_;
     };
 } // Tungsten
