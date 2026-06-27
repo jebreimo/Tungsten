@@ -184,6 +184,7 @@ add_library(Tungsten STATIC
     src/Tungsten/Neo/ResourceManager.cpp
     src/Tungsten/Neo/LightData.cpp
     src/Tungsten/Neo/LightData.hpp
+    src/Tungsten/Neo/RenderSnapshot.hpp
 )
 
 target_link_libraries(Tungsten
