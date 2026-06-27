@@ -170,7 +170,18 @@ add_library(Tungsten STATIC
     src/Tungsten/ExceptionHelpers.cpp
     src/Tungsten/Viewport.cpp
     src/Tungsten/YimageGl.cpp
+    src/Tungsten/Neo/RenderItem.cpp
+    src/Tungsten/Neo/RenderItem.hpp
+    src/Tungsten/Neo/ResourceRef.hpp
+    src/Tungsten/Neo/ResourceRefs.hpp
+    src/Tungsten/Neo/Mesh.cpp
+    src/Tungsten/Neo/Mesh.hpp
+    src/Tungsten/Neo/BufferArena.cpp
+    src/Tungsten/Neo/BufferArena.hpp
+    src/Tungsten/Neo/ResourceManager.hpp
+    src/Tungsten/Neo/SharedBuffer.hpp
     src/Tungsten/ExceptionHelpers.hpp
+    src/Tungsten/Neo/ResourceManager.cpp
 )
 
 target_link_libraries(Tungsten
