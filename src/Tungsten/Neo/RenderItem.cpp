@@ -9,7 +9,7 @@
 
 namespace Tungsten
 {
-    Xyz::Matrix4F RenderItem::worldTransform() const
+    Xyz::Matrix4F RenderItem::world_transform() const
     {
         Xyz::Matrix4F result;
         for (size_t i = 0; i < 16; ++i)

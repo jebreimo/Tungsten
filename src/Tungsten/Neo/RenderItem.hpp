@@ -17,7 +17,7 @@ namespace Tungsten
     class RenderItem
     {
     public:
-        [[nodiscard]] Xyz::Matrix4F worldTransform() const;
+        [[nodiscard]] Xyz::Matrix4F world_transform() const;
 
         void set_world_transform(const Xyz::Matrix4F& transform);
 
