@@ -31,7 +31,7 @@ namespace Tungsten
 
         const auto new_capacity = std::max(
             static_cast<uint64_t>(allocator_.capacity()) * 2,
-            static_cast<uint64_t>(allocator_.capacity()) + count);
+            static_cast<uint64_t>(count) * (allocator_.allocated() ? 2 : 1));
         if (new_capacity > std::numeric_limits<uint32_t>::max())
             TUNGSTEN_THROW("BufferArena: capacity overflow.");
 
