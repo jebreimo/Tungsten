@@ -249,17 +249,26 @@ classDiagram
             -draw_item(item: RenderItem)
             -bind_per_frame(snapshot: RenderSnapshot)
             -bind_material(mat: Material)
-            -glStateCache: GLStateCache
+            -glStateCache: GlStateCache
         }
 
-        class GLStateCache {
-            -currentShader: ProgramHandle
-            -currentVAO: VertexArrayHandle
-            -currentMaterialUbo: BufferHandle
-            -boundTextures: map
-            +use_program(p: ProgramHandle)
-            +bind_vao(v: VertexArrayHandle)
-            +bind_texture(slot: int, t: TextureHandle)
+        class GlStateCache {
+            -current_program_: uint32_t
+            -current_vao_: uint32_t
+            -current_material_ubo_: uint32_t
+            -bound_textures_: map
+            +use_program(program_id: uint32_t)
+            +bind_vao(vao_id: uint32_t)
+            +bind_texture(unit: int32_t, texture_id: uint32_t)
+            +bind_material_ubo(buffer_id: uint32_t)
+            +invalidate()
+        }
+
+        class UboBindings {
+            <<constants>>
+            +PER_FRAME_UBO_BINDING : 0
+            +PER_MATERIAL_UBO_BINDING : 1
+            +PER_DRAW_UBO_BINDING : 2
         }
     }
 
@@ -285,7 +294,9 @@ classDiagram
 
     Renderer ..> RenderSnapshot : consumes front buffer
     Renderer ..> ResourceManager : fetches GL objects
-    Renderer "1" *-- "1" GLStateCache
+    Renderer "1" *-- "1" GlStateCache
+    Renderer ..> UboBindings : binds per-frame / per-draw blocks
+    GlStateCache ..> UboBindings : binds per-material block
 
     ResourceManager "1" *-- "0..*" Mesh
     ResourceManager "1" *-- "0..*" Material
