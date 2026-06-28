@@ -35,6 +35,12 @@ namespace Tungsten
 
         virtual void bind_buffer(GLenum target, GLuint buffer) = 0;
 
+        virtual void bind_buffer_base(GLenum target, GLuint index,
+                                      GLuint buffer) = 0;
+
+        virtual void bind_buffer_range(GLenum target, GLuint index, GLuint buffer,
+                                       GLintptr offset, GLsizeiptr size) = 0;
+
         virtual void bind_framebuffer(GLenum target, GLuint framebuffer) = 0;
 
         virtual void bind_texture(GLenum target, GLuint texture) = 0;

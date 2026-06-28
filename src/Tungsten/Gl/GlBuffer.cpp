@@ -62,6 +62,21 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
+    void bind_buffer_base(BufferTarget target, uint32_t index, uint32_t buffer)
+    {
+        get_ogl_wrapper().bind_buffer_base(to_ogl_buffer_target(target), index,
+                                           buffer);
+        THROW_IF_GL_ERROR();
+    }
+
+    void bind_buffer_range(BufferTarget target, uint32_t index, uint32_t buffer,
+                           ptrdiff_t offset, ptrdiff_t size)
+    {
+        get_ogl_wrapper().bind_buffer_range(to_ogl_buffer_target(target), index,
+                                            buffer, offset, size);
+        THROW_IF_GL_ERROR();
+    }
+
     void set_buffer_data(BufferTarget target, ptrdiff_t size, const void* data,
                          BufferUsage usage)
     {

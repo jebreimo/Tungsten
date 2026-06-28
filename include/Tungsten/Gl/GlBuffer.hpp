@@ -31,6 +31,17 @@ namespace Tungsten
 
     void bind_buffer(BufferTarget target, uint32_t buffer);
 
+    // Binds the whole buffer to the indexed binding point `index` of an indexed
+    // target (e.g. BufferTarget::UNIFORM), and also to the generic target.
+    void bind_buffer_base(BufferTarget target, uint32_t index, uint32_t buffer);
+
+    // Binds the [offset, offset + size) range of the buffer to the indexed
+    // binding point `index`. Use to point one UBO's binding at a sub-range
+    // (e.g. a per-draw slice); `offset` must satisfy
+    // GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT for a uniform-buffer target.
+    void bind_buffer_range(BufferTarget target, uint32_t index, uint32_t buffer,
+                           ptrdiff_t offset, ptrdiff_t size);
+
     void set_buffer_data(BufferTarget target, ptrdiff_t size,
                          const void* data, BufferUsage usage);
 
