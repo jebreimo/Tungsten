@@ -25,6 +25,15 @@ namespace Tungsten
         {
         }
 
+        void bind_buffer_base(GLenum target, GLuint index, GLuint buffer) override
+        {
+        }
+
+        void bind_buffer_range(GLenum target, GLuint index, GLuint buffer,
+                               GLintptr offset, GLsizeiptr size) override
+        {
+        }
+
         void bind_framebuffer(GLenum target, GLuint framebuffer) override
         {
         }
