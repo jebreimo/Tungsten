@@ -7,6 +7,7 @@
 //****************************************************************************
 #include "GlStateCache.hpp"
 
+#include "UboBindings.hpp"
 #include "Tungsten/Gl/GlBuffer.hpp"
 #include "Tungsten/Gl/GlProgram.hpp"
 #include "Tungsten/Gl/GlTexture.hpp"

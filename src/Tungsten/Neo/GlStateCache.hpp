@@ -29,10 +29,6 @@ namespace Tungsten
     class GlStateCache
     {
     public:
-        // The per-material UBO binding point (binding 1, §4): fixed across all
-        // shaders so the renderer never branches on shader type.
-        static constexpr uint32_t PER_MATERIAL_UBO_BINDING = 1;
-
         void use_program(uint32_t program_id);
 
         void bind_vao(uint32_t vao_id);
