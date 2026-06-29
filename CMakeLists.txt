@@ -188,6 +188,7 @@ add_library(Tungsten STATIC
     src/Tungsten/Neo/GlStateCache.cpp
     src/Tungsten/Neo/GlStateCache.hpp
     src/Tungsten/Neo/UboBindings.hpp
+    src/Tungsten/Neo/Texture.hpp
 )
 
 target_link_libraries(Tungsten
