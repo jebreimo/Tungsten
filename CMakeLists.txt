@@ -174,7 +174,6 @@ add_library(Tungsten STATIC
     src/Tungsten/Neo/RenderItem.hpp
     src/Tungsten/Neo/ResourceRef.hpp
     src/Tungsten/Neo/ResourceRefs.hpp
-    src/Tungsten/Neo/Mesh.cpp
     src/Tungsten/Neo/Mesh.hpp
     src/Tungsten/Neo/BufferArena.cpp
     src/Tungsten/Neo/BufferArena.hpp
@@ -189,6 +188,9 @@ add_library(Tungsten STATIC
     src/Tungsten/Neo/GlStateCache.hpp
     src/Tungsten/Neo/UboBindings.hpp
     src/Tungsten/Neo/Texture.hpp
+    src/Tungsten/Neo/VertexAttribute.hpp
+    src/Tungsten/Neo/VertexLayout.hpp
+    src/Tungsten/Neo/VertexStream.hpp
 )
 
 target_link_libraries(Tungsten
