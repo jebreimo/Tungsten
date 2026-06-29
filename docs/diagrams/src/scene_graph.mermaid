@@ -266,14 +266,16 @@ namespace RenderSide {
 
     class UboBindings {
         <<constants>>
-        +PER_FRAME_UBO_BINDING : 0
-        +PER_MATERIAL_UBO_BINDING : 1
-        +PER_DRAW_UBO_BINDING : 2
+        +PER_FRAME_UBO_BINDING: uint32_t
+        +PER_MATERIAL_UBO_BINDING: uint32_t
+        +PER_DRAW_UBO_BINDING: uint32_t
     }
+
+    note for UboBindings "Fixed binding points (§4): PER_FRAME = 0, PER_MATERIAL = 1, PER_DRAW = 2"
 }
 
 Scene "1" *-- "1..*" Node
-Scene "1" *-- "1" DoubleBuffer
+Scene "1" *-- "1" DoubleBuffer~T~
 Node "1" *-- "1" Transform
 Node "1" *-- "0..*" Component
 Node "1" *-- "0..*" Node : children
@@ -287,8 +289,9 @@ TransformUpdater ..> Scene : resolves dirty subtrees
 SnapshotBuilder ..> Scene : reads finalized world data
 SnapshotBuilder ..> ResourceManager : resolves handles
 SnapshotBuilder ..> RenderSnapshot : writes back buffer
+ResourceManager ..> ResourceRef~T~ : keys slots by
 
-DoubleBuffer "1" *-- "2" RenderSnapshot
+DoubleBuffer~T~ "1" *-- "2" RenderSnapshot
 RenderSnapshot "1" *-- "0..*" RenderItem
 RenderSnapshot "1" *-- "0..*" LightData
 
