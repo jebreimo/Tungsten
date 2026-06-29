@@ -1,321 +1,321 @@
 classDiagram
-    namespace SceneSide {
-        class Scene {
-            +vector~Node~ roots
-            +DoubleBuffer~RenderSnapshot~ snapshots
-            +add(node: Node)
-            +remove(node: Node)
-            +update(dt: float)
-        }
-
-        class Node {
-            +Transform localTransform
-            +vector~Node~ children
-            +Node* parent
-            +vector~Component~ components
-            -mat4 worldMatrix
-            -uint64 worldVersion
-            -uint64 parentVersionSeen
-            -bool localDirty
-            +AABB worldBounds
-            +world_matrix() mat4
-            +add_child(node: Node)
-            +remove_child(node: Node)
-            +reparent(new_parent: Node)
-            +mark_local_dirty()
-        }
-
-        class Transform {
-            +vec3 translation
-            +quat rotation
-            +vec3 scale
-            -mat4 localMatrix
-            -bool localDirty
-            +local_matrix() mat4
-            +mark_dirty()
-        }
-
-        class Component {
-            <<abstract>>
-            +Node* owner
-        }
-
-        class RenderableComponent {
-            +MeshRef mesh
-            +MaterialRef material
-            +AABB localBounds
-            +bool visible
-            +uint32_t renderLayer
-        }
-
-        class CameraComponent {
-            +ProjectionMode mode
-            +float fov
-            +float near
-            +float far
-            +float orthoSize
-            +get_view_matrix() mat4
-            +get_projection_matrix() mat4
-        }
-
-        class ProjectionMode {
-            <<enumeration>>
-            PERSPECTIVE
-            ORTHOGRAPHIC
-        }
-
-        class LightComponent {
-            +LightType type
-            +vec3 color
-            +float intensity
-            +float range
-        }
-
-        class TransformUpdater {
-            +resolve(scene: Scene)
-            -resolve_node(node: Node)
-            -propagate_bounds(node: Node)
-        }
+namespace SceneSide {
+    class Scene {
+        +roots: vector~Node~
+        +snapshots: DoubleBuffer~RenderSnapshot~
+        +add(node: Node)
+        +remove(node: Node)
+        +update(dt: float)
     }
 
-    namespace Bridge {
-        class ResourceRef~T~ {
-            +uint32_t index
-            +uint32_t generation
-        }
-
-        class SnapshotBuilder {
-            +build(scene: Scene, camera: CameraComponent, out: RenderSnapshot)
-            -extract_item(node: Node, component: RenderableComponent) RenderItem
-            -cull(camera: CameraComponent, bounds: AABB) bool
-            -compute_sort_key(item: RenderItem) uint64
-            -compute_normal_matrix(world: mat4) mat3
-        }
-
-        class DoubleBuffer~T~ {
-            +back() T
-            +front() T
-            +swap()
-        }
-
-        class RenderSnapshot {
-            +vector~RenderItem~ opaqueItems
-            +vector~RenderItem~ transparentItems
-            +mat4 viewMatrix
-            +mat4 projectionMatrix
-            +vector~LightData~ lights
-            +float time
-        }
-
-        class RenderItem {
-            +mat4 worldTransform
-            +mat3 normalMatrix
-            +MeshRef mesh
-            +MaterialRef material
-            +uint64_t sortKey
-            +AABB worldBounds
-        }
-
-        class LightData {
-            +LightType type
-            +vec3 position
-            +vec3 direction
-            +vec3 color
-            +float intensity
-            +float range
-        }
+    class Node {
+        +local_transform: Transform
+        +children: vector~Node~
+        +parent: Node*
+        +components: vector~Component~
+        -world_matrix: mat4
+        -world_version: uint64
+        -parent_version_seen: uint64
+        -local_dirty: bool
+        +world_bounds: AABB
+        +world_matrix(): mat4
+        +add_child(node: Node)
+        +remove_child(node: Node)
+        +reparent(new_parent: Node)
+        +mark_local_dirty()
     }
 
-    namespace ResourceSide {
-        class ResourceManager {
-            +get_mesh(ref: MeshRef) Mesh
-            +get_material(ref: MaterialRef) Material
-            +get_shader(ref: ShaderProgramRef) ShaderProgram
-            +get_texture(ref: TextureRef) Texture
-            +get_arena(ref: BufferArenaRef) BufferArena
-            +allocate(ref: BufferArenaRef, count: uint32) SharedBuffer
-            +register_shader_variant(key: ShaderVariantKey) ShaderProgramRef
-            +get_vao(vboArenas: BufferArenaRef[], eboArena: BufferArenaRef, layout: VertexLayoutRef) uint32
-            -vaoCache: VaoEntry[]
-            -deferredDeletionQueue
-            +process_deletions()
-        }
-
-        class AttributeSemantic {
-            <<enumeration>>
-            Position
-            Normal
-            Tangent
-            Bitangent
-            TexCoord0
-            TexCoord1
-            Color0
-            BoneIndices
-            BoneWeights
-        }
-
-        class VertexAttribute {
-            +AttributeSemantic semantic
-            +uint8_t streamIndex
-            +GLenum type
-            +uint8_t componentCount
-            +bool normalized
-            +uint16_t offsetInStream
-        }
-
-        class VertexLayout {
-            +vector~VertexAttribute~ attributes
-            +uint16_t stride
-        }
-
-        class VertexStream {
-            +SharedBuffer vbo
-            +uint32_t firstVertex
-            +uint16_t stride
-            +uint32_t vertexCount
-        }
-
-        class IndexType {
-            <<enumeration>>
-            UNSIGNED_SHORT
-            UNSIGNED_INT
-        }
-
-        class Mesh {
-            +uint32_t vao
-            +vector~VertexStream~ streams
-            +VertexLayout layout
-            +SharedBuffer ebo
-            +uint32_t firstIndex
-            +uint32_t indexCount
-            +IndexType indexType
-            +PrimitiveType primitive
-        }
-
-        class SharedBuffer {
-            +BufferArenaRef arena
-            +uint32_t offset
-            +uint32_t count
-        }
-
-        class BufferArena {
-            +BufferHandle buffer
-            +BufferUsage usage
-            +uint16_t stride
-            -BuddyAllocator allocator
-            +allocate(count: uint32) Allocation
-            +free(offset: uint32)
-            +grow(minCapacity: uint32)
-        }
-
-        class Allocation {
-            +uint32_t offset
-            +BufferHandle retired_buffer
-        }
-
-        class BuddyAllocator {
-            -capacity: size_t
-            +allocate(size: size_t) optional~size_t~
-            +free(offset: size_t)
-            +claim(offset: size_t, size: size_t) bool
-        }
-
-        class Material {
-            +ShaderProgramRef shader
-            +vector~uint8_t~ parameterData
-            +vector~TextureRef~ textures
-            +uint32_t id
-        }
-
-        class ShaderProgram {
-            +ProgramHandle glHandle
-            +uint32_t id
-            +ShaderVariantKey variantKey
-            +VertexLayout requiredLayout
-        }
-
-        class Texture {
-            +TextureHandle glHandle
-            +uint32_t width
-            +uint32_t height
-            +TextureFormat format
-        }
+    class Transform {
+        +translation: vec3
+        +rotation: quat
+        +scale: vec3
+        -local_matrix: mat4
+        -local_dirty: bool
+        +local_matrix(): mat4
+        +mark_dirty()
     }
 
-    namespace RenderSide {
-        class Renderer {
-            +render(snapshot: RenderSnapshot)
-            -sort_items(items: RenderItem[])
-            -draw_item(item: RenderItem)
-            -bind_per_frame(snapshot: RenderSnapshot)
-            -bind_material(mat: Material)
-            -glStateCache: GlStateCache
-        }
-
-        class GlStateCache {
-            -current_program_: uint32_t
-            -current_vao_: uint32_t
-            -current_material_ubo_: uint32_t
-            -bound_textures_: map
-            +use_program(program_id: uint32_t)
-            +bind_vao(vao_id: uint32_t)
-            +bind_texture(unit: int32_t, texture_id: uint32_t)
-            +bind_material_ubo(buffer_id: uint32_t)
-            +invalidate()
-        }
-
-        class UboBindings {
-            <<constants>>
-            +PER_FRAME_UBO_BINDING : 0
-            +PER_MATERIAL_UBO_BINDING : 1
-            +PER_DRAW_UBO_BINDING : 2
-        }
+    class Component {
+        <<abstract>>
+        +owner: Node*
     }
 
-    Scene "1" *-- "1..*" Node
-    Scene "1" *-- "1" DoubleBuffer
-    Node "1" *-- "1" Transform
-    Node "1" *-- "0..*" Component
-    Node "1" *-- "0..*" Node : children
-    Node "0..*" --> "1" Node : parent (raw)
-    RenderableComponent --|> Component
-    CameraComponent --|> Component
-    LightComponent --|> Component
-    CameraComponent --> ProjectionMode : uses
+    class RenderableComponent {
+        +mesh: MeshRef
+        +material: MaterialRef
+        +local_bounds: AABB
+        +visible: bool
+        +render_layer: uint32_t
+    }
 
-    TransformUpdater ..> Scene : resolves dirty subtrees
-    SnapshotBuilder ..> Scene : reads finalized world data
-    SnapshotBuilder ..> ResourceManager : resolves handles
-    SnapshotBuilder ..> RenderSnapshot : writes back buffer
+    class CameraComponent {
+        +mode: ProjectionMode
+        +fov: float
+        +near: float
+        +far: float
+        +ortho_size: float
+        +get_view_matrix(): mat4
+        +get_projection_matrix(): mat4
+    }
 
-    DoubleBuffer "1" *-- "2" RenderSnapshot
-    RenderSnapshot "1" *-- "0..*" RenderItem
-    RenderSnapshot "1" *-- "0..*" LightData
+    class ProjectionMode {
+        <<enumeration>>
+        PERSPECTIVE
+        ORTHOGRAPHIC
+    }
 
-    Renderer ..> RenderSnapshot : consumes front buffer
-    Renderer ..> ResourceManager : fetches GL objects
-    Renderer "1" *-- "1" GlStateCache
-    Renderer ..> UboBindings : binds per-frame / per-draw blocks
-    GlStateCache ..> UboBindings : binds per-material block
+    class LightComponent {
+        +type: LightType
+        +color: vec3
+        +intensity: float
+        +range: float
+    }
 
-    ResourceManager "1" *-- "0..*" Mesh
-    ResourceManager "1" *-- "0..*" Material
-    ResourceManager "1" *-- "0..*" ShaderProgram
-    ResourceManager "1" *-- "0..*" Texture
-    ResourceManager "1" *-- "1..*" BufferArena
+    class TransformUpdater {
+        +resolve(scene: Scene)
+        -resolve_node(node: Node)
+        -propagate_bounds(node: Node)
+    }
+}
 
-    ResourceManager ..> SharedBuffer : creates (offset + ref)
-    BufferArena ..> Allocation : returns from allocate
-    BufferArena "1" *-- "1" BuddyAllocator : manages offsets
-    SharedBuffer --> BufferArena : references (ref)
-    Mesh "1" *-- "1..*" VertexStream
-    Mesh --> VertexLayout : describes
-    Mesh --> IndexType : uses
-    Mesh ..> ResourceManager : vao id (cached VAO, owned by ResourceManager)
-    VertexLayout "1" *-- "1..*" VertexAttribute
-    VertexAttribute --> AttributeSemantic : defines
+namespace Bridge {
+    class ResourceRef~T~ {
+        +index: uint32_t
+        +generation: uint32_t
+    }
 
-    Material --> ShaderProgram : references
-    ShaderProgram --> VertexLayout : requires
-    RenderableComponent --> Mesh : ref
-    RenderableComponent --> Material : ref
+    class SnapshotBuilder {
+        +build(scene: Scene, camera: CameraComponent, out: RenderSnapshot)
+        -extract_item(node: Node, component: RenderableComponent): RenderItem
+        -cull(camera: CameraComponent, bounds: AABB): bool
+        -compute_sort_key(item: RenderItem): uint64
+        -compute_normal_matrix(world: mat4): mat3
+    }
+
+    class DoubleBuffer~T~ {
+        +back(): T
+        +front(): T
+        +swap()
+    }
+
+    class RenderSnapshot {
+        +opaque_items: vector~RenderItem~
+        +transparent_items: vector~RenderItem~
+        +view_matrix: mat4
+        +projection_matrix: mat4
+        +lights: vector~LightData~
+        +time: float
+    }
+
+    class RenderItem {
+        +world_transform: mat4
+        +normal_matrix: mat3
+        +mesh: MeshRef
+        +material: MaterialRef
+        +sort_key: uint64_t
+        +world_bounds: AABB
+    }
+
+    class LightData {
+        +type: LightType
+        +position: vec3
+        +direction: vec3
+        +color: vec3
+        +intensity: float
+        +range: float
+    }
+}
+
+namespace ResourceSide {
+    class ResourceManager {
+        +get_mesh(ref: MeshRef): Mesh
+        +get_material(ref: MaterialRef): Material
+        +get_shader(ref: ShaderProgramRef): ShaderProgram
+        +get_texture(ref: TextureRef): Texture
+        +get_arena(ref: BufferArenaRef): BufferArena
+        +allocate(ref: BufferArenaRef, count: uint32): SharedBuffer
+        +register_shader_variant(key: ShaderVariantKey): ShaderProgramRef
+        +get_vao(vbo_arenas: BufferArenaRef[], ebo_arena: BufferArenaRef, layout: VertexLayoutRef): uint32
+        -vao_cache: VaoEntry[]
+        -deferred_deletion_queue
+        +process_deletions()
+    }
+
+    class AttributeSemantic {
+        <<enumeration>>
+        Position
+        Normal
+        Tangent
+        Bitangent
+        TexCoord0
+        TexCoord1
+        Color0
+        BoneIndices
+        BoneWeights
+    }
+
+    class VertexAttribute {
+        +semantic: AttributeSemantic
+        +stream_index: uint8_t
+        +type: GLenum
+        +component_count: uint8_t
+        +normalized: bool
+        +offset_in_stream: uint16_t
+    }
+
+    class VertexLayout {
+        +attributes: vector~VertexAttribute~
+        +stride: uint16_t
+    }
+
+    class VertexStream {
+        +vbo: SharedBuffer
+        +first_vertex: uint32_t
+        +stride: uint16_t
+        +vertex_count: uint32_t
+    }
+
+    class IndexType {
+        <<enumeration>>
+        UNSIGNED_SHORT
+        UNSIGNED_INT
+    }
+
+    class Mesh {
+        +vao: uint32_t
+        +streams: vector~VertexStream~
+        +layout: VertexLayout
+        +ebo: SharedBuffer
+        +first_index: uint32_t
+        +index_count: uint32_t
+        +index_type: IndexType
+        +primitive: PrimitiveType
+    }
+
+    class SharedBuffer {
+        +arena: BufferArenaRef
+        +offset: uint32_t
+        +count: uint32_t
+    }
+
+    class BufferArena {
+        +buffer: BufferHandle
+        +usage: BufferUsage
+        +stride: uint16_t
+        -allocator: BuddyAllocator
+        +allocate(count: uint32): Allocation
+        +free(offset: uint32)
+        +grow(min_capacity: uint32)
+    }
+
+    class Allocation {
+        +offset: uint32_t
+        +retired_buffer: BufferHandle
+    }
+
+    class BuddyAllocator {
+        -capacity: size_t
+        +allocate(size: size_t): optional~size_t~
+        +free(offset: size_t)
+        +claim(offset: size_t, size: size_t): bool
+    }
+
+    class Material {
+        +shader: ShaderProgramRef
+        +parameter_data: vector~uint8_t~
+        +textures: vector~TextureRef~
+        +id: uint32_t
+    }
+
+    class ShaderProgram {
+        +gl_handle: ProgramHandle
+        +id: uint32_t
+        +variant_key: ShaderVariantKey
+        +required_layout: VertexLayout
+    }
+
+    class Texture {
+        +gl_handle: TextureHandle
+        +width: uint32_t
+        +height: uint32_t
+        +format: TextureFormat
+    }
+}
+
+namespace RenderSide {
+    class Renderer {
+        +render(snapshot: RenderSnapshot)
+        -sort_items(items: RenderItem[])
+        -draw_item(item: RenderItem)
+        -bind_per_frame(snapshot: RenderSnapshot)
+        -bind_material(mat: Material)
+        -gl_state_cache: GlStateCache
+    }
+
+    class GlStateCache {
+        -current_program_: uint32_t
+        -current_vao_: uint32_t
+        -current_material_ubo_: uint32_t
+        -bound_textures_: map
+        +use_program(program_id: uint32_t)
+        +bind_vao(vao_id: uint32_t)
+        +bind_texture(unit: int32_t, texture_id: uint32_t)
+        +bind_material_ubo(buffer_id: uint32_t)
+        +invalidate()
+    }
+
+    class UboBindings {
+        <<constants>>
+        +PER_FRAME_UBO_BINDING : 0
+        +PER_MATERIAL_UBO_BINDING : 1
+        +PER_DRAW_UBO_BINDING : 2
+    }
+}
+
+Scene "1" *-- "1..*" Node
+Scene "1" *-- "1" DoubleBuffer
+Node "1" *-- "1" Transform
+Node "1" *-- "0..*" Component
+Node "1" *-- "0..*" Node : children
+Node "0..*" --> "1" Node : parent (raw)
+RenderableComponent --|> Component
+CameraComponent --|> Component
+LightComponent --|> Component
+CameraComponent --> ProjectionMode : uses
+
+TransformUpdater ..> Scene : resolves dirty subtrees
+SnapshotBuilder ..> Scene : reads finalized world data
+SnapshotBuilder ..> ResourceManager : resolves handles
+SnapshotBuilder ..> RenderSnapshot : writes back buffer
+
+DoubleBuffer "1" *-- "2" RenderSnapshot
+RenderSnapshot "1" *-- "0..*" RenderItem
+RenderSnapshot "1" *-- "0..*" LightData
+
+Renderer ..> RenderSnapshot : consumes front buffer
+Renderer ..> ResourceManager : fetches GL objects
+Renderer "1" *-- "1" GlStateCache
+Renderer ..> UboBindings : binds per-frame / per-draw blocks
+GlStateCache ..> UboBindings : binds per-material block
+
+ResourceManager "1" *-- "0..*" Mesh
+ResourceManager "1" *-- "0..*" Material
+ResourceManager "1" *-- "0..*" ShaderProgram
+ResourceManager "1" *-- "0..*" Texture
+ResourceManager "1" *-- "1..*" BufferArena
+
+ResourceManager ..> SharedBuffer : creates (offset + ref)
+BufferArena ..> Allocation : returns from allocate
+BufferArena "1" *-- "1" BuddyAllocator : manages offsets
+SharedBuffer --> BufferArena : references (ref)
+Mesh "1" *-- "1..*" VertexStream
+Mesh --> VertexLayout : describes
+Mesh --> IndexType : uses
+Mesh ..> ResourceManager : vao id (cached VAO, owned by ResourceManager)
+VertexLayout "1" *-- "1..*" VertexAttribute
+VertexAttribute --> AttributeSemantic : defines
+
+Material --> ShaderProgram : references
+ShaderProgram --> VertexLayout : requires
+RenderableComponent --> Mesh : ref
+RenderableComponent --> Material : ref
