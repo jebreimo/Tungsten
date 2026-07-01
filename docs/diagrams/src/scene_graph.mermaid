@@ -128,18 +128,95 @@ namespace Bridge {
 
 namespace ResourceSide {
     class ResourceManager {
-        +get_mesh(ref: MeshRef): Mesh
-        +get_material(ref: MaterialRef): Material
-        +get_shader(ref: ShaderProgramRef): ShaderProgram
-        +get_texture(ref: TextureRef): Texture
+        +create_arena(usage: BufferUsage, stride: uint16, capacity: uint32): BufferArenaRef
         +get_arena(ref: BufferArenaRef): BufferArena
+        +destroy_arena(ref: BufferArenaRef)
         +allocate(ref: BufferArenaRef, count: uint32): SharedBuffer
+        +free(slice: SharedBuffer)
+        +register_layout(layout: VertexLayout): VertexLayoutRef
+        +get_layout(ref: VertexLayoutRef): VertexLayout
+        +create_mesh(mesh: Mesh): MeshRef
+        +get_mesh(ref: MeshRef): Mesh
+        +destroy_mesh(ref: MeshRef)
+        +create_material(material: Material): MaterialRef
+        +get_material(ref: MaterialRef): Material
+        +destroy_material(ref: MaterialRef)
+        +create_texture(texture: Texture): TextureRef
+        +get_texture(ref: TextureRef): Texture
+        +destroy_texture(ref: TextureRef)
+        +register_shader_family(id: ShaderFamilyId, family: ShaderFamily)
         +register_shader_variant(key: ShaderVariantKey): ShaderProgramRef
+        +get_shader(ref: ShaderProgramRef): ShaderProgram
         +get_vao(vbo_arenas: BufferArenaRef[], ebo_arena: BufferArenaRef, layout: VertexLayoutRef): uint32
-        -vao_cache: VaoEntry[]
-        -deferred_deletion_queue
-        +process_deletions()
+        +begin_frame(frame: uint64_t)
+        +collect_garbage(completed_frame: uint64_t)
+        -arenas: GenerationalPool
+        -meshes: GenerationalPool
+        -materials: GenerationalPool
+        -shaders: GenerationalPool
+        -textures: GenerationalPool
+        -layout_registry: LayoutRegistry
+        -vao_cache: VaoCache
+        -shader_library: ShaderLibrary
+        -deletions: DeletionQueue
     }
+
+    class GenerationalPool {
+        -slots: Slot[]
+        -free_list: uint32_t[]
+        +insert(value: resource): ResourceRef
+        +get(ref: ResourceRef): resource
+        +erase(ref: ResourceRef, on_retire)
+    }
+
+    class Slot {
+        +value: optional
+        +generation: uint32_t
+    }
+
+    class DeletionQueue {
+        -entries: RetiredObject[]
+        -current_frame: uint64_t
+        +begin_frame(frame: uint64_t)
+        +retire(handle: GlHandle)
+        +collect_garbage(completed_frame: uint64_t)
+    }
+
+    class LayoutRegistry {
+        -layouts: VertexLayout[]
+        +register_layout(layout: VertexLayout): VertexLayoutRef
+        +get_layout(ref: VertexLayoutRef): VertexLayout
+    }
+
+    class VaoCache {
+        -entries: VaoEntry[]
+        +get_vao(vbo_arenas: BufferArenaRef[], ebo_arena: BufferArenaRef, layout: VertexLayoutRef): uint32
+        -build_vao(key: VaoKey): uint32
+        +rebuild_for_arena(ref: BufferArenaRef)
+        +evict_for_arena(ref: BufferArenaRef)
+    }
+
+    class ShaderLibrary {
+        -families: ShaderFamily[]
+        -variant_cache: map
+        +register_family(id: ShaderFamilyId, family: ShaderFamily): void
+        +register_variant(key: ShaderVariantKey): ShaderProgramRef
+    }
+
+    class ShaderVariantKey {
+        +family: ShaderFamilyId
+        +defines: uint32_t
+    }
+
+    class ShaderFamily {
+        +id: ShaderFamilyId
+        +vertex_source: string
+        +fragment_source: string
+        +features: string[]
+        +required_layout: VertexLayout
+    }
+
+    note for ResourceManager "ResourceManager is a thin facade (design section 10): its public methods forward to five GenerationalPool instances (one each for Mesh, Material, ShaderProgram, Texture, BufferArena) and four collaborators (LayoutRegistry, VaoCache, ShaderLibrary, DeletionQueue). Pools and caches retire GL objects into the one DeletionQueue."
 
     class AttributeSemantic {
         <<enumeration>>
@@ -289,7 +366,7 @@ TransformUpdater ..> Scene : resolves dirty subtrees
 SnapshotBuilder ..> Scene : reads finalized world data
 SnapshotBuilder ..> ResourceManager : resolves handles
 SnapshotBuilder ..> RenderSnapshot : writes back buffer
-ResourceManager ..> ResourceRef~T~ : keys slots by
+GenerationalPool ..> ResourceRef~T~ : keys slots by
 
 DoubleBuffer~T~ "1" *-- "2" RenderSnapshot
 RenderSnapshot "1" *-- "0..*" RenderItem
@@ -301,11 +378,12 @@ Renderer "1" *-- "1" GlStateCache
 Renderer ..> UboBindings : binds per-frame / per-draw blocks
 GlStateCache ..> UboBindings : binds per-material block
 
-ResourceManager "1" *-- "0..*" Mesh
-ResourceManager "1" *-- "0..*" Material
-ResourceManager "1" *-- "0..*" ShaderProgram
-ResourceManager "1" *-- "0..*" Texture
-ResourceManager "1" *-- "1..*" BufferArena
+ResourceManager "1" *-- "5" GenerationalPool : Mesh/Material/Shader/Texture/Arena pools
+ResourceManager "1" *-- "1" LayoutRegistry
+ResourceManager "1" *-- "1" VaoCache
+ResourceManager "1" *-- "1" ShaderLibrary
+ResourceManager "1" *-- "1" DeletionQueue
+GenerationalPool "1" *-- "0..*" Slot : holds
 
 ResourceManager ..> SharedBuffer : creates (offset + ref)
 BufferArena ..> Allocation : returns from allocate
@@ -314,11 +392,20 @@ SharedBuffer --> BufferArena : references (ref)
 Mesh "1" *-- "1..*" VertexStream
 Mesh --> VertexLayout : describes
 Mesh --> IndexType : uses
-Mesh ..> ResourceManager : vao id (cached VAO, owned by ResourceManager)
+Mesh ..> VaoCache : vao id (cached VAO, owned by VaoCache)
 VertexLayout "1" *-- "1..*" VertexAttribute
 VertexAttribute --> AttributeSemantic : defines
 
 Material --> ShaderProgram : references
+Material ..> Texture : samples (TextureRef)
 ShaderProgram --> VertexLayout : requires
+ShaderProgram --> ShaderVariantKey : compiled for
+LayoutRegistry "1" *-- "0..*" VertexLayout : interns
+VaoCache ..> BufferArena : resolves + binds
+VaoCache ..> DeletionQueue : retires evicted VAOs
+ShaderLibrary "1" *-- "0..*" ShaderFamily : registers
+ShaderLibrary ..> ShaderVariantKey : keys variant cache
+ShaderLibrary ..> ShaderProgram : compiles into pool
+ShaderFamily --> VertexLayout : requires
 RenderableComponent --> Mesh : ref
 RenderableComponent --> Material : ref
