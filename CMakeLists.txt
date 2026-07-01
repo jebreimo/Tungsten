@@ -188,9 +188,16 @@ add_library(Tungsten STATIC
     src/Tungsten/Neo/GlStateCache.cpp
     src/Tungsten/Neo/GlStateCache.hpp
     src/Tungsten/Neo/UboBindings.hpp
+    src/Tungsten/Neo/DeletionQueue.cpp
+    src/Tungsten/Neo/DeletionQueue.hpp
+    src/Tungsten/Neo/LayoutRegistry.cpp
+    src/Tungsten/Neo/LayoutRegistry.hpp
+    src/Tungsten/Neo/ShaderFamily.hpp
     src/Tungsten/Neo/ShaderProgram.hpp
     src/Tungsten/Neo/ShaderVariantKey.hpp
     src/Tungsten/Neo/Texture.hpp
+    src/Tungsten/Neo/VaoCache.cpp
+    src/Tungsten/Neo/VaoCache.hpp
     src/Tungsten/Neo/VertexAttribute.hpp
     src/Tungsten/Neo/VertexLayout.hpp
     src/Tungsten/Neo/VertexStream.hpp

@@ -44,4 +44,16 @@ namespace Tungsten
 
         bool operator==(const VertexAttribute&) const = default;
     };
+
+    // The fixed vertex-attribute location a semantic is bound to, shared by every
+    // shader and every VAO (§13). Because a cached VAO is reused across all
+    // shaders that draw a given layout, locations cannot be per-shader; the
+    // AttributeSemantic enum order *is* the location table (POSITION = 0,
+    // NORMAL = 1, ...). This is the vertex-attribute analogue of the fixed UBO
+    // binding points: every shader declares `layout(location = N) in ...` to
+    // match, and the renderer never remaps.
+    inline uint32_t attribute_location(AttributeSemantic semantic)
+    {
+        return static_cast<uint32_t>(semantic);
+    }
 } // Tungsten
