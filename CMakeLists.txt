@@ -187,6 +187,8 @@ add_library(Tungsten STATIC
     src/Tungsten/Neo/GlStateCache.cpp
     src/Tungsten/Neo/GlStateCache.hpp
     src/Tungsten/Neo/UboBindings.hpp
+    src/Tungsten/Neo/ShaderProgram.hpp
+    src/Tungsten/Neo/ShaderVariantKey.hpp
     src/Tungsten/Neo/Texture.hpp
     src/Tungsten/Neo/VertexAttribute.hpp
     src/Tungsten/Neo/VertexLayout.hpp
