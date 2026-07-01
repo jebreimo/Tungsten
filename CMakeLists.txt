@@ -174,6 +174,7 @@ add_library(Tungsten STATIC
     src/Tungsten/Neo/RenderItem.hpp
     src/Tungsten/Neo/ResourceRef.hpp
     src/Tungsten/Neo/ResourceRefs.hpp
+    src/Tungsten/Neo/Material.hpp
     src/Tungsten/Neo/Mesh.hpp
     src/Tungsten/Neo/BufferArena.cpp
     src/Tungsten/Neo/BufferArena.hpp
