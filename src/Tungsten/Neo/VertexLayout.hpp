@@ -21,9 +21,9 @@ namespace Tungsten
     // the VAO cache key without the cache needing the full layout. Interning and
     // the cache key both rely on value equality, hence the defaulted operator==.
     //
-    // For multi-stream layouts the per-stream byte stride lives on each
-    // VertexStream; this stride describes the common (single, interleaved)
-    // stream case.
+    // A stream's byte pitch is its arena's stride (§7, one arena per stride);
+    // this stride describes the common (single, interleaved) stream case and is
+    // what the caller uses to pick or create the right arena.
     struct VertexLayout
     {
         std::vector<VertexAttribute> attributes;

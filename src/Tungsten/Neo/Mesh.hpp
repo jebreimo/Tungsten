@@ -10,8 +10,6 @@
 #include <vector>
 #include "Tungsten/Gl/GlTypes.hpp"
 #include "SharedBuffer.hpp"
-#include "VertexLayout.hpp"
-#include "VertexStream.hpp"
 
 namespace Tungsten
 {
@@ -21,8 +19,15 @@ namespace Tungsten
     // `vao` is the id of a VAO owned and cached by ResourceManager (shared by
     // every mesh with the same arena/layout combination, §7), not a handle this
     // Mesh owns. The element binding and buffer bindings are baked into that VAO;
-    // the per-draw offsets (first_index, and each stream's first_vertex) are not,
-    // so meshes differing only by offset reuse one VAO.
+    // the per-draw base offsets (each slice's `offset`) are not, so meshes
+    // differing only by offset reuse one VAO.
+    //
+    // Each stream, like `ebo`, is a plain SharedBuffer: its `offset` is the base
+    // vertex draws use, its `count` the vertex count, and its byte pitch the
+    // owning arena's stride (§7) — so there is no separate vertex-stream type.
+    //
+    // `layout` refers to the interned VertexLayout (§12) describing the streams'
+    // attributes; resolve it through ResourceManager::get_layout.
     //
     // index_type / primitive use the existing GL-layer enums (ElementIndexType,
     // TopologyType) so the renderer can pass them straight to draw_elements
@@ -30,11 +35,9 @@ namespace Tungsten
     struct Mesh
     {
         uint32_t vao = 0;
-        std::vector<VertexStream> streams;
-        VertexLayout layout;
+        std::vector<SharedBuffer> streams;
+        VertexLayoutRef layout;
         SharedBuffer ebo;
-        uint32_t first_index = 0;
-        uint32_t index_count = 0;
         ElementIndexType index_type = ElementIndexType::UINT16;
         TopologyType primitive = TopologyType::TRIANGLES;
     };

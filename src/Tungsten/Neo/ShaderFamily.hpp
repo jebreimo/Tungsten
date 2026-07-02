@@ -8,8 +8,8 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "ResourceRefs.hpp"
 #include "ShaderVariantKey.hpp"
-#include "VertexLayout.hpp"
 
 namespace Tungsten
 {
@@ -24,15 +24,15 @@ namespace Tungsten
     // to the source before compiling. Keeping the mapping ordered here is what lets
     // the key stay a cheap-to-compare bitmask rather than a set of strings.
     //
-    // `required_layout` is the vertex format every variant of this family expects;
-    // it is validated against a mesh's VertexLayout when building the VAO and is
-    // copied onto each compiled ShaderProgram.
+    // `required_layout` refers to the interned vertex format (§12) every variant
+    // of this family expects; it is compared against a mesh's layout ref at load
+    // and copied onto each compiled ShaderProgram.
     struct ShaderFamily
     {
         ShaderFamilyId id = 0;
         std::string vertex_source;
         std::string fragment_source;
         std::vector<std::string> features;
-        VertexLayout required_layout;
+        VertexLayoutRef required_layout;
     };
 } // Tungsten

@@ -68,14 +68,4 @@ namespace Tungsten
     {
         sort_key_ = sort_key;
     }
-
-    Xyz::RectangleF RenderItem::bounds() const
-    {
-        return bounds_;
-    }
-
-    void RenderItem::set_bounds(const Xyz::RectangleF& bounds)
-    {
-        bounds_ = bounds;
-    }
 } // Tungsten

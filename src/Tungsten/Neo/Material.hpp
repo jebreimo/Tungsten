@@ -25,15 +25,14 @@ namespace Tungsten
     // `textures` are bound to consecutive sampler units in order. `shader` must
     // be resolved to a concrete variant before the material is used for drawing.
     //
-    // `id` is a stable numeric identity used by the renderer as part of the draw
-    // sort key (so items sharing a material batch together and only trigger one
-    // per-material bind) and by GlStateCache to skip redundant binds. It is
-    // distinct from the MaterialRef, which is a revocable generational handle.
+    // There is no separate numeric identity: the draw sort key packs the
+    // MaterialRef's index (coherent within a snapshot, which is rebuilt every
+    // frame), and GlStateCache skips redundant binds by the GL ids of the bound
+    // objects (UBO, textures).
     struct Material
     {
         ShaderProgramRef shader;
         std::vector<uint8_t> parameter_data;
         std::vector<TextureRef> textures;
-        uint32_t id = 0;
     };
 } // Tungsten

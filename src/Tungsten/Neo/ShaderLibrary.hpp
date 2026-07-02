@@ -54,6 +54,5 @@ namespace Tungsten
         // Value-equality lookup (§14), like the other collaborators; the diagram
         // labels it "map" loosely.
         std::vector<std::pair<ShaderVariantKey, ShaderProgramRef>> variant_cache_;
-        uint32_t next_shader_id_ = 0;
     };
 } // Tungsten

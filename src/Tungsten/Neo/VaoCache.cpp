@@ -66,7 +66,7 @@ namespace Tungsten
         bind_buffer(BufferTarget::ARRAY, arena.buffer_id());
 
         // One arena per stride (§7), so the arena is the authority on the stream's
-        // vertex pitch — not layout.stride or VertexStream::stride.
+        // vertex pitch — not layout.stride.
         const int32_t stride = arena.stride();
         for (const VertexAttribute& attr : layout.attributes)
         {

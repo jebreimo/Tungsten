@@ -1,16 +1,16 @@
 classDiagram
 namespace SceneSide {
     class Scene {
-        +roots: vector~Node~
+        +roots: vector~unique_ptr~Node~~
         +snapshots: DoubleBuffer~RenderSnapshot~
-        +add(node: Node)
+        +add(node: unique_ptr~Node~)
         +remove(node: Node)
         +update(dt: float)
     }
 
     class Node {
-        +local_transform: Transform
-        +children: vector~Node~
+        -local_transform: Transform
+        +children: vector~unique_ptr~Node~~
         +parent: Node*
         +components: vector~Component~
         -world_matrix: mat4
@@ -18,21 +18,19 @@ namespace SceneSide {
         -parent_version_seen: uint64
         -local_dirty: bool
         +world_bounds: AABB
+        +local_transform(): Transform
+        +set_local_transform(t: Transform)
         +world_matrix(): mat4
-        +add_child(node: Node)
+        +add_child(node: unique_ptr~Node~)
         +remove_child(node: Node)
         +reparent(new_parent: Node)
-        +mark_local_dirty()
     }
 
     class Transform {
         +translation: vec3
         +rotation: quat
         +scale: vec3
-        -local_matrix: mat4
-        -local_dirty: bool
         +local_matrix(): mat4
-        +mark_dirty()
     }
 
     class Component {
@@ -69,6 +67,13 @@ namespace SceneSide {
         +color: vec3
         +intensity: float
         +range: float
+    }
+
+    class LightType {
+        <<enumeration>>
+        DIRECTIONAL
+        POINT
+        SPOT
     }
 
     class TransformUpdater {
@@ -113,7 +118,6 @@ namespace Bridge {
         +mesh: MeshRef
         +material: MaterialRef
         +sort_key: uint64_t
-        +world_bounds: AABB
     }
 
     class LightData {
@@ -213,7 +217,7 @@ namespace ResourceSide {
         +vertex_source: string
         +fragment_source: string
         +features: string[]
-        +required_layout: VertexLayout
+        +required_layout: VertexLayoutRef
     }
 
     note for ResourceManager "ResourceManager is a thin facade (design section 10): its public methods forward to five GenerationalPool instances (one each for Mesh, Material, ShaderProgram, Texture, BufferArena) and four collaborators (LayoutRegistry, VaoCache, ShaderLibrary, DeletionQueue). Pools and caches retire GL objects into the one DeletionQueue."
@@ -245,13 +249,6 @@ namespace ResourceSide {
         +stride: uint16_t
     }
 
-    class VertexStream {
-        +vbo: SharedBuffer
-        +first_vertex: uint32_t
-        +stride: uint16_t
-        +vertex_count: uint32_t
-    }
-
     class IndexType {
         <<enumeration>>
         UNSIGNED_SHORT
@@ -260,11 +257,9 @@ namespace ResourceSide {
 
     class Mesh {
         +vao: uint32_t
-        +streams: vector~VertexStream~
-        +layout: VertexLayout
+        +streams: vector~SharedBuffer~
+        +layout: VertexLayoutRef
         +ebo: SharedBuffer
-        +first_index: uint32_t
-        +index_count: uint32_t
         +index_type: IndexType
         +primitive: PrimitiveType
     }
@@ -275,19 +270,17 @@ namespace ResourceSide {
         +count: uint32_t
     }
 
+    note for SharedBuffer "offset and count are in the arena's stride units (vertices / indices), so offset is directly the base vertex / first index a draw uses. This is why Mesh needs no separate VertexStream type: each stream, like ebo, is a plain SharedBuffer."
+
     class BufferArena {
         +buffer: BufferHandle
         +usage: BufferUsage
         +stride: uint16_t
         -allocator: BuddyAllocator
-        +allocate(count: uint32): Allocation
+        +allocate(count: uint32): optional~uint32~
         +free(offset: uint32)
-        +grow(min_capacity: uint32)
-    }
-
-    class Allocation {
-        +offset: uint32_t
-        +retired_buffer: BufferHandle
+        +grow(new_capacity: uint32): BufferHandle
+        +capacity(): uint32
     }
 
     class BuddyAllocator {
@@ -301,14 +294,12 @@ namespace ResourceSide {
         +shader: ShaderProgramRef
         +parameter_data: vector~uint8_t~
         +textures: vector~TextureRef~
-        +id: uint32_t
     }
 
     class ShaderProgram {
         +gl_handle: ProgramHandle
-        +id: uint32_t
         +variant_key: ShaderVariantKey
-        +required_layout: VertexLayout
+        +required_layout: VertexLayoutRef
     }
 
     class Texture {
@@ -327,6 +318,9 @@ namespace RenderSide {
         -bind_per_frame(snapshot: RenderSnapshot)
         -bind_material(mat: Material)
         -gl_state_cache: GlStateCache
+        -per_frame_ubo: BufferHandle
+        -per_material_ubo: BufferHandle
+        -per_draw_ubo: BufferHandle
     }
 
     class GlStateCache {
@@ -348,7 +342,7 @@ namespace RenderSide {
         +PER_DRAW_UBO_BINDING: uint32_t
     }
 
-    note for UboBindings "Fixed binding points (§4): PER_FRAME = 0, PER_MATERIAL = 1, PER_DRAW = 2"
+    note for UboBindings "Fixed binding points (§4): PER_FRAME = 0, PER_MATERIAL = 1, PER_DRAW = 2. The Renderer owns the three UBO buffer objects bound at these points and uploads into them (per-frame once per frame, Material::parameter_data on material change, per-draw per item)."
 }
 
 Scene "1" *-- "1..*" Node
@@ -361,6 +355,7 @@ RenderableComponent --|> Component
 CameraComponent --|> Component
 LightComponent --|> Component
 CameraComponent --> ProjectionMode : uses
+LightComponent --> LightType : uses
 
 TransformUpdater ..> Scene : resolves dirty subtrees
 SnapshotBuilder ..> Scene : reads finalized world data
@@ -386,11 +381,10 @@ ResourceManager "1" *-- "1" DeletionQueue
 GenerationalPool "1" *-- "0..*" Slot : holds
 
 ResourceManager ..> SharedBuffer : creates (offset + ref)
-BufferArena ..> Allocation : returns from allocate
 BufferArena "1" *-- "1" BuddyAllocator : manages offsets
 SharedBuffer --> BufferArena : references (ref)
-Mesh "1" *-- "1..*" VertexStream
-Mesh --> VertexLayout : describes
+Mesh "1" *-- "1..*" SharedBuffer : streams + ebo
+Mesh --> VertexLayout : layout (interned ref)
 Mesh --> IndexType : uses
 Mesh ..> VaoCache : vao id (cached VAO, owned by VaoCache)
 VertexLayout "1" *-- "1..*" VertexAttribute
@@ -398,7 +392,7 @@ VertexAttribute --> AttributeSemantic : defines
 
 Material --> ShaderProgram : references
 Material ..> Texture : samples (TextureRef)
-ShaderProgram --> VertexLayout : requires
+ShaderProgram --> VertexLayout : requires (interned ref)
 ShaderProgram --> ShaderVariantKey : compiled for
 LayoutRegistry "1" *-- "0..*" VertexLayout : interns
 VaoCache ..> BufferArena : resolves + binds
@@ -406,6 +400,6 @@ VaoCache ..> DeletionQueue : retires evicted VAOs
 ShaderLibrary "1" *-- "0..*" ShaderFamily : registers
 ShaderLibrary ..> ShaderVariantKey : keys variant cache
 ShaderLibrary ..> ShaderProgram : compiles into pool
-ShaderFamily --> VertexLayout : requires
+ShaderFamily --> VertexLayout : requires (interned ref)
 RenderableComponent --> Mesh : ref
 RenderableComponent --> Material : ref

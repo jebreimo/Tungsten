@@ -97,7 +97,6 @@ namespace Tungsten
 
         ShaderProgram program;
         program.gl_handle = builder.build();
-        program.id = next_shader_id_++;
         program.variant_key = key;
         program.required_layout = family.required_layout;
 

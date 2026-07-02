@@ -24,8 +24,8 @@ namespace Tungsten
     // (vbo arenas, ebo arena, layout) combination and is shared by every mesh
     // with that combination regardless of which shader draws it — attribute
     // locations follow the fixed AttributeSemantic convention, not the shader.
-    // Per-mesh base offsets (first_vertex, first_index) are NOT baked, so meshes
-    // differing only by offset reuse one VAO.
+    // Per-mesh base offsets (each SharedBuffer's offset) are NOT baked, so
+    // meshes differing only by offset reuse one VAO.
     //
     // The cache owns each VAO (returning a non-owning id, not a handle): since
     // VAOs are shared, no single Mesh can own one. It does not own the arenas or

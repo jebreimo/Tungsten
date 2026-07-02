@@ -8,7 +8,6 @@
 #pragma once
 #include <array>
 #include <Xyz/Matrix.hpp>
-#include <Xyz/Rectangle.hpp>
 
 #include "ResourceRefs.hpp"
 
@@ -36,15 +35,10 @@ namespace Tungsten
         [[nodiscard]] uint64_t sort_key() const;
 
         void set_sort_key(uint64_t sort_key);
-
-        [[nodiscard]] Xyz::RectangleF bounds() const;
-
-        void set_bounds(const Xyz::RectangleF& bounds);
     private:
         std::array<float, 32> data_ = {};
         MeshRef mesh_ = {};
         MaterialRef material_ = {};
         uint64_t sort_key_ = 0;
-        Xyz::RectangleF bounds_;
     };
 } // Tungsten

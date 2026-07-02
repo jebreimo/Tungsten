@@ -7,6 +7,9 @@
 //****************************************************************************
 #include "Tungsten/Neo/ResourceManager.hpp"
 
+#include <algorithm>
+#include <limits>
+
 namespace Tungsten
 {
     BufferArenaRef ResourceManager::create_arena(BufferUsage usage, uint16_t stride,
@@ -30,23 +33,38 @@ namespace Tungsten
 
     SharedBuffer ResourceManager::allocate(BufferArenaRef ref, uint32_t count)
     {
-        BufferArena::Allocation alloc = get_arena(ref).allocate(count);
-        // The arena returns a byte offset; pair it with the ref (which only
-        // this owner knows) and the count to form the SharedBuffer.
-        SharedBuffer slice{ref, alloc.offset, count};
-
-        if (alloc.retired_buffer)
+        BufferArena& arena = get_arena(ref);
+        if (const auto offset = arena.allocate(count))
         {
-            // The arena's buffer id changed. Re-point every VAO that baked in
-            // this arena's buffer before the next draw.
-            rebuild_vaos_for_arena(ref);
-
-            // The old buffer may still be referenced by in-flight draws
-            // (or, with a render thread, by the snapshot being rendered),
-            // so it is retired rather than deleted now.
-            retire(std::move(alloc.retired_buffer));
+            // The arena returns a bare unit offset; pair it with the ref (which
+            // only this owner knows) and the count to form the SharedBuffer.
+            return SharedBuffer{ref, *offset, count};
         }
-        return slice;
+
+        // Full: grow the arena, then retry. Doubling (or sizing to the request
+        // with headroom when the arena is empty) keeps the amortized cost of
+        // repeated allocations constant; grow() bit_ceils the value anyway.
+        const auto new_capacity = std::max(
+            static_cast<uint64_t>(arena.capacity()) * 2,
+            static_cast<uint64_t>(count) * (arena.empty() ? 1 : 2));
+        if (new_capacity > std::numeric_limits<uint32_t>::max())
+            TUNGSTEN_THROW("ResourceManager: arena capacity overflow.");
+
+        BufferHandle displaced = arena.grow(static_cast<uint32_t>(new_capacity));
+
+        // The arena's buffer id changed. Re-point every VAO that baked in
+        // this arena's buffer before the next draw.
+        rebuild_vaos_for_arena(ref);
+
+        // The old buffer may still be referenced by in-flight draws
+        // (or, with a render thread, by the snapshot being rendered),
+        // so it is retired rather than deleted now.
+        retire(std::move(displaced));
+
+        const auto offset = arena.allocate(count);
+        if (!offset)
+            TUNGSTEN_THROW("ResourceManager: allocation failed after grow.");
+        return SharedBuffer{ref, *offset, count};
     }
 
     void ResourceManager::free(const SharedBuffer& slice)

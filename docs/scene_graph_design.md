@@ -25,15 +25,21 @@ recomputing the whole tree each frame.
 
 State per `Node`:
 
-- `localDirty` — set when the local `Transform` changes.
+- `localDirty` — set by `set_local_transform()`.
 - `worldMatrix` — cached world transform.
 - `worldVersion` — bumped every time `worldMatrix` is recomputed.
 - `parentVersionSeen` — the parent's `worldVersion` at the time this node last recomputed.
 
+**`Transform` is a plain value** — translation, rotation, scale, with `local_matrix()`
+computed on demand (a TRS compose is cheap and happens at most once per recompute). It
+carries no cache and no dirty flag of its own: the node's `localDirty` is the *only* dirty
+flag, and it is set by `Node::set_local_transform()` — the transform is not exposed as a
+mutable public member, so there is no way to change it that bypasses the flag.
+
 `world_matrix()` recomputes iff:
 
 ```
-localDirty || parent == nullptr ? false : parent.worldVersion != parentVersionSeen
+localDirty || (parent != nullptr && parent.worldVersion != parentVersionSeen)
 ```
 
 On recompute: `worldMatrix = parent.world_matrix() * localTransform.local_matrix()`, then
@@ -54,6 +60,12 @@ children). Aggregate bounds propagate **up** (`propagate_bounds`): a node's `wor
 its own renderable bounds unioned with its children's world bounds, so a moved child grows
 its ancestors' bounds. Keeping both directions in mind is what makes hierarchical frustum
 culling possible later.
+
+**Nodes are owned through `unique_ptr`.** `Scene::roots` and `Node::children` are
+`vector<unique_ptr<Node>>`, not `vector<Node>`: `Node::parent` and `Component::owner` are raw
+back-pointers, and by-value children would invalidate every such pointer below a `push_back`
+that reallocates. The `unique_ptr` indirection keeps node addresses stable for the node's
+lifetime.
 
 ## 3. WebGL2 / GLES 3.00 constraints
 
@@ -86,6 +98,11 @@ type:
 
 This convention is enforced by reflecting each program's interface at load and validating it,
 or by documented contract for hand-written shaders.
+
+The `Renderer` owns the three UBO buffer objects bound at these points; the binding points
+never change after startup, only the buffers' contents do. It uploads the per-frame block once
+per frame, a material's `parameterData` blob on material change, and the per-draw block per
+item.
 
 ## 5. Double-buffering
 
@@ -120,12 +137,24 @@ must not be persisted as if it were one.
 
 GL buffers are not allocated one-per-mesh. A `BufferArena` owns **one** GL
 `BufferHandle` and hands out sub-ranges of it; many meshes share one buffer. This
-is the resource-layer mechanism behind `VertexStream::vbo` and `Mesh::ebo`.
+is the resource-layer mechanism behind the `SharedBuffer` slices a `Mesh` draws
+from — its vertex streams and its `ebo`.
 
 **`SharedBuffer` is a non-owning slice, not shared ownership.** It is a plain
 value `{ BufferArenaRef arena, uint32 offset, uint32 count }` — trivially
 copyable, no refcount. The name refers to the *buffer being shared* among
-allocations, not to shared ownership of the GL buffer.
+allocations, not to shared ownership of the GL buffer. `offset` and `count` are
+in the arena's stride units (vertices or indices), never bytes; byte offsets
+exist only where a GL call needs one, computed via the arena's `stride()`.
+
+**A `Mesh`'s vertex streams are plain `SharedBuffer`s — there is no separate
+`VertexStream` type.** Because the arena allocates in vertex units, a slice's
+`offset` *is* the base vertex a draw passes as `first` (or folds into rebased
+indices) and its `count` *is* the vertex count; a per-stream stride field would
+only duplicate the arena's `stride()`, which is the single authority on a
+stream's byte pitch (see §13). The same identity covers the index side: the
+`ebo` slice's `offset` and `count` are the first index and index count, so
+`Mesh` is just `{ vao, streams, layout, ebo, index_type, primitive }`.
 
 Resolving `arena` → `BufferArena` → `BufferHandle` goes through
 `ResourceManager::get_arena(BufferArenaRef)`. This happens at **VAO build
@@ -155,10 +184,11 @@ free-list. Never `shared_ptr<BufferHandle>`.)
 logic. This pattern is not new: `TextRenderer` already pairs a GL buffer with two
 `BuddyAllocator`s and grows by re-`claim()`ing every live block into a larger
 allocator (`src/Tungsten/Render/TextRenderer.cpp`). `BufferArena` factors that out
-into a named, reusable type. `allocate()` returns the byte `offset` the
-`BuddyAllocator` hands out (converted from units via the arena's stride); `free()`
-takes that byte offset and calls `BuddyAllocator::free`; `grow()` reallocates the
-GL buffer and replays `claim()` for every live allocation.
+into a named, reusable type. `allocate()` returns the unit `offset` the
+`BuddyAllocator` hands out, or `nullopt` when the arena is full — it never grows
+on its own (see below); `free()` takes that offset back to `BuddyAllocator::free`;
+`grow()` reallocates the GL buffer and replays `claim()` for every live
+allocation.
 
 Two decisions this commits to:
 
@@ -168,11 +198,13 @@ Two decisions this commits to:
   reuse here. For arenas holding a few large, oddly-sized meshes it can waste real
   VBO space; if that shows up in profiling, switch those arenas to a best-fit
   free-list allocator behind the same `BufferArena` interface. Start with buddy.
-- **One arena per stride, allocating in vertex/index units.** Then `offset` is
-  directly `VertexStream::firstVertex` and `count` is `vertexCount`, buddy's
-  natural power-of-two alignment subsumes any explicit alignment field, and VAO
-  binding stays simple. A single arena mixing strides would instead allocate in
-  bytes and make stride/alignment do real work; the per-stride split avoids that.
+- **One arena per stride, allocating in vertex/index units.** Then a slice's
+  `offset` is directly the base vertex/index a draw uses and its `count` the
+  vertex/index count (which is what lets `Mesh` use bare `SharedBuffer`s as
+  streams), buddy's natural power-of-two alignment subsumes any explicit
+  alignment field, and VAO binding stays simple. A single arena mixing strides
+  would instead allocate in bytes and make stride/alignment do real work; the
+  per-stride split avoids that.
 
 **Growth preserves offsets.** Doubling a buddy allocator's capacity leaves every
 live block at its original offset (the "claim after doubling" test in
@@ -181,19 +213,22 @@ grows, existing `SharedBuffer{offset,count}` values stay valid — only the GL
 `BufferHandle` is rebound — and the immutable `RenderSnapshot` never needs its
 meshes re-patched.
 
-**The arena deals in byte offsets; `ResourceManager` owns identity.** A
-`BufferArena` does **not** know its own `BufferArenaRef` — that `{index,
-generation}` is `ResourceManager`'s slot bookkeeping, and `generation` is
+**The arena deals in bare offsets; `ResourceManager` owns identity and growth
+policy.** A `BufferArena` does **not** know its own `BufferArenaRef` — that
+`{index, generation}` is `ResourceManager`'s slot bookkeeping, and `generation` is
 authoritative there. Rather than hand out a half-formed slice it cannot fully
-construct, the arena does not traffic in `SharedBuffer` at all: `BufferArena::allocate`
-returns an `Allocation{ uint32 offset, retired_buffer }` (a bare byte offset), and
-`ResourceManager::allocate(BufferArenaRef, count)` — the one caller that knows the
-ref — pairs that offset with the ref and the count to form the `SharedBuffer` in one
-shot. This keeps the dependency one-directional (`ResourceManager` → `BufferArena`,
-never the reverse), cleanly splits the two axes (the arena owns **range** /
-offset-and-stride; `ResourceManager` owns **identity** / the ref), and makes the
-same `ResourceManager` boundary the place that also (a) retires the displaced GL
-buffer returned by a grow and (b) rebuilds the VAOs invalidated when the arena's
+construct, the arena does not traffic in `SharedBuffer` at all:
+`BufferArena::allocate(count)` returns `optional<uint32> offset` (a bare unit
+offset, `nullopt` when full), and `ResourceManager::allocate(BufferArenaRef,
+count)` — the one caller that knows the ref — pairs that offset with the ref and
+the count to form the `SharedBuffer` in one shot. When the arena is full, the same
+method decides how much to grow, calls `grow()` — which returns the displaced
+`BufferHandle` — and retries the allocation. This keeps the dependency
+one-directional (`ResourceManager` → `BufferArena`, never the reverse), cleanly
+splits the two axes (the arena owns **range** / offset-and-stride;
+`ResourceManager` owns **identity** / the ref), and makes the same
+`ResourceManager` boundary the place that also (a) retires the displaced GL
+buffer a grow returns and (b) rebuilds the VAOs invalidated when the arena's
 buffer id moves. `free` is symmetric: `ResourceManager` resolves `slice.arena`
 through `get_arena` and forwards `slice.offset` to the arena. `SharedBuffer` is thus
 purely a `ResourceManager`-level type; `BufferArena` does not include its header.
@@ -243,7 +278,7 @@ This is a forward-looking design; current code migrates toward it rather than be
 wholesale:
 
 - **`MeshData`** (`MeshDataBuilder.hpp`, `MeshUtilities.hpp`) is the current CPU-side mesh
-  container. The new `Mesh` + `VertexStream` + `BufferArena` are its GPU-resident,
+  container. The new `Mesh` + `SharedBuffer` + `BufferArena` are its GPU-resident,
   sub-allocated successor; `MeshData` becomes the source that gets uploaded into an arena.
 - The existing typed `ShaderProgram` subclasses + `*Uniform` helper structs in
   `ShaderPrograms/` are replaced on this path by the generic `Material` parameter blob +
@@ -328,10 +363,6 @@ small owning variant (or one queue per handle type — an implementation choice,
 one). This subsumes the sketch's `retired_buffers_`. The facade's `begin_frame` /
 `collect_garbage` are forwarders to the queue's.
 
-*Naming note:* the diagram's `process_deletions()` / `deferred_deletion_queue` are this
-collaborator's `collect_garbage` / the queue itself; the code uses the `begin_frame` /
-`collect_garbage` pair because it makes the frame-tagging explicit.
-
 ## 12. VertexLayout interning — the `LayoutRegistry`
 
 §7 states layouts are interned and referred to by `VertexLayoutRef`; the `LayoutRegistry`
@@ -350,6 +381,12 @@ interning them for the manager's lifetime costs almost nothing and buys two thin
 of the `VaoCache` key (§13) and be embedded in a `RenderItem`'s sort key without revocation
 concerns. Consequently a layout ref's `generation` is a constant; only the index carries
 information.
+
+Everything downstream holds the ref, never a layout value: `Mesh::layout`,
+`ShaderProgram::required_layout`, and `ShaderFamily::required_layout` are all
+`VertexLayoutRef`s. Besides avoiding deep copies of interned data, this makes the load-time
+layout validation in §13 a single ref comparison — interning guarantees equal layouts share a
+ref.
 
 ## 13. Attribute-location convention and the `VaoCache`
 
@@ -372,7 +409,8 @@ i.e. the `AttributeSemantic` enum order *is* the location table (`POSITION = 0`,
 …). This is the vertex-attribute analogue of the fixed UBO binding points in §4: every shader
 declares `layout(location = N) in …` to match, and the renderer never remaps. `ShaderProgram::
 required_layout` exists to **validate** this at load (catch a shader whose declared inputs
-disagree with the mesh format), not to relocate attributes.
+disagree with the mesh format), not to relocate attributes — and since it is a
+`VertexLayoutRef` (§12), the check is a ref comparison against the mesh's `layout`.
 
 **`build_vao(key)` bakes, per the resolved layout:**
 
@@ -380,14 +418,14 @@ disagree with the mesh format), not to relocate attributes.
    buffer to `GL_ARRAY_BUFFER`, then for every `VertexAttribute` with `stream_index == i`
    call `define_vertex_attribute_pointer(attribute_location(semantic), component_count,
    data_type, stride, offset_in_stream, normalized)` and enable it. **The per-vertex stride is
-   the arena's `stride()`**, not `layout.stride` or `VertexStream::stride`: the one-arena-per-
-   stride rule (§7) makes the arena the single authority on a stream's byte pitch, and it is
-   the value available at build time (the cache key holds arena refs, not streams).
+   the arena's `stride()`**, not `layout.stride`: the one-arena-per-stride rule (§7) makes the
+   arena the single authority on a stream's byte pitch, and it is the value available at build
+   time (the cache key holds arena refs, not streams).
 2. Bind the element buffer: `bind_buffer(ELEMENT_ARRAY_BUFFER, get_arena(ebo_arena).
    buffer_id())`. This binding *is* VAO state, which is exactly why the VAO is specific to one
    EBO arena.
 
-Per-mesh base offsets (`first_vertex`, `first_index`) are **not** baked — array draws pass
+Per-mesh base offsets (each `SharedBuffer`'s `offset`, §7) are **not** baked — array draws pass
 `first`, indexed draws use rebased absolute indices (§3) — so meshes differing only by offset
 reuse one VAO.
 
@@ -416,20 +454,27 @@ programs bounded even though real shaders have many feature permutations (skinni
 normal-mapping, alpha-clip, …). See `scene_graph_chat.md` §"Layer 5".
 
 - A **shader family** is a named GLSL source pair (vertex + fragment) plus the ordered list of
-  feature flags it understands and the `VertexLayout` its attributes expect.
+  feature flags it understands and the interned layout ref (§12) its attributes expect.
   `register_shader_family(ShaderFamilyId, sources, features, required_layout)` records one; the
   `ShaderFamilyId` is an interned family name. Builtin families come from the embedded
   `Shaders/*.glsl` sources (cppembed), so this stays within the existing shader pipeline.
 - `register_shader_variant(ShaderVariantKey{ family, defines })` looks the key up in the variant
   cache (keyed by value equality on the key). **Hit:** return the cached `ShaderProgramRef`.
   **Miss:** expand `defines` — bit *i* set ⇒ prepend `#define <features[i]>` to the family
-  source — compile and link, assign the program a stable numeric `id` (packed into
-  `RenderItem::sort_key` so same-program items batch), populate the `ShaderProgram`
-  (`gl_handle`, `id`, `variant_key`, `required_layout`), insert it into the shader pool, record
-  `key -> ref` in the cache, and return the ref.
+  source — compile and link, populate the `ShaderProgram` (`gl_handle`, `variant_key`,
+  `required_layout`), insert it into the shader pool, record `key -> ref` in the cache, and
+  return the ref.
 
 The `defines` bitmask, not a string set, is what makes the key cheap to compare and hash; the
 family's ordered feature list is the single place that maps a bit to its `#define` spelling.
 `Material` selects appearance by holding the resolved `ShaderProgramRef`; the
 `SnapshotBuilder` (or material-authoring code) is what turns "this material has a normal map
 and is skinned" into a `ShaderVariantKey` and resolves it here.
+
+**No second identity system.** Neither `ShaderProgram` nor `Material` carries a separate
+numeric `id` for batching: the sort key packs the `ShaderProgramRef` / `MaterialRef` *index*,
+which is unambiguous within one snapshot because snapshots are rebuilt from live refs every
+frame (§5) — a slot reused across frames can never alias inside a single frame's draw list.
+For skipping redundant binds, `GlStateCache` keys on the GL object names themselves (program
+id, buffer id, texture id), which deferred deletion (§11) keeps unique among possibly-bound
+objects.

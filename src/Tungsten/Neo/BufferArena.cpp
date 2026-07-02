@@ -7,7 +7,6 @@
 //****************************************************************************
 #include "BufferArena.hpp"
 
-#include <algorithm>
 #include <bit>
 #include <limits>
 #include <utility>
@@ -24,27 +23,16 @@ namespace Tungsten
         buffer_ = generate_buffer(capacity * stride, usage);
     }
 
-    BufferArena::Allocation BufferArena::allocate(uint32_t count)
+    std::optional<uint32_t> BufferArena::allocate(uint32_t count)
     {
         if (const auto offset = allocator_.allocate(count))
-            return {byte_offset(*offset), BufferHandle{}};
-
-        const auto new_capacity = std::max(
-            static_cast<uint64_t>(allocator_.capacity()) * 2,
-            static_cast<uint64_t>(count) * (allocator_.allocated() ? 2 : 1));
-        if (new_capacity > std::numeric_limits<uint32_t>::max())
-            TUNGSTEN_THROW("BufferArena: capacity overflow.");
-
-        BufferHandle retired = grow(static_cast<uint32_t>(new_capacity));
-        const auto offset = allocator_.allocate(count);
-        if (!offset)
-            TUNGSTEN_THROW("BufferArena: allocation failed after grow.");
-        return {byte_offset(*offset), std::move(retired)};
+            return static_cast<uint32_t>(*offset);
+        return std::nullopt;
     }
 
     void BufferArena::free(uint32_t offset)
     {
-        allocator_.free(offset / stride_);
+        allocator_.free(offset);
     }
 
     BufferHandle BufferArena::grow(uint32_t new_capacity)
@@ -59,10 +47,5 @@ namespace Tungsten
         allocator_ = allocator_.resized(new_capacity64);
         std::swap(buffer_, newBuffer);
         return newBuffer;
-    }
-
-    uint32_t BufferArena::byte_offset(size_t count_offset) const
-    {
-        return static_cast<uint32_t>(count_offset * stride_);
     }
 } // Tungsten

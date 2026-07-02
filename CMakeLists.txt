@@ -203,7 +203,6 @@ add_library(Tungsten STATIC
     src/Tungsten/Neo/VaoCache.hpp
     src/Tungsten/Neo/VertexAttribute.hpp
     src/Tungsten/Neo/VertexLayout.hpp
-    src/Tungsten/Neo/VertexStream.hpp
 )
 
 target_link_libraries(Tungsten

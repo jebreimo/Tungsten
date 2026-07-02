@@ -43,8 +43,9 @@ namespace Tungsten
 
         // Allocates a slice from an arena and stamps its identity. This is the
         // one place the BufferArenaRef is known, so this is where it is written
-        // onto the SharedBuffer. If the allocation grew the arena, the old GL
-        // buffer is retired here and the affected VAOs are rebuilt.
+        // onto the SharedBuffer. If the arena is full, it is grown here: the
+        // displaced GL buffer is retired and the affected VAOs are rebuilt
+        // before the allocation is retried.
         SharedBuffer allocate(BufferArenaRef ref, uint32_t count);
 
         void free(const SharedBuffer& slice);

@@ -6,27 +6,26 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include <optional>
 #include "Tungsten/Detail/BuddyAllocator.hpp"
 #include "Tungsten/Gl/GlBuffer.hpp"
 
 namespace Tungsten
 {
+    // All offsets, counts and capacities are in stride units (vertices or
+    // indices), not bytes: an offset is directly the base vertex/index a draw
+    // uses. Byte offsets only exist where a GL call needs one, computed via
+    // stride().
     class BufferArena
     {
     public:
-        // The result of an allocation. If the allocation had to grow the
-        // buffer, the displaced GL buffer is moved into retired_buffer so
-        // the owner can defer-delete it; otherwise retired_buffer is empty.
-        struct Allocation
-        {
-            uint32_t offset; // byte offset into the buffer
-            BufferHandle retired_buffer;
-        };
-
         BufferArena(BufferUsage usage, uint16_t stride, uint32_t capacity);
 
+        // Returns the unit offset of a free range of `count` units, or nullopt
+        // if the arena is full. Never grows the buffer; the owner decides when
+        // and how much to grow (see ResourceManager::allocate).
         [[nodiscard]]
-        Allocation allocate(uint32_t count);
+        std::optional<uint32_t> allocate(uint32_t count);
 
         void free(uint32_t offset);
 
@@ -55,12 +54,19 @@ namespace Tungsten
         {
             return stride_;
         }
-    private:
-        // Converts a unit/count offset from the allocator into a byte offset
-        // into the buffer.
-        [[nodiscard]]
-        uint32_t byte_offset(size_t count_offset) const;
 
+        [[nodiscard]]
+        uint32_t capacity() const
+        {
+            return static_cast<uint32_t>(allocator_.capacity());
+        }
+
+        [[nodiscard]]
+        bool empty() const
+        {
+            return allocator_.allocated() == 0;
+        }
+    private:
         BufferHandle buffer_;
         BufferUsage usage_;
         uint16_t stride_;
