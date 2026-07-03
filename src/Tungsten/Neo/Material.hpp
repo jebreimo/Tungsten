@@ -29,10 +29,14 @@ namespace Tungsten
     // MaterialRef's index (coherent within a snapshot, which is rebuilt every
     // frame), and GlStateCache skips redundant binds by the GL ids of the bound
     // objects (UBO, textures).
+    // `transparent` decides which snapshot list an item lands in: opaque
+    // items are sorted for state-change batching (front-to-back), transparent
+    // ones back-to-front for correct blending.
     struct Material
     {
         ShaderProgramRef shader;
         std::vector<uint8_t> parameter_data;
         std::vector<TextureRef> textures;
+        bool transparent = false;
     };
 } // Tungsten

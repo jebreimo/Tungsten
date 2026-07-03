@@ -10,6 +10,7 @@
 #include <memory>
 #include <vector>
 #include <Xyz/Matrix.hpp>
+#include "AABB.hpp"
 #include "Component.hpp"
 #include "Transform.hpp"
 
@@ -85,14 +86,27 @@ namespace Tungsten
         [[nodiscard]]
         uint64_t world_version() const;
 
+        // The aggregate world-space bounds: this node's renderables unioned
+        // with its children's world bounds (§2, "bounds propagate up").
+        // Maintained by TransformUpdater::resolve; empty until the first
+        // resolve, or when the subtree has no renderables with bounds.
+        [[nodiscard]]
+        const AABB& world_bounds() const
+        {
+            return world_bounds_;
+        }
+
     private:
+        friend class TransformUpdater;
+
         Transform local_transform_;
         std::vector<std::unique_ptr<Node>> children_;
         std::vector<std::unique_ptr<Component>> components_;
         Node* parent_ = nullptr;
 
-        // The lazily maintained cache (§2), updated by the const
-        // world_matrix(), hence mutable.
+        // Derived caches (§2), updated through const traversals
+        // (world_matrix() and TransformUpdater::resolve), hence mutable.
+        mutable AABB world_bounds_;
         mutable Xyz::Matrix4F world_matrix_;
         mutable uint64_t world_version_ = 0;
         mutable uint64_t parent_version_seen_ = 0;

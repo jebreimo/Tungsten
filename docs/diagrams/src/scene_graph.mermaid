@@ -49,9 +49,10 @@ namespace SceneSide {
     class CameraComponent {
         +mode: ProjectionMode
         +fov: float
-        +near: float
-        +far: float
+        +near_plane: float
+        +far_plane: float
         +ortho_size: float
+        +aspect: float
         +get_view_matrix(): mat4
         +get_projection_matrix(): mat4
     }
@@ -67,6 +68,8 @@ namespace SceneSide {
         +color: vec3
         +intensity: float
         +range: float
+        +inner_cone_angle: float
+        +outer_cone_angle: float
     }
 
     class LightType {
@@ -81,6 +84,12 @@ namespace SceneSide {
         -resolve_node(node: Node)
         -propagate_bounds(node: Node)
     }
+
+    class AABB {
+        +min: vec3
+        +max: vec3
+        +is_empty(): bool
+    }
 }
 
 namespace Bridge {
@@ -91,9 +100,11 @@ namespace Bridge {
 
     class SnapshotBuilder {
         +build(scene: Scene, camera: CameraComponent, out: RenderSnapshot)
-        -extract_item(node: Node, component: RenderableComponent): RenderItem
-        -cull(camera: CameraComponent, bounds: AABB): bool
-        -compute_sort_key(item: RenderItem): uint64
+        -extract_node(node: Node, out: RenderSnapshot)
+        -extract_renderable(node: Node, renderable: RenderableComponent, out: RenderSnapshot)
+        -extract_light(node: Node, light: LightComponent): LightData
+        -cull(world_bounds: AABB): bool
+        -compute_sort_key(layer, shader, material, mesh, depth, transparent): uint64
         -compute_normal_matrix(world: mat4): mat3
     }
 
@@ -294,6 +305,7 @@ namespace ResourceSide {
         +shader: ShaderProgramRef
         +parameter_data: vector~uint8_t~
         +textures: vector~TextureRef~
+        +transparent: bool
     }
 
     class ShaderProgram {
