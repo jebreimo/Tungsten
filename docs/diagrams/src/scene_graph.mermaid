@@ -220,7 +220,7 @@ namespace ResourceSide {
         +required_layout: VertexLayoutRef
     }
 
-    note for ResourceManager "ResourceManager is a thin facade (design section 10): its public methods forward to five GenerationalPool instances (one each for Mesh, Material, ShaderProgram, Texture, BufferArena) and four collaborators (LayoutRegistry, VaoCache, ShaderLibrary, DeletionQueue). Pools and caches retire GL objects into the one DeletionQueue."
+    note for ResourceManager "ResourceManager is a thin facade (design section 10): its public methods forward<br>to five GenerationalPool instances (one each for Mesh, Material, ShaderProgram,<br>Texture, BufferArena) and four collaborators (LayoutRegistry, VaoCache,<br>ShaderLibrary, DeletionQueue). Pools and caches retire GL objects<br>into the one DeletionQueue."
 
     class AttributeSemantic {
         <<enumeration>>
@@ -270,7 +270,7 @@ namespace ResourceSide {
         +count: uint32_t
     }
 
-    note for SharedBuffer "offset and count are in the arena's stride units (vertices / indices), so offset is directly the base vertex / first index a draw uses. This is why Mesh needs no separate VertexStream type: each stream, like ebo, is a plain SharedBuffer."
+    note for SharedBuffer "offset and count are in the arena's stride units (vertices / indices),<br>so offset is directly the base vertex / first index a draw uses. This is<br>why Mesh needs no separate VertexStream type: each stream,<br>like ebo, is a plain SharedBuffer."
 
     class BufferArena {
         +buffer: BufferHandle
@@ -342,7 +342,7 @@ namespace RenderSide {
         +PER_DRAW_UBO_BINDING: uint32_t
     }
 
-    note for UboBindings "Fixed binding points (§4): PER_FRAME = 0, PER_MATERIAL = 1, PER_DRAW = 2. The Renderer owns the three UBO buffer objects bound at these points and uploads into them (per-frame once per frame, Material::parameter_data on material change, per-draw per item)."
+    note for UboBindings "Fixed binding points (§4): PER_FRAME = 0, PER_MATERIAL = 1, PER_DRAW = 2.<br>The Renderer owns the three UBO buffer objects bound at these points and<br>uploads into them (per-frame once per frame, Material::parameter_data<br>on material change, per-draw per item)."
 }
 
 Scene "1" *-- "1..*" Node

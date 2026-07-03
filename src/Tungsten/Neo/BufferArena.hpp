@@ -7,6 +7,7 @@
 //****************************************************************************
 #pragma once
 #include <optional>
+#include <utility>
 #include "Tungsten/Detail/BuddyAllocator.hpp"
 #include "Tungsten/Gl/GlBuffer.hpp"
 
@@ -36,6 +37,14 @@ namespace Tungsten
         // Throws if new_capacity is not larger than the current capacity.
         [[nodiscard]]
         BufferHandle grow(uint32_t new_capacity);
+
+        // Moves the GL buffer out, for retiring it when the arena itself is
+        // destroyed. The arena must not be used afterwards.
+        [[nodiscard]]
+        BufferHandle release_buffer()
+        {
+            return std::move(buffer_);
+        }
 
         [[nodiscard]]
         uint32_t buffer_id() const

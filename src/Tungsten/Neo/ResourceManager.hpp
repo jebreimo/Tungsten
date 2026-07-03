@@ -7,129 +7,142 @@
 //****************************************************************************
 #pragma once
 #include <cstdint>
-#include <optional>
 #include <span>
-#include <utility>
-#include <vector>
-#include "Tungsten/Gl/GlBuffer.hpp"
-#include "Tungsten/Gl/GlVertexArray.hpp"
-#include "Tungsten/TungstenException.hpp"
+#include "Tungsten/Gl/GlTypes.hpp"
 #include "BufferArena.hpp"
+#include "DeletionQueue.hpp"
+#include "GenerationalPool.hpp"
+#include "LayoutRegistry.hpp"
+#include "Material.hpp"
+#include "Mesh.hpp"
 #include "ResourceRefs.hpp"
+#include "ShaderLibrary.hpp"
 #include "SharedBuffer.hpp"
+#include "Texture.hpp"
+#include "VaoCache.hpp"
 
 namespace Tungsten
 {
-    // SKETCH: only the buffer-arena surface of ResourceManager is shown here.
-    // The mesh / material / shader / texture slot tables and the VAO cache
-    // follow the same generational-slot pattern and are omitted.
+    // The single owner of GPU resources, and the only place that knows a
+    // resource's logical ref ({index, generation}, §6).
     //
-    // ResourceManager is the single owner of GPU resources and the only place
-    // that knows a resource's logical ref ({index, generation}). It therefore:
-    //   - stamps the BufferArenaRef onto the SharedBuffers an arena hands out,
-    //   - drives buffer growth and retires the displaced GL buffers, and
-    //   - (would) rebuild the VAOs invalidated when an arena's buffer id moves.
+    // It is a thin facade (§10): every public method forwards to one of five
+    // GenerationalPools (Mesh, Material, ShaderProgram, Texture, BufferArena)
+    // or to a focused collaborator it owns — LayoutRegistry (layout interning,
+    // §12), VaoCache (shared VAOs, §13), ShaderLibrary (variant compilation,
+    // §14), DeletionQueue (frame-tagged deferred deletion, §11). The facade
+    // wires them together: VaoCache resolves arenas and layouts through the
+    // arena pool and the registry, ShaderLibrary inserts compiled programs
+    // into the shader pool, and everything that takes a GL object out of
+    // service retires it into the one DeletionQueue.
     class ResourceManager
     {
     public:
-        // ---- Buffer arenas ------------------------------------------------
+        ResourceManager();
+
+        // The collaborators hold callbacks bound to this instance, so the
+        // manager can be neither copied nor moved.
+        ResourceManager(const ResourceManager&) = delete;
+        ResourceManager& operator=(const ResourceManager&) = delete;
+
+        // ---- Buffer arenas (§7) -------------------------------------------
 
         BufferArenaRef create_arena(BufferUsage usage, uint16_t stride,
                                     uint32_t capacity);
 
-        // Resolves a ref to its arena, validating the generation so a stale ref
-        // (held across a destroy + slot reuse) throws instead of aliasing.
+        [[nodiscard]]
         BufferArena& get_arena(BufferArenaRef ref);
 
-        // Allocates a slice from an arena and stamps its identity. This is the
-        // one place the BufferArenaRef is known, so this is where it is written
-        // onto the SharedBuffer. If the arena is full, it is grown here: the
-        // displaced GL buffer is retired and the affected VAOs are rebuilt
-        // before the allocation is retried.
+        // Destroys an arena: every cached VAO that binds it is evicted and
+        // its GL buffer is retired. Only valid once no live mesh draws from
+        // the arena (§13).
+        void destroy_arena(BufferArenaRef ref);
+
+        // Allocates a slice from an arena and stamps its identity: this is
+        // the one place the BufferArenaRef is known, so this is where the
+        // arena's bare unit offset is paired with the ref and the count to
+        // form the SharedBuffer. If the arena is full it is grown here: the
+        // displaced GL buffer is retired, the affected VAOs are re-pointed in
+        // place, and the allocation is retried.
         SharedBuffer allocate(BufferArenaRef ref, uint32_t count);
 
+        // Returns a slice's range to its arena.
         void free(const SharedBuffer& slice);
 
-        // ---- VAO cache ----------------------------------------------------
+        // ---- Vertex layouts (§12) -----------------------------------------
+
+        VertexLayoutRef register_layout(const VertexLayout& layout);
+
+        [[nodiscard]]
+        const VertexLayout& get_layout(VertexLayoutRef ref) const;
+
+        // ---- Meshes, materials, textures (§10.1) --------------------------
+
+        MeshRef create_mesh(Mesh mesh);
+
+        [[nodiscard]]
+        Mesh& get_mesh(MeshRef ref);
+
+        // Destroys a mesh and returns its slices (streams and ebo) to their
+        // arenas. A mesh owns no GL object — its VAO belongs to the VaoCache.
+        void destroy_mesh(MeshRef ref);
+
+        MaterialRef create_material(Material material);
+
+        [[nodiscard]]
+        Material& get_material(MaterialRef ref);
+
+        void destroy_material(MaterialRef ref);
+
+        TextureRef create_texture(Texture texture);
+
+        [[nodiscard]]
+        Texture& get_texture(TextureRef ref);
+
+        // Destroys a texture. Its ref is revoked immediately; the GL texture
+        // is deleted once no in-flight frame can reference it (§11).
+        void destroy_texture(TextureRef ref);
+
+        // ---- Shaders (§14) ------------------------------------------------
+
+        void register_shader_family(ShaderFamilyId id, ShaderFamily family);
+
+        // Returns the program for the key, compiling and inserting it into
+        // the shader pool on first use.
+        ShaderProgramRef register_shader_variant(const ShaderVariantKey& key);
+
+        [[nodiscard]]
+        ShaderProgram& get_shader(ShaderProgramRef ref);
+
+        // ---- Shared VAOs (§13) --------------------------------------------
 
         // Returns a VAO that binds the given vertex-buffer arenas and element
         // arena with the given layout, creating and caching it on first use.
-        //
-        // A VAO bakes in its buffer-object bindings (each vertex stream's VBO
-        // and the element buffer) and the attribute format, so it is valid for
-        // exactly one (vbo arenas, ebo arena, layout) combination and is shared
-        // by every mesh with that combination (§7). Per-mesh base offsets are
-        // NOT baked: array draws pass them as `first`, indexed draws use
-        // absolute (rebased) indices, so meshes differing only by offset reuse
-        // one VAO.
-        //
-        // The cache OWNS the VAO (returning a non-owning id, not a
-        // VertexArrayHandle): since VAOs are shared, no single Mesh can own one.
-        // A Mesh therefore stores the id returned here, not a VertexArrayHandle.
-        // The key is the arena *refs* (stable identity), not the live buffer
-        // ids, so the entry survives a grow — see rebuild_vaos_for_arena.
+        // The id is non-owning; the VAO belongs to the VaoCache.
         uint32_t get_vao(std::span<const BufferArenaRef> vbo_arenas,
                          BufferArenaRef ebo_arena,
                          VertexLayoutRef layout);
 
-        // ---- Deferred GPU deletion ----------------------------------------
+        // ---- Deferred GPU deletion (§11) ----------------------------------
 
         // Call once per frame with the id of the frame about to be built /
-        // submitted; retired resources are tagged with it.
+        // submitted; retired GL objects are tagged with it.
         void begin_frame(uint64_t frame);
 
-        // Frees everything retired in a frame the GPU has finished with. In the
-        // single-threaded case `completed_frame` can simply be the just-drawn
-        // frame; with a render thread it is whatever the latest passed fence
-        // reports. Dropping the BufferHandle here is what deletes the GL buffer.
+        // Deletes every GL object retired in a frame the GPU has finished
+        // with. Single-threaded, completed_frame is the just-drawn frame;
+        // with a render thread it is the latest passed fence.
         void collect_garbage(uint64_t completed_frame);
 
     private:
-        struct ArenaSlot
-        {
-            std::optional<BufferArena> arena; // empty when the slot is free
-            uint32_t generation = 1;          // 0 is reserved for the null ref
-        };
-
-        struct RetiredBuffer
-        {
-            BufferHandle buffer;
-            uint64_t frame; // frame in which it was retired
-        };
-
-        struct VaoKey
-        {
-            std::vector<BufferArenaRef> vbo_arenas;
-            BufferArenaRef ebo_arena;
-            VertexLayoutRef layout;
-
-            bool operator==(const VaoKey&) const = default;
-        };
-
-        struct VaoEntry
-        {
-            VaoKey key;
-            VertexArrayHandle vao; // owned here
-        };
-
-        uint32_t acquire_arena_slot();
-
-        void retire(BufferHandle buffer);
-
-        // Re-points every cached VAO that binds `ref`'s arena at the arena's
-        // new buffer id after a grow. The VAO id is left unchanged — only the
-        // baked-in buffer object is swapped — so meshes holding the id stay
-        // valid and nothing in the snapshot needs patching.
-        void rebuild_vaos_for_arena(BufferArenaRef ref);
-
-        uint32_t build_vao(VaoKey key);
-
-        static bool key_references(const VaoKey& key, BufferArenaRef ref);
-
-        std::vector<ArenaSlot> arenas_;
-        std::vector<uint32_t> free_arena_slots_;
-        std::vector<RetiredBuffer> retired_buffers_;
-        std::vector<VaoEntry> vaos_;
-        uint64_t current_frame_ = 0;
+        GenerationalPool<BufferArena> arenas_;
+        GenerationalPool<Mesh> meshes_;
+        GenerationalPool<Material> materials_;
+        GenerationalPool<ShaderProgram> shaders_;
+        GenerationalPool<Texture> textures_;
+        LayoutRegistry layout_registry_;
+        DeletionQueue deletions_;
+        VaoCache vao_cache_;
+        ShaderLibrary shader_library_;
     };
 }

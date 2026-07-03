@@ -10,16 +10,16 @@
 
 namespace Tungsten
 {
-    class Mesh;
+    struct Mesh;
     using MeshRef = ResourceRef<Mesh>;
-    class Material;
+    struct Material;
     using MaterialRef = ResourceRef<Material>;
-    class ShaderProgram;
+    struct ShaderProgram;
     using ShaderProgramRef = ResourceRef<ShaderProgram>;
-    class Texture;
+    struct Texture;
     using TextureRef = ResourceRef<Texture>;
     class BufferArena;
     using BufferArenaRef = ResourceRef<BufferArena>;
-    class VertexLayout;
+    struct VertexLayout;
     using VertexLayoutRef = ResourceRef<VertexLayout>;
 }

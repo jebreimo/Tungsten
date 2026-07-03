@@ -18,6 +18,7 @@ add_executable(TungstenTest
     test_BuddyAllocator.cpp
     test_FontUtilities.cpp
     test_GenerationalPool.cpp
+    test_ResourceManager.cpp
     test_TextUtilities.cpp
     text_Font.cpp
 )
@@ -25,6 +26,13 @@ add_executable(TungstenTest
 target_link_libraries(TungstenTest
     Tungsten::Tungsten
     Catch2::Catch2WithMain
+)
+
+# The tests exercise internal classes whose headers include other internal
+# headers by their src-relative paths.
+target_include_directories(TungstenTest
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src
 )
 
 Xyz_enable_all_warnings(TungstenTest)

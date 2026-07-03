@@ -23,7 +23,7 @@ namespace Tungsten
     struct SharedBuffer
     {
         BufferArenaRef arena;
-        uint32_t offset;
-        uint32_t count;
+        uint32_t offset = 0;
+        uint32_t count = 0;
     };
 }

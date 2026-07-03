@@ -20,12 +20,21 @@ namespace Tungsten
     // across a deferred deletion + slot reuse) fails validation on lookup
     // instead of silently aliasing a different resource. A ref is therefore
     // revocable and must not be persisted as if it were a stable id.
+    //
+    // Generation 0 is reserved for the null ref (live slots start at 1), so a
+    // default-constructed ref is null and never resolves.
     template <typename T>
     struct ResourceRef
     {
-        uint32_t index;
-        uint32_t generation;
+        uint32_t index = 0;
+        uint32_t generation = 0;
 
         bool operator==(const ResourceRef&) const = default;
+
+        [[nodiscard]]
+        explicit operator bool() const
+        {
+            return generation != 0;
+        }
     };
 }

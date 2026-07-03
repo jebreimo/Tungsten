@@ -147,8 +147,8 @@ allocations, not to shared ownership of the GL buffer. `offset` and `count` are
 in the arena's stride units (vertices or indices), never bytes; byte offsets
 exist only where a GL call needs one, computed via the arena's `stride()`.
 
-**A `Mesh`'s vertex streams are plain `SharedBuffer`s — there is no separate
-`VertexStream` type.** Because the arena allocates in vertex units, a slice's
+**A `Mesh`'s vertex streams are plain `SharedBuffer`s.** Because the arena
+allocates in vertex units, a slice's
 `offset` *is* the base vertex a draw passes as `first` (or folds into rebased
 indices) and its `count` *is* the vertex count; a per-stream stride field would
 only duplicate the arena's `stride()`, which is the single authority on a
@@ -232,7 +232,7 @@ buffer a grow returns and (b) rebuilds the VAOs invalidated when the arena's
 buffer id moves. `free` is symmetric: `ResourceManager` resolves `slice.arena`
 through `get_arena` and forwards `slice.offset` to the arena. `SharedBuffer` is thus
 purely a `ResourceManager`-level type; `BufferArena` does not include its header.
-See the sketch in `src/Tungsten/Neo/ResourceManager.hpp`.
+See `src/Tungsten/Neo/ResourceManager.hpp`.
 
 Because cloning to grow changes the buffer id, the old buffer can still be in use
 by in-flight draws (or, with a render thread, by the snapshot being rendered). It
@@ -261,7 +261,7 @@ that id — not a `VertexArrayHandle`. (This corrects the earlier diagram, where
   comparable identity that forms part of the VAO key without the cache needing the
   full `VertexLayout` value.
 
-See the sketch in `src/Tungsten/Neo/ResourceManager.{hpp,cpp}`.
+See `src/Tungsten/Neo/ResourceManager.{hpp,cpp}`.
 
 ## 8. 2D / 3D unification
 
