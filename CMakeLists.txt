@@ -170,8 +170,15 @@ add_library(Tungsten STATIC
     src/Tungsten/ExceptionHelpers.cpp
     src/Tungsten/Viewport.cpp
     src/Tungsten/YimageGl.cpp
+    src/Tungsten/Neo/Component.hpp
+    src/Tungsten/Neo/DoubleBuffer.hpp
+    src/Tungsten/Neo/Node.cpp
+    src/Tungsten/Neo/Node.hpp
     src/Tungsten/Neo/RenderItem.cpp
     src/Tungsten/Neo/RenderItem.hpp
+    src/Tungsten/Neo/Scene.cpp
+    src/Tungsten/Neo/Scene.hpp
+    src/Tungsten/Neo/Transform.hpp
     src/Tungsten/Neo/ResourceRef.hpp
     src/Tungsten/Neo/ResourceRefs.hpp
     src/Tungsten/Neo/Material.hpp

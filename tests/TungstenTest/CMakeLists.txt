@@ -19,6 +19,7 @@ add_executable(TungstenTest
     test_FontUtilities.cpp
     test_GenerationalPool.cpp
     test_ResourceManager.cpp
+    test_SceneGraph.cpp
     test_TextUtilities.cpp
     text_Font.cpp
 )

@@ -34,7 +34,9 @@ State per `Node`:
 computed on demand (a TRS compose is cheap and happens at most once per recompute). It
 carries no cache and no dirty flag of its own: the node's `localDirty` is the *only* dirty
 flag, and it is set by `Node::set_local_transform()` — the transform is not exposed as a
-mutable public member, so there is no way to change it that bypasses the flag.
+mutable public member, so there is no way to change it that bypasses the flag. Rotation is
+Xyz's yaw/pitch/roll `Orientation3F` (Xyz has no quaternion type); switching to quaternions
+later only touches `Transform`.
 
 `world_matrix()` recomputes iff:
 
@@ -46,10 +48,15 @@ On recompute: `worldMatrix = parent.world_matrix() * localTransform.local_matrix
 bump `worldVersion`, store the parent's current `worldVersion` into `parentVersionSeen`, and
 clear `localDirty`.
 
-**Reparenting is correct for free.** Detaching and re-attaching a node elsewhere does not
-touch the node's own data, but the new parent has a different `worldVersion`, so the version
-mismatch forces a recompute on next access — no special-casing needed. (A plain "subtree
-dirty" bool would miss this, which is the classic reparenting bug.)
+**Reparenting costs one dirty flag.** Detaching and re-attaching a node elsewhere does not
+touch the node's transform data; `add_child` and `remove_child` set the moved node's
+`localDirty`, forcing one recompute on next access. (A plain "subtree dirty" bool on
+*ancestors* would miss reparenting entirely — the classic bug. Relying on the parent-version
+mismatch alone would *almost* work instead, but `worldVersion` counters are per-node, so the
+new parent's version can coincide with the `parentVersionSeen` recorded under the old parent;
+the explicit flag closes that hole at the cost of the same single recompute the version
+scheme would have done. Detaching needs the flag anyway: with no parent left to compare
+against, nothing else would trigger the recompute-as-root.)
 
 `TransformUpdater::resolve(scene)` walks dirty subtrees once before extraction so that
 `SnapshotBuilder` reads finalized, order-independent world matrices rather than triggering
