@@ -66,7 +66,7 @@ layout (std140) uniform PerFrame
 layout (std140) uniform MaterialBlock
 {
     vec4 u_ambient;          // rgb
-    vec4 u_diffuse;          // rgb
+    vec4 u_diffuse;          // rgb, w = opacity
     vec4 u_specular;         // rgb, w = shininess
     ivec4 u_material_flags;  // x = use_diffuse_map, y = use_specular_map
 };
@@ -170,5 +170,7 @@ void main()
     for (int i = 0; i < u_light_count.x; i++)
         result += calc_light(u_lights[i], material, normal, fs_in.frag_pos, view_dir);
 
-    color = vec4(result, 1.0);
+    // The material's opacity feeds the transparent pass; opaque materials
+    // set it to 1 (the renderer draws them with blending disabled anyway).
+    color = vec4(result, u_diffuse.w);
 }

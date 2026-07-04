@@ -88,6 +88,19 @@ namespace Tungsten
         get_arena(slice.arena).free(slice.offset);
     }
 
+    void ResourceManager::upload(const SharedBuffer& slice, const void* data,
+                                 size_t size)
+    {
+        BufferArena& arena = get_arena(slice.arena);
+        if (size != size_t(slice.count) * arena.stride())
+            TUNGSTEN_THROW("ResourceManager: data size does not match slice.");
+
+        bind_buffer(BufferTarget::COPY_WRITE, arena.buffer_id());
+        set_buffer_subdata(BufferTarget::COPY_WRITE,
+                           ptrdiff_t(slice.offset) * arena.stride(),
+                           static_cast<ptrdiff_t>(size), data);
+    }
+
     VertexLayoutRef ResourceManager::register_layout(const VertexLayout& layout)
     {
         return layout_registry_.register_layout(layout);

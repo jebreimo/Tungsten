@@ -74,6 +74,16 @@ namespace
             --live_programs;
         }
 
+        // ShaderPreprocessor derives its #version from these version strings.
+        const GLubyte* get_string(GLenum name) override
+        {
+            if (name == 0x8B8C) // GL_SHADING_LANGUAGE_VERSION
+                return reinterpret_cast<const GLubyte*>("3.00");
+            if (name == 0x1F02) // GL_VERSION
+                return reinterpret_cast<const GLubyte*>("OpenGL ES 3.0");
+            return nullptr;
+        }
+
         // Report success for every status query (compile and link status),
         // so ShaderLibrary's compile path runs without a real compiler.
         void get_shader(GLuint, GLenum, GLint* param) override

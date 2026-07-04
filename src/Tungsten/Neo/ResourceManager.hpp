@@ -69,6 +69,12 @@ namespace Tungsten
         // Returns a slice's range to its arena.
         void free(const SharedBuffer& slice);
 
+        // Uploads `size` bytes into the slice's range of its arena's GL
+        // buffer. The data must fill the slice exactly: size must equal
+        // slice.count times the arena's stride. Uses the COPY_WRITE target,
+        // so no VAO's element binding is disturbed.
+        void upload(const SharedBuffer& slice, const void* data, size_t size);
+
         // ---- Vertex layouts (§12) -----------------------------------------
 
         VertexLayoutRef register_layout(const VertexLayout& layout);

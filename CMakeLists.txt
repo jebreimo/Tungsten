@@ -171,6 +171,7 @@ add_library(Tungsten STATIC
     src/Tungsten/Viewport.cpp
     src/Tungsten/YimageGl.cpp
     src/Tungsten/Neo/AABB.hpp
+    src/Tungsten/Neo/BuiltinShaders.hpp
     src/Tungsten/Neo/CameraComponent.cpp
     src/Tungsten/Neo/CameraComponent.hpp
     src/Tungsten/Neo/Component.hpp
@@ -257,6 +258,7 @@ include(TargetEmbedCppData)
 target_embed_cpp_data(Tungsten
     FILES
     src/Tungsten/Render/ShaderSources.cpp.in
+    src/Tungsten/Neo/BuiltinShaders.cpp.in
 )
 
 ##

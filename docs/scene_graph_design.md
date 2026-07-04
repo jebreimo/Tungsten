@@ -469,10 +469,12 @@ normal-mapping, alpha-clip, …). See `scene_graph_chat.md` §"Layer 5".
   `Shaders/*.glsl` sources (cppembed), so this stays within the existing shader pipeline.
 - `register_shader_variant(ShaderVariantKey{ family, defines })` looks the key up in the variant
   cache (keyed by value equality on the key). **Hit:** return the cached `ShaderProgramRef`.
-  **Miss:** expand `defines` — bit *i* set ⇒ prepend `#define <features[i]>` to the family
-  source — compile and link, populate the `ShaderProgram` (`gl_handle`, `variant_key`,
-  `required_layout`), insert it into the shader pool, record `key -> ref` in the cache, and
-  return the ref.
+  **Miss:** run the family sources through the existing `ShaderPreprocessor`, which injects
+  `#define <features[i]>` for every set bit *i* right after the `#version` line and rewrites
+  the version itself to the platform's GLSL dialect (the sources target GLSL ES 3.00, which
+  desktop GL rejects) — then compile and link, populate the `ShaderProgram` (`gl_handle`,
+  `variant_key`, `required_layout`), insert it into the shader pool, record `key -> ref` in
+  the cache, and return the ref.
 
 The `defines` bitmask, not a string set, is what makes the key cheap to compare and hash; the
 family's ordered feature list is the single place that maps a bit to its `#define` spelling.

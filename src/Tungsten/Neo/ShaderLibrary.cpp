@@ -9,6 +9,7 @@
 #include <string>
 #include "Tungsten/Gl/GlProgram.hpp"
 #include "Tungsten/Gl/GlTypes.hpp"
+#include "Tungsten/Render/ShaderPreprocessor.hpp"
 #include "Tungsten/Render/ShaderProgramBuilder.hpp"
 #include "Tungsten/TungstenException.hpp"
 #include "Tungsten/Neo/UboBindings.hpp"
@@ -17,49 +18,6 @@ namespace Tungsten
 {
     namespace
     {
-        // Turns a defines bitmask into a block of #define lines: bit i selects
-        // features[i]. Bits without a matching feature (and beyond bit 31) are
-        // ignored. The family's ordered feature list is the single place a bit
-        // maps to its #define spelling (§14).
-        std::string build_define_block(const std::vector<std::string>& features,
-                                       uint32_t defines)
-        {
-            std::string block;
-            for (size_t i = 0; i < features.size() && i < 32; ++i)
-            {
-                if (defines & (uint32_t{1} << i))
-                {
-                    block += "#define ";
-                    block += features[i];
-                    block += '\n';
-                }
-            }
-            return block;
-        }
-
-        // Injects the #define block into a shader source. GLSL requires #version
-        // to stay the first line, so the block goes on the line *after* it rather
-        // than being literally prepended (which would push #version off the first
-        // line and fail to compile); sources without a #version get a plain
-        // prepend.
-        std::string with_defines(const std::string& source,
-                                 const std::string& defines)
-        {
-            if (defines.empty())
-                return source;
-
-            if (source.starts_with("#version"))
-            {
-                const auto eol = source.find('\n');
-                if (eol != std::string::npos)
-                {
-                    return source.substr(0, eol + 1) + defines
-                           + source.substr(eol + 1);
-                }
-            }
-            return defines + source;
-        }
-
         // Wires a freshly linked program's uniform blocks to the fixed
         // binding points (§4). GLSL ES 3.00 cannot declare bindings in the
         // source, so the convention is applied here, once per compiled
@@ -108,14 +66,26 @@ namespace Tungsten
         }
 
         const ShaderFamily& family = get_family(key.family);
-        const std::string defines = build_define_block(family.features,
-                                                       key.defines);
+
+        // The preprocessor rewrites the family's `#version` to the platform's
+        // GLSL version (the sources say `300 es`, which desktop GL rejects)
+        // and injects one #define per enabled feature bit right after it.
+        // The family's ordered feature list is the single place a bit maps to
+        // its #define spelling (§14); bits beyond the list are ignored.
+        ShaderPreprocessor preprocessor;
+        for (size_t i = 0; i < family.features.size() && i < 32; ++i)
+        {
+            if (key.defines & (uint32_t{1} << i))
+                preprocessor.add_define(family.features[i]);
+        }
 
         ShaderProgramBuilder builder;
-        builder.add_shader(ShaderType::VERTEX,
-                           with_defines(family.vertex_source, defines));
-        builder.add_shader(ShaderType::FRAGMENT,
-                           with_defines(family.fragment_source, defines));
+        builder.add_shader(
+            ShaderType::VERTEX,
+            preprocessor.preprocess(std::string_view(family.vertex_source)));
+        builder.add_shader(
+            ShaderType::FRAGMENT,
+            preprocessor.preprocess(std::string_view(family.fragment_source)));
 
         ShaderProgram program;
         program.gl_handle = builder.build();
