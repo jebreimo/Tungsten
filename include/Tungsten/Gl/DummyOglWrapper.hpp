@@ -275,6 +275,12 @@ namespace Tungsten
         {
         }
 
+        GLuint get_uniform_block_index(GLuint program, const GLchar* name) override
+        {
+            // GL_INVALID_INDEX: "no such block", so callers skip the binding.
+            return 0xFFFFFFFFu;
+        }
+
         GLint get_uniform_location(GLuint program, const GLchar* name) override
         {
             return 0;
@@ -321,6 +327,11 @@ namespace Tungsten
         void tex_sub_image_2d(GLenum target, GLint level, GLint xOffset, GLint yOffset,
                               GLsizei width, GLsizei height, GLenum format, GLenum type,
                               const void* pixels) override
+        {
+        }
+
+        void uniform_block_binding(GLuint program, GLuint block_index,
+                                   GLuint binding) override
         {
         }
 

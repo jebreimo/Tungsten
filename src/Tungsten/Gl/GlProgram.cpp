@@ -45,6 +45,22 @@ namespace Tungsten
         return result;
     }
 
+    uint32_t get_uniform_block_index(uint32_t program_id, const char* name)
+    {
+        const auto result = get_ogl_wrapper().get_uniform_block_index(
+            program_id, name);
+        THROW_IF_GL_ERROR();
+        return result;
+    }
+
+    void set_uniform_block_binding(uint32_t program_id, uint32_t block_index,
+                                   uint32_t binding_point)
+    {
+        get_ogl_wrapper().uniform_block_binding(program_id, block_index,
+                                                binding_point);
+        THROW_IF_GL_ERROR();
+    }
+
     bool get_program_link_status(uint32_t program_id)
     {
         int32_t result = 0;

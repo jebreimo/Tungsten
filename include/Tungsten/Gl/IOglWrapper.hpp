@@ -169,6 +169,8 @@ namespace Tungsten
 
         virtual void get_tex_parameter(GLenum target, GLenum pname, GLint* params) = 0;
 
+        virtual GLuint get_uniform_block_index(GLuint program, const GLchar* name) = 0;
+
         virtual GLint get_uniform_location(GLuint program, const GLchar* name) = 0;
 
         virtual GLboolean is_buffer(GLuint buffer) = 0;
@@ -200,6 +202,9 @@ namespace Tungsten
                                       GLsizei width,
                                       GLsizei height, GLenum format, GLenum type,
                                       const void* pixels) = 0;
+
+        virtual void uniform_block_binding(GLuint program, GLuint block_index,
+                                           GLuint binding) = 0;
 
         virtual void uniform1_f(GLint location, GLfloat v0) = 0;
 

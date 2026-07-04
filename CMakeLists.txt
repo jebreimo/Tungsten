@@ -181,6 +181,8 @@ add_library(Tungsten STATIC
     src/Tungsten/Neo/RenderItem.cpp
     src/Tungsten/Neo/RenderItem.hpp
     src/Tungsten/Neo/RenderableComponent.hpp
+    src/Tungsten/Neo/Renderer.cpp
+    src/Tungsten/Neo/Renderer.hpp
     src/Tungsten/Neo/Scene.cpp
     src/Tungsten/Neo/Scene.hpp
     src/Tungsten/Neo/SnapshotBuilder.cpp

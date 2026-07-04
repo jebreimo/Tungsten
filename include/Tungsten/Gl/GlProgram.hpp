@@ -27,6 +27,15 @@ namespace Tungsten
 
     int32_t get_uniform_location(uint32_t program_id, const char* name);
 
+    // GL_INVALID_INDEX: what get_uniform_block_index returns when the program
+    // has no uniform block with the given name.
+    constexpr uint32_t INVALID_UNIFORM_BLOCK_INDEX = UINT32_MAX;
+
+    uint32_t get_uniform_block_index(uint32_t program_id, const char* name);
+
+    void set_uniform_block_binding(uint32_t program_id, uint32_t block_index,
+                                   uint32_t binding_point);
+
     template <typename T>
     Uniform<T> get_uniform(uint32_t program_id, const char* name)
     {

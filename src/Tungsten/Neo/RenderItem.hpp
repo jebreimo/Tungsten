@@ -35,6 +35,15 @@ namespace Tungsten
         [[nodiscard]] uint64_t sort_key() const;
 
         void set_sort_key(uint64_t sort_key);
+
+        // The item's std140 per-draw block — u_model followed by
+        // u_normal_matrix, both as column-major mat4 — ready to upload
+        // verbatim to the per-draw UBO (binding 2, §4).
+        [[nodiscard]]
+        const std::array<float, 32>& data() const
+        {
+            return data_;
+        }
     private:
         std::array<float, 32> data_ = {};
         MeshRef mesh_ = {};

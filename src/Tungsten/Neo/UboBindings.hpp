@@ -18,4 +18,8 @@ namespace Tungsten
     inline constexpr uint32_t PER_FRAME_UBO_BINDING = 0;    // camera, lights, time
     inline constexpr uint32_t PER_MATERIAL_UBO_BINDING = 1; // material parameters
     inline constexpr uint32_t PER_DRAW_UBO_BINDING = 2;     // model / normal matrix
+
+    // The size of the PerFrame block's light array; must match the shaders'
+    // `#define MAX_LIGHTS`.
+    inline constexpr uint32_t MAX_LIGHTS = 8;
 } // Tungsten

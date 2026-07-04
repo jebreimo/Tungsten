@@ -412,6 +412,7 @@ VaoCache ..> DeletionQueue : retires evicted VAOs
 ShaderLibrary "1" *-- "0..*" ShaderFamily : registers
 ShaderLibrary ..> ShaderVariantKey : keys variant cache
 ShaderLibrary ..> ShaderProgram : compiles into pool
+ShaderLibrary ..> UboBindings : assigns block bindings at link
 ShaderFamily --> VertexLayout : requires (interned ref)
 RenderableComponent --> Mesh : ref
 RenderableComponent --> Material : ref

@@ -103,8 +103,10 @@ type:
 - **binding 1 — per-material**: the `Material::parameterData` blob. Bound on material change.
 - **binding 2 — per-draw**: world / normal matrix (or supplied as an instanced attribute).
 
-This convention is enforced by reflecting each program's interface at load and validating it,
-or by documented contract for hand-written shaders.
+GLSL ES 3.00 cannot declare binding points in the shader source, so the `ShaderLibrary`
+assigns them right after linking each variant: it looks up the conventional block names
+(`PerFrame`, `MaterialBlock`, `PerDraw`) and binds whichever of them the program declares.
+Hand-written shaders participate by using those block names.
 
 The `Renderer` owns the three UBO buffer objects bound at these points; the binding points
 never change after startup, only the buffers' contents do. It uploads the per-frame block once

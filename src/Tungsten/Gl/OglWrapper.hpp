@@ -334,6 +334,11 @@ namespace Tungsten
             glGetTexParameteriv(target, pname, params);
         }
 
+        GLuint get_uniform_block_index(GLuint program, const GLchar* name) override
+        {
+            return glGetUniformBlockIndex(program, name);
+        }
+
         GLint get_uniform_location(GLuint program, const GLchar* name) override
         {
             return glGetUniformLocation(program, name);
@@ -389,6 +394,12 @@ namespace Tungsten
                               GLenum format, GLenum type, const void* pixels) override
         {
             glTexSubImage2D(target, level, xOffset, yOffset, width, height, format, type, pixels);
+        }
+
+        void uniform_block_binding(GLuint program, GLuint block_index,
+                                   GLuint binding) override
+        {
+            glUniformBlockBinding(program, block_index, binding);
         }
 
         void uniform1_f(GLint location, GLfloat v0) override

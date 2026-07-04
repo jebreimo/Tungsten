@@ -7,6 +7,8 @@
 //****************************************************************************
 #include "LightData.hpp"
 
+#include <cmath>
+
 namespace Tungsten
 {
     LightType LightData::type() const
@@ -77,24 +79,29 @@ namespace Tungsten
         data_[7] = range;
     }
 
+    // The setters take angles but the blob stores their cosines: the shaders
+    // compare Light.cone directly against dot products
+    // (BlinnPhong-frag.glsl), and packing the wire format is exactly what the
+    // accessors are for (like set_type above).
+
     float LightData::inner_cone_angle() const
     {
-        return data_[12];
+        return std::acos(data_[12]);
     }
 
     void LightData::set_inner_cone_angle(float angle)
     {
-        data_[12] = angle;
+        data_[12] = std::cos(angle);
     }
 
     float LightData::outer_cone_angle() const
     {
-        return data_[13];
+        return std::acos(data_[13]);
     }
 
     void LightData::set_outer_cone_angle(float angle)
     {
-        data_[13] = angle;
+        data_[13] = std::cos(angle);
     }
 
     const std::array<float, 32>& LightData::data() const

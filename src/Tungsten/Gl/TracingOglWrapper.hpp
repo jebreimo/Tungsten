@@ -419,6 +419,12 @@ namespace Tungsten
             wrapper->get_tex_parameter(target, pname, params);
         }
 
+        GLuint get_uniform_block_index(GLuint program, const GLchar* name) override
+        {
+            log("glGetUniformBlockIndex({}, \"{}\")", program, std::string_view(name));
+            return wrapper->get_uniform_block_index(program, name);
+        }
+
         GLint get_uniform_location(GLuint program, const GLchar* name) override
         {
             log("glGetUniformLocation({}, \"{}\")", program, std::string_view(name));
@@ -491,6 +497,13 @@ namespace Tungsten
                 format, type, static_cast<const void*>(pixels));
             wrapper->tex_sub_image_2d(target, level, xOffset, yOffset, width, height, format, type,
                                       pixels);
+        }
+
+        void uniform_block_binding(GLuint program, GLuint block_index,
+                                   GLuint binding) override
+        {
+            log("glUniformBlockBinding({}, {}, {})", program, block_index, binding);
+            wrapper->uniform_block_binding(program, block_index, binding);
         }
 
         void uniform1_f(GLint location, GLfloat v0) override

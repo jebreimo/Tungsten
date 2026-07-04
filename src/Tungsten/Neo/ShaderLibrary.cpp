@@ -7,9 +7,11 @@
 //****************************************************************************
 #include "Tungsten/Neo/ShaderLibrary.hpp"
 #include <string>
+#include "Tungsten/Gl/GlProgram.hpp"
 #include "Tungsten/Gl/GlTypes.hpp"
 #include "Tungsten/Render/ShaderProgramBuilder.hpp"
 #include "Tungsten/TungstenException.hpp"
+#include "Tungsten/Neo/UboBindings.hpp"
 
 namespace Tungsten
 {
@@ -57,6 +59,26 @@ namespace Tungsten
             }
             return defines + source;
         }
+
+        // Wires a freshly linked program's uniform blocks to the fixed
+        // binding points (§4). GLSL ES 3.00 cannot declare bindings in the
+        // source, so the convention is applied here, once per compiled
+        // variant. A family that lacks one of the blocks (e.g. an unlit
+        // shader without MaterialBlock) is simply skipped for that block.
+        void apply_ubo_bindings(uint32_t program_id)
+        {
+            static constexpr std::pair<const char*, uint32_t> bindings[] = {
+                {"PerFrame", PER_FRAME_UBO_BINDING},
+                {"MaterialBlock", PER_MATERIAL_UBO_BINDING},
+                {"PerDraw", PER_DRAW_UBO_BINDING},
+            };
+            for (const auto& [name, binding] : bindings)
+            {
+                const auto index = get_uniform_block_index(program_id, name);
+                if (index != INVALID_UNIFORM_BLOCK_INDEX)
+                    set_uniform_block_binding(program_id, index, binding);
+            }
+        }
     }
 
     ShaderLibrary::ShaderLibrary(ShaderInserter insert_shader)
@@ -97,6 +119,7 @@ namespace Tungsten
 
         ShaderProgram program;
         program.gl_handle = builder.build();
+        apply_ubo_bindings(program.gl_handle.id());
         program.variant_key = key;
         program.required_layout = family.required_layout;
 
