@@ -5,7 +5,7 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "../../src/Tungsten/Neo/ResourceManager.hpp"
+#include "Tungsten/Neo/ResourceManager.hpp"
 
 #include <array>
 #include <memory>

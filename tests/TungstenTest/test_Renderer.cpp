@@ -5,7 +5,7 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "../../src/Tungsten/Neo/Renderer.hpp"
+#include "Tungsten/Neo/Renderer.hpp"
 
 #include <cstring>
 #include <memory>
@@ -13,12 +13,12 @@
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
 #include "Tungsten/Gl/DummyOglWrapper.hpp"
-#include "../../src/Tungsten/Neo/CameraComponent.hpp"
-#include "../../src/Tungsten/Neo/RenderableComponent.hpp"
-#include "../../src/Tungsten/Neo/ResourceManager.hpp"
-#include "../../src/Tungsten/Neo/Scene.hpp"
-#include "../../src/Tungsten/Neo/SnapshotBuilder.hpp"
-#include "../../src/Tungsten/Neo/TransformUpdater.hpp"
+#include "Tungsten/Neo/CameraComponent.hpp"
+#include "Tungsten/Neo/RenderableComponent.hpp"
+#include "Tungsten/Neo/ResourceManager.hpp"
+#include "Tungsten/Neo/Scene.hpp"
+#include "Tungsten/Neo/SnapshotBuilder.hpp"
+#include "Tungsten/Neo/TransformUpdater.hpp"
 #include "../../src/Tungsten/Neo/UboBindings.hpp"
 
 using namespace Tungsten;

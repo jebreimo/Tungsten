@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <bit>
 
-#include "../Detail/BuddyAllocator.hpp"
+#include "Tungsten/Detail/BuddyAllocator.hpp"
 #include "FontUtilities.hpp"
 #include "TextUtilities.hpp"
 #include "Tungsten/TungstenException.hpp"

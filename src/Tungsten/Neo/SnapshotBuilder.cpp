@@ -5,16 +5,16 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "SnapshotBuilder.hpp"
+#include "Tungsten/Neo/SnapshotBuilder.hpp"
 
 #include <algorithm>
 #include <Xyz/InvertMatrix.hpp>
 
-#include "CameraComponent.hpp"
-#include "LightComponent.hpp"
-#include "RenderableComponent.hpp"
-#include "ResourceManager.hpp"
-#include "Scene.hpp"
+#include "Tungsten/Neo/CameraComponent.hpp"
+#include "Tungsten/Neo/LightComponent.hpp"
+#include "Tungsten/Neo/RenderableComponent.hpp"
+#include "Tungsten/Neo/ResourceManager.hpp"
+#include "Tungsten/Neo/Scene.hpp"
 
 namespace Tungsten
 {

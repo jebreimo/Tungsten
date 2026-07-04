@@ -5,17 +5,17 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "../../src/Tungsten/Neo/SnapshotBuilder.hpp"
+#include "Tungsten/Neo/SnapshotBuilder.hpp"
 
 #include <memory>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
-#include "../../src/Tungsten/Neo/CameraComponent.hpp"
-#include "../../src/Tungsten/Neo/LightComponent.hpp"
-#include "../../src/Tungsten/Neo/RenderableComponent.hpp"
-#include "../../src/Tungsten/Neo/ResourceManager.hpp"
-#include "../../src/Tungsten/Neo/Scene.hpp"
-#include "../../src/Tungsten/Neo/TransformUpdater.hpp"
+#include "Tungsten/Neo/CameraComponent.hpp"
+#include "Tungsten/Neo/LightComponent.hpp"
+#include "Tungsten/Neo/RenderableComponent.hpp"
+#include "Tungsten/Neo/ResourceManager.hpp"
+#include "Tungsten/Neo/Scene.hpp"
+#include "Tungsten/Neo/TransformUpdater.hpp"
 
 using namespace Tungsten;
 using Catch::Matchers::WithinAbs;

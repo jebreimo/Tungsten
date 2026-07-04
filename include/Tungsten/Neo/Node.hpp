@@ -10,7 +10,7 @@
 #include <memory>
 #include <vector>
 #include <Xyz/Matrix.hpp>
-#include "AABB.hpp"
+#include "Tungsten/Neo/AABB.hpp"
 #include "Component.hpp"
 #include "Transform.hpp"
 

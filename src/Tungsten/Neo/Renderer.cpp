@@ -5,14 +5,14 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Renderer.hpp"
+#include "Tungsten/Neo/Renderer.hpp"
 
 #include <algorithm>
 #include <cstring>
 
 #include "Tungsten/Gl/GlRendering.hpp"
 #include "Tungsten/Gl/GlStateManagement.hpp"
-#include "ResourceManager.hpp"
+#include "Tungsten/Neo/ResourceManager.hpp"
 #include "UboBindings.hpp"
 
 namespace Tungsten

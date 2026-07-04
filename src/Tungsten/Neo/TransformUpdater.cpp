@@ -5,10 +5,10 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "TransformUpdater.hpp"
+#include "Tungsten/Neo/TransformUpdater.hpp"
 
-#include "RenderableComponent.hpp"
-#include "Scene.hpp"
+#include "Tungsten/Neo/RenderableComponent.hpp"
+#include "Tungsten/Neo/Scene.hpp"
 
 namespace Tungsten
 {

@@ -5,12 +5,12 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "CameraComponent.hpp"
+#include "Tungsten/Neo/CameraComponent.hpp"
 
 #include <Xyz/InvertMatrix.hpp>
 #include <Xyz/ProjectionMatrix.hpp>
 
-#include "Node.hpp"
+#include "Tungsten/Neo/Node.hpp"
 
 namespace Tungsten
 {

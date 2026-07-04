@@ -5,7 +5,7 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "../../src/Tungsten/Neo/GenerationalPool.hpp"
+#include "Tungsten/Neo/GenerationalPool.hpp"
 
 #include <memory>
 #include <catch2/catch_test_macros.hpp>

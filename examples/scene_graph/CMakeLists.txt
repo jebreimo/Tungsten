@@ -18,10 +18,3 @@ target_link_libraries(scene_graph
         Argos::Argos
         Tungsten::Tungsten
 )
-
-# The scene graph classes live under src/Tungsten/Neo and are not part of the
-# public include tree yet; reach into src/ like the unit tests do.
-target_include_directories(scene_graph
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../src
-)

@@ -10,7 +10,7 @@
 #include <exception>
 #include <string>
 #include <SDL3/SDL_error.h>
-#include "../../include/Tungsten/Gl/IOglWrapper.hpp"
+#include "Tungsten/Gl/IOglWrapper.hpp"
 
 namespace Tungsten
 {
