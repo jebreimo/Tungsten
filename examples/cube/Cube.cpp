@@ -117,7 +117,7 @@ public:
             wireframe
         };
         item.set_texture(texture_.id());
-        item.set_material(Tungsten::get_default_material(Tungsten::DefaultMaterial::GOLD));
+        item.set_material(Tungsten::get_standard_color_material(Tungsten::StandardColorMaterial::GOLD));
         std::cout << Tungsten::get_device_info() << '\n';
         Tungsten::set_swap_interval(app, Tungsten::SwapInterval::VSYNC);
     }

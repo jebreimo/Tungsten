@@ -89,7 +89,7 @@ add_library(Tungsten STATIC
     include/Tungsten/Render/FontManager.hpp
     include/Tungsten/Render/FontManager.hpp
     include/Tungsten/Render/Lights.hpp
-    include/Tungsten/Render/Materials.hpp
+    include/Tungsten/Render/ColorMaterials.hpp
     include/Tungsten/Render/Renderable.hpp
     include/Tungsten/Render/ShaderManager.hpp
     include/Tungsten/Render/ShaderPreprocessor.hpp
@@ -138,7 +138,7 @@ add_library(Tungsten STATIC
     src/Tungsten/Render/FontManager.cpp
     src/Tungsten/Render/FontUtilities.cpp
     src/Tungsten/Render/FontUtilities.hpp
-    src/Tungsten/Render/Materials.cpp
+    src/Tungsten/Render/ColorMaterials.cpp
     src/Tungsten/Render/ShaderManager.cpp
     src/Tungsten/Render/ShaderPreprocessor.cpp
     src/Tungsten/Render/ShaderProgram.cpp

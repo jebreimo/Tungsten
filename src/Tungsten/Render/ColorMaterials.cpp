@@ -5,7 +5,7 @@
 // This file is distributed under the Zero-Clause BSD Licens  0.
 // License text is included with the source distributio  0.
 //****************************************************************************
-#include "Tungsten/Render/Materials.hpp"
+#include "Tungsten/Render/ColorMaterials.hpp"
 
 namespace Tungsten
 {
@@ -13,9 +13,9 @@ namespace Tungsten
     {
         constexpr float SHININESS_SCALE = 32.0f;
 
-        constexpr std::pair<DefaultMaterial, ColorMaterial> DEFAULT_MATERIALS[] = {
+        constexpr std::pair<StandardColorMaterial, ColorMaterial> DEFAULT_MATERIALS[] = {
             {
-                DefaultMaterial::EMERALD,
+                StandardColorMaterial::EMERALD,
                 {
                     {0.0215f, 0.1745f, 0.0215f},
                     {0.07568f, 0.61424f, 0.07568f},
@@ -24,7 +24,7 @@ namespace Tungsten
                 }
             },
             {
-                DefaultMaterial::JADE,
+                StandardColorMaterial::JADE,
                 {
                     {0.135f, 0.2225f, 0.1575f},
                     {0.54f, 0.89f, 0.63f},
@@ -33,7 +33,7 @@ namespace Tungsten
                 }
             },
             {
-                DefaultMaterial::OBSIDIAN,
+                StandardColorMaterial::OBSIDIAN,
                 {
                     {0.05375f, 0.05f, 0.06625f},
                     {0.18275f, 0.17f, 0.22525f},
@@ -42,7 +42,7 @@ namespace Tungsten
                 }
             },
             {
-                DefaultMaterial::PEARL,
+                StandardColorMaterial::PEARL,
                 {
                     {0.25f, 0.20725f, 0.20725f},
                     {1.0f, 0.829f, 0.829f},
@@ -51,7 +51,7 @@ namespace Tungsten
                 }
             },
             {
-                DefaultMaterial::RUBY,
+                StandardColorMaterial::RUBY,
                 {
                     {0.1745f, 0.01175f, 0.01175f},
                     {0.61424f, 0.04136f, 0.04136f},
@@ -60,7 +60,7 @@ namespace Tungsten
                 }
             },
             {
-                DefaultMaterial::TURQUOISE,
+                StandardColorMaterial::TURQUOISE,
                 {
                     {0.1f, 0.18725f, 0.1745f},
                     {0.396f, 0.74151f, 0.69102f},
@@ -69,7 +69,7 @@ namespace Tungsten
                 }
             },
             {
-                DefaultMaterial::BRASS,
+                StandardColorMaterial::BRASS,
                 {
                     {0.329412f, 0.223529f, 0.027451f},
                     {0.780392f, 0.568627f, 0.113725f},
@@ -78,7 +78,7 @@ namespace Tungsten
                 }
             },
             {
-                DefaultMaterial::BRONZE,
+                StandardColorMaterial::BRONZE,
                 {
                     {0.2125f, 0.1275f, 0.054f},
                     {0.714f, 0.4284f, 0.18144f},
@@ -87,7 +87,7 @@ namespace Tungsten
                 }
             },
             {
-                DefaultMaterial::CHROME,
+                StandardColorMaterial::CHROME,
                 {
                     {0.25f, 0.25f, 0.25f},
                     {0.4f, 0.4f, 0.4f},
@@ -96,7 +96,7 @@ namespace Tungsten
                 }
             },
             {
-                DefaultMaterial::COPPER,
+                StandardColorMaterial::COPPER,
                 {
                     {0.19125f, 0.0735f, 0.0225f},
                     {0.7038f, 0.27048f, 0.0828f},
@@ -105,25 +105,34 @@ namespace Tungsten
                 }
             },
             {
-                DefaultMaterial::GOLD,
+                StandardColorMaterial::GOLD,
                 {
                     {0.24725f, 0.1995f, 0.0745f},
                     {0.75164f, 0.60648f, 0.22648f},
-                    {0.628281f, 0.555802f, 0.366065f},
-                    0.4f * SHININESS_SCALE
+                    {0.628281f, 0.655802f, 0.366065f},
+                    1.6f * SHININESS_SCALE
                 }
             },
             {
-                DefaultMaterial::SILVER,
+                StandardColorMaterial::SILVER,
                 {
-                    {0.19225f, 0.19225f, 0.19225f},
+                    {0.39225f, 0.39225f, 0.39225f},
                     {0.50754f, 0.50754f, 0.50754f},
                     {0.508273f, 0.508273f, 0.508273f},
-                    0.4f * SHININESS_SCALE
+                    1.4f * SHININESS_SCALE
                 }
             },
             {
-                DefaultMaterial::BLACK_PLASTIC,
+                StandardColorMaterial::SLATE,
+                {
+                    {0.05f, 0.06f, 0.09f},
+                    {0.28f, 0.35f, 0.50f},
+                    {0.45f, 0.45f, 0.50f},
+                    1.0f * SHININESS_SCALE
+                }
+            },
+            {
+                StandardColorMaterial::BLACK_PLASTIC,
                 {
                     {0.0f, 0.0f, 0.0f},
                     {0.01f, 0.01f, 0.01f},
@@ -132,7 +141,7 @@ namespace Tungsten
                 }
             },
             {
-                DefaultMaterial::CYAN_PLASTIC,
+                StandardColorMaterial::CYAN_PLASTIC,
                 {
                     {0.0f, 0.1f, 0.06f},
                     {0.0f, 0.50980392f, 0.50980392f},
@@ -141,7 +150,7 @@ namespace Tungsten
                 }
             },
             {
-                DefaultMaterial::GREEN_PLASTIC,
+                StandardColorMaterial::GREEN_PLASTIC,
                 {
                     {0.0f, 0.0f, 0.0f},
                     {0.1f, 0.35f, 0.1f},
@@ -150,7 +159,7 @@ namespace Tungsten
                 }
             },
             {
-                DefaultMaterial::RED_PLASTIC,
+                StandardColorMaterial::RED_PLASTIC,
                 {
                     {0.0f, 0.0f, 0.0f},
                     {0.5f, 0.0f, 0.0f},
@@ -159,7 +168,7 @@ namespace Tungsten
                 }
             },
             {
-                DefaultMaterial::WHITE_PLASTIC,
+                StandardColorMaterial::WHITE_PLASTIC,
                 {
                     {0.0f, 0.0f, 0.0f},
                     {0.55f, 0.55f, 0.55f},
@@ -168,7 +177,7 @@ namespace Tungsten
                 }
             },
             {
-                DefaultMaterial::YELLOW_PLASTIC,
+                StandardColorMaterial::YELLOW_PLASTIC,
                 {
                     {0.0f, 0.0f, 0.0f},
                     {0.5f, 0.5f, 0.0f},
@@ -177,7 +186,7 @@ namespace Tungsten
                 }
             },
             {
-                DefaultMaterial::BLACK_RUBBER,
+                StandardColorMaterial::BLACK_RUBBER,
                 {
                     {0.02f, 0.02f, 0.02f},
                     {0.01f, 0.01f, 0.01f},
@@ -186,7 +195,7 @@ namespace Tungsten
                 }
             },
             {
-                DefaultMaterial::CYAN_RUBBER,
+                StandardColorMaterial::CYAN_RUBBER,
                 {
                     {0.0f, 0.05f, 0.05f},
                     {0.4f, 0.5f, 0.5f},
@@ -195,7 +204,7 @@ namespace Tungsten
                 }
             },
             {
-                DefaultMaterial::GREEN_RUBBER,
+                StandardColorMaterial::GREEN_RUBBER,
                 {
                     {0.0f, 0.05f, 0.0f},
                     {0.4f, 0.5f, 0.4f},
@@ -204,7 +213,7 @@ namespace Tungsten
                 }
             },
             {
-                DefaultMaterial::RED_RUBBER,
+                StandardColorMaterial::RED_RUBBER,
                 {
                     {0.05f, 0.0f, 0.0f},
                     {0.5f, 0.4f, 0.4f},
@@ -213,7 +222,7 @@ namespace Tungsten
                 }
             },
             {
-                DefaultMaterial::WHITE_RUBBER,
+                StandardColorMaterial::WHITE_RUBBER,
                 {
                     {0.05f, 0.05f, 0.05f},
                     {0.5f, 0.5f, 0.5f},
@@ -222,7 +231,7 @@ namespace Tungsten
                 }
             },
             {
-                DefaultMaterial::YELLOW_RUBBER,
+                StandardColorMaterial::YELLOW_RUBBER,
                 {
                     {0.05f, 0.05f, 0.0f},
                     {0.5f, 0.5f, 0.4f},
@@ -233,7 +242,7 @@ namespace Tungsten
         };
     }
 
-    ColorMaterial get_default_material(DefaultMaterial material)
+    ColorMaterial get_standard_color_material(StandardColorMaterial material)
     {
         return DEFAULT_MATERIALS[unsigned(material)].second;
     }

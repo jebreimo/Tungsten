@@ -6,7 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include "../Materials.hpp"
+#include "../ColorMaterials.hpp"
 #include "Tungsten/Gl/GlUniform.hpp"
 
 namespace Tungsten

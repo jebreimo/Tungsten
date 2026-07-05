@@ -23,12 +23,6 @@ namespace Tungsten
             data_[i] = transform[i % 4, i / 4];
     }
 
-    void RenderItem::set_normal_matrix(const Xyz::Matrix3F& normal_matrix)
-    {
-        for (size_t i = 0; i < 9; ++i)
-            data_[16 + 4 * (i / 3) + i % 3] = normal_matrix[i % 3, i / 3];
-    }
-
     Xyz::Matrix3F RenderItem::normal_matrix() const
     {
         // Data is using the std140 layout, so the normal matrix is stored
@@ -37,6 +31,12 @@ namespace Tungsten
         for (size_t i = 0; i < 9; ++i)
             result[i % 3, i / 3] = data_[16 + 4 * (i / 3) + i % 3];
         return result;
+    }
+
+    void RenderItem::set_normal_matrix(const Xyz::Matrix3F& normal_matrix)
+    {
+        for (size_t i = 0; i < 9; ++i)
+            data_[16 + 4 * (i / 3) + i % 3] = normal_matrix[i % 3, i / 3];
     }
 
     MeshRef RenderItem::mesh() const

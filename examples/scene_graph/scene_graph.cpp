@@ -34,6 +34,7 @@
 #include <Tungsten/Sdl/EventLoop.hpp>
 #include <Tungsten/Sdl/SdlApplication.hpp>
 
+#include "Tungsten/Gl/IOglWrapper.hpp"
 #include "Tungsten/Neo/BuiltinShaders.hpp"
 #include "Tungsten/Neo/CameraComponent.hpp"
 #include "Tungsten/Neo/LightComponent.hpp"
@@ -43,6 +44,7 @@
 #include "Tungsten/Neo/Scene.hpp"
 #include "Tungsten/Neo/SnapshotBuilder.hpp"
 #include "Tungsten/Neo/TransformUpdater.hpp"
+#include "Tungsten/Render/ColorMaterials.hpp"
 
 namespace
 {
@@ -51,16 +53,13 @@ namespace
     // The std140 MaterialBlock of the builtin BlinnPhong family
     // (Shaders/BlinnPhong-frag.glsl): ambient, diffuse (w = opacity),
     // specular (w = shininess), and the map flags (unused here).
-    std::vector<uint8_t> make_material_params(const Xyz::Vector3F& ambient,
-                                              const Xyz::Vector3F& diffuse,
-                                              float opacity,
-                                              const Xyz::Vector3F& specular,
-                                              float shininess)
+    std::vector<uint8_t> make_material_params(const ColorMaterial& material,
+                                              float opacity)
     {
         const float values[12] = {
-            ambient[0], ambient[1], ambient[2], 0,
-            diffuse[0], diffuse[1], diffuse[2], opacity,
-            specular[0], specular[1], specular[2], shininess
+            material.ambient[0], material.ambient[1], material.ambient[2], 0,
+            material.diffuse[0], material.diffuse[1], material.diffuse[2], opacity,
+            material.specular[0], material.specular[1], material.specular[2], material.shininess
         };
         std::vector<uint8_t> blob(16 * sizeof(float), 0);
         std::memcpy(blob.data(), values, sizeof(values));
@@ -85,19 +84,16 @@ namespace
 
             const auto gold = make_material(
                 shader, false,
-                make_material_params({0.25f, 0.20f, 0.07f},
-                                     {0.75f, 0.61f, 0.23f}, 1.0f,
-                                     {0.63f, 0.65f, 0.37f}, 51.2f));
+                make_material_params(get_standard_color_material(StandardColorMaterial::GOLD),
+                                     1.0f));
             const auto slate = make_material(
                 shader, false,
-                make_material_params({0.05f, 0.06f, 0.09f},
-                                     {0.28f, 0.35f, 0.50f}, 1.0f,
-                                     {0.45f, 0.45f, 0.50f}, 32.0f));
+                make_material_params(get_standard_color_material(StandardColorMaterial::SLATE),
+                                     1.0f));
             const auto glass = make_material(
                 shader, true,
-                make_material_params({0.05f, 0.12f, 0.12f},
-                                     {0.25f, 0.75f, 0.70f}, 0.4f,
-                                     {0.9f, 0.9f, 0.9f}, 96.0f));
+                make_material_params(get_standard_color_material(StandardColorMaterial::COPPER),
+                                     0.4f));
 
             const auto mesh = make_cube_mesh();
 
@@ -181,6 +177,7 @@ namespace
             resources_.collect_garbage(frame_);
             ++frame_;
             redraw();
+            set_ogl_tracing_enabled(false);
         }
 
     private:
@@ -283,10 +280,11 @@ int main(int argc, char** argv)
     try
     {
         argos::ArgumentParser parser;
-        Tungsten::SdlApplication::add_command_line_options(parser);
+        SdlApplication::add_command_line_options(parser);
         const auto args = parser.parse(argc, argv);
-        Tungsten::SdlApplication app("SceneGraph");
+        SdlApplication app("SceneGraph");
         app.read_command_line_options(args);
+        set_ogl_tracing_enabled(true);
         app.run<SceneGraphLoop>();
     }
     catch (const std::exception& e)
