@@ -27,12 +27,18 @@ namespace Tungsten
     // `required_layout` refers to the interned vertex format (§12) every variant
     // of this family expects; it is compared against a mesh's layout ref at load
     // and copied onto each compiled ShaderProgram.
+    //
+    // `samplers` lists the family's sampler uniforms in texture-unit order:
+    // sampler i samples unit i, which is the unit the renderer binds a
+    // material's texture i to. The ShaderLibrary points the uniforms at
+    // their units once per compiled variant (§4).
     struct ShaderFamily
     {
         ShaderFamilyId id = 0;
         std::string vertex_source;
         std::string fragment_source;
         std::vector<std::string> features;
+        std::vector<std::string> samplers;
         VertexLayoutRef required_layout;
     };
 } // Tungsten

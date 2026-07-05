@@ -44,6 +44,12 @@ namespace
                 arrays[i] = next_id_++;
         }
 
+        void gen_textures(GLsizei n, GLuint* textures) override
+        {
+            for (GLsizei i = 0; i < n; ++i)
+                textures[i] = next_id_++;
+        }
+
         GLuint create_shader(GLenum) override
         {
             return next_id_++;
@@ -97,6 +103,32 @@ namespace
             ++program_binds;
         }
 
+        // Fabricated locations, distinct per known sampler name, so the
+        // tests can tell which sampler was pointed at which unit.
+        GLint get_uniform_location(GLuint, const GLchar* name) override
+        {
+            if (std::strcmp(name, "u_diffuse_map") == 0)
+                return 20;
+            if (std::strcmp(name, "u_specular_map") == 0)
+                return 21;
+            return -1;
+        }
+
+        void uniform1_i(GLint location, GLint v0) override
+        {
+            int_uniforms.emplace_back(location, v0);
+        }
+
+        void active_texture(GLenum texture) override
+        {
+            current_texture_unit_ = static_cast<int>(texture - 0x84C0);
+        }
+
+        void bind_texture(GLenum, GLuint texture) override
+        {
+            texture_binds.emplace_back(current_texture_unit_, texture);
+        }
+
         void buffer_data(GLenum, GLsizeiptr size, const void*, GLenum) override
         {
             buffer_uploads.push_back(static_cast<size_t>(size));
@@ -130,6 +162,8 @@ namespace
         }
 
         std::vector<std::pair<GLuint, GLuint>> block_bindings;
+        std::vector<std::pair<GLint, GLint>> int_uniforms;
+        std::vector<std::pair<int, GLuint>> texture_binds;
         std::vector<size_t> buffer_uploads;
         std::vector<std::string> events;
         int program_binds = 0;
@@ -138,6 +172,7 @@ namespace
 
     private:
         GLuint next_id_ = 1;
+        int current_texture_unit_ = 0;
     };
 
     struct FakeGlSession
@@ -240,10 +275,12 @@ namespace
             TransformUpdater::resolve(scene);
             SnapshotBuilder(resources).build(scene, camera, snapshot);
             Renderer renderer(resources);
-            // The constructor allocates the UBOs through buffer_data too;
-            // reset the recording so the tests observe only render().
+            // The constructor allocates the UBOs through buffer_data and
+            // creates the white texture; reset the recording so the tests
+            // observe only render().
             gl.buffer_uploads.clear();
             gl.events.clear();
+            gl.texture_binds.clear();
             renderer.render(snapshot);
         }
 
@@ -270,6 +307,52 @@ TEST_CASE("ShaderLibrary: variants get the fixed UBO binding points")
     REQUIRE(bindings[0] == Pair{10, PER_FRAME_UBO_BINDING});
     REQUIRE(bindings[1] == Pair{11, PER_MATERIAL_UBO_BINDING});
     REQUIRE(bindings[2] == Pair{12, PER_DRAW_UBO_BINDING});
+}
+
+TEST_CASE("ShaderLibrary: sampler uniforms get consecutive texture units")
+{
+    FakeGlSession session;
+    ResourceManager resources;
+
+    ShaderFamily family;
+    family.vertex_source = "#version 300 es\nvoid main() {}\n";
+    family.fragment_source = "#version 300 es\nvoid main() {}\n";
+    family.samplers = {"u_diffuse_map", "u_specular_map"};
+    resources.register_shader_family(1, family);
+    resources.register_shader_variant({1, 0});
+
+    using Pair = std::pair<GLint, GLint>;
+    REQUIRE(session.gl->int_uniforms == std::vector<Pair>{{20, 0}, {21, 1}});
+}
+
+TEST_CASE("Renderer: unfilled sampler units get the white texture")
+{
+    FakeGlSession session;
+    Bench bench;
+
+    // A family with two samplers, drawn with a material that binds no
+    // textures: both units must be filled with the renderer's white texture.
+    ShaderFamily family;
+    family.vertex_source = "#version 300 es\nvoid main() {}\n";
+    family.fragment_source = "#version 300 es\nvoid main() {}\n";
+    family.samplers = {"u_diffuse_map", "u_specular_map"};
+    family.required_layout = bench.layout;
+    bench.resources.register_shader_family(2, family);
+
+    Material material_value;
+    material_value.shader = bench.resources.register_shader_variant({2, 0});
+    const auto material = bench.resources.create_material(
+        std::move(material_value));
+    bench.add_renderable(bench.make_mesh(4, 6), material, -10);
+
+    bench.build_and_render(*session.gl);
+    const auto& binds = session.gl->texture_binds;
+    REQUIRE(binds.size() == 2);
+    REQUIRE(binds[0].first == 0);
+    REQUIRE(binds[1].first == 1);
+    // Both units hold the same texture — the constructor's 1×1 white.
+    REQUIRE(binds[0].second != 0);
+    REQUIRE(binds[0].second == binds[1].second);
 }
 
 TEST_CASE("Renderer: draws every item with one draw call each")

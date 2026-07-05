@@ -9,6 +9,7 @@
 #include <string>
 #include "Tungsten/Gl/GlProgram.hpp"
 #include "Tungsten/Gl/GlTypes.hpp"
+#include "Tungsten/Gl/GlUniform.hpp"
 #include "Tungsten/Render/ShaderPreprocessor.hpp"
 #include "Tungsten/Render/ShaderProgramBuilder.hpp"
 #include "Tungsten/TungstenException.hpp"
@@ -35,6 +36,27 @@ namespace Tungsten
                 const auto index = get_uniform_block_index(program_id, name);
                 if (index != INVALID_UNIFORM_BLOCK_INDEX)
                     set_uniform_block_binding(program_id, index, binding);
+            }
+        }
+
+        // Points each of the family's sampler uniforms at its texture unit:
+        // sampler i samples unit i, the same order the renderer binds a
+        // material's textures in (§4). Applied once per compiled variant,
+        // like the block bindings above — but glUniform writes to the
+        // *current* program, so the program is bound here. A sampler the
+        // variant's feature set compiles away has no location and is skipped.
+        void apply_sampler_bindings(uint32_t program_id,
+                                    const std::vector<std::string>& samplers)
+        {
+            if (samplers.empty())
+                return;
+            use_program(program_id);
+            for (size_t i = 0; i < samplers.size(); ++i)
+            {
+                const auto location =
+                    get_uniform_location(program_id, samplers[i].c_str());
+                if (location != -1)
+                    set_uniform(location, static_cast<int32_t>(i));
             }
         }
     }
@@ -90,8 +112,10 @@ namespace Tungsten
         ShaderProgram program;
         program.gl_handle = builder.build();
         apply_ubo_bindings(program.gl_handle.id());
+        apply_sampler_bindings(program.gl_handle.id(), family.samplers);
         program.variant_key = key;
         program.required_layout = family.required_layout;
+        program.sampler_count = static_cast<uint32_t>(family.samplers.size());
 
         ShaderProgramRef ref = insert_shader_(std::move(program));
         variant_cache_.emplace_back(key, ref);

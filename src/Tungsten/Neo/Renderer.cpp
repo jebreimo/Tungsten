@@ -63,6 +63,16 @@ namespace Tungsten
         bind_buffer_base(BufferTarget::UNIFORM, PER_DRAW_UBO_BINDING,
                          per_draw_ubo_.id());
         state_.bind_material_ubo(per_material_ubo_.id());
+
+        white_texture_ = generate_texture();
+        bind_texture(TextureTarget::TEXTURE_2D, white_texture_.id());
+        constexpr uint8_t white[4] = {0xFF, 0xFF, 0xFF, 0xFF};
+        set_texture_image_2d(TextureTarget2D::TEXTURE_2D, 0, {1, 1},
+                             RGBA_TEXTURE, white);
+        // The default min filter expects mipmaps; without this the lone
+        // level-0 image would leave the texture incomplete.
+        set_min_filter(TextureTarget::TEXTURE_2D, TextureMinFilter::NEAREST);
+        set_mag_filter(TextureTarget::TEXTURE_2D, TextureMagFilter::NEAREST);
     }
 
     void Renderer::render(const RenderSnapshot& snapshot)
@@ -184,6 +194,14 @@ namespace Tungsten
             state_.bind_texture(
                 static_cast<int32_t>(i),
                 resources_.get_texture(material.textures[i]).gl_handle.id());
+        }
+
+        // The program samples units [0, sampler_count) whether or not the
+        // material fills them; the unfilled ones get the white texture.
+        for (auto i = static_cast<uint32_t>(material.textures.size());
+             i < shader.sampler_count; ++i)
+        {
+            state_.bind_texture(static_cast<int32_t>(i), white_texture_.id());
         }
 
         current_material_ = ref;

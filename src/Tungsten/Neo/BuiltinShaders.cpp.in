@@ -41,6 +41,9 @@ namespace Tungsten
         blinn_phong.fragment_source = BLINN_PHONG_FRAGMENT;
         // No compile-time features yet: the maps and light counts are
         // runtime-switched uniforms (§14 prefers runtime control).
+        // Sampler i samples texture unit i, so a material's textures list
+        // uses this order: diffuse map first, then specular map.
+        blinn_phong.samplers = {"u_diffuse_map", "u_specular_map"};
         blinn_phong.required_layout =
             resources.register_layout(builtin_pnt_layout());
         resources.register_shader_family(BLINN_PHONG_FAMILY,

@@ -6,6 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include <cstdint>
 #include "Tungsten/Gl/GlProgram.hpp"
 #include "ResourceRefs.hpp"
 #include "ShaderVariantKey.hpp"
@@ -28,10 +29,14 @@ namespace Tungsten
     // attributes expect; it is compared against a Mesh's layout ref — interning
     // makes equal layouts share a ref — so mismatches are caught rather than
     // silently mis-binding attributes.
+    // `sampler_count` is the size of the family's sampler list: the program
+    // samples texture units [0, sampler_count), so the renderer knows which
+    // units must hold a texture even when the material provides none.
     struct ShaderProgram
     {
         ProgramHandle gl_handle;
         ShaderVariantKey variant_key;
         VertexLayoutRef required_layout;
+        uint32_t sampler_count = 0;
     };
 } // Tungsten

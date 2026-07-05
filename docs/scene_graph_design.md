@@ -113,6 +113,15 @@ never change after startup, only the buffers' contents do. It uploads the per-fr
 per frame, a material's `parameterData` blob on material change, and the per-draw block per
 item.
 
+**Texture units follow the same fixed-convention idea.** A `ShaderFamily` lists its sampler
+uniforms in unit order (`samplers`), and the `ShaderLibrary` points sampler *i* at texture
+unit *i* right after linking each variant — samplers cannot live in UBOs, and their GLSL
+default (unit 0 for every sampler) is never what a multi-textured material wants. The
+renderer binds `Material::textures[i]` to unit *i*, so the two orders meet in the middle.
+Units the program samples but the material leaves unfilled get the renderer's 1×1 white
+dummy texture: a sampler must always see a complete texture (macOS's GL driver warns
+otherwise), and white is the multiplicative identity if the shader reads it anyway.
+
 ## 5. Double-buffering
 
 `Scene` owns a `DoubleBuffer<RenderSnapshot>`. Each frame, single-threaded:

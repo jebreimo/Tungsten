@@ -8,6 +8,7 @@
 #pragma once
 #include <vector>
 #include "Tungsten/Gl/GlBuffer.hpp"
+#include "Tungsten/Gl/GlTexture.hpp"
 #include "GlStateCache.hpp"
 #include "RenderSnapshot.hpp"
 #include "ResourceRefs.hpp"
@@ -69,6 +70,11 @@ namespace Tungsten
         BufferHandle per_frame_ubo_;
         BufferHandle per_material_ubo_;
         BufferHandle per_draw_ubo_;
+        // 1×1 white, bound to every sampler unit the material leaves
+        // unfilled: a sampler must see a complete texture even when the
+        // shader's runtime flags never read it, and white is the
+        // multiplicative identity if it is read anyway.
+        TextureHandle white_texture_;
         // Sort scratch, reused across frames to avoid reallocation.
         std::vector<const RenderItem*> sorted_;
         MaterialRef current_material_;

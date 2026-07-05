@@ -25,10 +25,10 @@ namespace Tungsten
                                VertexLayoutRef layout)
     {
         VaoKey key{{vbo_arenas.begin(), vbo_arenas.end()}, ebo_arena, layout};
-        for (const auto& entry : entries_)
+        for (const auto& [entry_key, entry_vao] : entries_)
         {
-            if (entry.key == key)
-                return entry.vao.id();
+            if (entry_key == key)
+                return entry_vao.id();
         }
         return build_vao(std::move(key));
     }
@@ -84,21 +84,21 @@ namespace Tungsten
 
     void VaoCache::rebuild_for_arena(BufferArenaRef ref)
     {
-        for (auto& entry : entries_)
+        for (auto& [key, vao] : entries_)
         {
-            if (!key_references(entry.key, ref))
+            if (!key_references(key, ref))
                 continue;
 
-            bind_vertex_array(entry.vao.id());
+            bind_vertex_array(vao.id());
 
-            const VertexLayout& layout = layouts_(entry.key.layout);
-            for (size_t stream = 0; stream < entry.key.vbo_arenas.size(); ++stream)
+            const VertexLayout& layout = layouts_(key.layout);
+            for (size_t stream = 0; stream < key.vbo_arenas.size(); ++stream)
             {
-                if (entry.key.vbo_arenas[stream] == ref)
-                    bind_stream(entry.key, layout, stream);
+                if (key.vbo_arenas[stream] == ref)
+                    bind_stream(key, layout, stream);
             }
 
-            if (entry.key.ebo_arena == ref)
+            if (key.ebo_arena == ref)
                 bind_buffer(BufferTarget::ELEMENT_ARRAY, arenas_(ref).buffer_id());
         }
         bind_vertex_array(0);
@@ -106,10 +106,10 @@ namespace Tungsten
 
     void VaoCache::evict_for_arena(BufferArenaRef ref, DeletionQueue& deletions)
     {
-        for (auto& entry : entries_)
+        for (auto& [key, vao] : entries_)
         {
-            if (key_references(entry.key, ref))
-                deletions.retire(std::move(entry.vao));
+            if (key_references(key, ref))
+                deletions.retire(std::move(vao));
         }
         std::erase_if(entries_, [&](const VaoEntry& entry) {
             return key_references(entry.key, ref);
