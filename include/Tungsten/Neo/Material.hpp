@@ -35,7 +35,7 @@ namespace Tungsten
     struct Material
     {
         ShaderProgramRef shader;
-        std::vector<uint8_t> parameter_data;
+        std::vector<std::byte> parameter_data;
         std::vector<TextureRef> textures;
         bool transparent = false;
     };

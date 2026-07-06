@@ -53,7 +53,7 @@ namespace
     // The std140 MaterialBlock of the builtin BlinnPhong family
     // (Shaders/BlinnPhong-frag.glsl): ambient, diffuse (w = opacity),
     // specular (w = shininess), and the map flags (unused here).
-    std::vector<uint8_t> make_material_params(const ColorMaterial& material,
+    std::vector<std::byte> make_material_params(const ColorMaterial& material,
                                               float opacity)
     {
         const float values[12] = {
@@ -61,9 +61,8 @@ namespace
             material.diffuse[0], material.diffuse[1], material.diffuse[2], opacity,
             material.specular[0], material.specular[1], material.specular[2], material.shininess
         };
-        std::vector<uint8_t> blob(16 * sizeof(float), 0);
-        std::memcpy(blob.data(), values, sizeof(values));
-        return blob;
+        auto span = as_bytes(std::span(values));
+        return {span.begin(), span.end()};
     }
 
     AABB unit_box()
@@ -182,7 +181,7 @@ namespace
 
     private:
         MaterialRef make_material(ShaderProgramRef shader, bool transparent,
-                                  std::vector<uint8_t> params)
+                                  std::vector<std::byte> params)
         {
             Material material;
             material.shader = shader;
