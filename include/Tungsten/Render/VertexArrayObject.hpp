@@ -14,7 +14,7 @@
 
 namespace Tungsten
 {
-    struct VertexAttribute
+    struct VertexAttributeInfo
     {
         uint32_t location = UINT32_MAX;
         uint32_t buffer_id = 0;
@@ -32,7 +32,7 @@ namespace Tungsten
         VertexArrayObject() = default;
 
         VertexArrayObject(VertexArrayHandle vao,
-                          std::vector<VertexAttribute> attributes)
+                          std::vector<VertexAttributeInfo> attributes)
             : vao_(std::move(vao)),
               attributes_(std::move(attributes))
         {
@@ -54,12 +54,12 @@ namespace Tungsten
 
         [[nodiscard]] uint32_t id() const;
 
-        [[nodiscard]] const std::vector<VertexAttribute>& attributes() const;
+        [[nodiscard]] const std::vector<VertexAttributeInfo>& attributes() const;
 
         [[nodiscard]] size_t num_buffers() const;
 
     private:
         VertexArrayHandle vao_;
-        std::vector<VertexAttribute> attributes_;
+        std::vector<VertexAttributeInfo> attributes_;
     };
 } // Tungsten

@@ -109,7 +109,7 @@ namespace Tungsten
         const auto strides = compute_strides();
         uint32_t current_buffer_id = 0;
         uint32_t offset = 0;
-        std::vector<VertexAttribute> attributes;
+        std::vector<VertexAttributeInfo> attributes;
         for (size_t i = 0; i < definitions_.size(); ++i)
         {
             const auto& def = definitions_[i];

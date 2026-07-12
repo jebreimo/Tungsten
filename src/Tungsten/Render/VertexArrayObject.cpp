@@ -24,7 +24,7 @@ namespace Tungsten
         return vao_.id();
     }
 
-    const std::vector<VertexAttribute>& VertexArrayObject::attributes() const
+    const std::vector<VertexAttributeInfo>& VertexArrayObject::attributes() const
     {
         return attributes_;
     }
