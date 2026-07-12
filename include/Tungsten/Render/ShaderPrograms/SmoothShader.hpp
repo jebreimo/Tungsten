@@ -8,12 +8,12 @@
 #pragma once
 #include "LightUniforms.hpp"
 #include "MaterialUniforms.hpp"
-#include "ShaderProgram.hpp"
+#include "OldShaderProgram.hpp"
 #include "../../Camera.hpp"
 
 namespace Tungsten
 {
-    class SmoothShader : public ShaderProgram
+    class SmoothShader : public OldShaderProgram
     {
     public:
         static constexpr std::string_view NAME = "builtin::SmoothMesh";

@@ -11,12 +11,12 @@
 
 namespace Tungsten
 {
-    class ShaderProgram;
+    class OldShaderProgram;
 
     struct ColorMaterialUniform
     {
         explicit ColorMaterialUniform(const std::string& prefix,
-                                      const ShaderProgram& shader_program);
+                                      const OldShaderProgram& shader_program);
 
         void set(const ColorMaterial& material);
 

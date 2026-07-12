@@ -25,13 +25,13 @@ namespace Tungsten
         return instance;
     }
 
-    void ShaderManager::add_program(std::unique_ptr<ShaderProgram> program)
+    void ShaderManager::add_program(std::unique_ptr<OldShaderProgram> program)
     {
         if (!programs_.insert({program->name(), std::move(program)}).second)
             TUNGSTEN_THROW("Program with name '" + program->name() + "' already exists.");
     }
 
-    ShaderProgram& ShaderManager::program(const std::string& name)
+    OldShaderProgram& ShaderManager::program(const std::string& name)
     {
         const auto program = try_get_program(name);
         if (!program)
@@ -39,7 +39,7 @@ namespace Tungsten
         return *program;
     }
 
-    ShaderProgram* ShaderManager::try_get_program(const std::string& name)
+    OldShaderProgram* ShaderManager::try_get_program(const std::string& name)
     {
         const auto it = programs_.find(name);
         if (it == programs_.end())
@@ -47,7 +47,7 @@ namespace Tungsten
         return it->second.get();
     }
 
-    ShaderProgram& ShaderManager::program(BuiltinShader program)
+    OldShaderProgram& ShaderManager::program(BuiltinShader program)
     {
         switch (program)
         {
@@ -59,7 +59,7 @@ namespace Tungsten
     }
 
     template <typename ShaderType>
-    ShaderProgram& ShaderManager::get_or_create_builtin_program()
+    OldShaderProgram& ShaderManager::get_or_create_builtin_program()
     {
         const std::string name(ShaderType::NAME);
         if (const auto ptr = try_get_program(name))

@@ -13,11 +13,11 @@
 
 namespace Tungsten
 {
-    class ShaderProgram;
+    class OldShaderProgram;
 
     struct DirectionalLightUniform
     {
-        explicit DirectionalLightUniform(const std::string& prefix, const ShaderProgram& shader_program);
+        explicit DirectionalLightUniform(const std::string& prefix, const OldShaderProgram& shader_program);
 
         void set(const DirectionalLight& light,
                  const Xyz::Matrix4F& view_matrix);

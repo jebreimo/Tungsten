@@ -8,7 +8,7 @@
 #pragma once
 #include <unordered_map>
 
-#include "ShaderPrograms/ShaderProgram.hpp"
+#include "ShaderPrograms/OldShaderProgram.hpp"
 #include "ShaderPreprocessor.hpp"
 
 namespace Tungsten
@@ -31,13 +31,13 @@ namespace Tungsten
 
         ShaderManager& operator=(const ShaderManager&) = delete;
 
-        void add_program(std::unique_ptr<ShaderProgram> program);
+        void add_program(std::unique_ptr<OldShaderProgram> program);
 
-        [[nodiscard]] ShaderProgram& program(const std::string& name);
+        [[nodiscard]] OldShaderProgram& program(const std::string& name);
 
-        [[nodiscard]] ShaderProgram* try_get_program(const std::string& name);
+        [[nodiscard]] OldShaderProgram* try_get_program(const std::string& name);
 
-        [[nodiscard]] ShaderProgram& program(BuiltinShader program);
+        [[nodiscard]] OldShaderProgram& program(BuiltinShader program);
 
         [[nodiscard]] ShaderPreprocessor& preprocessor();
 
@@ -45,9 +45,9 @@ namespace Tungsten
         ShaderManager() = default;
 
         template <typename ShaderType>
-        ShaderProgram& get_or_create_builtin_program();
+        OldShaderProgram& get_or_create_builtin_program();
 
-        std::unordered_map<std::string, std::unique_ptr<ShaderProgram>> programs_;
+        std::unordered_map<std::string, std::unique_ptr<OldShaderProgram>> programs_;
         ShaderPreprocessor preprocessor_;
     };
 }

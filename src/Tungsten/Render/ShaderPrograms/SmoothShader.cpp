@@ -13,11 +13,11 @@
 namespace Tungsten
 {
     SmoothShader::SmoothShader()
-        : ShaderProgram(std::string(NAME),
-                        {
-                            {ShaderType::VERTEX, ShaderSources::BLINN_PHONG_VERTEX},
-                            {ShaderType::FRAGMENT, ShaderSources::BLINN_PHONG_FRAGMENT}
-                        }),
+        : OldShaderProgram(std::string(NAME),
+                           {
+                               {ShaderType::VERTEX, ShaderSources::BLINN_PHONG_VERTEX},
+                               {ShaderType::FRAGMENT, ShaderSources::BLINN_PHONG_FRAGMENT}
+                           }),
           material("u_material.", *this),
           directional_light("u_dir_light.", *this)
     {

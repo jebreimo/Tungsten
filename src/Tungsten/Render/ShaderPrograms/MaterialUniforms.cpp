@@ -6,12 +6,12 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #include "Tungsten/Render/ShaderPrograms/MaterialUniforms.hpp"
-#include "Tungsten/Render/ShaderPrograms/ShaderProgram.hpp"
+#include "Tungsten/Render/ShaderPrograms/OldShaderProgram.hpp"
 
 namespace Tungsten
 {
     ColorMaterialUniform::ColorMaterialUniform(const std::string& prefix,
-                                               const ShaderProgram& shader_program)
+                                               const OldShaderProgram& shader_program)
         : ambient(get_uniform<Xyz::Vector3F>(shader_program.id(), prefix + "ambient")),
           diffuse(get_uniform<Xyz::Vector3F>(shader_program.id(), prefix + "diffuse")),
           specular(get_uniform<Xyz::Vector3F>(shader_program.id(), prefix + "specular")),

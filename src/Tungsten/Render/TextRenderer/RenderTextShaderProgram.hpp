@@ -7,11 +7,11 @@
 //****************************************************************************
 #pragma once
 #include "Tungsten/Gl/GlUniform.hpp"
-#include "Tungsten/Render/ShaderPrograms/ShaderProgram.hpp"
+#include "Tungsten/Render/ShaderPrograms/OldShaderProgram.hpp"
 
 namespace Tungsten::Detail
 {
-    class RenderTextShaderProgram : public ShaderProgram
+    class RenderTextShaderProgram : public OldShaderProgram
     {
     public:
         using VertexType = std::tuple<Xyz::Vector2F, Xyz::Vector2F>;

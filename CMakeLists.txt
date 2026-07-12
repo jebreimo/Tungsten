@@ -96,7 +96,7 @@ add_library(Tungsten STATIC
     include/Tungsten/Render/ShaderProgramBuilder.hpp
     include/Tungsten/Render/ShaderPrograms/LightUniforms.hpp
     include/Tungsten/Render/ShaderPrograms/MaterialUniforms.hpp
-    include/Tungsten/Render/ShaderPrograms/ShaderProgram.hpp
+    include/Tungsten/Render/ShaderPrograms/OldShaderProgram.hpp
     include/Tungsten/Render/ShaderPrograms/SmoothShader.hpp
     include/Tungsten/Render/ShaderTools.hpp
     include/Tungsten/Render/TextItem.hpp
@@ -141,7 +141,7 @@ add_library(Tungsten STATIC
     src/Tungsten/Render/ColorMaterials.cpp
     src/Tungsten/Render/ShaderManager.cpp
     src/Tungsten/Render/ShaderPreprocessor.cpp
-    src/Tungsten/Render/ShaderProgram.cpp
+    src/Tungsten/Render/ShaderPrograms/OldShaderProgram.cpp
     src/Tungsten/Render/ShaderProgramBuilder.cpp
     src/Tungsten/Render/ShaderPrograms/LightUniforms.cpp
     src/Tungsten/Render/ShaderPrograms/MaterialUniforms.cpp

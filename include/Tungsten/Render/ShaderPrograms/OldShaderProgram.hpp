@@ -15,10 +15,10 @@
 
 namespace Tungsten
 {
-    class ShaderProgram
+    class OldShaderProgram
     {
     public:
-        virtual ~ShaderProgram();
+        virtual ~OldShaderProgram();
 
         [[nodiscard]] const std::string& name() const;
 
@@ -34,12 +34,12 @@ namespace Tungsten
         const std::vector<VertexAttributeDefinition>& attribute_definitions() const;
 
     protected:
-        ShaderProgram(std::string name,
-                      std::vector<std::pair<ShaderType, std::string>> sources);
+        OldShaderProgram(std::string name,
+                         std::vector<std::pair<ShaderType, std::string>> sources);
 
-        ShaderProgram(std::string name,
-                      std::vector<std::pair<ShaderType, std::string>> sources,
-                      const ShaderPreprocessor& preprocessor);
+        OldShaderProgram(std::string name,
+                         std::vector<std::pair<ShaderType, std::string>> sources,
+                         const ShaderPreprocessor& preprocessor);
 
         void set_attribute_definitions(std::vector<VertexAttributeDefinition> definitions);
 

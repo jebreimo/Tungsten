@@ -13,11 +13,11 @@
 namespace Tungsten::Detail
 {
     RenderTextShaderProgram::RenderTextShaderProgram()
-        : ShaderProgram("internal::Text",
-                        {
-                            {ShaderType::VERTEX, ShaderSources::RENDER_TEXT_VERTEX},
-                            {ShaderType::FRAGMENT, ShaderSources::RENDER_TEXT_FRAGMENT}
-                        })
+        : OldShaderProgram("internal::Text",
+                           {
+                               {ShaderType::VERTEX, ShaderSources::RENDER_TEXT_VERTEX},
+                               {ShaderType::FRAGMENT, ShaderSources::RENDER_TEXT_FRAGMENT}
+                           })
     {
         position = get_vertex_attribute(id(), "a_Position");
         texture_coord = get_vertex_attribute(id(), "a_TextureCoord");

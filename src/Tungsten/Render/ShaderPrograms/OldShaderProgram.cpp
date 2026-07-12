@@ -5,22 +5,22 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/Render/ShaderPrograms/ShaderProgram.hpp"
+#include "Tungsten/Render/ShaderPrograms/OldShaderProgram.hpp"
 
 #include "Tungsten/Render/ShaderManager.hpp"
 #include "Tungsten/Render/ShaderProgramBuilder.hpp"
 
 namespace Tungsten
 {
-    ShaderProgram::ShaderProgram(std::string name,
+    OldShaderProgram::OldShaderProgram(std::string name,
                                  std::vector<std::pair<ShaderType, std::string>> sources)
-        : ShaderProgram(std::move(name),
+        : OldShaderProgram(std::move(name),
                         std::move(sources),
                         ShaderManager::instance().preprocessor())
     {
     }
 
-    ShaderProgram::ShaderProgram(std::string name,
+    OldShaderProgram::OldShaderProgram(std::string name,
                                  std::vector<std::pair<ShaderType, std::string>> sources,
                                  const ShaderPreprocessor& preprocessor)
         : name_(std::move(name))
@@ -34,40 +34,40 @@ namespace Tungsten
         program_ = builder.build();
     }
 
-    ShaderProgram::~ShaderProgram() = default;
+    OldShaderProgram::~OldShaderProgram() = default;
 
-    const std::string& ShaderProgram::name() const
+    const std::string& OldShaderProgram::name() const
     {
         return name_;
     }
 
-    const std::string& ShaderProgram::source(ShaderType type) const
+    const std::string& OldShaderProgram::source(ShaderType type) const
     {
         return sources_.at(type);
     }
 
-    void ShaderProgram::use() const
+    void OldShaderProgram::use() const
     {
         use_program(program_.id());
     }
 
-    const ProgramHandle& ShaderProgram::handle() const
+    const ProgramHandle& OldShaderProgram::handle() const
     {
         return program_;
     }
 
-    uint32_t ShaderProgram::id() const
+    uint32_t OldShaderProgram::id() const
     {
         return program_.id();
     }
 
     const std::vector<VertexAttributeDefinition>&
-    ShaderProgram::attribute_definitions() const
+    OldShaderProgram::attribute_definitions() const
     {
         return attribute_definitions_;
     }
 
-    void ShaderProgram::set_attribute_definitions(
+    void OldShaderProgram::set_attribute_definitions(
         std::vector<VertexAttributeDefinition> definitions)
     {
         attribute_definitions_ = std::move(definitions);

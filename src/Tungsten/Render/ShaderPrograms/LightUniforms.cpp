@@ -7,12 +7,12 @@
 //****************************************************************************
 #include "Tungsten/Render/ShaderPrograms/LightUniforms.hpp"
 
-#include "Tungsten/Render/ShaderPrograms/ShaderProgram.hpp"
+#include "Tungsten/Render/ShaderPrograms/OldShaderProgram.hpp"
 
 namespace Tungsten
 {
     DirectionalLightUniform::DirectionalLightUniform(const std::string& prefix,
-                                                     const ShaderProgram& shader_program)
+                                                     const OldShaderProgram& shader_program)
         : direction(get_uniform<Xyz::Vector3F>(shader_program.id(), prefix + "direction")),
           ambient(get_uniform<Xyz::Vector3F>(shader_program.id(), prefix + "ambient")),
           diffuse(get_uniform<Xyz::Vector3F>(shader_program.id(), prefix + "diffuse")),
