@@ -314,8 +314,9 @@ TEST_CASE("ResourceManager: material refs are revoked on destroy")
     FakeGlSession session;
     ResourceManager manager;
 
+    using B = std::byte;
     Material material;
-    material.parameter_data = {1, 2, 3, 4};
+    material.parameter_data = {B{1}, B{2}, B{3}, B{4}};
     auto ref = manager.create_material(std::move(material));
     REQUIRE(manager.get_material(ref).parameter_data.size() == 4);
 
