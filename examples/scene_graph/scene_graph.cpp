@@ -26,25 +26,7 @@
 // Deliberately not <Tungsten/Tungsten.hpp>: the umbrella still exports the
 // old shader layer, whose ShaderProgram and VertexAttribute the scene-graph
 // path replaces (§9) — the names collide until the old layer is retired.
-#include <Tungsten/DeviceInfo.hpp>
-#include <Tungsten/Gl/GlRendering.hpp>
-#include <Tungsten/Gl/GlStateManagement.hpp>
-#include <Tungsten/MeshDataBuilder.hpp>
-#include <Tungsten/MeshUtilities.hpp>
-#include <Tungsten/Sdl/EventLoop.hpp>
-#include <Tungsten/Sdl/SdlApplication.hpp>
-
-#include "Tungsten/Gl/IOglWrapper.hpp"
-#include "Tungsten/Neo/BuiltinShaders.hpp"
-#include "Tungsten/Neo/CameraComponent.hpp"
-#include "Tungsten/Neo/LightComponent.hpp"
-#include "Tungsten/Neo/RenderableComponent.hpp"
-#include "Tungsten/Neo/Renderer.hpp"
-#include "Tungsten/Neo/ResourceManager.hpp"
-#include "Tungsten/Neo/Scene.hpp"
-#include "Tungsten/Neo/SnapshotBuilder.hpp"
-#include "Tungsten/Neo/TransformUpdater.hpp"
-#include "Tungsten/Render/ColorMaterials.hpp"
+#include <Tungsten/Tungsten.hpp>
 
 namespace
 {
@@ -54,7 +36,7 @@ namespace
     // (Shaders/BlinnPhong-frag.glsl): ambient, diffuse (w = opacity),
     // specular (w = shininess), and the map flags (unused here).
     std::vector<std::byte> make_material_params(const ColorMaterial& material,
-                                              float opacity)
+                                                float opacity)
     {
         const float values[12] = {
             material.ambient[0], material.ambient[1], material.ambient[2], 0,
