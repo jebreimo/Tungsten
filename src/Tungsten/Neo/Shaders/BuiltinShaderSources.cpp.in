@@ -1,0 +1,14 @@
+//****************************************************************************
+// Copyright © 2026 Jan Erik Breimo. All rights reserved.
+// Created by Jan Erik Breimo on 2026-07-22.
+//
+// This file is distributed under the Zero-Clause BSD License.
+// License text is included with the source distribution.
+//****************************************************************************
+#include "Tungsten/Neo/Shaders/BuiltinShaderSources.hpp"
+
+namespace Tungsten
+{
+    extern const std::string BLINN_PHONG_VERTEX(#embed_text "BlinnPhong-vert.glsl");
+    extern const std::string BLINN_PHONG_FRAGMENT(#embed_text "BlinnPhong-frag.glsl");
+}

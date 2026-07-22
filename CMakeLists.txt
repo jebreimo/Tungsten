@@ -222,6 +222,8 @@ add_library(Tungsten STATIC
     include/Tungsten/Neo/VaoCache.hpp
     include/Tungsten/Neo/VertexAttribute.hpp
     include/Tungsten/Neo/VertexLayout.hpp
+    src/Tungsten/Neo/BuiltinShaders.cpp
+    src/Tungsten/Neo/Shaders/BuiltinShaderSources.hpp
 )
 
 target_link_libraries(Tungsten
@@ -258,7 +260,7 @@ include(TargetEmbedCppData)
 target_embed_cpp_data(Tungsten
     FILES
     src/Tungsten/Render/ShaderSources.cpp.in
-    src/Tungsten/Neo/BuiltinShaders.cpp.in
+    src/Tungsten/Neo/Shaders/BuiltinShaderSources.cpp.in
 )
 
 ##

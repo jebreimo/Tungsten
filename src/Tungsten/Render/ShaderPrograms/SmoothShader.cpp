@@ -15,8 +15,8 @@ namespace Tungsten
     SmoothShader::SmoothShader()
         : OldShaderProgram(std::string(NAME),
                            {
-                               {ShaderType::VERTEX, ShaderSources::BLINN_PHONG_VERTEX},
-                               {ShaderType::FRAGMENT, ShaderSources::BLINN_PHONG_FRAGMENT}
+                               {ShaderType::VERTEX, ShaderSources::OLD_BLINN_PHONG_VERTEX},
+                               {ShaderType::FRAGMENT, ShaderSources::OLD_BLINN_PHONG_FRAGMENT}
                            }),
           material("u_material.", *this),
           directional_light("u_dir_light.", *this)

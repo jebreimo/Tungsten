@@ -10,15 +10,10 @@
 #include <string>
 
 #include "Tungsten/Neo/ResourceManager.hpp"
+#include "Shaders/BuiltinShaderSources.hpp"
 
 namespace Tungsten
 {
-    namespace
-    {
-        const std::string BLINN_PHONG_VERTEX(#embed_text "Shaders/BlinnPhong-vert.glsl");
-        const std::string BLINN_PHONG_FRAGMENT(#embed_text "Shaders/BlinnPhong-frag.glsl");
-    }
-
     VertexLayout builtin_pnt_layout()
     {
         VertexLayout layout;

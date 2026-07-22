@@ -9,8 +9,8 @@
 
 namespace Tungsten::ShaderSources
 {
-    extern const std::string BLINN_PHONG_VERTEX(#embed_text "shaders/BlinnPhong-vert.glsl");
-    extern const std::string BLINN_PHONG_FRAGMENT(#embed_text "shaders/BlinnPhong-frag.glsl");
+    extern const std::string OLD_BLINN_PHONG_VERTEX(#embed_text "shaders/BlinnPhong-vert.glsl");
+    extern const std::string OLD_BLINN_PHONG_FRAGMENT(#embed_text "shaders/BlinnPhong-frag.glsl");
 
     extern const std::string RENDER_TEXT_VERTEX(#embed_text "shaders/RenderText-vert.glsl");
     extern const std::string RENDER_TEXT_FRAGMENT(#embed_text "shaders/RenderText-frag.glsl");
