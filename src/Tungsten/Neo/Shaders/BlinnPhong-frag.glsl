@@ -61,14 +61,12 @@ layout (std140) uniform PerFrame
 };
 
 // binding 1 — per-material: the Blinn-Phong parameter blob. Bound on material
-// change. The map flags select between the constant colours below and the
-// sampled maps; the samplers themselves cannot live in a UBO.
+// change. The samplers themselves cannot live in a UBO.
 layout (std140) uniform MaterialBlock
 {
     vec4 u_ambient;          // rgb
     vec4 u_diffuse;          // rgb, w = opacity
     vec4 u_specular;         // rgb, w = shininess
-    ivec4 u_material_flags;  // x = use_diffuse_map, y = use_specular_map
 };
 
 uniform sampler2D u_diffuse_map;
@@ -86,23 +84,14 @@ ColorMaterial get_material()
 {
     ColorMaterial material;
 
-    if (u_material_flags.x != 0)
-    {
-        // Ambient tracks the albedo; the global ambient light scales it.
-        vec3 diffuse = vec3(texture(u_diffuse_map, fs_in.texcoord));
-        material.ambient = diffuse;
-        material.diffuse = diffuse;
-    }
-    else
-    {
-        material.ambient = u_ambient.rgb;
-        material.diffuse = u_diffuse.rgb;
-    }
-
-    material.specular = u_material_flags.y != 0
-        ? vec3(texture(u_specular_map, fs_in.texcoord))
-        : u_specular.rgb;
-
+    // The renderer binds a 1x1 white texture to unassigned sampler slots,
+    // so both maps can be sampled unconditionally: the constant colours
+    // modulate the maps, and untextured materials are modulated by white.
+    vec3 diffuse_map = vec3(texture(u_diffuse_map, fs_in.texcoord));
+    material.ambient = u_ambient.rgb * diffuse_map;
+    material.diffuse = u_diffuse.rgb * diffuse_map;
+    material.specular = u_specular.rgb
+                        * vec3(texture(u_specular_map, fs_in.texcoord));
     material.shininess = u_specular.w;
     return material;
 }

@@ -34,7 +34,7 @@ namespace
 
     // The std140 MaterialBlock of the builtin BlinnPhong family
     // (Shaders/BlinnPhong-frag.glsl): ambient, diffuse (w = opacity),
-    // specular (w = shininess), and the map flags (unused here).
+    // specular (w = shininess).
     std::vector<std::byte> make_material_params(const ColorMaterial& material,
                                                 float opacity)
     {
