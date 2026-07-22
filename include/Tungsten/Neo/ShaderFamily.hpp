@@ -18,27 +18,30 @@ namespace Tungsten
     // list of feature flags it understands and the vertex format its attributes
     // expect; ResourceManager's ShaderLibrary owns the registered families and
     // turns a ShaderVariantKey into a compiled program.
-    //
-    // `features` is the single place that maps a ShaderVariantKey::defines bit to
-    // its `#define` spelling: bit i set means `#define <features[i]>` is prepended
-    // to the source before compiling. Keeping the mapping ordered here is what lets
-    // the key stay a cheap-to-compare bitmask rather than a set of strings.
-    //
-    // `required_layout` refers to the interned vertex format (§12) every variant
-    // of this family expects; it is compared against a mesh's layout ref at load
-    // and copied onto each compiled ShaderProgram.
-    //
-    // `samplers` lists the family's sampler uniforms in texture-unit order:
-    // sampler i samples unit i, which is the unit the renderer binds a
-    // material's texture i to. The ShaderLibrary points the uniforms at
-    // their units once per compiled variant (§4).
     struct ShaderFamily
     {
         ShaderFamilyId id = 0;
         std::string vertex_source;
         std::string fragment_source;
+        /**
+         * A list of flags that enable optional features supported
+         * by the shader. Each flag corresponds to a boolean *define* in the
+         * shader's code. The @a defines member of ShaderVariantKeys is where
+         * these flags are controlled by the program – the first bit enables
+         * the first flag, the second enables the second and so on.
+         */
         std::vector<std::string> features;
+        /**
+         * A list of the names of the sampler uniforms in the shader, in
+         * texture-unit order: sampler i samples unit i, which is the unit
+         * the renderer binds a material's texture i to.
+         */
         std::vector<std::string> samplers;
+        /**
+         * The interned vertex format every variant of this family expects;
+         * it is compared against a mesh's layout ref at load and copied onto
+         * each compiled ShaderProgram.
+         */
         VertexLayoutRef required_layout;
     };
 } // Tungsten
