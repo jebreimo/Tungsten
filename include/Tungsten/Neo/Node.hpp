@@ -9,8 +9,8 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
+#include <Xyz/BBox.hpp>
 #include <Xyz/Matrix.hpp>
-#include "Tungsten/Neo/AABB.hpp"
 #include "Component.hpp"
 #include "Transform.hpp"
 
@@ -91,7 +91,7 @@ namespace Tungsten
         // Maintained by TransformUpdater::resolve; empty until the first
         // resolve, or when the subtree has no renderables with bounds.
         [[nodiscard]]
-        const AABB& world_bounds() const
+        const Xyz::BBox3F& world_bounds() const
         {
             return world_bounds_;
         }
@@ -106,7 +106,7 @@ namespace Tungsten
 
         // Derived caches (§2), updated through const traversals
         // (world_matrix() and TransformUpdater::resolve), hence mutable.
-        mutable AABB world_bounds_;
+        mutable Xyz::BBox3F world_bounds_;
         mutable Xyz::Matrix4F world_matrix_;
         mutable uint64_t world_version_ = 0;
         mutable uint64_t parent_version_seen_ = 0;

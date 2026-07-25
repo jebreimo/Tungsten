@@ -7,7 +7,7 @@
 //****************************************************************************
 #pragma once
 #include <cstdint>
-#include "Tungsten/Neo/AABB.hpp"
+#include "Xyz/BBox.hpp"
 #include "Component.hpp"
 #include "ResourceRefs.hpp"
 
@@ -24,7 +24,7 @@ namespace Tungsten
     {
         MeshRef mesh;
         MaterialRef material;
-        AABB local_bounds;
+        Xyz::BBox3F local_bounds;
         bool visible = true;
         uint32_t render_layer = 0;
     };

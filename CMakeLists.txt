@@ -46,7 +46,7 @@ FetchContent_Declare(cppembed
 
 FetchContent_Declare(xyz
     GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
-    GIT_TAG v0.11.0)
+    GIT_TAG v0.11.5)
 
 FetchContent_Declare(yconvert
     GIT_REPOSITORY "https://github.com/jebreimo/Yconvert.git"
@@ -170,7 +170,6 @@ add_library(Tungsten STATIC
     src/Tungsten/ExceptionHelpers.cpp
     src/Tungsten/Viewport.cpp
     src/Tungsten/YimageGl.cpp
-    include/Tungsten/Neo/AABB.hpp
     include/Tungsten/Neo/BuiltinShaders.hpp
     src/Tungsten/Neo/CameraComponent.cpp
     include/Tungsten/Neo/CameraComponent.hpp

@@ -47,7 +47,7 @@ namespace Tungsten
         // True if the box is entirely on the outside of the plane, using the
         // positive-vertex test: only the corner farthest along the plane
         // normal needs checking.
-        bool outside_plane(const Xyz::Vector4F& plane, const AABB& box)
+        bool outside_plane(const Xyz::Vector4F& plane, const Xyz::BBox3F& box)
         {
             const Xyz::Vector3F corner = {
                 plane[0] >= 0 ? box.max[0] : box.min[0],
@@ -114,7 +114,7 @@ namespace Tungsten
         // The item is culled against its *own* world-space bounds; the
         // aggregate Node::world_bounds is reserved for a hierarchical
         // subtree test later.
-        if (cull(transformed(renderable.local_bounds, world)))
+        if (cull(Xyz::transform_bbox_no_w(renderable.local_bounds, world)))
             return;
 
         const Material& material = resources_.get_material(renderable.material);
@@ -166,9 +166,9 @@ namespace Tungsten
         return data;
     }
 
-    bool SnapshotBuilder::cull(const AABB& world_bounds) const
+    bool SnapshotBuilder::cull(const Xyz::BBox3F& world_bounds) const
     {
-        if (world_bounds.is_empty())
+        if (!world_bounds)
             return false;
         for (const auto& plane : frustum_planes_)
         {

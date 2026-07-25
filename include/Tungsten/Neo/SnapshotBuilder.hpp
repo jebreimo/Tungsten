@@ -8,9 +8,9 @@
 #pragma once
 #include <array>
 #include <cstdint>
+#include <Xyz/BBox.hpp>
 #include <Xyz/Matrix.hpp>
 #include <Xyz/Vector.hpp>
-#include "AABB.hpp"
 #include "RenderSnapshot.hpp"
 
 namespace Tungsten
@@ -60,7 +60,7 @@ namespace Tungsten
         // True if the box is entirely outside the view frustum. Empty bounds
         // mean "no bounds known" and are never culled.
         [[nodiscard]]
-        bool cull(const AABB& world_bounds) const;
+        bool cull(const Xyz::BBox3F& world_bounds) const;
 
         // Packs the draw order into one integer, ascending (§14). Opaque:
         // layer, shader, material, mesh, then depth — batching state changes

@@ -34,19 +34,19 @@ namespace Tungsten
 
     void TransformUpdater::propagate_bounds(const Node& node)
     {
-        AABB bounds;
+        Xyz::BBox3F bounds;
         for (const auto& component : node.components())
         {
             const auto* renderable =
                 dynamic_cast<const RenderableComponent*>(component.get());
             if (renderable && renderable->visible)
             {
-                bounds = merge(bounds, transformed(renderable->local_bounds,
-                                                   node.world_matrix()));
+                bounds += Xyz::transform_bbox_no_w(renderable->local_bounds,
+                                                   node.world_matrix());
             }
         }
         for (const auto& child : node.children())
-            bounds = merge(bounds, child->world_bounds());
+            bounds += child->world_bounds();
 
         node.world_bounds_ = bounds;
     }

@@ -29,9 +29,9 @@ namespace
         return transform;
     }
 
-    AABB unit_box()
+    Xyz::BBox3F unit_box()
     {
-        AABB box;
+        Xyz::BBox3F box;
         box.min = {-1, -1, -1};
         box.max = {1, 1, 1};
         return box;
@@ -112,7 +112,7 @@ TEST_CASE("TransformUpdater: a subtree without renderables has empty bounds")
     root.add_child(std::make_unique<Node>());
 
     TransformUpdater::resolve(scene);
-    REQUIRE(root.world_bounds().is_empty());
+    REQUIRE(!root.world_bounds());
 }
 
 TEST_CASE("SnapshotBuilder: fills in the camera state")

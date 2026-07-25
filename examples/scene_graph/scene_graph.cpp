@@ -47,7 +47,7 @@ namespace
         return {span.begin(), span.end()};
     }
 
-    AABB unit_box()
+    Xyz::BBox3F unit_box()
     {
         return {{-1, -1, -1}, {1, 1, 1}};
     }
