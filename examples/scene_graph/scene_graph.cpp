@@ -19,33 +19,13 @@
 // The children are plain child nodes: their orbit is nothing but the hub's
 // rotation propagating down through the dirty-transform machinery.
 
-#include <cstring>
 #include <iostream>
 #include <Argos/Argos.hpp>
-
-// Deliberately not <Tungsten/Tungsten.hpp>: the umbrella still exports the
-// old shader layer, whose ShaderProgram and VertexAttribute the scene-graph
-// path replaces (§9) — the names collide until the old layer is retired.
 #include <Tungsten/Tungsten.hpp>
 
 namespace
 {
     using namespace Tungsten;
-
-    // The std140 MaterialBlock of the builtin BlinnPhong family
-    // (Shaders/BlinnPhong-frag.glsl): ambient, diffuse (w = opacity),
-    // specular (w = shininess).
-    std::vector<std::byte> make_material_params(const ColorMaterial& material,
-                                                float opacity)
-    {
-        const float values[12] = {
-            material.ambient[0], material.ambient[1], material.ambient[2], 0,
-            material.diffuse[0], material.diffuse[1], material.diffuse[2], opacity,
-            material.specular[0], material.specular[1], material.specular[2], material.shininess
-        };
-        auto span = as_bytes(std::span(values));
-        return {span.begin(), span.end()};
-    }
 
     Xyz::BBox3F unit_box()
     {
@@ -65,16 +45,14 @@ namespace
 
             const auto gold = make_material(
                 shader, false,
-                make_material_params(get_standard_color_material(StandardColorMaterial::GOLD),
-                                     1.0f));
+                make_blinn_phong_material_params(StandardColorMaterial::GOLD));
             const auto slate = make_material(
                 shader, false,
-                make_material_params(get_standard_color_material(StandardColorMaterial::SLATE),
-                                     1.0f));
+                make_blinn_phong_material_params(StandardColorMaterial::SLATE));
             const auto glass = make_material(
                 shader, true,
-                make_material_params(get_standard_color_material(StandardColorMaterial::COPPER),
-                                     0.4f));
+                make_blinn_phong_material_params(StandardColorMaterial::COPPER,
+                                                 0.4f));
 
             const auto mesh = make_cube_mesh();
 

@@ -7,6 +7,7 @@
 //****************************************************************************
 #include "Tungsten/Render/ColorMaterials.hpp"
 
+#include <span>
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
@@ -198,5 +199,27 @@ namespace Tungsten
         default:
             TUNGSTEN_THROW("Unsupported material: " + std::to_string(int(material)));
         }
+    }
+
+    std::vector<std::byte>
+    make_blinn_phong_material_params(const ColorMaterial& material,
+                                     float opacity)
+    {
+        const float values[12] = {
+            material.ambient[0], material.ambient[1], material.ambient[2], /* unused */0,
+            material.diffuse[0], material.diffuse[1], material.diffuse[2], opacity,
+            material.specular[0], material.specular[1], material.specular[2], material.shininess
+        };
+        auto span = as_bytes(std::span(values));
+        return {span.begin(), span.end()};
+    }
+
+    std::vector<std::byte>
+    make_blinn_phong_material_params(StandardColorMaterial material,
+                                     float opacity)
+    {
+        return make_blinn_phong_material_params(
+            get_standard_color_material(material),
+            opacity);
     }
 } // Tungsten

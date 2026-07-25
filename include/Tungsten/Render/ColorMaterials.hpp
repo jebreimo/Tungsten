@@ -6,6 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include <vector>
 #include <Xyz/Vector.hpp>
 
 namespace Tungsten
@@ -48,4 +49,20 @@ namespace Tungsten
     };
 
     ColorMaterial get_standard_color_material(StandardColorMaterial material);
+
+    /**
+     * Returns a std140 MaterialBlock of the builtin BlinnPhong family:
+     * ambient, diffuse (w = opacity), specular (w = shininess).
+     */
+    std::vector<std::byte>
+    make_blinn_phong_material_params(const ColorMaterial& material,
+                                     float opacity = 1.0f);
+
+    /**
+     * Returns a std140 MaterialBlock of the builtin BlinnPhong family:
+     * ambient, diffuse (w = opacity), specular (w = shininess).
+     */
+    std::vector<std::byte>
+    make_blinn_phong_material_params(StandardColorMaterial material,
+                                     float opacity = 1.0f);
 } // Tungsten
