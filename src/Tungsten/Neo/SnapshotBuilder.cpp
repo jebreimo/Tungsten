@@ -83,7 +83,7 @@ namespace Tungsten
             extract_node(*root, out);
     }
 
-    void SnapshotBuilder::extract_node(const Node& node, RenderSnapshot& out)
+    void SnapshotBuilder::extract_node(const Node& node, RenderSnapshot& out) // NOLINT(*-no-recursion)
     {
         for (const auto& component : node.components())
         {

@@ -152,13 +152,13 @@ namespace
         void enable(GLenum cap) override
         {
             if (cap == 0x0BE2) // GL_BLEND
-                events.push_back("blend_on");
+                events.emplace_back("blend_on");
         }
 
         void disable(GLenum cap) override
         {
             if (cap == 0x0BE2) // GL_BLEND
-                events.push_back("blend_off");
+                events.emplace_back("blend_off");
         }
 
         std::vector<std::pair<GLuint, GLuint>> block_bindings;
@@ -249,7 +249,7 @@ namespace
         MeshRef make_mesh(uint32_t vertex_count, uint32_t index_count)
         {
             Mesh mesh;
-            BufferArenaRef vbos[] = {vbo_arena};
+            const BufferArenaRef vbos[] = {vbo_arena};
             mesh.vao = resources.get_vao(vbos, ebo_arena, layout);
             mesh.streams = {resources.allocate(vbo_arena, vertex_count)};
             mesh.layout = layout;
@@ -298,7 +298,7 @@ namespace
 
 TEST_CASE("ShaderLibrary: variants get the fixed UBO binding points")
 {
-    FakeGlSession session;
+    const FakeGlSession session;
     Bench bench;
 
     using Pair = std::pair<GLuint, GLuint>;
@@ -311,7 +311,7 @@ TEST_CASE("ShaderLibrary: variants get the fixed UBO binding points")
 
 TEST_CASE("ShaderLibrary: sampler uniforms get consecutive texture units")
 {
-    FakeGlSession session;
+    const FakeGlSession session;
     ResourceManager resources;
 
     ShaderFamily family;
@@ -357,7 +357,7 @@ TEST_CASE("Renderer: unfilled sampler units get the white texture")
 
 TEST_CASE("Renderer: draws every item with one draw call each")
 {
-    FakeGlSession session;
+    const FakeGlSession session;
     Bench bench;
     bench.add_renderable(bench.make_mesh(4, 6), bench.material, -10);
     bench.add_renderable(bench.make_mesh(4, 6), bench.material, -20);
@@ -369,7 +369,7 @@ TEST_CASE("Renderer: draws every item with one draw call each")
 
 TEST_CASE("Renderer: uploads the per-frame block once, the per-draw block per item")
 {
-    FakeGlSession session;
+    const FakeGlSession session;
     Bench bench;
     bench.add_renderable(bench.make_mesh(4, 6), bench.material, -10);
     bench.add_renderable(bench.make_mesh(4, 6), bench.material, -20);
@@ -381,7 +381,7 @@ TEST_CASE("Renderer: uploads the per-frame block once, the per-draw block per it
 
 TEST_CASE("Renderer: binds program and material once for a batched run")
 {
-    FakeGlSession session;
+    const FakeGlSession session;
     Bench bench;
     bench.add_renderable(bench.make_mesh(4, 6), bench.material, -10);
     bench.add_renderable(bench.make_mesh(4, 6), bench.material, -20);
@@ -395,7 +395,7 @@ TEST_CASE("Renderer: binds program and material once for a batched run")
 
 TEST_CASE("Renderer: re-binds the material when it changes between items")
 {
-    FakeGlSession session;
+    const FakeGlSession session;
     Bench bench;
     Material second_value;
     second_value.shader = bench.shader;
@@ -416,7 +416,7 @@ TEST_CASE("Renderer: re-binds the material when it changes between items")
 
 TEST_CASE("Renderer: draws items in sort-key order, not insertion order")
 {
-    FakeGlSession session;
+    const FakeGlSession session;
     Bench bench;
     // Two meshes: their ebo slices get different offsets, and the sort key
     // orders opaque items by mesh index, so the draws must come out in mesh
@@ -440,7 +440,7 @@ TEST_CASE("Renderer: draws items in sort-key order, not insertion order")
 
 TEST_CASE("Renderer: transparent items draw after opaque, with blending")
 {
-    FakeGlSession session;
+    const FakeGlSession session;
     Bench bench;
     Material transparent_value;
     transparent_value.shader = bench.shader;
@@ -469,10 +469,10 @@ TEST_CASE("Renderer: transparent items draw after opaque, with blending")
 
 TEST_CASE("Renderer: a mesh without an index buffer uses an array draw")
 {
-    FakeGlSession session;
+    const FakeGlSession session;
     Bench bench;
     Mesh mesh_value;
-    BufferArenaRef vbos[] = {bench.vbo_arena};
+    const BufferArenaRef vbos[] = {bench.vbo_arena};
     mesh_value.vao = bench.resources.get_vao(vbos, bench.ebo_arena,
                                              bench.layout);
     mesh_value.streams = {bench.resources.allocate(bench.vbo_arena, 8)};

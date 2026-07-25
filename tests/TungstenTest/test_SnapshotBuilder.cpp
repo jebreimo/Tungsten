@@ -123,7 +123,7 @@ TEST_CASE("SnapshotBuilder: fills in the camera state")
     auto camera = std::make_unique<CameraComponent>();
     camera->mode = ProjectionMode::ORTHOGRAPHIC;
     camera->ortho_size = 5.0f;
-    auto& camera_ref = dynamic_cast<CameraComponent&>(
+    const auto& camera_ref = dynamic_cast<CameraComponent&>(
         camera_node.add_component(std::move(camera)));
 
     TransformUpdater::resolve(bench.scene);
@@ -180,7 +180,7 @@ TEST_CASE("SnapshotBuilder: an item with empty bounds is never culled")
 TEST_CASE("SnapshotBuilder: skips invisible and incomplete renderables")
 {
     Bench bench;
-    auto& invisible = bench.add_renderable(0, 0, -5);
+    const auto& invisible = bench.add_renderable(0, 0, -5);
     dynamic_cast<RenderableComponent&>(*invisible.components()[0])
         .visible = false;
 
@@ -201,7 +201,7 @@ TEST_CASE("SnapshotBuilder: transparent materials go to the transparent list")
     const auto transparent_material = bench.resources.create_material(
         std::move(material));
 
-    auto& node = bench.add_renderable(0, 0, -5);
+    const auto& node = bench.add_renderable(0, 0, -5);
     dynamic_cast<RenderableComponent&>(*node.components()[0])
         .material = transparent_material;
     bench.add_renderable(0, 0, -7);
@@ -231,8 +231,8 @@ TEST_CASE("SnapshotBuilder: transparent sort keys order back-to-front")
     material.transparent = true;
     const auto transparent_material = bench.resources.create_material(
         std::move(material));
-    auto& near = bench.add_renderable(0, 0, -5);
-    auto& far = bench.add_renderable(0, 0, -50);
+    const auto& near = bench.add_renderable(0, 0, -5);
+    const auto& far = bench.add_renderable(0, 0, -50);
     dynamic_cast<RenderableComponent&>(*near.components()[0])
         .material = transparent_material;
     dynamic_cast<RenderableComponent&>(*far.components()[0])
@@ -248,7 +248,7 @@ TEST_CASE("SnapshotBuilder: transparent sort keys order back-to-front")
 TEST_CASE("SnapshotBuilder: the render layer dominates the sort key")
 {
     Bench bench;
-    auto& overlay = bench.add_renderable(0, 0, -5); // near, but higher layer
+    const auto& overlay = bench.add_renderable(0, 0, -5); // near, but higher layer
     dynamic_cast<RenderableComponent&>(*overlay.components()[0])
         .render_layer = 1;
     bench.add_renderable(0, 0, -50);
