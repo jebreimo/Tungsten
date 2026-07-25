@@ -28,7 +28,7 @@ namespace Tungsten
         {
             float view[16];
             float projection[16];
-            float camera_pos[4];    // xyz = camera position, w = time
+            float camera_pos[4]; // xyz = camera position, w = time
             float ambient_light[4]; // rgb
             float lights[MAX_LIGHTS][16];
             int32_t light_count[4]; // x = number of active lights

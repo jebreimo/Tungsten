@@ -26,7 +26,7 @@ namespace Tungsten
     Xyz::Matrix3F RenderItem::normal_matrix() const
     {
         // Data is using the std140 layout, so the normal matrix is stored
-        // in a 4x4 matrix with the last row and column unused.
+        // in a 3x4 matrix with the last column unused.
         Xyz::Matrix3F result;
         for (size_t i = 0; i < 9; ++i)
             result[i % 3, i / 3] = data_[16 + 4 * (i / 3) + i % 3];
