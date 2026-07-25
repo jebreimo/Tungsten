@@ -196,7 +196,7 @@ namespace
     };
 
     constexpr size_t PER_FRAME_SIZE = 176 + MAX_LIGHTS * 64;
-    constexpr size_t PER_DRAW_SIZE = 32 * sizeof(float);
+    constexpr size_t PER_DRAW_SIZE = RENDER_ITEM_DATA_SIZE * sizeof(float);
     constexpr size_t MATERIAL_BLOB_SIZE = 64;
 
     size_t count_uploads(const std::vector<size_t>& uploads, size_t size)

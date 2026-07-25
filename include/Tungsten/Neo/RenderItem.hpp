@@ -13,6 +13,8 @@
 
 namespace Tungsten
 {
+    constexpr size_t RENDER_ITEM_DATA_SIZE = (4 + 3) * 4;
+    
     class RenderItem
     {
     public:
@@ -40,12 +42,12 @@ namespace Tungsten
         // u_normal_matrix, both as column-major mat4 — ready to upload
         // verbatim to the per-draw UBO (binding 2, §4).
         [[nodiscard]]
-        const std::array<float, 28>& data() const
+        const std::array<float, RENDER_ITEM_DATA_SIZE>& data() const
         {
             return data_;
         }
     private:
-        std::array<float, 28> data_ = {};
+        std::array<float, RENDER_ITEM_DATA_SIZE> data_ = {};
         MeshRef mesh_ = {};
         MaterialRef material_ = {};
         uint64_t sort_key_ = 0;

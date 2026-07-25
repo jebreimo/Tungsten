@@ -52,7 +52,7 @@ namespace Tungsten
         per_frame_ubo_ = generate_buffer(sizeof(PerFrameBlock),
                                          BufferUsage::DYNAMIC_DRAW);
         per_material_ubo_ = generate_buffer();
-        per_draw_ubo_ = generate_buffer(32 * sizeof(float),
+        per_draw_ubo_ = generate_buffer(RENDER_ITEM_DATA_SIZE * sizeof(float),
                                         BufferUsage::DYNAMIC_DRAW);
 
         // The binding points never change after this (§4); only the buffers'
@@ -150,7 +150,8 @@ namespace Tungsten
         // Orphan-and-upload the per-draw block; the binding point still
         // refers to this buffer.
         bind_buffer(BufferTarget::UNIFORM, per_draw_ubo_.id());
-        set_buffer_data(BufferTarget::UNIFORM, sizeof(item.data()),
+        set_buffer_data(BufferTarget::UNIFORM,
+                        RENDER_ITEM_DATA_SIZE * sizeof(float),
                         item.data().data(), BufferUsage::DYNAMIC_DRAW);
 
         if (mesh.ebo.arena)
