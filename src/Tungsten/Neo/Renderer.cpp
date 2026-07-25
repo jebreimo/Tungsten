@@ -49,11 +49,9 @@ namespace Tungsten
     Renderer::Renderer(ResourceManager& resources)
         : resources_(resources)
     {
-        per_frame_ubo_ = generate_buffer(sizeof(PerFrameBlock),
-                                         BufferUsage::DYNAMIC_DRAW);
+        per_frame_ubo_ = generate_buffer();
         per_material_ubo_ = generate_buffer();
-        per_draw_ubo_ = generate_buffer(RENDER_ITEM_DATA_SIZE * sizeof(float),
-                                        BufferUsage::DYNAMIC_DRAW);
+        per_draw_ubo_ = generate_buffer();
 
         // The binding points never change after this (§4); only the buffers'
         // contents do. The material binding goes through the state cache,
