@@ -7,7 +7,7 @@
 //****************************************************************************
 #include "Tungsten/Render/VertexArrayObjectBuilder.hpp"
 
-#include <__ranges/reverse_view.h>
+#include <ranges>
 
 #include "Tungsten/TungstenException.hpp"
 #include "Tungsten/Gl/GlBuffer.hpp"
