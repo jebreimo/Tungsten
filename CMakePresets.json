@@ -20,6 +20,36 @@
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
             }
+        },
+        {
+            "name": "arm64-osx",
+            "hidden": true,
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            },
+            "cacheVariables": {
+                "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/vcpkg-triplets",
+                "VCPKG_TARGET_TRIPLET": "arm64-osx-tungsten",
+                "CMAKE_IGNORE_PREFIX_PATH": "/opt/X11;/usr/X11R6"
+            }
+        },
+        {
+            "name": "arm64-osx-debug",
+            "displayName": "Debug (arm64-osx)",
+            "inherits": [
+                "arm64-osx",
+                "debug"
+            ]
+        },
+        {
+            "name": "arm64-osx-release",
+            "displayName": "Release (arm64-osx)",
+            "inherits": [
+                "arm64-osx",
+                "release"
+            ]
         }
     ],
     "buildPresets": [
@@ -32,7 +62,16 @@
             "name": "build-release",
             "displayName": "Build Release",
             "configurePreset": "release"
+        },
+        {
+            "name": "build-arm64-osx-debug",
+            "displayName": "Build Debug (arm64-osx)",
+            "configurePreset": "arm64-osx-debug"
+        },
+        {
+            "name": "build-arm64-osx-release",
+            "displayName": "Build Release (arm64-osx)",
+            "configurePreset": "arm64-osx-release"
         }
     ]
 }
-

@@ -6,8 +6,11 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #include "Tungsten/Render/Font.hpp"
-#include "Tungsten/Render/TextUtilities.hpp"
+
+#include <cfloat>
 #include <string_view>
+
+#include "Tungsten/Render/TextUtilities.hpp"
 
 namespace Tungsten
 {

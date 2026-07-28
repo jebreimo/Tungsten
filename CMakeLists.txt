@@ -5,7 +5,7 @@
 ## This file is distributed under the Zero-Clause BSD License.
 ## License text is included with the source distribution.
 ##****************************************************************************
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.23)
 
 project(Tungsten VERSION 0.8.2)
 
@@ -32,6 +32,12 @@ if (EMSCRIPTEN)
 else ()
     list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 endif ()
+
+# Note: on macOS the arm64-osx-* CMake presets set CMAKE_IGNORE_PREFIX_PATH so
+# CMake never searches XQuartz's /opt/X11 tree. Otherwise its Mesa libGL gets
+# picked up as "OpenGL" instead of the system OpenGL.framework, and since SDL
+# creates its GL context in the framework, mixing in a second libGL leaves
+# every gl* call without a current context (glGetString returns null).
 
 include(FetchContent)
 
@@ -62,9 +68,13 @@ if (NOT EMSCRIPTEN)
     find_package(Freetype REQUIRED)
 endif ()
 
-find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
-find_package(SDL3 REQUIRED)
+# On macOS the GLEW package must be built with the arm64-osx-tungsten overlay
+# triplet (see vcpkg-triplets/ and CMakePresets.json); otherwise vcpkg bakes
+# XQuartz's /opt/X11 libGL into GLEW's exported target, colliding with the
+# OpenGL.framework SDL uses. Always configure via a CMake preset.
+find_package(GLEW REQUIRED)
+find_package(SDL3 CONFIG REQUIRED)
 
 add_library(Tungsten STATIC
     include/Tungsten/Camera.hpp
