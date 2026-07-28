@@ -7,6 +7,7 @@
 //****************************************************************************
 #include "GlTypeConversion.hpp"
 
+#include <string>
 #include "Tungsten/Environment.hpp"
 #include "Tungsten/TungstenException.hpp"
 

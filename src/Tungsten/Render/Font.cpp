@@ -19,9 +19,9 @@ namespace Tungsten
         if (text.empty())
             return {};
 
-        Xyz::Vector2F min(MAXFLOAT, use_full_line_height ? get_min(font.max_glyph).y() : MAXFLOAT);
-        Xyz::Vector2F max(-MAXFLOAT,
-                          use_full_line_height ? get_max(font.max_glyph).y() : -MAXFLOAT);
+        Xyz::Vector2F min(FLT_MAX, use_full_line_height ? get_min(font.max_glyph).y() : FLT_MAX);
+        Xyz::Vector2F max(-FLT_MAX,
+                          use_full_line_height ? get_max(font.max_glyph).y() : -FLT_MAX);
         Xyz::Vector2F pos;
         for (auto c : text)
         {

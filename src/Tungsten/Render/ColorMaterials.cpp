@@ -8,6 +8,7 @@
 #include "Tungsten/Render/ColorMaterials.hpp"
 
 #include <span>
+#include <string>
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten

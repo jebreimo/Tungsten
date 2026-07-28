@@ -7,6 +7,7 @@
 //****************************************************************************
 #include "Tungsten/Sdl/SdlApplication.hpp"
 
+#include <chrono>
 #include <iostream>
 #include <memory>
 #include <GL/glew.h>

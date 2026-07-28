@@ -7,6 +7,7 @@
 //****************************************************************************
 #include "Tungsten/Render/VertexAttributeType.hpp"
 
+#include <string>
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
