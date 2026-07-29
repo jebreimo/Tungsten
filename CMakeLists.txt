@@ -74,7 +74,7 @@ find_package(OpenGL REQUIRED)
 # XQuartz's /opt/X11 libGL into GLEW's exported target, colliding with the
 # OpenGL.framework SDL uses. Always configure via a CMake preset.
 find_package(GLEW REQUIRED)
-find_package(SDL3 CONFIG REQUIRED)
+find_package(SDL3 REQUIRED)
 
 add_library(Tungsten STATIC
     include/Tungsten/Camera.hpp
