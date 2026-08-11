@@ -15,8 +15,12 @@ namespace Tungsten
                   const Xyz::RectangleF& pos,
                   const Xyz::RectangleF& tex)
     {
-        for (size_t i = 0; i < 4; i++)
-            vertexes.emplace_back(pos[i], tex[i]);
+        const auto [x, y] = get_vectors(pos);
+        const auto [u, v] = get_vectors(tex);
+        vertexes.emplace_back(pos.origin, tex.origin);
+        vertexes.emplace_back(pos.origin + x, tex.origin + u);
+        vertexes.emplace_back(pos.origin + pos.size, tex.origin + tex.size);
+        vertexes.emplace_back(pos.origin + y, tex.origin + v);
     }
 
     template <typename IndexType>
