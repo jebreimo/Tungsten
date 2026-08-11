@@ -10,6 +10,7 @@ cmake_minimum_required(VERSION 3.23)
 project(Tungsten VERSION 0.8.2)
 
 set(CMAKE_CXX_STANDARD 23)
+
 # Set TUNGSTEN_MASTER_PROJECT to ON if Xyz is the root level project.
 if (NOT DEFINED TUNGSTEN_MASTER_PROJECT)
     if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
@@ -47,12 +48,11 @@ FetchContent_Declare(argos
 
 FetchContent_Declare(cppembed
     GIT_REPOSITORY "https://github.com/jebreimo/cppembed.git"
-    GIT_TAG "v0.1.10"
-)
+    GIT_TAG "v0.1.10")
 
 FetchContent_Declare(xyz
     GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
-    GIT_TAG v0.11.5)
+    GIT_TAG v0.12.1)
 
 FetchContent_Declare(yconvert
     GIT_REPOSITORY "https://github.com/jebreimo/Yconvert.git"

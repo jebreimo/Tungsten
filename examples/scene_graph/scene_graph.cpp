@@ -22,6 +22,7 @@
 #include <iostream>
 #include <Argos/Argos.hpp>
 #include <Tungsten/Tungsten.hpp>
+#include <Xyz/MeshBuilder/BuildMesh.hpp>
 
 namespace
 {
@@ -155,32 +156,44 @@ namespace
             static_assert(sizeof(PositionNormalTexture) == 32,
                           "the PNT vertex must match builtin_pnt_layout");
 
-            MeshData<PositionNormalTexture> data;
-            MeshDataBuilder builder(data);
-            add_cube_pnt(builder);
+            std::vector<uint16_t> indexes;
+            std::vector<float> vertexes;
+
+            using Builder2F = Xyz::MeshAttributeBuilder<Xyz::Vector2F, std::vector<float>>;
+            using Builder3F = Xyz::MeshAttributeBuilder<Xyz::Vector3F, std::vector<float>>;
+
+            Xyz::MeshBuilder builder{
+                .indexes = Xyz::MeshIndexBuilder(indexes),
+                .coords = Builder3F(vertexes, 8),
+                .normals = std::optional(Builder3F(vertexes, 8, 3)),
+                .tex_coords = std::optional(Builder2F(vertexes, 8, 6))
+            };
+
+            Xyz::OrientedCuboid<float> cuboid{{{-1, -1, -1}, {0, 0, 0}}, {2, 2, 2}};
+            Xyz::build_mesh(builder, cuboid);
 
             const auto layout = resources_.register_layout(
                 builtin_pnt_layout());
             vbo_arena_ = resources_.create_arena(
                 BufferUsage::STATIC_DRAW, 32,
-                uint32_t(data.vertices.size()));
+                uint32_t(vertexes.size() / 8));
             ebo_arena_ = resources_.create_arena(
-                BufferUsage::STATIC_DRAW, 2, uint32_t(data.indices.size()));
+                BufferUsage::STATIC_DRAW, 2, uint32_t(indexes.size()));
 
             const auto vertices = resources_.allocate(
-                vbo_arena_, uint32_t(data.vertices.size()));
+                vbo_arena_, uint32_t(vertexes.size() / 8));
             const auto indices = resources_.allocate(
-                ebo_arena_, uint32_t(data.indices.size()));
+                ebo_arena_, uint32_t(indexes.size()));
 
             // Rebase to absolute indices (§3): the portable path has no
             // baseVertex draw argument.
-            for (auto& index : data.indices)
+            for (auto& index : indexes)
                 index = uint16_t(index + vertices.offset);
 
-            resources_.upload(vertices, data.vertices.data(),
-                              data.vertices.size() * 32);
-            resources_.upload(indices, data.indices.data(),
-                              data.indices.size() * 2);
+            resources_.upload(vertices, vertexes.data(),
+                              vertexes.size() * sizeof(float));
+            resources_.upload(indices, indexes.data(),
+                              indexes.size() * sizeof(uint16_t));
 
             Mesh mesh;
             const BufferArenaRef vbos[] = {vbo_arena_};
