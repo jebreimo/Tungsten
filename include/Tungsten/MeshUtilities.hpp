@@ -105,9 +105,13 @@ namespace Tungsten
         const Xyz::OrientedRectangle3F& rect)
     {
         const auto base_index = builder.max_index();
-        const auto normal = rect.normal_vector();
-        for (int i = 0; i < 4; ++i)
-            builder.add_vertex({rect[i], normal, T()...});
+        const auto o = rect.placement.origin;
+        const auto [x, y] = get_vectors(rect);
+        const auto normal = cross(x, y);
+        builder.add_vertex({o, normal, T()...});
+        builder.add_vertex({o + x, normal, T()...});
+        builder.add_vertex({o + x + y, normal, T()...});
+        builder.add_vertex({o + y, normal, T()...});
 
         builder.add_indexes(base_index, base_index + 1, base_index + 2);
         builder.add_indexes(base_index, base_index + 2, base_index + 3);
@@ -158,15 +162,17 @@ namespace Tungsten
     void add_quad_pnt(
         MeshDataBuilder<std::tuple<Xyz::Vector3F, Xyz::Vector3F, Xyz::Vector2F, T...>>& builder,
         const Xyz::OrientedRectangle3F& rect,
-        const Xyz::OrientedRectangle2F& uv_rect
+        const Xyz::RectangleF& uv_rect
     )
     {
         const auto base_index = builder.max_index();
         add_quad_pn(builder, rect);
-        std::get<2>(builder.vertex(base_index + 0)) = uv_rect[0];
-        std::get<2>(builder.vertex(base_index + 1)) = uv_rect[1];
-        std::get<2>(builder.vertex(base_index + 2)) = uv_rect[2];
-        std::get<2>(builder.vertex(base_index + 3)) = uv_rect[3];
+        const auto o = uv_rect.origin;
+        const auto [x, y] = get_vectors(uv_rect);
+        std::get<2>(builder.vertex(base_index + 0)) = o;
+        std::get<2>(builder.vertex(base_index + 1)) = o + x;
+        std::get<2>(builder.vertex(base_index + 2)) = o + x + y;
+        std::get<2>(builder.vertex(base_index + 3)) = o + y;
     }
 
     /**

@@ -22,7 +22,7 @@
 #include <iostream>
 #include <Argos/Argos.hpp>
 #include <Tungsten/Tungsten.hpp>
-#include <Xyz/MeshBuilder/BuildMesh.hpp>
+#include <Xyz/Mesh/BuildMesh.hpp>
 
 namespace
 {
@@ -31,6 +31,26 @@ namespace
     Xyz::BBox3F unit_box()
     {
         return {{-1, -1, -1}, {1, 1, 1}};
+    }
+
+    std::pair<std::vector<uint16_t>, std::vector<float>> make_cube_mesh()
+    {
+        std::vector<uint16_t> indexes;
+        std::vector<float> vertexes;
+
+        using Builder2F = Xyz::MeshAttributeBuilder<Xyz::Vector2F, std::vector<float>>;
+        using Builder3F = Xyz::MeshAttributeBuilder<Xyz::Vector3F, std::vector<float>>;
+
+        Xyz::MeshBuilder builder{
+            .indexes = Xyz::MeshIndexBuilder(indexes),
+            .coords = Builder3F(vertexes, 8),
+            .normals = std::optional(Builder3F(vertexes, 8, 3)),
+            .tex_coords = std::optional(Builder2F(vertexes, 8, 6))
+        };
+
+        Xyz::OrientedCuboid<float> cuboid{{{-1, -1, -1}, {0, 0, 0}}, {2, 2, 2}};
+        Xyz::build_mesh(builder, cuboid);
+        return {std::move(indexes), std::move(vertexes)};
     }
 
     class SceneGraphLoop : public EventLoop
@@ -153,35 +173,19 @@ namespace
 
         MeshRef make_cube_mesh()
         {
-            static_assert(sizeof(PositionNormalTexture) == 32,
-                          "the PNT vertex must match builtin_pnt_layout");
-
-            std::vector<uint16_t> indexes;
-            std::vector<float> vertexes;
-
-            using Builder2F = Xyz::MeshAttributeBuilder<Xyz::Vector2F, std::vector<float>>;
-            using Builder3F = Xyz::MeshAttributeBuilder<Xyz::Vector3F, std::vector<float>>;
-
-            Xyz::MeshBuilder builder{
-                .indexes = Xyz::MeshIndexBuilder(indexes),
-                .coords = Builder3F(vertexes, 8),
-                .normals = std::optional(Builder3F(vertexes, 8, 3)),
-                .tex_coords = std::optional(Builder2F(vertexes, 8, 6))
-            };
-
-            Xyz::OrientedCuboid<float> cuboid{{{-1, -1, -1}, {0, 0, 0}}, {2, 2, 2}};
-            Xyz::build_mesh(builder, cuboid);
+            auto [indexes, vertexes] = ::make_cube_mesh();
+            constexpr size_t STRIDE = 8; // 3 coords + 3 normals + 2 tex coords
 
             const auto layout = resources_.register_layout(
                 builtin_pnt_layout());
             vbo_arena_ = resources_.create_arena(
-                BufferUsage::STATIC_DRAW, 32,
-                uint32_t(vertexes.size() / 8));
+                BufferUsage::STATIC_DRAW, STRIDE * sizeof(float),
+                uint32_t(vertexes.size() / STRIDE));
             ebo_arena_ = resources_.create_arena(
-                BufferUsage::STATIC_DRAW, 2, uint32_t(indexes.size()));
+                BufferUsage::STATIC_DRAW, sizeof(uint16_t), uint32_t(indexes.size()));
 
             const auto vertices = resources_.allocate(
-                vbo_arena_, uint32_t(vertexes.size() / 8));
+                vbo_arena_, uint32_t(vertexes.size() / STRIDE));
             const auto indices = resources_.allocate(
                 ebo_arena_, uint32_t(indexes.size()));
 
