@@ -32,4 +32,7 @@ namespace Tungsten
 
         Node* owner_ = nullptr;
     };
+
+    template <typename T>
+    concept ComponentType = std::derived_from<T, Component>;
 } // Tungsten

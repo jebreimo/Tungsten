@@ -67,9 +67,11 @@ namespace Tungsten
         // with Scene::remove and attach it with add_child instead.
         void reparent(Node& new_parent);
 
-        // Takes ownership of component, sets its owner to this node, and
-        // returns a reference to it.
-        Component& add_component(std::unique_ptr<Component> component);
+        template <ComponentType T>
+        T& add_component(std::unique_ptr<T> component)
+        {
+            return static_cast<T&>(add_component_impl(std::move(component)));
+        }
 
         [[nodiscard]]
         const std::vector<std::unique_ptr<Component>>& components() const;
@@ -97,6 +99,10 @@ namespace Tungsten
         }
 
     private:
+        // Takes ownership of component, sets its owner to this node, and
+        // returns a reference to it.
+        Component& add_component_impl(std::unique_ptr<Component> component);
+
         friend class TransformUpdater;
 
         Transform local_transform_;

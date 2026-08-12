@@ -81,7 +81,7 @@ namespace Tungsten
         new_parent.add_child(parent_->remove_child(*this));
     }
 
-    Component& Node::add_component(std::unique_ptr<Component> component)
+    Component& Node::add_component_impl(std::unique_ptr<Component> component)
     {
         if (!component)
             TUNGSTEN_THROW("Node: component is null.");

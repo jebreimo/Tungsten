@@ -110,8 +110,7 @@ namespace
             camera->near_plane = 0.5f;
             camera->far_plane = 50.0f;
             camera->aspect = app.viewport().aspect_ratio();
-            camera_ = static_cast<Tungsten::CameraComponent*>(
-                &camera_node.add_component(std::move(camera)));
+            camera_ = &camera_node.add_component(std::move(camera));
 
             auto& light_node = scene_.add(std::make_unique<Tungsten::Node>());
             Tungsten::Transform light_transform;
