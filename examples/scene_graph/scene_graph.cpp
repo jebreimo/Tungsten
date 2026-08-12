@@ -174,6 +174,7 @@ namespace
         MeshRef make_cube_mesh()
         {
             auto [indexes, vertexes] = ::make_cube_mesh();
+
             constexpr size_t STRIDE = 8; // 3 coords + 3 normals + 2 tex coords
 
             const auto layout = resources_.register_layout(
