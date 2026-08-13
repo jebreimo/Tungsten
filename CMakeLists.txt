@@ -94,8 +94,6 @@ add_library(Tungsten STATIC
     include/Tungsten/Gl/GlUniform.hpp
     include/Tungsten/Gl/GlVertexArray.hpp
     include/Tungsten/Gl/IOglWrapper.hpp
-    include/Tungsten/MeshDataBuilder.hpp
-    include/Tungsten/MeshUtilities.hpp
     include/Tungsten/Render/Font.hpp
     include/Tungsten/Render/FontManager.hpp
     include/Tungsten/Render/FontManager.hpp
@@ -144,7 +142,6 @@ add_library(Tungsten STATIC
     src/Tungsten/Gl/IOglWrapper.cpp
     src/Tungsten/Gl/OglWrapper.hpp
     src/Tungsten/Gl/TracingOglWrapper.hpp
-    src/Tungsten/MeshUtilities.cpp
     src/Tungsten/Render/Font.cpp
     src/Tungsten/Render/FontManager.cpp
     src/Tungsten/Render/FontUtilities.cpp

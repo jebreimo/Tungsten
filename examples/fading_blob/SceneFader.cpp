@@ -65,18 +65,20 @@ public:
             .add_float(program_.tex_position_attr, 2)
             .build();
 
-        Tungsten::MeshData<TextureFaderVertex> buffer;
-        Tungsten::MeshDataBuilder builder(buffer);
-        builder.add_vertex({{-1, -1}, {0, 0}})
-            .add_vertex({{1, -1}, {1, 0}})
-            .add_vertex({{1, 1}, {1, 1}})
-            .add_vertex({{-1, 1}, {0, 1}});
-        builder.add_indexes(0, 1, 2)
-            .add_indexes(0, 2, 3);
+        const std::vector<float> vertexes = {
+            -1, -1, 0, 0,
+            1, -1, 1, 0,
+            1, 1, 1, 1,
+            -1, 1, 0, 1
+        };
+        const std::vector<uint16_t> indexes = {
+            0, 1, 2,
+            0, 2, 3
+        };
         Tungsten::bind_buffer(Tungsten::BufferTarget::ARRAY, vertex_buffer_.id());
-        Tungsten::set_buffer_data(Tungsten::BufferTarget::ARRAY, std::span(buffer.vertices), Tungsten::BufferUsage::STATIC_DRAW);
+        Tungsten::set_buffer_data(Tungsten::BufferTarget::ARRAY, std::span(vertexes), Tungsten::BufferUsage::STATIC_DRAW);
         Tungsten::bind_buffer(Tungsten::BufferTarget::ELEMENT_ARRAY, element_buffer_.id());
-        Tungsten::set_buffer_data(Tungsten::BufferTarget::ELEMENT_ARRAY, std::span(buffer.indices), Tungsten::BufferUsage::STATIC_DRAW);
+        Tungsten::set_buffer_data(Tungsten::BufferTarget::ELEMENT_ARRAY, std::span(indexes), Tungsten::BufferUsage::STATIC_DRAW);
     }
 
     void set_window_size(Tungsten::Size2I size)

@@ -17,7 +17,6 @@
 #include "Gl/GlTypes.hpp"
 #include "Gl/GlUniform.hpp"
 #include "Gl/IOglWrapper.hpp"
-#include "MeshUtilities.hpp"
 #include "Camera.hpp"
 #include "Render/FontManager.hpp"
 #include "Render/ShaderManager.hpp"

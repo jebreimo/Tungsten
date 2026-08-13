@@ -15,8 +15,6 @@ namespace Tungsten
 {
     enum class BuiltinShader
     {
-        GOURAUD,
-        PHONG,
         SMOOTH
     };
 

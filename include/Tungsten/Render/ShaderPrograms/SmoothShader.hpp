@@ -9,7 +9,6 @@
 #include "LightUniforms.hpp"
 #include "MaterialUniforms.hpp"
 #include "OldShaderProgram.hpp"
-#include "../../Camera.hpp"
 
 namespace Tungsten
 {

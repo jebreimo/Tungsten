@@ -24,8 +24,10 @@ public:
             .build();
 
         position_attr = Tungsten::get_vertex_attribute(program.id(), "a_position");
-        model_view_matrix = Tungsten::get_uniform<Xyz::Matrix3F>(program.id(), "u_model_view_matrix");
-        projection_matrix = Tungsten::get_uniform<Xyz::Matrix3F>(program.id(), "u_projection_matrix");
+        model_view_matrix = Tungsten::get_uniform<Xyz::Matrix3F>(
+            program.id(), "u_model_view_matrix");
+        projection_matrix = Tungsten::get_uniform<Xyz::Matrix3F>(
+            program.id(), "u_projection_matrix");
         color = Tungsten::get_uniform<Xyz::Vector4F>(program.id(), "u_color");
         z = Tungsten::get_uniform<float>(program.id(), "u_z");
         point_size = Tungsten::get_uniform<float>(program.id(), "u_point_size");
@@ -99,7 +101,9 @@ Shape2DRenderer& Shape2DRenderer::operator=(Shape2DRenderer&& rhs) noexcept
     return *this;
 }
 
-Shape2D Shape2DRenderer::create_shape(const Buffer& buffer, const Xyz::Vector4F& color) const
+Shape2D Shape2DRenderer::create_shape(const std::vector<Xyz::Vector2F>& vertexes,
+                                      const std::vector<uint16_t>& indexes,
+                                      const Xyz::Vector4F& color) const
 {
     Tungsten::use_program(program_->program.id());
     auto vertex_buffer = Tungsten::generate_buffer();
@@ -108,17 +112,17 @@ Shape2D Shape2DRenderer::create_shape(const Buffer& buffer, const Xyz::Vector4F&
         .add_float(program_->position_attr, 2)
         .build();
     Tungsten::bind_buffer(Tungsten::BufferTarget::ARRAY, vertex_buffer.id());
-    Tungsten::set_buffer_data(Tungsten::BufferTarget::ARRAY, std::span(buffer.vertices),
-                            Tungsten::BufferUsage::STATIC_DRAW);
+    Tungsten::set_buffer_data(Tungsten::BufferTarget::ARRAY, std::span(vertexes),
+                              Tungsten::BufferUsage::STATIC_DRAW);
     auto element_buffer = Tungsten::generate_buffer();
     Tungsten::bind_buffer(Tungsten::BufferTarget::ELEMENT_ARRAY, element_buffer.id());
-    Tungsten::set_buffer_data(Tungsten::BufferTarget::ELEMENT_ARRAY, std::span(buffer.indices),
-                            Tungsten::BufferUsage::STATIC_DRAW);
+    Tungsten::set_buffer_data(Tungsten::BufferTarget::ELEMENT_ARRAY, std::span(indexes),
+                              Tungsten::BufferUsage::STATIC_DRAW);
     return {
         std::move(vertex_array),
         std::move(vertex_buffer),
         std::move(element_buffer),
-        uint32_t(buffer.indices.size()),
+        uint32_t(indexes.size()),
         color
     };
 }

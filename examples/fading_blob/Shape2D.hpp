@@ -10,7 +10,6 @@
 #include <Xyz/Matrix.hpp>
 
 #include "Tungsten/Gl/GlBuffer.hpp"
-#include "Tungsten/MeshDataBuilder.hpp"
 #include "Tungsten/Render/VertexArrayObject.hpp"
 
 class Shape2D
@@ -42,8 +41,6 @@ private:
 class Shape2DRenderer
 {
 public:
-    using Buffer = Tungsten::MeshData<Xyz::Vector2F>;
-
     Shape2DRenderer();
 
     ~Shape2DRenderer();
@@ -56,8 +53,10 @@ public:
 
     Shape2DRenderer& operator=(Shape2DRenderer&&) noexcept;
 
-    [[nodiscard]] Shape2D
-    create_shape(const Buffer& buffer,
+    [[nodiscard]]
+    Shape2D
+    create_shape(const std::vector<Xyz::Vector2F>& vertexes,
+                 const std::vector<uint16_t>& indexes,
                  const Xyz::Vector4F& color = {1, 1, 1, 1}) const;
 
     void set_model_view_matrix(const Xyz::Matrix3F& matrix);

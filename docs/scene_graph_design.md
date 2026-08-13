@@ -295,13 +295,6 @@ machinery rather than a separate code path.
 This is a forward-looking design; current code migrates toward it rather than being replaced
 wholesale:
 
-- **`MeshData`** (`MeshDataBuilder.hpp`, `MeshUtilities.hpp`) is the current CPU-side mesh
-  container. The new `Mesh` + `SharedBuffer` + `BufferArena` are its GPU-resident,
-  sub-allocated successor; `MeshData` becomes the source that gets uploaded into an arena.
-- The existing typed `ShaderProgram` subclasses + `*Uniform` helper structs in
-  `ShaderPrograms/` are replaced on this path by the generic `Material` parameter blob +
-  fixed UBO conventions, so the renderer stays shader-agnostic. The typed helpers can remain
-  as a convenience layer for constructing `Material::parameterData`.
 - All GL access continues through `IOglWrapper`, and resources use the existing RAII handle
   types, so the design stays within the repo's established conventions.
 

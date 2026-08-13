@@ -17,15 +17,17 @@ public:
         : EventLoop(app),
           fader_(app.window_size())
     {
-        Shape2DRenderer::Buffer buffer;
-        Tungsten::MeshDataBuilder builder(buffer);
-        builder.add_vertex({-1, -1})
-            .add_vertex({1, -1})
-            .add_vertex({1, 1})
-            .add_vertex({-1, 1});
-        builder.add_indexes(0, 1, 2)
-            .add_indexes(0, 2, 3);
-        rectangle_ = renderer_.create_shape(buffer);
+        const std::vector<Xyz::Vector2F> vertexes = {
+            {-1, -1},
+            {1, -1},
+            {1, 1},
+            {-1, 1}
+        };
+        const std::vector<uint16_t> indexes = {
+            0, 1, 2,
+            0, 2, 3
+        };
+        rectangle_ = renderer_.create_shape(vertexes, indexes);
         // set_swap_interval(app, Tungsten::SwapInterval::VSYNC);
     }
 
