@@ -38,7 +38,7 @@ namespace
 
 TEST_CASE("Transform: the default is the identity")
 {
-    const auto m = Transform().local_matrix();
+    const auto m = Transform().make_matrix();
     for (size_t row = 0; row < 4; ++row)
     {
         for (size_t col = 0; col < 4; ++col)
@@ -52,7 +52,7 @@ TEST_CASE("Transform: translation and scale compose as T * R * S")
     transform.translation = {1, 2, 3};
     transform.scale = {2, 4, 8};
 
-    const auto m = transform.local_matrix();
+    const auto m = transform.make_matrix();
     REQUIRE(m[0, 3] == 1.0f);
     REQUIRE(m[1, 3] == 2.0f);
     REQUIRE(m[2, 3] == 3.0f);
@@ -67,7 +67,7 @@ TEST_CASE("Transform: yaw rotates about the z axis")
     transform.rotation = euler_rotation(Xyz::Constants<float>::PI / 2, 0, 0);
 
     // A quarter turn maps the x axis onto the y axis.
-    const auto m = transform.local_matrix();
+    const auto m = transform.make_matrix();
     REQUIRE_THAT((m[0, 0]), WithinAbs(0, 1e-6));
     REQUIRE_THAT((m[1, 0]), WithinAbs(1, 1e-6));
 }
@@ -79,7 +79,7 @@ TEST_CASE("Transform: rotations compose as a quaternion product")
     transform.rotation = quarter_turn * quarter_turn;
 
     // Two quarter turns about z reverse both the x and the y axis.
-    const auto m = transform.local_matrix();
+    const auto m = transform.make_matrix();
     REQUIRE_THAT((m[0, 0]), WithinAbs(-1, 1e-6));
     REQUIRE_THAT((m[1, 1]), WithinAbs(-1, 1e-6));
     REQUIRE_THAT((m[2, 2]), WithinAbs(1, 1e-6));

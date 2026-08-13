@@ -107,7 +107,7 @@ namespace Tungsten
             const Xyz::Matrix4F& parent_world = parent_->world_matrix();
             if (local_dirty_ || parent_->world_version_ != parent_version_seen_)
             {
-                world_matrix_ = parent_world * local_transform_.local_matrix();
+                world_matrix_ = parent_world * local_transform_.make_matrix();
                 ++world_version_;
                 parent_version_seen_ = parent_->world_version_;
                 local_dirty_ = false;
@@ -115,7 +115,7 @@ namespace Tungsten
         }
         else if (local_dirty_)
         {
-            world_matrix_ = local_transform_.local_matrix();
+            world_matrix_ = local_transform_.make_matrix();
             ++world_version_;
             local_dirty_ = false;
         }
