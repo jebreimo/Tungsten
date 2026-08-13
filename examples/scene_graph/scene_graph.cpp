@@ -96,7 +96,7 @@ namespace
             Transform light_transform;
             // A directional light shines along its node's -z axis; tilt the
             // node so the light comes in from the upper right.
-            light_transform.rotation = Xyz::Orientation3F(-0.6f, 0.4f, 0.0f);
+            light_transform.rotation = euler_rotation(-0.6f, 0.4f, 0.0f);
             light_node.set_local_transform(light_transform);
             auto light = std::make_unique<LightComponent>();
             light->type = LightType::DIRECTIONAL;
@@ -125,7 +125,7 @@ namespace
             // Rotating the hub is all it takes to orbit the children: the
             // parent's world-version bump invalidates them (§2).
             Transform hub;
-            hub.rotation = Xyz::Orientation3F(0.4f * t, 0.2f * t, 0.0f);
+            hub.rotation = euler_rotation(0.4f * t, 0.2f * t, 0.0f);
             hub_->set_local_transform(hub);
 
             spin_child(*left_, -2.2f, 1.7f * t);
@@ -231,7 +231,7 @@ namespace
         {
             Transform transform;
             transform.translation = {x, 0, 0};
-            transform.rotation = Xyz::Orientation3F(angle, 0.5f * angle, 0);
+            transform.rotation = euler_rotation(angle, 0.5f * angle, 0);
             transform.scale = {0.6f, 0.6f, 0.6f};
             child.set_local_transform(transform);
         }

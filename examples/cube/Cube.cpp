@@ -116,7 +116,7 @@ namespace
             Tungsten::Transform light_transform;
             // A directional light shines along its node's -z axis; tilt the
             // node so the light comes in from the upper right.
-            light_transform.rotation = Xyz::Orientation3F(-0.6f, 0.4f, 0.0f);
+            light_transform.rotation = Tungsten::euler_rotation(-0.6f, 0.4f, 0.0f);
             light_node.set_local_transform(light_transform);
             auto light = std::make_unique<Tungsten::LightComponent>();
             light->type = Tungsten::LightType::DIRECTIONAL;
@@ -141,7 +141,7 @@ namespace
         {
             const auto t = float(SDL_GetTicks() - start_ticks_) / 1000.0f;
             Tungsten::Transform hub;
-            hub.rotation = Xyz::Orientation3F(0.4f * t, 0.2f * t, 0.0f);
+            hub.rotation = Tungsten::euler_rotation(0.4f * t, 0.2f * t, 0.0f);
             hub_->set_local_transform(hub);
         }
 
@@ -167,7 +167,6 @@ namespace
             renderer_.render(snapshots.front());
 
             Tungsten::set_ogl_tracing_enabled(false);
-            redraw();
 
             resources_.collect_garbage(frame_);
             ++frame_;

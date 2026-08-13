@@ -11,10 +11,11 @@ project(Tungsten VERSION 0.8.2)
 
 set(CMAKE_CXX_STANDARD 23)
 
-# Set TUNGSTEN_MASTER_PROJECT to ON if Xyz is the root level project.
+# Set TUNGSTEN_MASTER_PROJECT to ON if Tungsten is the root level project.
 if (NOT DEFINED TUNGSTEN_MASTER_PROJECT)
     if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
         set(TUNGSTEN_MASTER_PROJECT ON)
+        message("Using Tungsten ${PROJECT_VERSION}")
     else ()
         set(TUNGSTEN_MASTER_PROJECT OFF)
     endif ()
@@ -52,7 +53,7 @@ FetchContent_Declare(cppembed
 
 FetchContent_Declare(xyz
     GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
-    GIT_TAG v0.13.0)
+    GIT_TAG v0.13.1)
 
 FetchContent_Declare(yconvert
     GIT_REPOSITORY "https://github.com/jebreimo/Yconvert.git"

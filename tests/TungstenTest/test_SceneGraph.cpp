@@ -64,12 +64,25 @@ TEST_CASE("Transform: translation and scale compose as T * R * S")
 TEST_CASE("Transform: yaw rotates about the z axis")
 {
     Transform transform;
-    transform.rotation.yaw = Xyz::Constants<float>::PI / 2;
+    transform.rotation = euler_rotation(Xyz::Constants<float>::PI / 2, 0, 0);
 
     // A quarter turn maps the x axis onto the y axis.
     const auto m = transform.local_matrix();
     REQUIRE_THAT((m[0, 0]), WithinAbs(0, 1e-6));
     REQUIRE_THAT((m[1, 0]), WithinAbs(1, 1e-6));
+}
+
+TEST_CASE("Transform: rotations compose as a quaternion product")
+{
+    Transform transform;
+    const auto quarter_turn = z_rotation(Xyz::Constants<float>::PI / 2);
+    transform.rotation = quarter_turn * quarter_turn;
+
+    // Two quarter turns about z reverse both the x and the y axis.
+    const auto m = transform.local_matrix();
+    REQUIRE_THAT((m[0, 0]), WithinAbs(-1, 1e-6));
+    REQUIRE_THAT((m[1, 1]), WithinAbs(-1, 1e-6));
+    REQUIRE_THAT((m[2, 2]), WithinAbs(1, 1e-6));
 }
 
 TEST_CASE("Node: a root's world matrix is its local matrix")
@@ -184,7 +197,8 @@ TEST_CASE("Node: components know their owner")
     REQUIRE(component.owner() == &node);
     REQUIRE(node.components().size() == 1);
 
-    REQUIRE_THROWS_AS(node.add_component(nullptr), TungstenException);
+    REQUIRE_THROWS_AS(node.add_component(std::unique_ptr<TestComponent>()),
+                      TungstenException);
 }
 
 TEST_CASE("Scene: owns roots and hands them back on remove")
