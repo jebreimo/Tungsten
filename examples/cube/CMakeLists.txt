@@ -16,8 +16,6 @@ FetchContent_Declare(ystring2
 FetchContent_MakeAvailable(ystring2)
 
 add_executable(cube
-    MeshItem.cpp
-    MeshItem.hpp
     Resources.hpp.in
     Cube.cpp
 )
