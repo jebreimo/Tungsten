@@ -7,7 +7,7 @@
 //****************************************************************************
 #pragma once
 #include "Tungsten/Gl/GlUniform.hpp"
-#include "Tungsten/Render/ShaderPrograms/OldShaderProgram.hpp"
+#include "Tungsten/Render/OldShaderProgram.hpp"
 
 namespace Tungsten::Detail
 {

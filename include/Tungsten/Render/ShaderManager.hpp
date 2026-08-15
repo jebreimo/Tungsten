@@ -8,18 +8,11 @@
 #pragma once
 #include <unordered_map>
 
-#include "ShaderPrograms/OldShaderProgram.hpp"
+#include "OldShaderProgram.hpp"
 #include "ShaderPreprocessor.hpp"
 
 namespace Tungsten
 {
-    enum class BuiltinShader
-    {
-        SMOOTH
-    };
-
-    BuiltinShader to_builtin_shader(const std::string& name);
-
     class ShaderManager
     {
     public:
@@ -35,15 +28,10 @@ namespace Tungsten
 
         [[nodiscard]] OldShaderProgram* try_get_program(const std::string& name);
 
-        [[nodiscard]] OldShaderProgram& program(BuiltinShader program);
-
         [[nodiscard]] ShaderPreprocessor& preprocessor();
 
     private:
         ShaderManager() = default;
-
-        template <typename ShaderType>
-        OldShaderProgram& get_or_create_builtin_program();
 
         std::unordered_map<std::string, std::unique_ptr<OldShaderProgram>> programs_;
         ShaderPreprocessor preprocessor_;

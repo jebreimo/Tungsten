@@ -40,23 +40,6 @@ namespace
         return {std::move(indexes), std::move(vertexes)};
     }
 
-    Tungsten::SmoothShader& get_shader(Tungsten::BuiltinShader shader_type)
-    {
-        return dynamic_cast<Tungsten::SmoothShader&>(
-            Tungsten::ShaderManager::instance().program(shader_type));
-    }
-
-    Tungsten::Camera make_camera(const Tungsten::Viewport viewport)
-    {
-        const auto fov_y = Tungsten::calc_fov_y(
-            Xyz::to_radians(50.f), Xyz::to_radians(50.f), viewport.aspect_ratio());
-        return Tungsten::CameraBuilder()
-            .viewport(viewport)
-            .look_at({-2, -sqrt(17.f), 2}, {0, 0, 0}, {0, 0, 1})
-            .perspective(fov_y, 1.5f, 10)
-            .build();
-    }
-
     Tungsten::TextureHandle make_texture(const Yimage::Image& image)
     {
         auto handle = Tungsten::generate_texture();
@@ -139,9 +122,8 @@ namespace
 
         void on_update() override
         {
-            const auto t = float(SDL_GetTicks() - start_ticks_) / 1000.0f;
             Tungsten::Transform hub;
-            hub.rotation = Tungsten::euler_rotation(0.4f * t, 0.2f * t, 0.0f);
+            hub.rotation = get_rotation(SDL_GetTicks());
             hub_->set_local_transform(hub);
         }
 
@@ -246,14 +228,14 @@ namespace
             node.add_component(std::move(renderable));
         }
 
-        static Xyz::Matrix4F get_rotation(uint64_t ticks)
+        static Xyz::QuaternionF get_rotation(uint64_t ticks)
         {
             double i;
             const auto fraction = std::modf(double(ticks) / 5000, &i);
             const auto angle = float(fraction * 2 * Xyz::Constants<double>::PI);
             if ((ticks / 10000) % 2 == 0)
-                return Xyz::affine::rotate_z<float>(-angle);
-            return Xyz::affine::rotate_y(angle);
+                return Tungsten::euler_rotation(0, 0, -angle);
+            return Tungsten::euler_rotation(0, angle, 0);
         }
 
         Tungsten::ResourceManager resources_;
@@ -285,12 +267,6 @@ namespace
                   "  BLINN_PHONG\n");
         Tungsten::SdlApplication::add_command_line_options(parser);
         return parser.parse(argc, argv);
-    }
-
-    Tungsten::BuiltinShader get_shader_type(const argos::ParsedArguments& args)
-    {
-        const auto name = ystring::to_upper(args.value("--shader").as_string("SMOOTH"));
-        return Tungsten::to_builtin_shader(name);
     }
 }
 

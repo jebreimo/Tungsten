@@ -9,9 +9,9 @@
 #include <unordered_map>
 
 #include "Tungsten/Gl/GlProgram.hpp"
-#include "../ShaderPreprocessor.hpp"
-#include "../VertexArrayObject.hpp"
-#include "../VertexAttributeDefinition.hpp"
+#include "ShaderPreprocessor.hpp"
+#include "VertexArrayObject.hpp"
+#include "VertexAttributeDefinition.hpp"
 
 namespace Tungsten
 {

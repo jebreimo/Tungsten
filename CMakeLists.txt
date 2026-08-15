@@ -53,7 +53,7 @@ FetchContent_Declare(cppembed
 
 FetchContent_Declare(xyz
     GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
-    GIT_TAG v0.13.1)
+    GIT_TAG v0.13.2)
 
 FetchContent_Declare(yconvert
     GIT_REPOSITORY "https://github.com/jebreimo/Yconvert.git"
@@ -103,10 +103,7 @@ add_library(Tungsten STATIC
     include/Tungsten/Render/ShaderManager.hpp
     include/Tungsten/Render/ShaderPreprocessor.hpp
     include/Tungsten/Render/ShaderProgramBuilder.hpp
-    include/Tungsten/Render/ShaderPrograms/LightUniforms.hpp
-    include/Tungsten/Render/ShaderPrograms/MaterialUniforms.hpp
-    include/Tungsten/Render/ShaderPrograms/OldShaderProgram.hpp
-    include/Tungsten/Render/ShaderPrograms/SmoothShader.hpp
+    include/Tungsten/Render/OldShaderProgram.hpp
     include/Tungsten/Render/ShaderTools.hpp
     include/Tungsten/Render/TextItem.hpp
     include/Tungsten/Render/TextRenderer.hpp
@@ -149,11 +146,8 @@ add_library(Tungsten STATIC
     src/Tungsten/Render/ColorMaterials.cpp
     src/Tungsten/Render/ShaderManager.cpp
     src/Tungsten/Render/ShaderPreprocessor.cpp
-    src/Tungsten/Render/ShaderPrograms/OldShaderProgram.cpp
+    src/Tungsten/Render/OldShaderProgram.cpp
     src/Tungsten/Render/ShaderProgramBuilder.cpp
-    src/Tungsten/Render/ShaderPrograms/LightUniforms.cpp
-    src/Tungsten/Render/ShaderPrograms/MaterialUniforms.cpp
-    src/Tungsten/Render/ShaderPrograms/SmoothShader.cpp
     src/Tungsten/Render/ShaderSources.cpp.in
     src/Tungsten/Render/ShaderSources.hpp
     src/Tungsten/Render/ShaderTools.cpp
