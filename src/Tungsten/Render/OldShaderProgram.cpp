@@ -5,7 +5,7 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "../../../include/Tungsten/Render/OldShaderProgram.hpp"
+#include "Tungsten/Render/OldShaderProgram.hpp"
 
 #include "Tungsten/Render/ShaderManager.hpp"
 #include "Tungsten/Render/ShaderProgramBuilder.hpp"

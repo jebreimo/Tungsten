@@ -7,7 +7,7 @@
 //****************************************************************************
 #include "Tungsten/Render/ShaderManager.hpp"
 
-#include "../../../include/Tungsten/Render/OldShaderProgram.hpp"
+#include "Tungsten/Render/OldShaderProgram.hpp"
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
