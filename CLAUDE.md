@@ -37,7 +37,7 @@ cmake --build cmake-build-debug --target Tungsten # library only
 ctest --test-dir cmake-build-debug                # run tests
 ```
 
-- C++ standard is **C++20**; CMake minimum is 3.15.
+- C++ standard is **C++23**; CMake minimum is 3.23.
 - Tests use **Catch2 v3**. Add new test files to
   `tests/TungstenTest/CMakeLists.txt`.
 - Options: `TUNGSTEN_BUILD_TEST`, `TUNGSTEN_BUILD_EXAMPLES`, `TUNGSTEN_INSTALL`
