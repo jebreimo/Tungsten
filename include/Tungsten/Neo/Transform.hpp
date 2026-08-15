@@ -30,6 +30,49 @@ namespace Tungsten
         return Xyz::make_quaternion<float>(angle, {0, 0, 1});
     }
 
+    // The rotation that maps the vehicle-style frame — +x longitudinal
+    // (forward), +y lateral (left), +z up — onto the scene graph's frame,
+    // where forward is -z, up is +y and right is +x. A 120 degree turn
+    // about (-1, 1, 1); every component is exactly one half.
+    [[nodiscard]]
+    constexpr Xyz::QuaternionF x_forward_to_scene_rotation()
+    {
+        return {0.5f, -0.5f, 0.5f, 0.5f};
+    }
+
+    // Returns @a rotation, an orientation expressed in the +x forward,
+    // +y left, +z up frame, expressed in the scene graph's frame instead.
+    // Both the reference and the rotated axes are rebased, hence the
+    // conjugation rather than a plain multiplication.
+    [[nodiscard]]
+    inline Xyz::QuaternionF x_forward_to_scene(const Xyz::QuaternionF& rotation)
+    {
+        const auto r = x_forward_to_scene_rotation();
+        return r * rotation * Xyz::conjugate(r);
+    }
+
+    // Returns the rotation that makes a node at @a position face @a target,
+    // i.e. the rotation that aims the scene graph's forward axis (-z) at the
+    // target while keeping the node's up axis (+y) as close to @a up as
+    // possible. For a camera, @a target is the point at the center of the
+    // frame.
+    //
+    // Throws if @a position and @a target coincide, or if the line between
+    // them is parallel to @a up.
+    [[nodiscard]]
+    inline Xyz::QuaternionF look_at_rotation(const Xyz::Vector3F& position,
+                                             const Xyz::Vector3F& target,
+                                             const Xyz::Vector3F& up = {0, 1, 0})
+    {
+        const auto forward = target - position;
+        const auto right = Xyz::cross(forward, up);
+        // The arguments are the node's right (+x) and up (+y) axes. The
+        // latter must be the up that is perpendicular to forward, not @a up
+        // itself, as to_quaternion makes +z their cross product — and +z has
+        // to end up opposite forward.
+        return Xyz::to_quaternion(right, Xyz::cross(right, forward));
+    }
+
     /**
      * The local transform of a Node.
      */

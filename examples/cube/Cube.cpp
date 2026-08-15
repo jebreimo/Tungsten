@@ -35,7 +35,13 @@ namespace
             return Xyz::RectangleF{{float(i) / 6, 0}, {1.f / 6, 1}};
         };
 
-        Xyz::OrientedCuboid<float> cuboid{{{-1, -1, -1}, {0, 0, 0}}, {2, 2, 2}};
+        constexpr Xyz::OrientedCuboid<float> cuboid{
+            .placement = {
+                .origin = {-1, -1, -1},
+                .orientation = {.yaw = 0, .pitch = 0, .roll = 0}
+            },
+            .size = {2, 2, 2}
+        };
         Xyz::build_mesh(builder, cuboid, std::function(get_tex_rect));
         return {std::move(indexes), std::move(vertexes)};
     }
@@ -87,7 +93,8 @@ namespace
 
             auto& camera_node = scene_.add(std::make_unique<Tungsten::Node>());
             Tungsten::Transform camera_transform;
-            camera_transform.translation = {0, 0, 8};
+            camera_transform.translation = {2, 2, 8};
+            camera_transform.rotation = Tungsten::look_at_rotation({2, 2, 8}, {0, 0, 0});
             camera_node.set_local_transform(camera_transform);
             auto camera = std::make_unique<Tungsten::CameraComponent>();
             camera->near_plane = 0.5f;
@@ -219,7 +226,8 @@ namespace
             return resources_.create_texture(std::move(texture));
         }
 
-        void add_renderable(Tungsten::Node& node, Tungsten::MeshRef mesh, Tungsten::MaterialRef material)
+        void add_renderable(Tungsten::Node& node, Tungsten::MeshRef mesh,
+                            Tungsten::MaterialRef material)
         {
             auto renderable = std::make_unique<Tungsten::RenderableComponent>();
             renderable->mesh = mesh;
@@ -234,7 +242,7 @@ namespace
             const auto fraction = std::modf(double(ticks) / 5000, &i);
             const auto angle = float(fraction * 2 * Xyz::Constants<double>::PI);
             if ((ticks / 10000) % 2 == 0)
-                return Tungsten::euler_rotation(0, 0, -angle);
+                return Tungsten::euler_rotation(-angle, 0, 0);
             return Tungsten::euler_rotation(0, angle, 0);
         }
 
