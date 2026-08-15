@@ -7,18 +7,11 @@
 //****************************************************************************
 #include "Tungsten/Render/ShaderManager.hpp"
 
-#include "Tungsten/Render/ShaderPrograms/SmoothShader.hpp"
+#include "../../../include/Tungsten/Render/OldShaderProgram.hpp"
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
 {
-    BuiltinShader to_builtin_shader(const std::string& name)
-    {
-        if (name == "SMOOTH" || name == SmoothShader::NAME)
-            return BuiltinShader::SMOOTH;
-        TUNGSTEN_THROW("Unknown built-in shader program name: '" + name + "'.");
-    }
-
     ShaderManager& ShaderManager::instance()
     {
         static ShaderManager instance;
@@ -45,29 +38,6 @@ namespace Tungsten
         if (it == programs_.end())
             return nullptr;
         return it->second.get();
-    }
-
-    OldShaderProgram& ShaderManager::program(BuiltinShader program)
-    {
-        switch (program)
-        {
-        case BuiltinShader::SMOOTH:
-            return get_or_create_builtin_program<SmoothShader>();
-        default:
-            TUNGSTEN_THROW("Unknown built-in shader program.");
-        }
-    }
-
-    template <typename ShaderType>
-    OldShaderProgram& ShaderManager::get_or_create_builtin_program()
-    {
-        const std::string name(ShaderType::NAME);
-        if (const auto ptr = try_get_program(name))
-            return *ptr;
-
-        auto shader = std::make_unique<ShaderType>();
-        add_program(std::move(shader));
-        return program(name);
     }
 
     ShaderPreprocessor& ShaderManager::preprocessor()
