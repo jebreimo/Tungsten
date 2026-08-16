@@ -11,68 +11,94 @@ an immutable `RenderSnapshot` as the only contract between the mutable scene gra
 renderer, and a resource layer built on shared (sub-allocated) GL buffers. Three things
 needed correcting:
 
-1. **Dirty propagation was modelled naively.** The world transform had no home and the
-   updater did an eager full-tree walk.
+1. **The world transform had no home.** Where it was cached, and what made it stale, was
+   left unsaid. §2 answers that — and has since been rewritten a second time, replacing
+   per-node dirty flags with flat arrays and one linear pass.
 2. **It assumed desktop OpenGL 4.x.** Tungsten also targets WebGL2 / GLSL ES 3.00 via
    Emscripten, where several of the assumed features do not exist.
 3. **Pieces were missing or under-specified:** resource handles, `LightData`, `VertexLayout`,
    frustum culling, the 2D path, and double-buffering.
 
-## 2. Dirty-propagation flow
+## 2. Flat node storage and the transform pass
 
-World transforms are resolved **lazily and only where something changed**, never by
-recomputing the whole tree each frame.
+**There is no `Node` class.** `Scene` owns one flat array per node attribute, all indexed by
+`NodeId::index`, and a node *is* that index. Nothing is allocated per node and nothing holds
+a pointer to one, so every per-frame pass is a loop over contiguous memory instead of a walk
+through separately allocated tree nodes.
 
-State per `Node`:
+The arrays:
 
-- `localDirty` — set by `set_local_transform()`.
-- `worldMatrix` — cached world transform.
-- `worldVersion` — bumped every time `worldMatrix` is recomputed.
-- `parentVersionSeen` — the parent's `worldVersion` at the time this node last recomputed.
+| Array | Purpose |
+| --- | --- |
+| `generations` | revokes ids to a slot's previous occupant (§6) |
+| `parents`, `firstChildren`, `nextSiblings` | the topology, as links rather than child vectors |
+| `locals` | each node's `Transform` |
+| `worlds` | each node's resolved world matrix |
+| `order` | every live node, parents before children |
 
-**`Transform` is a plain value** — translation, rotation, scale, with `local_matrix()`
-computed on demand (a TRS compose is cheap and happens at most once per recompute). It
-carries no cache and no dirty flag of its own: the node's `localDirty` is the *only* dirty
-flag, and it is set by `Node::set_local_transform()` — the transform is not exposed as a
-mutable public member, so there is no way to change it that bypasses the flag. Rotation is
-Xyz's yaw/pitch/roll `Orientation3F` (Xyz has no quaternion type); switching to quaternions
-later only touches `Transform`.
+**Identity is a `NodeId`, not an address.** `NodeId` is `ResourceRef<NodeTag>` — the same
+`{index, generation}` revocable key the resource layer uses (§6) — so removing a node bumps
+its generation and every outstanding id to it fails validation instead of silently naming
+whichever node reuses the slot. `NodeHandle` is the ergonomic wrapper: a copyable
+`{Scene*, NodeId}` pair that turns `scene.set_local_transform(id, t)` back into
+`node.set_local_transform(t)`. It is a value, not a reference — nothing in the scene points
+back at it.
 
-`world_matrix()` recomputes iff:
+**The hierarchy is first-child / next-sibling links**, not a child vector per node. That
+keeps the topology in the same flat arrays as everything else and makes structural edits
+O(1) rather than a vector splice. Roots are linked through the same sibling chain, so they
+need no special case. `children()` returns a range that walks the chain and allocates
+nothing.
 
+**`Transform` is a plain value** — translation, rotation (a quaternion), scale, with
+`make_matrix()` computed on demand. It carries no cache and no dirty flag.
+
+**Resolution is one linear pass, not a lazy recompute.**
+
+```cpp
+for (const uint32_t index : order_)
+{
+    const NodeId parent = parents_[index];
+    worlds_[index] = parent ? worlds_[parent.index] * locals_[index].make_matrix()
+                            : locals_[index].make_matrix();
+}
 ```
-localDirty || (parent != nullptr && parent.worldVersion != parentVersionSeen)
-```
 
-On recompute: `worldMatrix = parent.world_matrix() * localTransform.local_matrix()`, then
-bump `worldVersion`, store the parent's current `worldVersion` into `parentVersionSeen`, and
-clear `localDirty`.
+`order_` lists every live node with parents before children, which is the entire correctness
+argument: by the time the loop reaches a node, `worlds_[parent]` is already final. It is
+rebuilt only when the hierarchy actually changed — structural edits set `hierarchyDirty`, and
+`resolve_transforms()` clears it. The rebuild appends the roots and then walks the output
+vector itself as a queue, appending each node's children as it passes over them; visiting
+breadth-first gives the parents-before-children invariant for free and keeps siblings in
+insertion order.
 
-**Reparenting costs one dirty flag.** Detaching and re-attaching a node elsewhere does not
-touch the node's transform data; `add_child` and `remove_child` set the moved node's
-`localDirty`, forcing one recompute on next access. (A plain "subtree dirty" bool on
-*ancestors* would miss reparenting entirely — the classic bug. Relying on the parent-version
-mismatch alone would *almost* work instead, but `worldVersion` counters are per-node, so the
-new parent's version can coincide with the `parentVersionSeen` recorded under the old parent;
-the explicit flag closes that hole at the cost of the same single recompute the version
-scheme would have done. Detaching needs the flag anyway: with no parent left to compare
-against, nothing else would trigger the recompute-as-root.)
+This replaces an earlier scheme of per-node `localDirty` / `worldVersion` /
+`parentVersionSeen` counters that recomputed lazily on access. That scheme skipped unchanged
+subtrees, but it cost three words per node, a subtle reparenting special case, and a
+pointer-chasing traversal — and the pass it was avoiding is a sequential walk over two arrays.
+Skipping work is only a win when the work is more expensive than deciding to skip it.
 
-`TransformUpdater::resolve(scene)` walks dirty subtrees once before extraction so that
-`SnapshotBuilder` reads finalized, order-independent world matrices rather than triggering
-lazy recompute mid-traversal.
+**World matrices are only current after a resolve.** `world_matrix(id)` returns what the last
+`resolve_transforms()` computed; it does not recompute on access. A node reads as unmoved
+until the first resolve.
 
-**Two directions in one pass.** Transforms propagate **down** (a parent's change invalidates
-children). Aggregate bounds propagate **up** (`propagate_bounds`): a node's `worldBounds` is
-its own renderable bounds unioned with its children's world bounds, so a moved child grows
-its ancestors' bounds. Keeping both directions in mind is what makes hierarchical frustum
-culling possible later.
+**Components are typed arrays, not a polymorphic list.** `Scene` holds one
+`ComponentStore<T>` per kind — `items` and a parallel `owners` of `NodeId` — for
+`RenderableComponent`, `LightComponent` and `CameraComponent`. The components are plain
+aggregates: no base class, no virtual destructor, no `owner` back-pointer. Attachment is
+`handle.add<T>(...)`, lookup is `get<T>()` / `find<T>()`, removal is a swap-and-pop, and
+removing a node drops the components of its whole subtree by sweeping each store for owners
+that are no longer alive.
 
-**Nodes are owned through `unique_ptr`.** `Scene::roots` and `Node::children` are
-`vector<unique_ptr<Node>>`, not `vector<Node>`: `Node::parent` and `Component::owner` are raw
-back-pointers, and by-value children would invalidate every such pointer below a `push_back`
-that reallocates. The `unique_ptr` indirection keeps node addresses stable for the node's
-lifetime.
+The set of kinds is therefore **closed**: a new kind means a new array. That is the deliberate
+trade. It removes the `dynamic_cast` chain that used to sit inside both per-frame traversals,
+and it means the extraction pass iterates one contiguous array of a known type. User-defined
+component types are not supported; if they are wanted later, the retrofit is a type-erased
+`ComponentStore<T>` registry keyed on `type_index`, which nothing here forecloses.
+
+**Bounds do not propagate up.** An earlier version maintained an aggregate `worldBounds` per
+node for a hierarchical subtree cull. That is gone — see §15 for why, and for what culling
+does instead.
 
 ## 3. WebGL2 / GLES 3.00 constraints
 
@@ -129,7 +155,7 @@ otherwise), and white is the multiplicative identity if the shader reads it anyw
 ```
 update scene (animation, etc.)
 TransformUpdater::resolve(scene)
-SnapshotBuilder::build(scene, camera, snapshots.back())
+SnapshotBuilder::build(scene, camera_node, snapshots.back())
 snapshots.swap()
 Renderer::render(snapshots.front())
 ```
@@ -491,3 +517,41 @@ frame (§5) — a slot reused across frames can never alias inside a single fram
 For skipping redundant binds, `GlStateCache` keys on the GL object names themselves (program
 id, buffer id, texture id), which deferred deletion (§11) keeps unique among possibly-bound
 objects.
+
+## 15. Frustum culling
+
+Culling runs over the flat renderable array, not over the hierarchy.
+
+**Why not the hierarchy.** An earlier design kept an aggregate `Node::worldBounds` — a node's
+own renderable bounds unioned with its children's — so that a subtree could be rejected
+without visiting it. Two things go wrong with that. A scene graph's parenting is *logical*
+(a hat on a head, a whole level under one node), and logical proximity has little to do with
+spatial proximity, so a node whose children are spread out has a huge, mostly-empty union box
+that almost never fails the frustum test. And every moving child dirties the bounds of every
+ancestor up to the root. The hierarchy earns its keep for transform composition; it is a poor
+spatial index.
+
+**What `SnapshotBuilder` does instead** — three linear passes over the renderable store:
+
+1. **`prepare_bounds`** transforms each `local_bounds` by its owner's world matrix into
+   struct-of-arrays scratch: six `vector<float>` (`min_x`, `min_y`, … `max_z`) parallel to
+   the store, plus per-item `drawable` and `cullable` flags. The scratch is kept across
+   frames, so a steady-state build allocates nothing.
+2. **`cull`** tests the six Gribb–Hartmann planes. Planes are the *outer* loop and items the
+   inner one, because the positive-vertex test's choice of corner depends only on the sign of
+   the plane's normal — hoisting it out picks a bounds array once per plane instead of once
+   per item, and leaves an inner loop of six loads, three multiplies and a compare with no
+   branches at all. That is the shape a compiler can vectorize; it is written as plain scalar
+   code over separate arrays rather than with intrinsics, so it autovectorizes on both the
+   desktop and the Emscripten target instead of depending on either.
+3. **`extract_renderables`** builds `RenderItem`s for the survivors only.
+
+Empty `local_bounds` still means "no bounds known": such an item is marked not-`cullable` and
+is never rejected.
+
+**Where this goes next.** The flat array is the right substrate for the two things that
+follow. Below a few thousand objects, this linear SIMD-friendly sweep beats a tree — no
+traversal, no pointer chasing, no branch mispredicts (Frostbite's "Culling the Battlefield",
+GDC 2011, is the canonical measurement). Above that, a BVH or dynamic AABB tree built *over
+the same array* is the standard answer, and it can be added without touching the per-item
+test, which is already exactly what a BVH leaf would run.

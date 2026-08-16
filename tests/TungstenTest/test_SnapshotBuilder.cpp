@@ -7,11 +7,11 @@
 //****************************************************************************
 #include "Tungsten/Neo/SnapshotBuilder.hpp"
 
-#include <memory>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include "Tungsten/Neo/CameraComponent.hpp"
 #include "Tungsten/Neo/LightComponent.hpp"
+#include "Tungsten/Neo/NodeHandle.hpp"
 #include "Tungsten/Neo/RenderableComponent.hpp"
 #include "Tungsten/Neo/ResourceManager.hpp"
 #include "Tungsten/Neo/Scene.hpp"
@@ -47,92 +47,88 @@ namespace
         {
             mesh = resources.create_mesh(Mesh{});
             material = resources.create_material(Material{});
-            camera.mode = ProjectionMode::ORTHOGRAPHIC;
-            camera.ortho_size = 5.0f;
-            camera.near_plane = 0.1f;
-            camera.far_plane = 100.0f;
+            camera_node = scene.add_node();
+            camera_node.add(CameraComponent{
+                .mode = ProjectionMode::ORTHOGRAPHIC,
+                .near_plane = 0.1f,
+                .far_plane = 100.0f,
+                .ortho_size = 5.0f
+            });
+        }
+
+        [[nodiscard]]
+        CameraComponent& camera() const
+        {
+            return camera_node.get<CameraComponent>();
         }
 
         // Adds a root node with a renderable at the given position.
-        Node& add_renderable(float x, float y, float z)
+        NodeHandle add_renderable(float x, float y, float z)
         {
-            auto& node = scene.add(std::make_unique<Node>());
+            auto node = scene.add_node();
             node.set_local_transform(translate(x, y, z));
-            auto component = std::make_unique<RenderableComponent>();
-            component->mesh = mesh;
-            component->material = material;
-            component->local_bounds = unit_box();
-            node.add_component(std::move(component));
+            node.add(RenderableComponent{
+                .mesh = mesh,
+                .material = material,
+                .local_bounds = unit_box()
+            });
             return node;
         }
 
         void build()
         {
             TransformUpdater::resolve(scene);
-            SnapshotBuilder(resources).build(scene, camera, snapshot);
+            SnapshotBuilder(resources)
+                .build(scene, camera_node.id(), snapshot);
         }
 
         ResourceManager resources;
         Scene scene;
-        CameraComponent camera;
+        NodeHandle camera_node;
         RenderSnapshot snapshot;
         MeshRef mesh;
         MaterialRef material;
     };
 }
 
-TEST_CASE("TransformUpdater: bounds propagate up through the tree")
+TEST_CASE("TransformUpdater: resolves world matrices through the hierarchy")
 {
     Scene scene;
-    auto& root = scene.add(std::make_unique<Node>());
-    auto& child = root.add_child(std::make_unique<Node>());
+    auto root = scene.add_node();
+    auto child = root.add_child();
+    root.set_local_transform(translate(1, 0, 0));
     child.set_local_transform(translate(5, 0, 0));
-    auto component = std::make_unique<RenderableComponent>();
-    component->local_bounds = unit_box();
-    child.add_component(std::move(component));
 
     TransformUpdater::resolve(scene);
-    REQUIRE(child.world_bounds().min == Xyz::Vector3F{4, -1, -1});
-    REQUIRE(child.world_bounds().max == Xyz::Vector3F{6, 1, 1});
-    // The parent has no renderable of its own; its bounds are the child's.
-    REQUIRE(root.world_bounds().min == Xyz::Vector3F{4, -1, -1});
-    REQUIRE(root.world_bounds().max == Xyz::Vector3F{6, 1, 1});
+    REQUIRE((child.world_matrix()[0, 3]) == 6.0f);
 
-    // Moving the child moves the ancestors' bounds on the next resolve.
-    child.set_local_transform(translate(-5, 0, 0));
+    // Moving the parent moves the child on the next resolve.
+    root.set_local_transform(translate(-1, 0, 0));
     TransformUpdater::resolve(scene);
-    REQUIRE(root.world_bounds().min == Xyz::Vector3F{-6, -1, -1});
-    REQUIRE(root.world_bounds().max == Xyz::Vector3F{-4, 1, 1});
-}
-
-TEST_CASE("TransformUpdater: a subtree without renderables has empty bounds")
-{
-    Scene scene;
-    auto& root = scene.add(std::make_unique<Node>());
-    root.add_child(std::make_unique<Node>());
-
-    TransformUpdater::resolve(scene);
-    REQUIRE(!root.world_bounds());
+    REQUIRE((child.world_matrix()[0, 3]) == 4.0f);
 }
 
 TEST_CASE("SnapshotBuilder: fills in the camera state")
 {
     Bench bench;
-    auto& camera_node = bench.scene.add(std::make_unique<Node>());
-    camera_node.set_local_transform(translate(0, 0, 10));
-    auto camera = std::make_unique<CameraComponent>();
-    camera->mode = ProjectionMode::ORTHOGRAPHIC;
-    camera->ortho_size = 5.0f;
-    const auto& camera_ref = dynamic_cast<CameraComponent&>(
-        camera_node.add_component(std::move(camera)));
+    bench.camera_node.set_local_transform(translate(0, 0, 10));
 
-    TransformUpdater::resolve(bench.scene);
-    SnapshotBuilder(bench.resources)
-        .build(bench.scene, camera_ref, bench.snapshot);
+    bench.build();
 
     REQUIRE(bench.snapshot.camera_position == Xyz::Vector3F{0, 0, 10});
     // The view matrix is the inverse of the camera node's world transform.
     REQUIRE_THAT((bench.snapshot.view_matrix[2, 3]), WithinAbs(-10, 1e-6));
+}
+
+TEST_CASE("SnapshotBuilder: throws if the camera node has no camera")
+{
+    Bench bench;
+    const auto bare = bench.scene.add_node().id();
+
+    REQUIRE_THROWS_AS(
+        SnapshotBuilder(bench.resources)
+            .build(bench.scene, bare, bench.snapshot),
+        TungstenException);
 }
 
 TEST_CASE("SnapshotBuilder: extracts visible renderables inside the frustum")
@@ -166,12 +162,12 @@ TEST_CASE("SnapshotBuilder: culls items outside the frustum")
 TEST_CASE("SnapshotBuilder: an item with empty bounds is never culled")
 {
     Bench bench;
-    auto& node = bench.scene.add(std::make_unique<Node>());
+    auto node = bench.scene.add_node();
     node.set_local_transform(translate(1000, 0, 0)); // far outside
-    auto component = std::make_unique<RenderableComponent>();
-    component->mesh = bench.mesh;
-    component->material = bench.material;
-    node.add_component(std::move(component)); // local_bounds left empty
+    node.add(RenderableComponent{
+        .mesh = bench.mesh,
+        .material = bench.material
+    }); // local_bounds left empty
 
     bench.build();
     REQUIRE(bench.snapshot.opaque_items.size() == 1);
@@ -180,14 +176,13 @@ TEST_CASE("SnapshotBuilder: an item with empty bounds is never culled")
 TEST_CASE("SnapshotBuilder: skips invisible and incomplete renderables")
 {
     Bench bench;
-    const auto& invisible = bench.add_renderable(0, 0, -5);
-    dynamic_cast<RenderableComponent&>(*invisible.components()[0])
-        .visible = false;
+    const auto invisible = bench.add_renderable(0, 0, -5);
+    invisible.get<RenderableComponent>().visible = false;
 
-    auto& no_mesh = bench.scene.add(std::make_unique<Node>());
-    auto component = std::make_unique<RenderableComponent>();
-    component->material = bench.material; // mesh ref left null
-    no_mesh.add_component(std::move(component));
+    auto no_mesh = bench.scene.add_node();
+    no_mesh.add(RenderableComponent{
+        .material = bench.material // mesh ref left null
+    });
 
     bench.build();
     REQUIRE(bench.snapshot.opaque_items.empty());
@@ -201,9 +196,8 @@ TEST_CASE("SnapshotBuilder: transparent materials go to the transparent list")
     const auto transparent_material = bench.resources.create_material(
         std::move(material));
 
-    const auto& node = bench.add_renderable(0, 0, -5);
-    dynamic_cast<RenderableComponent&>(*node.components()[0])
-        .material = transparent_material;
+    const auto node = bench.add_renderable(0, 0, -5);
+    node.get<RenderableComponent>().material = transparent_material;
     bench.add_renderable(0, 0, -7);
 
     bench.build();
@@ -231,12 +225,10 @@ TEST_CASE("SnapshotBuilder: transparent sort keys order back-to-front")
     material.transparent = true;
     const auto transparent_material = bench.resources.create_material(
         std::move(material));
-    const auto& near = bench.add_renderable(0, 0, -5);
-    const auto& far = bench.add_renderable(0, 0, -50);
-    dynamic_cast<RenderableComponent&>(*near.components()[0])
-        .material = transparent_material;
-    dynamic_cast<RenderableComponent&>(*far.components()[0])
-        .material = transparent_material;
+    const auto near = bench.add_renderable(0, 0, -5);
+    const auto far = bench.add_renderable(0, 0, -50);
+    near.get<RenderableComponent>().material = transparent_material;
+    far.get<RenderableComponent>().material = transparent_material;
 
     bench.build();
     const auto& items = bench.snapshot.transparent_items;
@@ -248,9 +240,9 @@ TEST_CASE("SnapshotBuilder: transparent sort keys order back-to-front")
 TEST_CASE("SnapshotBuilder: the render layer dominates the sort key")
 {
     Bench bench;
-    const auto& overlay = bench.add_renderable(0, 0, -5); // near, but higher layer
-    dynamic_cast<RenderableComponent&>(*overlay.components()[0])
-        .render_layer = 1;
+    // Near, but on a higher layer.
+    const auto overlay = bench.add_renderable(0, 0, -5);
+    overlay.get<RenderableComponent>().render_layer = 1;
     bench.add_renderable(0, 0, -50);
 
     bench.build();
@@ -264,14 +256,14 @@ TEST_CASE("SnapshotBuilder: the render layer dominates the sort key")
 TEST_CASE("SnapshotBuilder: extracts lights with node position and direction")
 {
     Bench bench;
-    auto& node = bench.scene.add(std::make_unique<Node>());
+    auto node = bench.scene.add_node();
     node.set_local_transform(translate(1, 2, 3));
-    auto light = std::make_unique<LightComponent>();
-    light->type = LightType::POINT;
-    light->color = {1, 0.5f, 0.25f};
-    light->intensity = 2.0f;
-    light->range = 20.0f;
-    node.add_component(std::move(light));
+    node.add(LightComponent{
+        .type = LightType::POINT,
+        .color = {1, 0.5f, 0.25f},
+        .intensity = 2.0f,
+        .range = 20.0f
+    });
 
     bench.build();
     REQUIRE(bench.snapshot.lights.size() == 1);
@@ -283,6 +275,20 @@ TEST_CASE("SnapshotBuilder: extracts lights with node position and direction")
     REQUIRE(data.color() == Xyz::Vector3F{1, 0.5f, 0.25f});
     REQUIRE(data.intensity() == 2.0f);
     REQUIRE(data.range() == 20.0f);
+}
+
+TEST_CASE("SnapshotBuilder: a removed node's renderable stops being drawn")
+{
+    Bench bench;
+    bench.add_renderable(0, 0, -5);
+    const auto doomed = bench.add_renderable(1, 0, -5);
+
+    bench.build();
+    REQUIRE(bench.snapshot.opaque_items.size() == 2);
+
+    doomed.remove();
+    bench.build();
+    REQUIRE(bench.snapshot.opaque_items.size() == 1);
 }
 
 TEST_CASE("SnapshotBuilder: the normal matrix is identity for rigid motion")

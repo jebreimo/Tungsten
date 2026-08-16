@@ -7,47 +7,12 @@
 //****************************************************************************
 #include "Tungsten/Neo/TransformUpdater.hpp"
 
-#include "Tungsten/Neo/RenderableComponent.hpp"
 #include "Tungsten/Neo/Scene.hpp"
 
 namespace Tungsten
 {
-    void TransformUpdater::resolve(const Scene& scene)
+    void TransformUpdater::resolve(Scene& scene)
     {
-        for (const auto& root : scene.roots())
-            resolve_node(*root);
-    }
-
-    void TransformUpdater::resolve_node(const Node& node)
-    {
-        // Touching the world matrix resolves it (and any stale ancestors)
-        // lazily; a clean node costs one version comparison.
-        (void)node.world_matrix();
-
-        for (const auto& child : node.children())
-            resolve_node(*child);
-
-        // Children are resolved, so their bounds are final: this is the
-        // upward half of the pass.
-        propagate_bounds(node);
-    }
-
-    void TransformUpdater::propagate_bounds(const Node& node)
-    {
-        Xyz::BBox3F bounds;
-        for (const auto& component : node.components())
-        {
-            const auto* renderable =
-                dynamic_cast<const RenderableComponent*>(component.get());
-            if (renderable && renderable->visible)
-            {
-                bounds += Xyz::transform_bbox_no_w(renderable->local_bounds,
-                                                   node.world_matrix());
-            }
-        }
-        for (const auto& child : node.children())
-            bounds += child->world_bounds();
-
-        node.world_bounds_ = bounds;
+        scene.resolve_transforms();
     }
 } // Tungsten

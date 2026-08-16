@@ -10,15 +10,12 @@
 #include <Xyz/InvertMatrix.hpp>
 #include <Xyz/ProjectionMatrix.hpp>
 
-#include "Tungsten/Neo/Node.hpp"
-
 namespace Tungsten
 {
-    Xyz::Matrix4F CameraComponent::get_view_matrix() const
+    Xyz::Matrix4F CameraComponent::get_view_matrix(
+        const Xyz::Matrix4F& node_world_matrix)
     {
-        if (const Node* node = owner())
-            return Xyz::invert(node->world_matrix());
-        return Xyz::Matrix4F::identity();
+        return Xyz::invert(node_world_matrix);
     }
 
     Xyz::Matrix4F CameraComponent::get_projection_matrix() const

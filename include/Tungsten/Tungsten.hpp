@@ -29,6 +29,7 @@
 #include "Tungsten/Neo/BuiltinShaders.hpp"
 #include "Tungsten/Neo/CameraComponent.hpp"
 #include "Tungsten/Neo/LightComponent.hpp"
+#include "Tungsten/Neo/NodeHandle.hpp"
 #include "Tungsten/Neo/RenderableComponent.hpp"
 #include "Tungsten/Neo/Renderer.hpp"
 #include "Tungsten/Neo/ResourceManager.hpp"

@@ -53,23 +53,24 @@ namespace Tungsten
 
     namespace
     {
+        // The count comes from GL_NUM_EXTENSIONS rather than from indexing
+        // until glGetStringi fails: provoking GL_INVALID_VALUE would leave a
+        // real error in the queue for the next THROW_IF_GL_ERROR to find, and
+        // it cannot tell that error apart from one that was already pending
+        // before the walk started.
         std::vector<std::string> get_extension_list()
         {
             auto& ogl = get_ogl_wrapper();
+            const auto count = get_int32_value(GL_NUM_EXTENSIONS);
+
             std::vector<std::string> extensions;
-            uint32_t i = 0;
-            while (true)
+            extensions.reserve(size_t(count));
+            for (int32_t i = 0; i < count; ++i)
             {
-                const char* str = reinterpret_cast<const char*>(ogl.get_string_i(GL_EXTENSIONS, i));
-                if (str == nullptr)
-                {
-                    auto error = ogl.get_error();
-                    if (error == GL_INVALID_VALUE)
-                        break;
-                    THROW_GL_ERROR(error);
-                }
-                extensions.emplace_back(reinterpret_cast<const char*>(str));
-                ++i;
+                const auto str = reinterpret_cast<const char*>(
+                    ogl.get_string_i(GL_EXTENSIONS, uint32_t(i)));
+                THROW_IF_GL_ERROR();
+                extensions.emplace_back(str ? str : "");
             }
 
             return extensions;

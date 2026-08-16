@@ -1,41 +1,60 @@
 classDiagram
 namespace SceneSide {
     class Scene {
-        +roots: vector~unique_ptr~Node~~
+        -generations: vector~uint32_t~
+        -parents: vector~NodeId~
+        -first_children: vector~NodeId~
+        -next_siblings: vector~NodeId~
+        -locals: vector~Transform~
+        -worlds: vector~mat4~
+        -order: vector~uint32_t~
+        -renderables: ComponentStore~RenderableComponent~
+        -lights: ComponentStore~LightComponent~
+        -cameras: ComponentStore~CameraComponent~
         +snapshots: DoubleBuffer~RenderSnapshot~
-        +add(node: unique_ptr~Node~)
-        +remove(node: Node)
-        +update(dt: float)
+        +create_node(parent: NodeId): NodeId
+        +add_node(parent: NodeId): NodeHandle
+        +remove(id: NodeId)
+        +reparent(id: NodeId, new_parent: NodeId)
+        +children(id: NodeId): ChildRange
+        +set_local_transform(id: NodeId, t: Transform)
+        +world_matrix(id: NodeId): mat4
+        +add_component~T~(id: NodeId, c: T): T
+        +get_component~T~(id: NodeId): T
+        +components~T~(): ComponentStore~T~
+        +resolve_transforms()
+        -rebuild_order()
     }
 
-    class Node {
-        -local_transform: Transform
-        +children: vector~unique_ptr~Node~~
-        +parent: Node*
-        +components: vector~Component~
-        -world_matrix: mat4
-        -world_version: uint64
-        -parent_version_seen: uint64
-        -local_dirty: bool
-        +world_bounds: AABB
-        +local_transform(): Transform
+    class NodeId {
+        +index: uint32_t
+        +generation: uint32_t
+    }
+
+    class NodeHandle {
+        -scene: Scene*
+        -id: NodeId
         +set_local_transform(t: Transform)
         +world_matrix(): mat4
-        +add_child(node: unique_ptr~Node~)
-        +remove_child(node: Node)
-        +reparent(new_parent: Node)
+        +parent(): NodeHandle
+        +children(): ChildRange
+        +add_child(): NodeHandle
+        +reparent(new_parent: NodeHandle)
+        +remove()
+        +add~T~(c: T): T
+        +get~T~(): T
+    }
+
+    class ComponentStore~T~ {
+        +items: vector~T~
+        +owners: vector~NodeId~
     }
 
     class Transform {
         +translation: vec3
-        +rotation: Orientation3F
+        +rotation: QuaternionF
         +scale: vec3
-        +local_matrix(): mat4
-    }
-
-    class Component {
-        <<abstract>>
-        +owner: Node*
+        +make_matrix(): mat4
     }
 
     class RenderableComponent {
@@ -53,7 +72,7 @@ namespace SceneSide {
         +far_plane: float
         +ortho_size: float
         +aspect: float
-        +get_view_matrix(): mat4
+        +get_view_matrix(node_world: mat4)$ mat4
         +get_projection_matrix(): mat4
     }
 
@@ -81,8 +100,6 @@ namespace SceneSide {
 
     class TransformUpdater {
         +resolve(scene: Scene)
-        -resolve_node(node: Node)
-        -propagate_bounds(node: Node)
     }
 
     class AABB {
@@ -99,11 +116,14 @@ namespace Bridge {
     }
 
     class SnapshotBuilder {
-        +build(scene: Scene, camera: CameraComponent, out: RenderSnapshot)
-        -extract_node(node: Node, out: RenderSnapshot)
-        -extract_renderable(node: Node, renderable: RenderableComponent, out: RenderSnapshot)
-        -extract_light(node: Node, light: LightComponent): LightData
-        -cull(world_bounds: AABB): bool
+        -min_x, min_y, min_z: vector~float~
+        -max_x, max_y, max_z: vector~float~
+        -drawable, cullable, visible: vector~uint8_t~
+        +build(scene: Scene, camera_node: NodeId, out: RenderSnapshot)
+        -prepare_bounds(scene: Scene): size_t
+        -cull(count: size_t)
+        -extract_renderables(scene: Scene, count: size_t, out: RenderSnapshot)
+        -extract_lights(scene: Scene, out: RenderSnapshot)
         -compute_sort_key(layer, shader, material, mesh, depth, transparent): uint64
         -compute_normal_matrix(world: mat4): mat3
     }
@@ -357,15 +377,13 @@ namespace RenderSide {
     note for UboBindings "Fixed binding points (§4): PER_FRAME = 0, PER_MATERIAL = 1, PER_DRAW = 2.<br>The Renderer owns the three UBO buffer objects bound at these points and<br>uploads into them (per-frame once per frame, Material::parameter_data<br>on material change, per-draw per item)."
 }
 
-Scene "1" *-- "1..*" Node
 Scene "1" *-- "1" DoubleBuffer~T~
-Node "1" *-- "1" Transform
-Node "1" *-- "0..*" Component
-Node "1" *-- "0..*" Node : children
-Node "0..*" --> "1" Node : parent (raw)
-RenderableComponent --|> Component
-CameraComponent --|> Component
-LightComponent --|> Component
+Scene "1" *-- "0..*" Transform : locals array
+Scene "1" *-- "3" ComponentStore~T~ : one per kind
+ComponentStore~T~ "1" *-- "0..*" RenderableComponent : items (or lights, cameras)
+ComponentStore~T~ --> NodeId : owners
+NodeHandle --> Scene : refers to
+NodeHandle --> NodeId : names
 CameraComponent --> ProjectionMode : uses
 LightComponent --> LightType : uses
 

@@ -7,16 +7,15 @@
 //****************************************************************************
 #pragma once
 #include <Xyz/Vector.hpp>
-#include "Component.hpp"
 #include "LightData.hpp"
 
 namespace Tungsten
 {
-    // Makes a Node a light source. Position and direction are not stored
+    // Makes a node a light source. Position and direction are not stored
     // here: they come from the owning node's world transform when the
     // SnapshotBuilder extracts the LightData (the direction is the node's
     // -z axis, matching the camera convention).
-    struct LightComponent : Component
+    struct LightComponent
     {
         LightType type = LightType::POINT;
         Xyz::Vector3F color = {1, 1, 1};

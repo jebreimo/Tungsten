@@ -88,31 +88,31 @@ namespace
 
             const auto mesh = make_cube_mesh();
 
-            hub_ = &scene_.add(std::make_unique<Tungsten::Node>());
-            add_renderable(*hub_, mesh, gold);
+            hub_ = scene_.add_node();
+            add_renderable(hub_, mesh, gold);
 
-            auto& camera_node = scene_.add(std::make_unique<Tungsten::Node>());
+            camera_ = scene_.add_node();
             Tungsten::Transform camera_transform;
             camera_transform.translation = {2, 2, 8};
             camera_transform.rotation = Tungsten::look_at_rotation({2, 2, 8}, {0, 0, 0});
-            camera_node.set_local_transform(camera_transform);
-            auto camera = std::make_unique<Tungsten::CameraComponent>();
-            camera->near_plane = 0.5f;
-            camera->far_plane = 50.0f;
-            camera->aspect = app.viewport().aspect_ratio();
-            camera_ = &camera_node.add_component(std::move(camera));
+            camera_.set_local_transform(camera_transform);
+            camera_.add(Tungsten::CameraComponent{
+                .near_plane = 0.5f,
+                .far_plane = 50.0f,
+                .aspect = app.viewport().aspect_ratio()
+            });
 
-            auto& light_node = scene_.add(std::make_unique<Tungsten::Node>());
+            auto light_node = scene_.add_node();
             Tungsten::Transform light_transform;
             // A directional light shines along its node's -z axis; tilt the
             // node so the light comes in from the upper right.
             light_transform.rotation = Tungsten::euler_rotation(-0.6f, 0.4f, 0.0f);
             light_node.set_local_transform(light_transform);
-            auto light = std::make_unique<Tungsten::LightComponent>();
-            light->type = Tungsten::LightType::DIRECTIONAL;
-            light->color = {1.0f, 0.97f, 0.9f};
-            light->intensity = 1.0f;
-            light_node.add_component(std::move(light));
+            light_node.add(Tungsten::LightComponent{
+                .type = Tungsten::LightType::DIRECTIONAL,
+                .color = {1.0f, 0.97f, 0.9f},
+                .intensity = 1.0f
+            });
 
             std::cout << Tungsten::get_device_info() << '\n';
             Tungsten::set_swap_interval(app, Tungsten::SwapInterval::VSYNC);
@@ -131,7 +131,7 @@ namespace
         {
             Tungsten::Transform hub;
             hub.rotation = get_rotation(SDL_GetTicks());
-            hub_->set_local_transform(hub);
+            hub_.set_local_transform(hub);
         }
 
         void on_draw() override
@@ -147,7 +147,7 @@ namespace
 
             Tungsten::TransformUpdater::resolve(scene_);
             auto& snapshots = scene_.snapshots();
-            builder_.build(scene_, *camera_, snapshots.back());
+            builder_.build(scene_, camera_.id(), snapshots.back());
             snapshots.back().time =
                 float(SDL_GetTicks() - start_ticks_) / 1000.0f;
             snapshots.back().ambient_light = {0.35f, 0.35f, 0.38f};
@@ -226,14 +226,15 @@ namespace
             return resources_.create_texture(std::move(texture));
         }
 
-        void add_renderable(Tungsten::Node& node, Tungsten::MeshRef mesh,
-                            Tungsten::MaterialRef material)
+        static void add_renderable(Tungsten::NodeHandle node,
+                                   Tungsten::MeshRef mesh,
+                                   Tungsten::MaterialRef material)
         {
-            auto renderable = std::make_unique<Tungsten::RenderableComponent>();
-            renderable->mesh = mesh;
-            renderable->material = material;
-            renderable->local_bounds = {{-1, -1, -1}, {1, 1, 1}};
-            node.add_component(std::move(renderable));
+            node.add(Tungsten::RenderableComponent{
+                .mesh = mesh,
+                .material = material,
+                .local_bounds = {{-1, -1, -1}, {1, 1, 1}}
+            });
         }
 
         static Xyz::QuaternionF get_rotation(uint64_t ticks)
@@ -252,8 +253,8 @@ namespace
         Tungsten::Renderer renderer_;
         Tungsten::BufferArenaRef vbo_arena_;
         Tungsten::BufferArenaRef ebo_arena_;
-        Tungsten::Node* hub_ = nullptr;
-        Tungsten::CameraComponent* camera_ = nullptr;
+        Tungsten::NodeHandle hub_;
+        Tungsten::NodeHandle camera_;
         uint64_t frame_ = 0;
         uint64_t start_ticks_ = SDL_GetTicks();
     };

@@ -100,7 +100,10 @@ namespace Tungsten
 
     int32_t get_int32_value(unsigned parameter_name)
     {
-        int32_t value;
+        // Zero-initialized because the dummy and Emscripten backends may
+        // leave the output untouched; returning an indeterminate value from a
+        // query that "succeeded" is worse than returning zero.
+        int32_t value = 0;
         get_ogl_wrapper().get_integer(parameter_name, &value);
         THROW_IF_GL_ERROR();
         return value;
@@ -108,7 +111,7 @@ namespace Tungsten
 
     int64_t get_int64_value(unsigned parameter_name)
     {
-        int64_t value;
+        int64_t value = 0;
         get_ogl_wrapper().get_integer64(parameter_name, &value);
         THROW_IF_GL_ERROR();
         return value;

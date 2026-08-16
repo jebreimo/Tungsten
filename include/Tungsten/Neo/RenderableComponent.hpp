@@ -8,19 +8,22 @@
 #pragma once
 #include <cstdint>
 #include "Xyz/BBox.hpp"
-#include "Component.hpp"
 #include "ResourceRefs.hpp"
 
 namespace Tungsten
 {
-    // Makes a Node drawable: which mesh to draw with which material, the
-    // mesh's bounds in the node's local space (used for frustum culling and
-    // for the aggregate bounds TransformUpdater propagates), and where the
-    // item sorts (render_layer forms the top bits of the snapshot sort key).
+    // Makes a node drawable: which mesh to draw with which material, the
+    // mesh's bounds in the node's local space (used for frustum culling), and
+    // where the item sorts (render_layer forms the top bits of the snapshot
+    // sort key).
     //
     // Leaving local_bounds empty means "no bounds known": the item is never
-    // culled, and it contributes nothing to the aggregate bounds.
-    struct RenderableComponent : Component
+    // culled.
+    //
+    // A plain aggregate with no base class and no back-pointer to its node —
+    // the scene stores these in one flat array per kind and keeps the owning
+    // NodeId alongside (§2).
+    struct RenderableComponent
     {
         MeshRef mesh;
         MaterialRef material;

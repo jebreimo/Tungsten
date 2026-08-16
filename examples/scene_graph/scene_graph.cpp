@@ -12,12 +12,12 @@
 //
 //     update transforms
 //     TransformUpdater::resolve(scene)
-//     SnapshotBuilder::build(scene, camera, snapshots.back())
+//     SnapshotBuilder::build(scene, camera_node, snapshots.back())
 //     snapshots.swap()
 //     Renderer::render(snapshots.front())
 //
 // The children are plain child nodes: their orbit is nothing but the hub's
-// rotation propagating down through the dirty-transform machinery.
+// rotation composed into them by the resolve pass.
 
 #include <iostream>
 #include <Argos/Argos.hpp>
@@ -77,32 +77,32 @@ namespace
 
             const auto mesh = make_cube_mesh();
 
-            hub_ = &scene_.add(std::make_unique<Node>());
-            add_renderable(*hub_, mesh, gold);
-            left_ = &add_child_cube(mesh, glass, -2.2f);
-            right_ = &add_child_cube(mesh, slate, 2.2f);
+            hub_ = scene_.add_node();
+            add_renderable(hub_, mesh, gold);
+            left_ = add_child_cube(mesh, glass, -2.2f);
+            right_ = add_child_cube(mesh, slate, 2.2f);
 
-            auto& camera_node = scene_.add(std::make_unique<Node>());
+            camera_ = scene_.add_node();
             Transform camera_transform;
             camera_transform.translation = {0, 0, 8};
-            camera_node.set_local_transform(camera_transform);
-            auto camera = std::make_unique<CameraComponent>();
-            camera->near_plane = 0.5f;
-            camera->far_plane = 50.0f;
-            camera->aspect = app.viewport().aspect_ratio();
-            camera_ = &camera_node.add_component(std::move(camera));
+            camera_.set_local_transform(camera_transform);
+            camera_.add(CameraComponent{
+                .near_plane = 0.5f,
+                .far_plane = 50.0f,
+                .aspect = app.viewport().aspect_ratio()
+            });
 
-            auto& light_node = scene_.add(std::make_unique<Node>());
+            auto light_node = scene_.add_node();
             Transform light_transform;
             // A directional light shines along its node's -z axis; tilt the
             // node so the light comes in from the upper right.
             light_transform.rotation = euler_rotation(-0.6f, 0.4f, 0.0f);
             light_node.set_local_transform(light_transform);
-            auto light = std::make_unique<LightComponent>();
-            light->type = LightType::DIRECTIONAL;
-            light->color = {1.0f, 0.97f, 0.9f};
-            light->intensity = 1.0f;
-            light_node.add_component(std::move(light));
+            light_node.add(LightComponent{
+                .type = LightType::DIRECTIONAL,
+                .color = {1.0f, 0.97f, 0.9f},
+                .intensity = 1.0f
+            });
 
             std::cout << get_device_info() << '\n';
             set_swap_interval(app, SwapInterval::VSYNC);
@@ -112,7 +112,10 @@ namespace
         {
             if (event.type == SDL_EVENT_WINDOW_RESIZED)
             {
-                camera_->aspect = application().viewport().aspect_ratio();
+                // Through the handle, not a cached pointer: the component
+                // arrays move their contents as they grow.
+                camera_.get<CameraComponent>().aspect =
+                    application().viewport().aspect_ratio();
                 return true;
             }
             return false;
@@ -123,13 +126,13 @@ namespace
             const auto t = float(SDL_GetTicks() - start_ticks_) / 1000.0f;
 
             // Rotating the hub is all it takes to orbit the children: the
-            // parent's world-version bump invalidates them (§2).
+            // next resolve composes their world matrices from it (§2).
             Transform hub;
             hub.rotation = euler_rotation(0.4f * t, 0.2f * t, 0.0f);
-            hub_->set_local_transform(hub);
+            hub_.set_local_transform(hub);
 
-            spin_child(*left_, -2.2f, 1.7f * t);
-            spin_child(*right_, 2.2f, -1.3f * t);
+            spin_child(left_, -2.2f, 1.7f * t);
+            spin_child(right_, 2.2f, -1.3f * t);
         }
 
         void on_draw() override
@@ -144,7 +147,7 @@ namespace
 
             TransformUpdater::resolve(scene_);
             auto& snapshots = scene_.snapshots();
-            builder_.build(scene_, *camera_, snapshots.back());
+            builder_.build(scene_, camera_.id(), snapshots.back());
             snapshots.back().time =
                 float(SDL_GetTicks() - start_ticks_) / 1000.0f;
             snapshots.back().ambient_light = {0.35f, 0.35f, 0.38f};
@@ -210,24 +213,25 @@ namespace
             return resources_.create_mesh(std::move(mesh));
         }
 
-        void add_renderable(Node& node, MeshRef mesh, MaterialRef material)
+        static void add_renderable(NodeHandle node, MeshRef mesh,
+                                   MaterialRef material)
         {
-            auto renderable = std::make_unique<RenderableComponent>();
-            renderable->mesh = mesh;
-            renderable->material = material;
-            renderable->local_bounds = unit_box();
-            node.add_component(std::move(renderable));
+            node.add(RenderableComponent{
+                .mesh = mesh,
+                .material = material,
+                .local_bounds = unit_box()
+            });
         }
 
-        Node& add_child_cube(MeshRef mesh, MaterialRef material, float x)
+        NodeHandle add_child_cube(MeshRef mesh, MaterialRef material, float x)
         {
-            auto& child = hub_->add_child(std::make_unique<Node>());
+            auto child = hub_.add_child();
             spin_child(child, x, 0);
             add_renderable(child, mesh, material);
             return child;
         }
 
-        static void spin_child(Node& child, float x, float angle)
+        static void spin_child(NodeHandle child, float x, float angle)
         {
             Transform transform;
             transform.translation = {x, 0, 0};
@@ -242,10 +246,10 @@ namespace
         Renderer renderer_;
         BufferArenaRef vbo_arena_;
         BufferArenaRef ebo_arena_;
-        Node* hub_ = nullptr;
-        Node* left_ = nullptr;
-        Node* right_ = nullptr;
-        CameraComponent* camera_ = nullptr;
+        NodeHandle hub_;
+        NodeHandle left_;
+        NodeHandle right_;
+        NodeHandle camera_;
         uint64_t frame_ = 0;
         uint64_t start_ticks_ = SDL_GetTicks();
     };

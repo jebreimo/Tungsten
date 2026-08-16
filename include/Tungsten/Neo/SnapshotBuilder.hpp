@@ -8,59 +8,57 @@
 #pragma once
 #include <array>
 #include <cstdint>
-#include <Xyz/BBox.hpp>
+#include <vector>
 #include <Xyz/Matrix.hpp>
 #include <Xyz/Vector.hpp>
+#include "NodeId.hpp"
 #include "RenderSnapshot.hpp"
 
 namespace Tungsten
 {
-    struct CameraComponent;
-    struct LightComponent;
-    class Node;
-    struct RenderableComponent;
     class ResourceManager;
     class Scene;
 
     // Extracts an immutable RenderSnapshot from the mutable scene graph — the
     // bridge between the two sides (§1, §5). Call TransformUpdater::resolve
-    // first so extraction reads finalized world matrices and bounds.
+    // first so extraction reads finalized world matrices.
     //
-    // build() walks the scene once: renderables are frustum-culled against
-    // their world-space bounds, split into the opaque and transparent lists
-    // by their material, and given a precomputed sort key (the renderer only
-    // sorts); lights become LightData with position and direction taken from
-    // their node's world transform.
+    // Extraction is three flat passes over the scene's renderable array rather
+    // than a walk of the hierarchy: world-space bounds into struct-of-arrays
+    // scratch, then a frustum test over those arrays, then RenderItems for
+    // whatever survived. Splitting it that way is what makes the middle pass —
+    // the one that touches every object every frame — a branch-free loop over
+    // six float arrays that a compiler can vectorize.
     //
     // The builder resolves MaterialRefs through the ResourceManager to reach
-    // the shader ref and transparency for the sort key — the "resolves
-    // handles" dependency in the diagram.
+    // the shader ref and transparency for the sort key.
     class SnapshotBuilder
     {
     public:
         explicit SnapshotBuilder(ResourceManager& resources);
 
-        // Fills `out` (typically the scene's back buffer). `out` is cleared
-        // first; its storage is reused (§5). The scene-level fields the
-        // builder cannot know — time, ambient_light — are left at their
-        // defaults for the caller to fill in.
-        void build(const Scene& scene, const CameraComponent& camera,
-                   RenderSnapshot& out);
+        // Fills `out` (typically the scene's back buffer) with what the camera
+        // on `camera_node` sees. `out` is cleared first; its storage is reused
+        // (§5). The scene-level fields the builder cannot know — time,
+        // ambient_light — are left at their defaults for the caller to fill
+        // in. Throws if camera_node has no CameraComponent.
+        void build(const Scene& scene, NodeId camera_node, RenderSnapshot& out);
 
     private:
-        void extract_node(const Node& node, RenderSnapshot& out);
+        // Fills the SoA bounds scratch and the per-item flags for every
+        // renderable in the scene, and returns how many there are.
+        size_t prepare_bounds(const Scene& scene);
 
-        void extract_renderable(const Node& node,
-                                const RenderableComponent& renderable,
-                                RenderSnapshot& out);
+        // Clears visible_ for every item whose bounds fall entirely outside
+        // the frustum. Planes outer, items inner: the sign of each plane's
+        // normal picks a bounds array once per plane instead of once per item,
+        // which leaves the inner loop free of branches.
+        void cull(size_t count);
 
-        static LightData extract_light(const Node& node,
-                                       const LightComponent& light);
+        void extract_renderables(const Scene& scene, size_t count,
+                                 RenderSnapshot& out);
 
-        // True if the box is entirely outside the view frustum. Empty bounds
-        // mean "no bounds known" and are never culled.
-        [[nodiscard]]
-        bool cull(const Xyz::BBox3F& world_bounds) const;
+        static void extract_lights(const Scene& scene, RenderSnapshot& out);
 
         // Packs the draw order into one integer, ascending (§14). Opaque:
         // layer, shader, material, mesh, then depth — batching state changes
@@ -80,9 +78,21 @@ namespace Tungsten
 
         ResourceManager& resources_;
 
-        // Per-build state, set up by build() and read during the traversal.
+        // Per-build state, set up by build() and read during extraction.
         std::array<Xyz::Vector4F, 6> frustum_planes_;
         Xyz::Matrix4F view_;
         float far_plane_ = 1.0f;
+
+        // Scratch, kept across frames so a steady-state build does not
+        // allocate. One array per bounds component, parallel to the scene's
+        // renderable array.
+        std::vector<float> min_x_, min_y_, min_z_;
+        std::vector<float> max_x_, max_y_, max_z_;
+
+        // drawable_: has a mesh, a material, and is visible at all.
+        // cullable_: drawable and has bounds — empty bounds mean "unknown",
+        //   which is never culled.
+        // visible_: survived the frustum test. Meaningless where !cullable_.
+        std::vector<uint8_t> drawable_, cullable_, visible_;
     };
 } // Tungsten

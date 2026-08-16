@@ -14,6 +14,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include "Tungsten/Gl/DummyOglWrapper.hpp"
 #include "Tungsten/Neo/CameraComponent.hpp"
+#include "Tungsten/Neo/NodeHandle.hpp"
 #include "Tungsten/Neo/RenderableComponent.hpp"
 #include "Tungsten/Neo/ResourceManager.hpp"
 #include "Tungsten/Neo/Scene.hpp"
@@ -241,9 +242,12 @@ namespace
             material_value.parameter_data.resize(MATERIAL_BLOB_SIZE);
             material = resources.create_material(std::move(material_value));
 
-            camera.mode = ProjectionMode::ORTHOGRAPHIC;
-            camera.ortho_size = 100.0f;
-            camera.far_plane = 1000.0f;
+            camera_node = scene.add_node();
+            camera_node.add(CameraComponent{
+                .mode = ProjectionMode::ORTHOGRAPHIC,
+                .far_plane = 1000.0f,
+                .ortho_size = 100.0f
+            });
         }
 
         MeshRef make_mesh(uint32_t vertex_count, uint32_t index_count)
@@ -257,23 +261,21 @@ namespace
             return resources.create_mesh(std::move(mesh));
         }
 
-        Node& add_renderable(MeshRef mesh, MaterialRef mat, float z)
+        NodeHandle add_renderable(MeshRef mesh, MaterialRef mat, float z)
         {
-            auto& node = scene.add(std::make_unique<Node>());
+            auto node = scene.add_node();
             Transform transform;
             transform.translation = {0, 0, z};
             node.set_local_transform(transform);
-            auto component = std::make_unique<RenderableComponent>();
-            component->mesh = mesh;
-            component->material = mat;
-            node.add_component(std::move(component));
+            node.add(RenderableComponent{.mesh = mesh, .material = mat});
             return node;
         }
 
         void build_and_render(FakeOglWrapper& gl)
         {
             TransformUpdater::resolve(scene);
-            SnapshotBuilder(resources).build(scene, camera, snapshot);
+            SnapshotBuilder(resources)
+                .build(scene, camera_node.id(), snapshot);
             Renderer renderer(resources);
             // The constructor allocates the UBOs through buffer_data and
             // creates the white texture; reset the recording so the tests
@@ -286,7 +288,7 @@ namespace
 
         ResourceManager resources;
         Scene scene;
-        CameraComponent camera;
+        NodeHandle camera_node;
         RenderSnapshot snapshot;
         VertexLayoutRef layout;
         BufferArenaRef vbo_arena;

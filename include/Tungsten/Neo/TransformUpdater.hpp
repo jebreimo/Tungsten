@@ -9,28 +9,17 @@
 
 namespace Tungsten
 {
-    class Node;
     class Scene;
 
-    // Finalizes the scene's derived data once per frame, before the
-    // SnapshotBuilder extracts it (§2, §5). One traversal does both
-    // directions:
+    // Finalizes the scene's world transforms once per frame, before the
+    // SnapshotBuilder extracts them (§2, §5).
     //
-    // - Transforms propagate *down*: visiting every node's world_matrix()
-    //   resolves the dirty subtrees; unchanged nodes cost one version
-    //   comparison, so this is not an eager full-tree recompute.
-    // - Bounds propagate *up*: after a node's children are resolved, its
-    //   world bounds is rebuilt as its own renderables' world-space bounds
-    //   unioned with the children's bounds, so a moved child grows its
-    //   ancestors' bounds.
+    // The work itself lives in Scene::resolve_transforms, because it is a loop
+    // over the scene's own arrays; this class remains as the named step in the
+    // frame pipeline that callers already write.
     class TransformUpdater
     {
     public:
-        static void resolve(const Scene& scene);
-
-    private:
-        static void resolve_node(const Node& node);
-
-        static void propagate_bounds(const Node& node);
+        static void resolve(Scene& scene);
     };
 } // Tungsten
