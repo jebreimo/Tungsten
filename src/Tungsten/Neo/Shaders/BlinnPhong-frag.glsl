@@ -98,9 +98,15 @@ ColorMaterial get_material()
 
 // Smooth, range-bounded inverse-square falloff (Frostbite / UE style): a
 // physical 1/d^2 windowed so it reaches exactly 0 at the light's range.
+//
+// A range of 0 means "unbounded" (see LightComponent::range), so the window is
+// skipped entirely: dividing by a zero range would give +inf, clamp the window
+// to 0, and turn every default-constructed light off.
 float distance_attenuation(float dist2, float range)
 {
     float att = 1.0 / max(dist2, 1e-4);
+    if (range <= 0.0)
+        return att;
     float window = clamp(1.0 - pow(dist2 / (range * range), 2.0), 0.0, 1.0);
     return att * window * window;
 }

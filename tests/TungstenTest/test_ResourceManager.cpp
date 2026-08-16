@@ -265,6 +265,23 @@ TEST_CASE("ResourceManager: get_vao caches per arenas and layout")
     REQUIRE(session.gl->live_vertex_arrays == 2);
 }
 
+TEST_CASE("ResourceManager: a mesh drawn with array draws needs no ebo arena")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+
+    auto vbo = manager.create_arena(BufferUsage::STATIC_DRAW, 12, 16);
+    auto layout = manager.register_layout(make_layout(12));
+    std::array vbos{vbo};
+
+    // A null ebo ref is how a non-indexed mesh is spelled; the renderer has an
+    // array-draw path for exactly this, so baking its VAO must not throw.
+    const auto vao = manager.get_vao(vbos, BufferArenaRef{}, layout);
+    REQUIRE(vao != 0);
+    REQUIRE(manager.get_vao(vbos, BufferArenaRef{}, layout) == vao);
+    REQUIRE(session.gl->live_vertex_arrays == 1);
+}
+
 TEST_CASE("ResourceManager: baking a VAO announces the GL state change")
 {
     FakeGlSession session;
@@ -429,6 +446,34 @@ TEST_CASE("ResourceManager: shader variants are compiled once per key")
 
     REQUIRE_THROWS_AS(manager.register_shader_variant({2, 0}),
                       TungstenException);
+}
+
+TEST_CASE("ResourceManager: re-registering a family recompiles its variants")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+
+    ShaderFamily family;
+    family.vertex_source = "#version 300 es\nvoid main() {}\n";
+    family.fragment_source = "#version 300 es\nvoid main() {}\n";
+    family.required_layout = manager.register_layout(make_layout(12));
+    manager.register_shader_family(1, family);
+
+    const auto first = manager.register_shader_variant({1, 0});
+    REQUIRE(session.gl->live_programs == 1);
+
+    // A hot reload: the same id, new sources. The variant compiled from the
+    // old sources must not be handed out again.
+    family.fragment_source = "#version 300 es\nvoid main() { /* v2 */ }\n";
+    manager.register_shader_family(1, family);
+
+    const auto second = manager.register_shader_variant({1, 0});
+    REQUIRE(!(second == first));
+    REQUIRE(session.gl->live_programs == 2);
+
+    // The old program is deliberately still resolvable: a Material holding
+    // that ref keeps working until it is pointed at the new variant.
+    REQUIRE(manager.get_shader(first).variant_key == ShaderVariantKey{1, 0});
 }
 
 TEST_CASE("ResourceManager: compiling a variant with samplers announces the"

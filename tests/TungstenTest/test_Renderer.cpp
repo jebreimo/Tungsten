@@ -20,6 +20,7 @@
 #include "Tungsten/Neo/Scene.hpp"
 #include "Tungsten/Neo/SnapshotBuilder.hpp"
 #include "Tungsten/Neo/TransformUpdater.hpp"
+#include "Tungsten/TungstenException.hpp"
 #include "../../src/Tungsten/Neo/UboBindings.hpp"
 
 using namespace Tungsten;
@@ -343,6 +344,9 @@ TEST_CASE("Renderer: unfilled sampler units get the white texture")
 
     Material material_value;
     material_value.shader = bench.resources.register_shader_variant({2, 0});
+    // The fake reports every conventional block as present, so a material for
+    // it has to carry its blob — as it would for any shader that reads one.
+    material_value.parameter_data.resize(MATERIAL_BLOB_SIZE);
     const auto material = bench.resources.create_material(
         std::move(material_value));
     bench.add_renderable(bench.make_mesh(4, 6), material, -10);
@@ -355,6 +359,22 @@ TEST_CASE("Renderer: unfilled sampler units get the white texture")
     // Both units hold the same texture — the constructor's 1×1 white.
     REQUIRE(binds[0].second != 0);
     REQUIRE(binds[0].second == binds[1].second);
+}
+
+TEST_CASE("Renderer: a material with no parameters for a shader that reads"
+          " them is rejected")
+{
+    const FakeGlSession session;
+    Bench bench;
+
+    // parameter_data left empty. Drawing it would show whatever the previous
+    // material uploaded, or an empty UBO on the first draw of the frame.
+    Material bare;
+    bare.shader = bench.shader;
+    const auto material = bench.resources.create_material(std::move(bare));
+    bench.add_renderable(bench.make_mesh(4, 6), material, -10);
+
+    REQUIRE_THROWS_AS(bench.build_and_render(*session.gl), TungstenException);
 }
 
 TEST_CASE("Renderer: draws every item with one draw call each")
@@ -447,6 +467,7 @@ TEST_CASE("Renderer: transparent items draw after opaque, with blending")
     Material transparent_value;
     transparent_value.shader = bench.shader;
     transparent_value.transparent = true;
+    transparent_value.parameter_data.resize(MATERIAL_BLOB_SIZE);
     const auto transparent = bench.resources.create_material(
         std::move(transparent_value));
 

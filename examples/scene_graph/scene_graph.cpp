@@ -8,7 +8,8 @@
 
 // The scene-graph pipeline (docs/scene_graph_design.md) end to end: a hub
 // cube with two orbiting child cubes — one opaque, one transparent — a
-// directional light, and a perspective camera, drawn each frame through
+// directional light, an orbiting point light, and a perspective camera, drawn
+// each frame through
 //
 //     update transforms
 //     TransformUpdater::resolve(scene)
@@ -19,6 +20,7 @@
 // The children are plain child nodes: their orbit is nothing but the hub's
 // rotation composed into them by the resolve pass.
 
+#include <cmath>
 #include <iostream>
 #include <Argos/Argos.hpp>
 #include <Tungsten/Tungsten.hpp>
@@ -104,6 +106,23 @@ namespace
                 .intensity = 1.0f
             });
 
+            // A point light, to contrast with the directional one: it has a
+            // position rather than only a direction, and its contribution
+            // falls off as 1/d^2, windowed to reach zero at `range`. It orbits
+            // the cubes in on_update so the falloff is visible as a highlight
+            // travelling across them.
+            point_light_ = scene_.add_node();
+            point_light_.add(LightComponent{
+                .type = LightType::POINT,
+                .color = {1.0f, 0.55f, 0.2f},
+                // Chosen so the light reads clearly at its closest approach
+                // without clipping the cubes to flat colour: at ~2 units the
+                // 1/d^2 falloff already scales this down to roughly the
+                // directional light's contribution.
+                .intensity = 3.0f,
+                .range = 8.0f
+            });
+
             std::cout << get_device_info() << '\n';
             set_swap_interval(app, SwapInterval::VSYNC);
         }
@@ -133,6 +152,14 @@ namespace
 
             spin_child(left_, -2.2f, 1.7f * t);
             spin_child(right_, 2.2f, -1.3f * t);
+
+            // Only the point light's position matters — it has no meaningful
+            // orientation — so moving it is enough to sweep its highlight
+            // across the cubes.
+            Transform point;
+            point.translation = {3.2f * std::cos(0.9f * t), 1.5f,
+                                 3.2f * std::sin(0.9f * t)};
+            point_light_.set_local_transform(point);
         }
 
         void on_draw() override
@@ -250,6 +277,7 @@ namespace
         NodeHandle left_;
         NodeHandle right_;
         NodeHandle camera_;
+        NodeHandle point_light_;
         uint64_t frame_ = 0;
         uint64_t start_ticks_ = SDL_GetTicks();
     };

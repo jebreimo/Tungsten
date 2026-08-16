@@ -32,11 +32,18 @@ namespace Tungsten
     // `sampler_count` is the size of the family's sampler list: the program
     // samples texture units [0, sampler_count), so the renderer knows which
     // units must hold a texture even when the material provides none.
+    //
+    // `has_material_block` records whether the linked program actually declares
+    // the MaterialBlock of the binding convention (§4). The renderer uses it to
+    // catch a material whose parameter_data is empty although its shader reads
+    // the block — which would otherwise draw with whatever the previous
+    // material left in the UBO.
     struct ShaderProgram
     {
         ProgramHandle gl_handle;
         ShaderVariantKey variant_key;
         VertexLayoutRef required_layout;
         uint32_t sampler_count = 0;
+        bool has_material_block = false;
     };
 } // Tungsten

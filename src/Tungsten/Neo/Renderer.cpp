@@ -187,6 +187,15 @@ namespace Tungsten
                 material.parameter_data.data(),
                 BufferUsage::DYNAMIC_DRAW);
         }
+        else if (shader.has_material_block)
+        {
+            // Nothing to upload, but the shader reads the block — so it would
+            // be drawn with whatever the previous material left in the UBO, or
+            // with no data store at all if this is the first material of the
+            // frame. Silently wrong colours are worse than a thrown error.
+            TUNGSTEN_THROW("Renderer: the material has no parameter_data, but"
+                           " its shader declares MaterialBlock.");
+        }
 
         for (size_t i = 0; i < material.textures.size(); ++i)
         {

@@ -25,19 +25,27 @@ namespace Tungsten
         // source, so the convention is applied here, once per compiled
         // variant. A family that lacks one of the blocks (e.g. an unlit
         // shader without MaterialBlock) is simply skipped for that block.
-        void apply_ubo_bindings(uint32_t program_id)
+        // Returns whether the program declares MaterialBlock, which the
+        // renderer needs to know to tell "this shader has no per-material
+        // parameters" from "this material forgot to supply them".
+        bool apply_ubo_bindings(uint32_t program_id)
         {
             static constexpr std::pair<const char*, uint32_t> bindings[] = {
                 {"PerFrame", PER_FRAME_UBO_BINDING},
                 {"MaterialBlock", PER_MATERIAL_UBO_BINDING},
                 {"PerDraw", PER_DRAW_UBO_BINDING},
             };
+            bool has_material_block = false;
             for (const auto& [name, binding] : bindings)
             {
                 const auto index = get_uniform_block_index(program_id, name);
-                if (index != INVALID_UNIFORM_BLOCK_INDEX)
-                    set_uniform_block_binding(program_id, index, binding);
+                if (index == INVALID_UNIFORM_BLOCK_INDEX)
+                    continue;
+                set_uniform_block_binding(program_id, index, binding);
+                if (binding == PER_MATERIAL_UBO_BINDING)
+                    has_material_block = true;
             }
+            return has_material_block;
         }
 
         // Points each of the family's sampler uniforms at its texture unit:
@@ -75,11 +83,21 @@ namespace Tungsten
         family.id = id;
         for (auto& existing : families_)
         {
-            if (existing.id == id)
-            {
-                existing = std::move(family);
-                return;
-            }
+            if (existing.id != id)
+                continue;
+
+            existing = std::move(family);
+            // Drop the variants compiled from the previous sources, so the
+            // next register_variant recompiles instead of returning a stale
+            // program. The programs themselves stay in the pool: a Material
+            // still holding one keeps working with the old shader until it is
+            // pointed at a newly compiled variant.
+            std::erase_if(variant_cache_,
+                          [id](const auto& entry)
+                          {
+                              return entry.first.family == id;
+                          });
+            return;
         }
         families_.push_back(std::move(family));
     }
@@ -116,7 +134,7 @@ namespace Tungsten
 
         ShaderProgram program;
         program.gl_handle = builder.build();
-        apply_ubo_bindings(program.gl_handle.id());
+        program.has_material_block = apply_ubo_bindings(program.gl_handle.id());
         apply_sampler_bindings(program.gl_handle.id(), family.samplers);
         program.variant_key = key;
         program.required_layout = family.required_layout;

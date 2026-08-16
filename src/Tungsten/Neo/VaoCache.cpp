@@ -46,9 +46,13 @@ namespace Tungsten
             bind_stream(key, layout, stream);
 
         // The element-array binding is VAO state, which is why a VAO is specific
-        // to one EBO arena (§13).
-        bind_buffer(BufferTarget::ELEMENT_ARRAY,
-                    arenas_(key.ebo_arena).buffer_id());
+        // to one EBO arena (§13). A mesh drawn with array draws has no ebo
+        // arena at all, and leaves the binding at zero.
+        if (key.ebo_arena)
+        {
+            bind_buffer(BufferTarget::ELEMENT_ARRAY,
+                        arenas_(key.ebo_arena).buffer_id());
+        }
 
         bind_vertex_array(0);
         // Baking a VAO binds and unbinds outside any GlStateCache, so the
