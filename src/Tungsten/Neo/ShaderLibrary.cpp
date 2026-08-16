@@ -10,6 +10,7 @@
 #include "Tungsten/Gl/GlProgram.hpp"
 #include "Tungsten/Gl/GlTypes.hpp"
 #include "Tungsten/Gl/GlUniform.hpp"
+#include "Tungsten/Neo/GlStateCache.hpp"
 #include "Tungsten/Render/ShaderPreprocessor.hpp"
 #include "Tungsten/Render/ShaderProgramBuilder.hpp"
 #include "Tungsten/TungstenException.hpp"
@@ -58,6 +59,10 @@ namespace Tungsten
                 if (location != -1)
                     set_uniform(location, static_cast<int32_t>(i));
             }
+            // The program is left bound: there is nothing to restore it to
+            // from here. Announce it instead, so the caches re-issue their
+            // next use_program rather than eliding it.
+            notify_gl_state_changed();
         }
     }
 

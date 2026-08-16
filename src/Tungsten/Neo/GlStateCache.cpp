@@ -15,9 +15,25 @@
 
 namespace Tungsten
 {
+    namespace
+    {
+        uint64_t g_gl_state_epoch = 0;
+    }
+
+    void notify_gl_state_changed()
+    {
+        ++g_gl_state_epoch;
+    }
+
+    uint64_t gl_state_epoch()
+    {
+        return g_gl_state_epoch;
+    }
+
     void GlStateCache::use_program(uint32_t program_id)
     {
-        if (program_id == current_program_)
+        sync();
+        if (current_program_ == program_id)
             return;
         // Qualified to call the free wrapper, not this method.
         Tungsten::use_program(program_id);
@@ -26,7 +42,8 @@ namespace Tungsten
 
     void GlStateCache::bind_vao(uint32_t vao_id)
     {
-        if (vao_id == current_vao_)
+        sync();
+        if (current_vao_ == vao_id)
             return;
         bind_vertex_array(vao_id);
         current_vao_ = vao_id;
@@ -34,6 +51,7 @@ namespace Tungsten
 
     void GlStateCache::bind_texture(int32_t unit, uint32_t texture_id)
     {
+        sync();
         const auto it = bound_textures_.find(unit);
         if (it != bound_textures_.end() && it->second == texture_id)
             return;
@@ -45,7 +63,8 @@ namespace Tungsten
 
     void GlStateCache::bind_material_ubo(uint32_t buffer_id)
     {
-        if (buffer_id == current_material_ubo_)
+        sync();
+        if (current_material_ubo_ == buffer_id)
             return;
         bind_buffer_base(BufferTarget::UNIFORM, PER_MATERIAL_UBO_BINDING,
                          buffer_id);
@@ -54,9 +73,16 @@ namespace Tungsten
 
     void GlStateCache::invalidate()
     {
-        current_program_ = 0;
-        current_vao_ = 0;
-        current_material_ubo_ = 0;
+        current_program_.reset();
+        current_vao_.reset();
+        current_material_ubo_.reset();
         bound_textures_.clear();
+        epoch_seen_ = gl_state_epoch();
+    }
+
+    void GlStateCache::sync()
+    {
+        if (epoch_seen_ != gl_state_epoch())
+            invalidate();
     }
 } // Tungsten

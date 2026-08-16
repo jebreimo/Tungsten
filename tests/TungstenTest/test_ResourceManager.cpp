@@ -12,6 +12,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include "Tungsten/Gl/DummyOglWrapper.hpp"
 #include "Tungsten/Gl/GlTexture.hpp"
+#include "Tungsten/Neo/GlStateCache.hpp"
 
 using namespace Tungsten;
 
@@ -264,6 +265,29 @@ TEST_CASE("ResourceManager: get_vao caches per arenas and layout")
     REQUIRE(session.gl->live_vertex_arrays == 2);
 }
 
+TEST_CASE("ResourceManager: baking a VAO announces the GL state change")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+
+    auto vbo = manager.create_arena(BufferUsage::STATIC_DRAW, 12, 16);
+    auto ebo = manager.create_arena(BufferUsage::STATIC_DRAW, 2, 16);
+    auto layout = manager.register_layout(make_layout(12));
+    std::array vbos{vbo};
+
+    // Baking binds a VAO and leaves zero bound, so any GlStateCache watching
+    // this context has to be told; otherwise its next bind_vao is elided
+    // against a VAO that is no longer current.
+    const auto before = gl_state_epoch();
+    const auto vao = manager.get_vao(vbos, ebo, layout);
+    REQUIRE(gl_state_epoch() != before);
+
+    // A cache hit binds nothing, so it needs no announcement.
+    const auto after_bake = gl_state_epoch();
+    REQUIRE(manager.get_vao(vbos, ebo, layout) == vao);
+    REQUIRE(gl_state_epoch() == after_bake);
+}
+
 TEST_CASE("ResourceManager: registering an equal layout returns the same ref")
 {
     FakeGlSession session;
@@ -405,4 +429,29 @@ TEST_CASE("ResourceManager: shader variants are compiled once per key")
 
     REQUIRE_THROWS_AS(manager.register_shader_variant({2, 0}),
                       TungstenException);
+}
+
+TEST_CASE("ResourceManager: compiling a variant with samplers announces the"
+          " GL state change")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+
+    ShaderFamily family;
+    family.vertex_source = "#version 300 es\nvoid main() {}\n";
+    family.fragment_source = "#version 300 es\nvoid main() {}\n";
+    family.required_layout = manager.register_layout(make_layout(12));
+    // Pointing the samplers at their units needs the program bound, and there
+    // is nothing to restore it to afterwards — so the caches must be told.
+    family.samplers = {"u_diffuse"};
+    manager.register_shader_family(1, family);
+
+    const auto before = gl_state_epoch();
+    manager.register_shader_variant({1, 0});
+    REQUIRE(gl_state_epoch() != before);
+
+    // The second call is a cache hit: nothing is compiled, nothing is bound.
+    const auto after_compile = gl_state_epoch();
+    manager.register_shader_variant({1, 0});
+    REQUIRE(gl_state_epoch() == after_compile);
 }

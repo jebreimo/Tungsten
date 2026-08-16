@@ -11,6 +11,7 @@
 #include "Tungsten/Gl/GlBuffer.hpp"
 #include "Tungsten/Neo/BufferArena.hpp"
 #include "Tungsten/Neo/DeletionQueue.hpp"
+#include "Tungsten/Neo/GlStateCache.hpp"
 #include "Tungsten/Neo/VertexLayout.hpp"
 
 namespace Tungsten
@@ -50,6 +51,10 @@ namespace Tungsten
                     arenas_(key.ebo_arena).buffer_id());
 
         bind_vertex_array(0);
+        // Baking a VAO binds and unbinds outside any GlStateCache, so the
+        // caches have to be told their picture is stale — otherwise the next
+        // draw's bind_vao is elided against a VAO that is no longer bound.
+        notify_gl_state_changed();
 
         entries_.push_back({std::move(key), std::move(vao)});
         return id;
@@ -102,6 +107,7 @@ namespace Tungsten
                 bind_buffer(BufferTarget::ELEMENT_ARRAY, arenas_(ref).buffer_id());
         }
         bind_vertex_array(0);
+        notify_gl_state_changed();
     }
 
     void VaoCache::evict_for_arena(BufferArenaRef ref, DeletionQueue& deletions)
