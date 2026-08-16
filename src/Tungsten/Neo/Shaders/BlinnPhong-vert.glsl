@@ -56,13 +56,16 @@ layout (std140) uniform PerFrame
     ivec4 u_light_count;      // x = number of active lights
 };
 
-// binding 2 — per-draw: world transform and its normal matrix. Only the
-// upper-left 3x3 of u_normal_matrix is used; it is a mat4 so the C++ side can
-// upload it without std140 per-column padding.
+// binding 2 — per-draw: world transform and its normal matrix. The block is
+// 112 bytes: a 64-byte mat4, then a mat3 that std140 lays out as three
+// columns padded to vec4, i.e. 48 bytes. That is exactly what RenderItem
+// stores, so its data() uploads verbatim — and the block must stay exactly
+// that size, because WebGL2 rejects a draw whose uniform block is not fully
+// backed by its buffer.
 layout (std140) uniform PerDraw
 {
     mat4 u_model;
-    mat4 u_normal_matrix;
+    mat3 u_normal_matrix;
 };
 
 out VS_OUT
@@ -76,7 +79,7 @@ void main()
 {
     vec4 world_pos = u_model * vec4(a_position, 1.0);
     vs_out.frag_pos = world_pos.xyz;
-    vs_out.normal = mat3(u_normal_matrix) * a_normal;
+    vs_out.normal = u_normal_matrix * a_normal;
     vs_out.texcoord = a_tex_coord;
     gl_Position = u_projection * u_view * world_pos;
 }

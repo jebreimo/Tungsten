@@ -110,6 +110,16 @@ namespace
             *params = 0;
         }
 
+        // Records how large each buffer store is asked to be, so the tests
+        // can check that a buffer covers everything its allocator will hand
+        // out.
+        void buffer_data(GLenum, GLsizeiptr size, const void*,
+                         GLenum) override
+        {
+            buffer_sizes.push_back(size);
+        }
+
+        std::vector<GLsizeiptr> buffer_sizes;
         int live_buffers = 0;
         int live_vertex_arrays = 0;
         int live_textures = 0;
@@ -167,6 +177,30 @@ TEST_CASE("ResourceManager: allocations share one GL buffer")
     REQUIRE(a.count == 4);
     REQUIRE(b.offset == 4);
     REQUIRE(session.gl->live_buffers == 1);
+}
+
+TEST_CASE("ResourceManager: a non-power-of-two arena is backed for its whole"
+          " rounded-up capacity")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+
+    // The BuddyAllocator rounds 24 up to 32 and hands out offsets across that
+    // whole range, so the GL buffer has to hold 32 units. Sizing it from the
+    // requested 24 would put the last two allocations past the end.
+    constexpr uint16_t stride = 24;
+    auto arena = manager.create_arena(BufferUsage::STATIC_DRAW, stride, 24);
+    REQUIRE(manager.get_arena(arena).capacity() == 32);
+    REQUIRE(session.gl->buffer_sizes.size() == 1);
+    REQUIRE(session.gl->buffer_sizes[0] == 32 * stride);
+
+    // Every offset the allocator returns must lie inside that buffer.
+    for (int i = 0; i < 4; ++i)
+    {
+        const auto slice = manager.allocate(arena, 8);
+        REQUIRE((slice.offset + slice.count) * stride
+                <= uint32_t(session.gl->buffer_sizes[0]));
+    }
 }
 
 TEST_CASE("ResourceManager: free returns a range for reuse")

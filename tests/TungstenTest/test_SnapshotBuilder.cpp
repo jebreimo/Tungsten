@@ -277,6 +277,38 @@ TEST_CASE("SnapshotBuilder: extracts lights with node position and direction")
     REQUIRE(data.range() == 20.0f);
 }
 
+TEST_CASE("LightData: the type is stored as the float the shader converts")
+{
+    // The shader reads position.w and *converts* it — int(light.position.w) —
+    // so the slot has to hold 0.0, 1.0 or 2.0. Asserting through type() alone
+    // would not catch an encoding that round-trips in C++ but reaches the
+    // shader as a denormal.
+    LightData data;
+
+    data.set_type(LightType::DIRECTIONAL);
+    REQUIRE(data.data()[3] == 0.0f);
+    REQUIRE(data.type() == LightType::DIRECTIONAL);
+
+    data.set_type(LightType::POINT);
+    REQUIRE(data.data()[3] == 1.0f);
+    REQUIRE(data.type() == LightType::POINT);
+
+    data.set_type(LightType::SPOT);
+    REQUIRE(data.data()[3] == 2.0f);
+    REQUIRE(data.type() == LightType::SPOT);
+}
+
+TEST_CASE("SnapshotBuilder: a point light reaches the snapshot as a point light")
+{
+    Bench bench;
+    auto node = bench.scene.add_node();
+    node.add(LightComponent{.type = LightType::POINT});
+
+    bench.build();
+    REQUIRE(bench.snapshot.lights.size() == 1);
+    REQUIRE(bench.snapshot.lights[0].data()[3] == 1.0f);
+}
+
 TEST_CASE("SnapshotBuilder: a removed node's renderable stops being drawn")
 {
     Bench bench;

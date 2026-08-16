@@ -11,16 +11,19 @@
 
 namespace Tungsten
 {
+    // The type travels in position.w, which the shader reads as a float and
+    // *converts* — `int type = int(light.position.w)` in BlinnPhong-frag.glsl.
+    // So it has to be stored as the float value 0, 1 or 2, not as the enum's
+    // bit pattern: reinterpreting POINT's bits as a float gives 1.4e-45, which
+    // converts back to 0 and turns every point light into a directional one.
     LightType LightData::type() const
     {
-        const auto type = *reinterpret_cast<const uint32_t*>(&data_[3]);
-        return static_cast<LightType>(type);
+        return static_cast<LightType>(static_cast<int>(data_[3]));
     }
 
     void LightData::set_type(LightType type)
     {
-        const auto value = static_cast<uint32_t>(type);
-        *reinterpret_cast<uint32_t*>(&data_[3]) = value;
+        data_[3] = static_cast<float>(static_cast<int>(type));
     }
 
     Xyz::Vector3F LightData::position() const

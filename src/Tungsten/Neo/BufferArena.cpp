@@ -20,7 +20,12 @@ namespace Tungsten
           stride_(stride),
           allocator_(capacity)
     {
-        buffer_ = generate_buffer(capacity * stride, usage);
+        // Sized from the allocator's capacity, not the requested one: the
+        // BuddyAllocator rounds up to the next power of two, and it will hand
+        // out offsets across that whole range. Sizing from the raw argument
+        // would leave every allocation above it pointing past the buffer.
+        buffer_ = generate_buffer(
+            static_cast<ptrdiff_t>(allocator_.capacity() * stride), usage);
     }
 
     std::optional<uint32_t> BufferArena::allocate(uint32_t count)
