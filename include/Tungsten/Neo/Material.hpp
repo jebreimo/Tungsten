@@ -7,6 +7,7 @@
 //****************************************************************************
 #pragma once
 #include <vector>
+#include "Tungsten/Gl/GlBuffer.hpp"
 #include "ResourceRefs.hpp"
 
 namespace Tungsten
@@ -17,9 +18,16 @@ namespace Tungsten
      * ResourceManager and referred to through a MaterialRef.
      *
      * `parameter_data` is an opaque byte blob laid out to match the shader's
-     * per-material uniform block; the renderer uploads it verbatim to the
-     * per-material UBO (binding 1) on material change without interpreting
-     * it, which is what keeps the renderer shader-agnostic.
+     * per-material uniform block. ResourceManager uploads it verbatim into
+     * this material's own `ubo` at creation, without interpreting it, which is
+     * what keeps the renderer shader-agnostic. Drawing the material then only
+     * binds that buffer to binding 1 — a material's parameters are uploaded
+     * once, not re-uploaded on every switch. Change them afterwards with
+     * ResourceManager::update_material_parameters, which is the only way to
+     * keep `parameter_data` and the buffer in step.
+     *
+     * A material with no parameters has an empty `ubo`; that is legal only for
+     * a shader that declares no MaterialBlock.
      *
      * `textures` are bound to consecutive sampler units in order. `shader` must
      * be resolved to a concrete variant before the material is used for drawing.
@@ -38,5 +46,12 @@ namespace Tungsten
         std::vector<std::byte> parameter_data;
         std::vector<TextureRef> textures;
         bool transparent = false;
+        /**
+         * The GL buffer holding parameter_data, created by ResourceManager.
+         * Owning, so a Material is move-only and dropping it from its slot
+         * would delete the buffer — which is why destroy_material retires it
+         * through the DeletionQueue instead.
+         */
+        BufferHandle ubo;
     };
 } // Tungsten

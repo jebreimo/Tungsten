@@ -53,18 +53,17 @@ namespace Tungsten
         : resources_(resources)
     {
         per_frame_ubo_ = generate_buffer();
-        per_material_ubo_ = generate_buffer();
         per_draw_ubo_ = generate_buffer();
 
-        // All three binding points are set once here and never again; only the
-        // buffers' contents change afterwards. That is why none of these goes
-        // through the state cache — there is no repeated bind for it to elide.
+        // These two binding points are set once and never again; only the
+        // buffers' contents change, so there is no repeated bind for the state
+        // cache to elide. Binding 1 is different: each material owns its
+        // parameter buffer, so that point is re-pointed as materials change,
+        // through GlStateCache::bind_material_ubo.
         bind_buffer_base(BufferTarget::UNIFORM, PER_FRAME_UBO_BINDING,
                          per_frame_ubo_.id());
         bind_buffer_base(BufferTarget::UNIFORM, PER_DRAW_UBO_BINDING,
                          per_draw_ubo_.id());
-        bind_buffer_base(BufferTarget::UNIFORM, PER_MATERIAL_UBO_BINDING,
-                         per_material_ubo_.id());
 
         white_texture_ = generate_texture();
         bind_texture(TextureTarget::TEXTURE_2D, white_texture_.id());
@@ -182,21 +181,18 @@ namespace Tungsten
 
         state_.use_program(shader.gl_handle.id());
 
-        if (!material.parameter_data.empty())
+        if (material.ubo)
         {
-            bind_buffer(BufferTarget::UNIFORM, per_material_ubo_.id());
-            set_buffer_data(
-                BufferTarget::UNIFORM,
-                static_cast<ptrdiff_t>(material.parameter_data.size()),
-                material.parameter_data.data(),
-                BufferUsage::DYNAMIC_DRAW);
+            // The parameters were uploaded when the material was created, so
+            // switching materials only moves the binding point onto another
+            // buffer. Consecutive items sharing a material bind nothing.
+            state_.bind_material_ubo(material.ubo.id());
         }
         else if (shader.has_material_block)
         {
-            // Nothing to upload, but the shader reads the block — so it would
-            // be drawn with whatever the previous material left in the UBO, or
-            // with no data store at all if this is the first material of the
-            // frame. Silently wrong colours are worse than a thrown error.
+            // No buffer, but the shader reads the block — it would draw
+            // against whichever material's buffer is still bound. Silently
+            // wrong colours are worse than a thrown error.
             TUNGSTEN_THROW("Renderer: the material has no parameter_data, but"
                            " its shader declares MaterialBlock.");
         }

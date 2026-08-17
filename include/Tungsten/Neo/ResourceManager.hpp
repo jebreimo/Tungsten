@@ -101,10 +101,22 @@ namespace Tungsten
          */
         void destroy_mesh(MeshRef ref);
 
+        /**
+         * Takes ownership of a material and uploads its parameter_data into a
+         * UBO of its own, so drawing it later only binds that buffer.
+         */
         MaterialRef create_material(Material material);
 
         [[nodiscard]]
         Material& get_material(MaterialRef ref);
+
+        /**
+         * Replaces the material's parameters and re-uploads them. Mutating
+         * Material::parameter_data directly has no effect on what is drawn —
+         * the buffer is the source of truth once the material exists.
+         */
+        void update_material_parameters(MaterialRef ref,
+                                        std::span<const std::byte> parameters);
 
         void destroy_material(MaterialRef ref);
 
@@ -157,6 +169,13 @@ namespace Tungsten
         void collect_garbage(uint64_t completed_frame);
 
     private:
+        /**
+         * Creates the material's UBO if it has none yet and uploads its
+         * parameter_data into it. Does nothing for a material with no
+         * parameters, which is left without a buffer.
+         */
+        static void upload_material_parameters(Material& material);
+
         GenerationalPool<BufferArena> arenas_;
         GenerationalPool<Mesh> meshes_;
         GenerationalPool<Material> materials_;

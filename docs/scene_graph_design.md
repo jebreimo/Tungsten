@@ -126,7 +126,8 @@ Binding points are fixed across **all** shaders so the renderer never branches o
 type:
 
 - **binding 0 — per-frame**: camera matrices, time, lights. Bound once per frame.
-- **binding 1 — per-material**: the `Material::parameterData` blob. Bound on material change.
+- **binding 1 — per-material**: the material's own parameter buffer. Re-pointed on material
+  change.
 - **binding 2 — per-draw**: world / normal matrix (or supplied as an instanced attribute).
 
 GLSL ES 3.00 cannot declare binding points in the shader source, so the `ShaderLibrary`
@@ -134,10 +135,24 @@ assigns them right after linking each variant: it looks up the conventional bloc
 (`PerFrame`, `MaterialBlock`, `PerDraw`) and binds whichever of them the program declares.
 Hand-written shaders participate by using those block names.
 
-The `Renderer` owns the three UBO buffer objects bound at these points; the binding points
-never change after startup, only the buffers' contents do. It uploads the per-frame block once
-per frame, a material's `parameterData` blob on material change, and the per-draw block per
-item.
+**Bindings 0 and 2 are the renderer's own buffers.** It owns one of each, binds them at
+startup, and afterwards only rewrites their contents — the per-frame block once per frame,
+the per-draw block per item. The buffer at those two points never changes, so neither bind is
+worth caching.
+
+**Binding 1 works the other way round.** Each `Material` owns the buffer holding its
+parameters, uploaded once by `ResourceManager::create_material` (or again on
+`update_material_parameters`). Drawing a material only re-points binding 1 at that buffer, so
+a material's parameters are never re-uploaded just because it was drawn again. This is the
+bind `GlStateCache` exists for: the sort key groups items by material, so consecutive items
+sharing one bind nothing at all.
+
+Uploading per material switch instead would repeat the same bytes every frame for data that
+essentially never changes — and it would make a material with an empty blob draw against
+whatever the previous material had left in the shared buffer. With per-material buffers that
+state cannot arise: a material either has a buffer or it does not, and a shader that declares
+`MaterialBlock` against a material that has none is rejected outright (`ShaderProgram::
+has_material_block`).
 
 **Texture units follow the same fixed-convention idea.** A `ShaderFamily` lists its sampler
 uniforms in unit order (`samplers`), and the `ShaderLibrary` points sampler *i* at texture

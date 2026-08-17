@@ -135,6 +135,15 @@ namespace
             buffer_uploads.push_back(static_cast<size_t>(size));
         }
 
+        // Materials own their parameter buffers, so switching material
+        // re-points binding 1 instead of uploading. Recording those binds is
+        // how the tests observe material batching.
+        void bind_buffer_base(GLenum, GLuint index, GLuint buffer) override
+        {
+            if (index == PER_MATERIAL_UBO_BINDING)
+                material_ubo_binds.push_back(buffer);
+        }
+
         void draw_elements(GLenum, GLsizei count, GLenum,
                            const void* indices) override
         {
@@ -166,6 +175,7 @@ namespace
         std::vector<std::pair<GLint, GLint>> int_uniforms;
         std::vector<std::pair<int, GLuint>> texture_binds;
         std::vector<size_t> buffer_uploads;
+        std::vector<GLuint> material_ubo_binds;
         std::vector<std::string> events;
         int program_binds = 0;
         int draw_calls = 0;
@@ -283,6 +293,7 @@ namespace
             gl.buffer_uploads.clear();
             gl.events.clear();
             gl.texture_binds.clear();
+            gl.material_ubo_binds.clear();
             renderer.render(snapshot);
         }
 
@@ -409,9 +420,11 @@ TEST_CASE("Renderer: binds program and material once for a batched run")
     bench.add_renderable(bench.make_mesh(4, 6), bench.material, -30);
 
     bench.build_and_render(*session.gl);
-    // All three items share one material: one glUseProgram, one blob upload.
+    // All three items share one material: one glUseProgram, one UBO bind — and
+    // no upload at all, the parameters went up when the material was created.
     REQUIRE(session.gl->program_binds == 1);
-    REQUIRE(count_uploads(session.gl->buffer_uploads, MATERIAL_BLOB_SIZE) == 1);
+    REQUIRE(session.gl->material_ubo_binds.size() == 1);
+    REQUIRE(count_uploads(session.gl->buffer_uploads, MATERIAL_BLOB_SIZE) == 0);
 }
 
 TEST_CASE("Renderer: re-binds the material when it changes between items")
@@ -432,7 +445,10 @@ TEST_CASE("Renderer: re-binds the material when it changes between items")
     bench.build_and_render(*session.gl);
     // The sort groups the two bench.material items together, so three items
     // over two materials cost two material binds, not three.
-    REQUIRE(count_uploads(session.gl->buffer_uploads, MATERIAL_BLOB_SIZE) == 2);
+    REQUIRE(session.gl->material_ubo_binds.size() == 2);
+    // And the two binds name different buffers — each material has its own.
+    REQUIRE(session.gl->material_ubo_binds[0]
+            != session.gl->material_ubo_binds[1]);
 }
 
 TEST_CASE("Renderer: draws items in sort-key order, not insertion order")

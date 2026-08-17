@@ -135,7 +135,35 @@ namespace Tungsten
 
     MaterialRef ResourceManager::create_material(Material material)
     {
+        upload_material_parameters(material);
         return materials_.insert(std::move(material));
+    }
+
+    void ResourceManager::update_material_parameters(
+        MaterialRef ref, std::span<const std::byte> parameters)
+    {
+        Material& material = materials_.get(ref);
+        material.parameter_data.assign(parameters.begin(), parameters.end());
+        upload_material_parameters(material);
+    }
+
+    void ResourceManager::upload_material_parameters(Material& material)
+    {
+        if (material.parameter_data.empty())
+            return;
+
+        if (!material.ubo)
+            material.ubo = generate_buffer();
+
+        // Respecify rather than sub-update: the blob's size can change when a
+        // material is pointed at a different shader, and this runs on edits,
+        // not per frame.
+        bind_buffer(BufferTarget::UNIFORM, material.ubo.id());
+        set_buffer_data(
+            BufferTarget::UNIFORM,
+            static_cast<ptrdiff_t>(material.parameter_data.size()),
+            material.parameter_data.data(),
+            BufferUsage::STATIC_DRAW);
     }
 
     Material& ResourceManager::get_material(MaterialRef ref)
@@ -145,9 +173,12 @@ namespace Tungsten
 
     void ResourceManager::destroy_material(MaterialRef ref)
     {
-        // A material owns no GL object: its shader and textures are refs to
-        // resources with their own lifetimes.
-        materials_.erase(ref, [](Material&&) {});
+        // The parameter UBO is the material's own; its shader and textures are
+        // refs to resources with their own lifetimes.
+        materials_.erase(ref, [this](Material&& material)
+        {
+            deletions_.retire(std::move(material.ubo));
+        });
     }
 
     TextureRef ResourceManager::create_texture(Texture texture)

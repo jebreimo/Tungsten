@@ -64,10 +64,10 @@ namespace Tungsten
         void bind_texture(int32_t unit, uint32_t texture_id);
 
         /**
-         * Binds a material's uniform buffer to the per-material binding point.
-         * This is the bind a sort-key-batched draw list repeats most, so it is
-         * the one the cache exists to elide: consecutive items sharing a
-         * material rebind nothing.
+         * Binds a material's own parameter buffer to the per-material binding
+         * point. This is the bind a sort-key-batched draw list repeats most,
+         * so it is the one the cache exists to elide: consecutive items
+         * sharing a material rebind nothing.
          */
         void bind_material_ubo(uint32_t buffer_id);
 

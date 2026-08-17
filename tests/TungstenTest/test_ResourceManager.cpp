@@ -400,6 +400,85 @@ TEST_CASE("ResourceManager: material refs are revoked on destroy")
     REQUIRE_THROWS_AS(manager.get_material(ref), TungstenException);
 }
 
+TEST_CASE("ResourceManager: a material's parameters go into a buffer of its own")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+
+    using B = std::byte;
+    Material material;
+    material.parameter_data = {B{1}, B{2}, B{3}, B{4}};
+    const auto ref = manager.create_material(std::move(material));
+
+    // One buffer, uploaded once, at creation — not on every draw.
+    REQUIRE(session.gl->live_buffers == 1);
+    REQUIRE(manager.get_material(ref).ubo);
+    REQUIRE(session.gl->buffer_sizes == std::vector<GLsizeiptr>{4});
+
+    // A second material gets a second buffer, so the two never share state.
+    Material other;
+    other.parameter_data = {B{9}};
+    const auto other_ref = manager.create_material(std::move(other));
+    REQUIRE(session.gl->live_buffers == 2);
+    REQUIRE(manager.get_material(other_ref).ubo.id()
+            != manager.get_material(ref).ubo.id());
+}
+
+TEST_CASE("ResourceManager: a material without parameters gets no buffer")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+
+    const auto ref = manager.create_material(Material{});
+    REQUIRE(!manager.get_material(ref).ubo);
+    REQUIRE(session.gl->live_buffers == 0);
+}
+
+TEST_CASE("ResourceManager: updating a material's parameters re-uploads them")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+
+    using B = std::byte;
+    const auto ref = manager.create_material(Material{});
+    REQUIRE(!manager.get_material(ref).ubo);
+
+    // The first update on a parameterless material has to create the buffer.
+    const std::vector params = {B{1}, B{2}};
+    manager.update_material_parameters(ref, params);
+    REQUIRE(manager.get_material(ref).ubo);
+    REQUIRE(manager.get_material(ref).parameter_data.size() == 2);
+    const auto buffer_id = manager.get_material(ref).ubo.id();
+
+    // A later update reuses the same buffer rather than making another.
+    const std::vector larger = {B{1}, B{2}, B{3}, B{4}};
+    manager.update_material_parameters(ref, larger);
+    REQUIRE(manager.get_material(ref).ubo.id() == buffer_id);
+    REQUIRE(session.gl->live_buffers == 1);
+    REQUIRE(session.gl->buffer_sizes == std::vector<GLsizeiptr>{2, 4});
+}
+
+TEST_CASE("ResourceManager: destroying a material defers its buffer's deletion")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+    manager.begin_frame(3);
+
+    using B = std::byte;
+    Material material;
+    material.parameter_data = {B{1}, B{2}, B{3}, B{4}};
+    const auto ref = manager.create_material(std::move(material));
+    REQUIRE(session.gl->live_buffers == 1);
+
+    manager.destroy_material(ref);
+    // The ref is revoked at once; the GL buffer waits for the frame to pass.
+    REQUIRE_THROWS_AS(manager.get_material(ref), TungstenException);
+    REQUIRE(session.gl->live_buffers == 1);
+
+    manager.collect_garbage(3);
+    REQUIRE(session.gl->live_buffers == 0);
+}
+
 TEST_CASE("ResourceManager: texture deletion is deferred to frame completion")
 {
     FakeGlSession session;

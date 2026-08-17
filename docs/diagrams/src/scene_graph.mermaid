@@ -116,9 +116,9 @@ namespace Bridge {
         -max_x, max_y, max_z: vector~float~
         -drawable, cullable, visible: vector~uint8_t~
         +build(scene: Scene, camera_node: NodeId, out: RenderSnapshot)
-        -prepare_bounds(scene: Scene): size_t
-        -cull(count: size_t)
-        -extract_renderables(scene: Scene, count: size_t, out: RenderSnapshot)
+        -prepare_bounds(scene: Scene)
+        -cull()
+        -extract_renderables(scene: Scene, out: RenderSnapshot)
         -extract_lights(scene: Scene, out: RenderSnapshot)
         -compute_sort_key(layer, shader, material, mesh, depth, transparent): uint64
         -compute_normal_matrix(world: mat4): mat3
@@ -171,6 +171,7 @@ namespace ResourceSide {
         +destroy_mesh(ref: MeshRef)
         +create_material(material: Material): MaterialRef
         +get_material(ref: MaterialRef): Material
+        +update_material_parameters(ref: MaterialRef, params: byte[])
         +destroy_material(ref: MaterialRef)
         +create_texture(texture: Texture): TextureRef
         +get_texture(ref: TextureRef): Texture
@@ -320,6 +321,7 @@ namespace ResourceSide {
     class Material {
         +shader: ShaderProgramRef
         +parameter_data: vector~uint8_t~
+        +ubo: BufferHandle
         +textures: vector~TextureRef~
         +transparent: bool
     }
@@ -347,7 +349,6 @@ namespace RenderSide {
         -bind_material(mat: Material)
         -gl_state_cache: GlStateCache
         -per_frame_ubo: BufferHandle
-        -per_material_ubo: BufferHandle
         -per_draw_ubo: BufferHandle
     }
 
@@ -370,7 +371,7 @@ namespace RenderSide {
         +PER_DRAW_UBO_BINDING: uint32_t
     }
 
-    note for UboBindings "Fixed binding points (§4): PER_FRAME = 0, PER_MATERIAL = 1, PER_DRAW = 2.<br>The Renderer owns the three UBO buffer objects bound at these points and<br>uploads into them (per-frame once per frame, Material::parameter_data<br>on material change, per-draw per item)."
+    note for UboBindings "Fixed binding points (§4): PER_FRAME = 0, PER_MATERIAL = 1, PER_DRAW = 2.<br>The Renderer owns the buffers at bindings 0 and 2 and rewrites them<br>(per-frame once per frame, per-draw per item). Binding 1 is re-pointed<br>at the buffer each Material owns, which is uploaded once at creation."
 }
 
 Scene "1" *-- "1" DoubleBuffer~T~

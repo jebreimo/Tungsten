@@ -70,7 +70,6 @@ namespace Tungsten
         ResourceManager& resources_;
         GlStateCache state_;
         BufferHandle per_frame_ubo_;
-        BufferHandle per_material_ubo_;
         BufferHandle per_draw_ubo_;
         /**
          * 1×1 white, bound to every sampler unit the material leaves
