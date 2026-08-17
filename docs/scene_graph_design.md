@@ -128,17 +128,32 @@ type:
 - **binding 0 — per-frame**: camera matrices, time, lights. Bound once per frame.
 - **binding 1 — per-material**: the material's own parameter buffer. Re-pointed on material
   change.
-- **binding 2 — per-draw**: world / normal matrix (or supplied as an instanced attribute).
+- **binding 2 — per-draw**: world / normal matrix, bound as a range of one packed buffer
+  (or supplied as an instanced attribute).
 
 GLSL ES 3.00 cannot declare binding points in the shader source, so the `ShaderLibrary`
 assigns them right after linking each variant: it looks up the conventional block names
 (`PerFrame`, `MaterialBlock`, `PerDraw`) and binds whichever of them the program declares.
 Hand-written shaders participate by using those block names.
 
-**Bindings 0 and 2 are the renderer's own buffers.** It owns one of each, binds them at
-startup, and afterwards only rewrites their contents — the per-frame block once per frame,
-the per-draw block per item. The buffer at those two points never changes, so neither bind is
-worth caching.
+**Binding 0 is the renderer's own buffer.** It owns one, binds it at startup, and afterwards
+only rewrites its contents, once per frame. The buffer there never changes, so the bind is
+not worth caching.
+
+**Binding 2 is one packed buffer, bound by range.** The renderer sorts both passes up front,
+so before any drawing it knows every item that will be drawn and in what order. It writes
+each item's block into one staging array — spaced by `GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT`,
+since every `glBindBufferRange` offset must be a multiple of it — uploads that once, and then
+each draw only points binding 2 at its own slice.
+
+The alternative is what this replaced: `glBufferData` into a single small buffer before every
+draw, which is N buffer respecifications per frame against N cheap range binds plus one
+upload. The cost is the padding between blocks — a 112-byte block spaced at the 256 bytes a
+typical driver demands wastes 56%, which is 256 KB for a thousand items and therefore not
+worth thinking about. Note the upload respecifies the whole store rather than sub-updating
+it: handing the driver a fresh allocation each frame is the cheap way to avoid writing into
+memory the GPU is still reading, absent explicit fences. A true multi-frame ring buffer with
+`glFenceSync` would go further, and is available in GLES 3.0 if it is ever needed.
 
 **Binding 1 works the other way round.** Each `Material` owns the buffer holding its
 parameters, uploaded once by `ResourceManager::create_material` (or again on

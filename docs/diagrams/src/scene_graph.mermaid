@@ -343,13 +343,16 @@ namespace ResourceSide {
 namespace RenderSide {
     class Renderer {
         +render(snapshot: RenderSnapshot)
-        -sort_items(items: RenderItem[])
-        -draw_item(item: RenderItem)
+        -append_sorted(items: RenderItem[])
+        -upload_per_draw_blocks()
+        -draw_item(item: RenderItem, slot: size_t)
         -bind_per_frame(snapshot: RenderSnapshot)
         -bind_material(mat: Material)
         -gl_state_cache: GlStateCache
         -per_frame_ubo: BufferHandle
         -per_draw_ubo: BufferHandle
+        -staging: vector~byte~
+        -per_draw_stride: size_t
     }
 
     class GlStateCache {
@@ -371,7 +374,7 @@ namespace RenderSide {
         +PER_DRAW_UBO_BINDING: uint32_t
     }
 
-    note for UboBindings "Fixed binding points (§4): PER_FRAME = 0, PER_MATERIAL = 1, PER_DRAW = 2.<br>The Renderer owns the buffers at bindings 0 and 2 and rewrites them<br>(per-frame once per frame, per-draw per item). Binding 1 is re-pointed<br>at the buffer each Material owns, which is uploaded once at creation."
+    note for UboBindings "Fixed binding points (§4): PER_FRAME = 0, PER_MATERIAL = 1, PER_DRAW = 2.<br>The Renderer owns the buffer at binding 0 and rewrites it once per frame.<br>Binding 1 is re-pointed at the buffer each Material owns, uploaded once at<br>creation. Binding 2 is re-pointed at each item's slice of one packed<br>per-draw buffer, uploaded once per frame."
 }
 
 Scene "1" *-- "1" DoubleBuffer~T~

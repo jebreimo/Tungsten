@@ -55,15 +55,19 @@ namespace Tungsten
         per_frame_ubo_ = generate_buffer();
         per_draw_ubo_ = generate_buffer();
 
-        // These two binding points are set once and never again; only the
-        // buffers' contents change, so there is no repeated bind for the state
-        // cache to elide. Binding 1 is different: each material owns its
-        // parameter buffer, so that point is re-pointed as materials change,
-        // through GlStateCache::bind_material_ubo.
+        // Only binding 0 is set once and left alone; its buffer never changes,
+        // so there is no repeated bind for the state cache to elide. Binding 1
+        // is re-pointed at each material's own parameter buffer, and binding 2
+        // at each item's slice of the packed per-draw buffer.
         bind_buffer_base(BufferTarget::UNIFORM, PER_FRAME_UBO_BINDING,
                          per_frame_ubo_.id());
-        bind_buffer_base(BufferTarget::UNIFORM, PER_DRAW_UBO_BINDING,
-                         per_draw_ubo_.id());
+
+        // Every bind_buffer_range offset must be a multiple of this, so the
+        // per-draw blocks are spaced out to match. It is commonly 256 against
+        // a 112-byte block; the padding is the price of one upload per frame.
+        const auto alignment = size_t(get_uniform_buffer_offset_alignment());
+        constexpr size_t block_size = RENDER_ITEM_DATA_SIZE * sizeof(float);
+        per_draw_stride_ = (block_size + alignment - 1) / alignment * alignment;
 
         white_texture_ = generate_texture();
         bind_texture(TextureTarget::TEXTURE_2D, white_texture_.id());
@@ -83,21 +87,28 @@ namespace Tungsten
         // destroyed and reused between frames.
         current_material_ = {};
 
+        // Both passes are sorted up front so every item's per-draw block can
+        // go up in one upload; an item's index in sorted_ is its slot in the
+        // per-draw buffer.
+        sorted_.clear();
+        append_sorted(snapshot.opaque_items);
+        const size_t opaque_count = sorted_.size();
+        append_sorted(snapshot.transparent_items);
+        upload_per_draw_blocks();
+
         set_depth_test_enabled(true);
         set_blend_enabled(false);
 
-        sort_items(snapshot.opaque_items);
-        for (const RenderItem* item : sorted_)
-            draw_item(*item);
+        for (size_t i = 0; i < opaque_count; ++i)
+            draw_item(*sorted_[i], i);
 
-        if (!snapshot.transparent_items.empty())
+        if (opaque_count != sorted_.size())
         {
             set_blend_enabled(true);
             set_blend_function(BlendFunction::SRC_ALPHA,
                                BlendFunction::ONE_MINUS_SRC_ALPHA);
-            sort_items(snapshot.transparent_items);
-            for (const RenderItem* item : sorted_)
-                draw_item(*item);
+            for (size_t i = opaque_count; i < sorted_.size(); ++i)
+                draw_item(*sorted_[i], i);
             set_blend_enabled(false);
         }
     }
@@ -127,20 +138,49 @@ namespace Tungsten
                         BufferUsage::DYNAMIC_DRAW);
     }
 
-    void Renderer::sort_items(const std::vector<RenderItem>& items)
+    void Renderer::append_sorted(const std::vector<RenderItem>& items)
     {
-        sorted_.clear();
-        sorted_.reserve(items.size());
+        const auto first = sorted_.size();
+        sorted_.reserve(first + items.size());
         for (const RenderItem& item : items)
             sorted_.push_back(&item);
-        std::sort(sorted_.begin(), sorted_.end(),
+        // Only the newly appended run is sorted: the two passes are ordered
+        // independently and must stay in the order they were appended, opaque
+        // before transparent.
+        std::sort(sorted_.begin() + ptrdiff_t(first), sorted_.end(),
                   [](const RenderItem* a, const RenderItem* b)
                   {
                       return a->sort_key() < b->sort_key();
                   });
     }
 
-    void Renderer::draw_item(const RenderItem& item)
+    void Renderer::upload_per_draw_blocks()
+    {
+        if (sorted_.empty())
+            return;
+
+        // One block per item, each starting at a offset the driver will accept
+        // for glBindBufferRange. The padding between them is wasted, but it is
+        // bounded by the alignment (typically 256 bytes against a 112-byte
+        // block) and buys one upload per frame instead of one per draw.
+        staging_.assign(sorted_.size() * per_draw_stride_, std::byte{});
+        for (size_t i = 0; i < sorted_.size(); ++i)
+        {
+            std::memcpy(staging_.data() + i * per_draw_stride_,
+                        sorted_[i]->data().data(),
+                        RENDER_ITEM_DATA_SIZE * sizeof(float));
+        }
+
+        // Respecify rather than sub-update: handing the driver a fresh store
+        // each frame lets it hand back memory the GPU is not still reading,
+        // which is the cheap way to avoid a stall without fences.
+        bind_buffer(BufferTarget::UNIFORM, per_draw_ubo_.id());
+        set_buffer_data(BufferTarget::UNIFORM,
+                        static_cast<ptrdiff_t>(staging_.size()),
+                        staging_.data(), BufferUsage::DYNAMIC_DRAW);
+    }
+
+    void Renderer::draw_item(const RenderItem& item, size_t slot)
     {
         if (item.material() != current_material_)
             bind_material(item.material());
@@ -148,12 +188,12 @@ namespace Tungsten
         const Mesh& mesh = resources_.get_mesh(item.mesh());
         state_.bind_vao(mesh.vao);
 
-        // Orphan-and-upload the per-draw block; the binding point still
-        // refers to this buffer.
-        bind_buffer(BufferTarget::UNIFORM, per_draw_ubo_.id());
-        set_buffer_data(BufferTarget::UNIFORM,
-                        RENDER_ITEM_DATA_SIZE * sizeof(float),
-                        item.data().data(), BufferUsage::DYNAMIC_DRAW);
+        // The block was uploaded with all the others; point binding 2 at this
+        // item's slice of that buffer rather than rewriting it.
+        bind_buffer_range(BufferTarget::UNIFORM, PER_DRAW_UBO_BINDING,
+                          per_draw_ubo_.id(),
+                          static_cast<ptrdiff_t>(slot * per_draw_stride_),
+                          RENDER_ITEM_DATA_SIZE * sizeof(float));
 
         if (mesh.ebo.arena)
         {

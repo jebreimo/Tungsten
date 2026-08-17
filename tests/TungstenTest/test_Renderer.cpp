@@ -144,6 +144,24 @@ namespace
                 material_ubo_binds.push_back(buffer);
         }
 
+        // The per-draw blocks go up in one packed upload, and each draw binds
+        // its own slice of it.
+        void bind_buffer_range(GLenum, GLuint index, GLuint,
+                               GLintptr offset, GLsizeiptr size) override
+        {
+            if (index == PER_DRAW_UBO_BINDING)
+                per_draw_binds.emplace_back(offset, size);
+        }
+
+        // A realistic alignment, so the tests exercise the padding the
+        // renderer has to insert between blocks.
+        void get_integer(GLenum pname, GLint* params) override
+        {
+            constexpr GLenum GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT_ = 0x8A34;
+            *params = pname == GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT_
+                          ? UBO_ALIGNMENT : 0;
+        }
+
         void draw_elements(GLenum, GLsizei count, GLenum,
                            const void* indices) override
         {
@@ -174,8 +192,11 @@ namespace
         std::vector<std::pair<GLuint, GLuint>> block_bindings;
         std::vector<std::pair<GLint, GLint>> int_uniforms;
         std::vector<std::pair<int, GLuint>> texture_binds;
+        static constexpr GLint UBO_ALIGNMENT = 256;
+
         std::vector<size_t> buffer_uploads;
         std::vector<GLuint> material_ubo_binds;
+        std::vector<std::pair<GLintptr, GLsizeiptr>> per_draw_binds;
         std::vector<std::string> events;
         int program_binds = 0;
         int draw_calls = 0;
@@ -294,6 +315,7 @@ namespace
             gl.events.clear();
             gl.texture_binds.clear();
             gl.material_ubo_binds.clear();
+            gl.per_draw_binds.clear();
             renderer.render(snapshot);
         }
 
@@ -408,7 +430,23 @@ TEST_CASE("Renderer: uploads the per-frame block once, the per-draw block per it
 
     bench.build_and_render(*session.gl);
     REQUIRE(count_uploads(session.gl->buffer_uploads, PER_FRAME_SIZE) == 1);
-    REQUIRE(count_uploads(session.gl->buffer_uploads, PER_DRAW_SIZE) == 2);
+
+    // The per-draw blocks go up together, once, rather than one upload per
+    // item: two items, two binds, one packed upload spanning both slots.
+    const auto& binds = session.gl->per_draw_binds;
+    REQUIRE(binds.size() == 2);
+    REQUIRE(count_uploads(session.gl->buffer_uploads,
+                          2 * FakeOglWrapper::UBO_ALIGNMENT) == 1);
+    REQUIRE(count_uploads(session.gl->buffer_uploads, PER_DRAW_SIZE) == 0);
+
+    // Each item binds its own slice, sized to the block, at an offset the
+    // driver will accept.
+    REQUIRE(binds[0].second == GLsizeiptr(PER_DRAW_SIZE));
+    REQUIRE(binds[1].second == GLsizeiptr(PER_DRAW_SIZE));
+    REQUIRE(binds[0].first == 0);
+    REQUIRE(binds[1].first == FakeOglWrapper::UBO_ALIGNMENT);
+    for (const auto& [offset, size] : binds)
+        REQUIRE(offset % FakeOglWrapper::UBO_ALIGNMENT == 0);
 }
 
 TEST_CASE("Renderer: binds program and material once for a batched run")
