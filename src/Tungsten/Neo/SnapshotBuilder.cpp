@@ -66,13 +66,13 @@ namespace Tungsten
         out.projection_matrix = projection;
         out.camera_position = translation_of(camera_world);
 
-        const size_t count = prepare_bounds(scene);
-        cull(count);
-        extract_renderables(scene, count, out);
+        prepare_bounds(scene);
+        cull();
+        extract_renderables(scene, out);
         extract_lights(scene, out);
     }
 
-    size_t SnapshotBuilder::prepare_bounds(const Scene& scene)
+    void SnapshotBuilder::prepare_bounds(const Scene& scene)
     {
         const auto& store = scene.components<RenderableComponent>();
         const size_t count = store.items.size();
@@ -115,12 +115,11 @@ namespace Tungsten
             max_y_[i] = box.max[1];
             max_z_[i] = box.max[2];
         }
-
-        return count;
     }
 
-    void SnapshotBuilder::cull(size_t count)
+    void SnapshotBuilder::cull()
     {
+        const size_t count = visible_.size();
         for (const auto& plane : frustum_planes_)
         {
             // The positive-vertex test: only the corner farthest along the
@@ -141,12 +140,12 @@ namespace Tungsten
         }
     }
 
-    void SnapshotBuilder::extract_renderables(const Scene& scene, size_t count,
+    void SnapshotBuilder::extract_renderables(const Scene& scene,
                                               RenderSnapshot& out)
     {
         const auto& store = scene.components<RenderableComponent>();
 
-        for (size_t i = 0; i < count; ++i)
+        for (size_t i = 0; i < store.items.size(); ++i)
         {
             if (!drawable_[i] || (cullable_[i] && !visible_[i]))
                 continue;

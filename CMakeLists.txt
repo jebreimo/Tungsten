@@ -125,7 +125,6 @@ add_library(Tungsten STATIC
     include/Tungsten/Neo/SnapshotBuilder.hpp
     include/Tungsten/Neo/Texture.hpp
     include/Tungsten/Neo/Transform.hpp
-    include/Tungsten/Neo/TransformUpdater.hpp
     include/Tungsten/Neo/VaoCache.hpp
     include/Tungsten/Neo/VertexAttribute.hpp
     include/Tungsten/Neo/VertexLayout.hpp
@@ -189,7 +188,6 @@ add_library(Tungsten STATIC
     src/Tungsten/Neo/ShaderLibrary.cpp
     src/Tungsten/Neo/Shaders/BuiltinShaderSources.hpp
     src/Tungsten/Neo/SnapshotBuilder.cpp
-    src/Tungsten/Neo/TransformUpdater.cpp
     src/Tungsten/Neo/UboBindings.hpp
     src/Tungsten/Neo/VaoCache.cpp
     src/Tungsten/Render/ColorMaterials.cpp

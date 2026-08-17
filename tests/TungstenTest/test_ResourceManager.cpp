@@ -9,6 +9,7 @@
 
 #include <array>
 #include <memory>
+#include <tuple>
 #include <catch2/catch_test_macros.hpp>
 #include "Tungsten/Gl/DummyOglWrapper.hpp"
 #include "Tungsten/Gl/GlTexture.hpp"
@@ -344,7 +345,7 @@ TEST_CASE("ResourceManager: destroying an arena evicts its VAOs")
     auto ebo = manager.create_arena(BufferUsage::STATIC_DRAW, 2, 16);
     auto layout = manager.register_layout(make_layout(12));
     std::array vbos{vbo};
-    manager.get_vao(vbos, ebo, layout);
+    std::ignore = manager.get_vao(vbos, ebo, layout);
 
     manager.destroy_arena(vbo);
     // Both the VAO and the arena's buffer drain through the deletion queue.

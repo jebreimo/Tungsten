@@ -154,7 +154,7 @@ otherwise), and white is the multiplicative identity if the shader reads it anyw
 
 ```
 update scene (animation, etc.)
-TransformUpdater::resolve(scene)
+scene.resolve_transforms()
 SnapshotBuilder::build(scene, camera_node, snapshots.back())
 snapshots.swap()
 Renderer::render(snapshots.front())

@@ -35,31 +35,6 @@ namespace Tungsten
     }
 
     /**
-     * The rotation that maps the vehicle-style frame — +x longitudinal
-     * (forward), +y lateral (left), +z up — onto the scene graph's frame,
-     * where forward is -z, up is +y and right is +x. A 120 degree turn
-     * about (-1, 1, 1); every component is exactly one half.
-     */
-    [[nodiscard]]
-    constexpr Xyz::QuaternionF x_forward_to_scene_rotation()
-    {
-        return {0.5f, -0.5f, 0.5f, 0.5f};
-    }
-
-    /**
-     * Returns @a rotation, an orientation expressed in the +x forward,
-     * +y left, +z up frame, expressed in the scene graph's frame instead.
-     * Both the reference and the rotated axes are rebased, hence the
-     * conjugation rather than a plain multiplication.
-     */
-    [[nodiscard]]
-    inline Xyz::QuaternionF x_forward_to_scene(const Xyz::QuaternionF& rotation)
-    {
-        const auto r = x_forward_to_scene_rotation();
-        return r * rotation * Xyz::conjugate(r);
-    }
-
-    /**
      * Returns the rotation that makes a node at @a position face @a target,
      * i.e. the rotation that aims the scene graph's forward axis (-z) at the
      * target while keeping the node's up axis (+y) as close to @a up as

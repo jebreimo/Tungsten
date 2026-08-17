@@ -8,7 +8,7 @@
 #pragma once
 #include <concepts>
 #include <cstdint>
-#include <memory>
+#include <tuple>
 #include <utility>
 #include <vector>
 #include <Xyz/Matrix.hpp>
@@ -140,13 +140,6 @@ namespace Tungsten
         NodeHandle add_node(NodeId parent = {});
 
         /**
-         * Wraps an existing id. The handle is not validated here; its
-         * accessors validate on use.
-         */
-        [[nodiscard]]
-        NodeHandle node(NodeId id);
-
-        /**
          * Destroys a node and its whole subtree, along with every component
          * attached to any of them. The removed nodes' generations are bumped,
          * so ids naming them stop resolving. Throws if id does not name a live
@@ -176,12 +169,6 @@ namespace Tungsten
 
         [[nodiscard]]
         ChildRange children(NodeId id) const;
-
-        /**
-         * Returns the scene's root nodes, iterated through the same sibling chain.
-         */
-        [[nodiscard]]
-        ChildRange root_nodes() const;
 
         [[nodiscard]]
         const Transform& local_transform(NodeId id) const;
@@ -369,6 +356,14 @@ namespace Tungsten
         /**
          * Arrays indexed by NodeId::index. Slots are reused through
          * free_list_, and generations_ revokes ids to the previous occupant.
+         *
+         * This repeats the slot-table bookkeeping GenerationalPool already
+         * implements, and deliberately so: that class stores one
+         * std::optional<T> per slot, so every node's fields would sit together
+         * in one struct. The point of this class is the opposite — one
+         * contiguous array per field, so a pass that only reads parents and
+         * locals touches only those two. Folding the two together would undo
+         * that. Keep them separate.
          */
         std::vector<uint32_t> generations_;
         std::vector<NodeId> parents_;

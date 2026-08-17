@@ -35,9 +35,9 @@ namespace Tungsten
 
     /**
      * Registers the builtin shader families (currently BlinnPhong, from the
-     * embedded Shaders/*.glsl sources) with the manager, interning the layout
-     * they require. Variants are still compiled lazily, by
-     * register_shader_variant (§14).
+     * GLSL sources embedded from the Shaders directory) with the manager,
+     * interning the layout they require. Variants are still compiled lazily,
+     * by register_shader_variant (§14).
      */
     void register_builtin_shader_families(ResourceManager& resources);
 } // Tungsten

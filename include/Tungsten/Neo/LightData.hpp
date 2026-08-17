@@ -18,6 +18,14 @@ namespace Tungsten
         SPOT
     };
 
+    /**
+     * The std140 footprint of one light in the shaders' PerFrame block: four
+     * vec4s — position (w = type), direction (w = range), color (w = intensity)
+     * and the cone angles. The Renderer uploads exactly this many floats per
+     * light, so the array must stay the same size as the shaders' Light struct.
+     */
+    constexpr size_t LIGHT_DATA_SIZE = 4 * 4;
+
     class LightData
     {
     public:
@@ -53,8 +61,8 @@ namespace Tungsten
 
         void set_outer_cone_angle(float angle);
 
-        [[nodiscard]] const std::array<float, 32>& data() const;
+        [[nodiscard]] const std::array<float, LIGHT_DATA_SIZE>& data() const;
     private:
-        std::array<float, 32> data_ = {};
+        std::array<float, LIGHT_DATA_SIZE> data_ = {};
     };
 } // Tungsten

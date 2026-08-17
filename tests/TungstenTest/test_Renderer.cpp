@@ -19,7 +19,6 @@
 #include "Tungsten/Neo/ResourceManager.hpp"
 #include "Tungsten/Neo/Scene.hpp"
 #include "Tungsten/Neo/SnapshotBuilder.hpp"
-#include "Tungsten/Neo/TransformUpdater.hpp"
 #include "Tungsten/TungstenException.hpp"
 #include "../../src/Tungsten/Neo/UboBindings.hpp"
 
@@ -274,7 +273,7 @@ namespace
 
         void build_and_render(FakeOglWrapper& gl)
         {
-            TransformUpdater::resolve(scene);
+            scene.resolve_transforms();
             SnapshotBuilder(resources)
                 .build(scene, camera_node.id(), snapshot);
             Renderer renderer(resources);

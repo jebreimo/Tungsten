@@ -45,16 +45,6 @@ namespace Tungsten
 
         void render(const RenderSnapshot& snapshot);
 
-        /**
-         * The renderer's picture of the GL binding state. Call invalidate()
-         * on it if GL state is changed behind the renderer's back.
-         */
-        [[nodiscard]]
-        GlStateCache& gl_state_cache()
-        {
-            return state_;
-        }
-
     private:
         /**
          * Uploads the per-frame block: camera matrices, camera position and

@@ -145,7 +145,7 @@ namespace
 
             resources_.begin_frame(frame_);
 
-            Tungsten::TransformUpdater::resolve(scene_);
+            scene_.resolve_transforms();
             auto& snapshots = scene_.snapshots();
             builder_.build(scene_, camera_.id(), snapshots.back());
             snapshots.back().time =

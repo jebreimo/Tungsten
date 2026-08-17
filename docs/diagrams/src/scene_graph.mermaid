@@ -98,10 +98,6 @@ namespace SceneSide {
         SPOT
     }
 
-    class TransformUpdater {
-        +resolve(scene: Scene)
-    }
-
     class AABB {
         +min: vec3
         +max: vec3
@@ -387,7 +383,6 @@ NodeHandle --> NodeId : names
 CameraComponent --> ProjectionMode : uses
 LightComponent --> LightType : uses
 
-TransformUpdater ..> Scene : resolves dirty subtrees
 SnapshotBuilder ..> Scene : reads finalized world data
 SnapshotBuilder ..> ResourceManager : resolves handles
 SnapshotBuilder ..> RenderSnapshot : writes back buffer

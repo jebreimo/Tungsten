@@ -7,8 +7,6 @@
 //****************************************************************************
 #include "Tungsten/Neo/Scene.hpp"
 
-#include <utility>
-
 #include "Tungsten/Neo/NodeHandle.hpp"
 #include "Tungsten/TungstenException.hpp"
 
@@ -53,11 +51,6 @@ namespace Tungsten
     NodeHandle Scene::add_node(NodeId parent)
     {
         return {this, create_node(parent)};
-    }
-
-    NodeHandle Scene::node(NodeId id)
-    {
-        return {this, id};
     }
 
     void Scene::remove(NodeId id)
@@ -142,11 +135,6 @@ namespace Tungsten
     Scene::ChildRange Scene::children(NodeId id) const
     {
         return {this, first_children_[validate(id)]};
-    }
-
-    Scene::ChildRange Scene::root_nodes() const
-    {
-        return {this, first_root_};
     }
 
     const Transform& Scene::local_transform(NodeId id) const

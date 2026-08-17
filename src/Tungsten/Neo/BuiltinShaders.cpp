@@ -7,7 +7,6 @@
 //****************************************************************************
 #include "Tungsten/Neo/BuiltinShaders.hpp"
 
-#include <string>
 
 #include "Tungsten/Neo/ResourceManager.hpp"
 #include "Shaders/BuiltinShaderSources.hpp"

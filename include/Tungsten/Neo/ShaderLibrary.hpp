@@ -6,7 +6,6 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include <cstdint>
 #include <functional>
 #include <utility>
 #include <vector>

@@ -21,7 +21,7 @@ namespace Tungsten
 
     /**
      * Extracts an immutable RenderSnapshot from the mutable scene graph — the
-     * bridge between the two sides. Call TransformUpdater::resolve first so
+     * bridge between the two sides. Call Scene::resolve_transforms first so
      * extraction reads finalized world matrices.
      *
      * Extraction is three flat passes over the scene's renderable array rather
@@ -51,9 +51,10 @@ namespace Tungsten
     private:
         /**
          * Fills the SoA bounds scratch and the per-item flags for every
-         * renderable in the scene, and returns how many there are.
+         * renderable in the scene. The scratch arrays are sized to the scene's
+         * renderable count, which is what the two passes below iterate over.
          */
-        size_t prepare_bounds(const Scene& scene);
+        void prepare_bounds(const Scene& scene);
 
         /**
          * Clears visible_ for every item whose bounds fall entirely outside
@@ -61,12 +62,12 @@ namespace Tungsten
          * normal picks a bounds array once per plane instead of once per item,
          * which leaves the inner loop free of branches.
          */
-        void cull(size_t count);
+        void cull();
 
         /**
          * Extracts renderables from the scene into the RenderSnapshot.
          */
-        void extract_renderables(const Scene& scene, size_t count,
+        void extract_renderables(const Scene& scene,
                                  RenderSnapshot& out);
 
         /**

@@ -30,11 +30,14 @@ namespace Tungsten
             float projection[16];
             float camera_pos[4]; // xyz = camera position, w = time
             float ambient_light[4]; // rgb
-            float lights[MAX_LIGHTS][16];
+            float lights[MAX_LIGHTS][LIGHT_DATA_SIZE];
             int32_t light_count[4]; // x = number of active lights
         };
 
         static_assert(sizeof(PerFrameBlock) == 176 + MAX_LIGHTS * 64);
+        // A light is copied straight across, so the two must agree exactly.
+        static_assert(sizeof(PerFrameBlock::lights[0])
+                      == sizeof(LightData{}.data()));
 
         void copy_column_major(const Xyz::Matrix4F& m, float* out)
         {
@@ -53,14 +56,15 @@ namespace Tungsten
         per_material_ubo_ = generate_buffer();
         per_draw_ubo_ = generate_buffer();
 
-        // The binding points never change after this (§4); only the buffers'
-        // contents do. The material binding goes through the state cache,
-        // which exists to elide exactly this bind.
+        // All three binding points are set once here and never again; only the
+        // buffers' contents change afterwards. That is why none of these goes
+        // through the state cache — there is no repeated bind for it to elide.
         bind_buffer_base(BufferTarget::UNIFORM, PER_FRAME_UBO_BINDING,
                          per_frame_ubo_.id());
         bind_buffer_base(BufferTarget::UNIFORM, PER_DRAW_UBO_BINDING,
                          per_draw_ubo_.id());
-        state_.bind_material_ubo(per_material_ubo_.id());
+        bind_buffer_base(BufferTarget::UNIFORM, PER_MATERIAL_UBO_BINDING,
+                         per_material_ubo_.id());
 
         white_texture_ = generate_texture();
         bind_texture(TextureTarget::TEXTURE_2D, white_texture_.id());

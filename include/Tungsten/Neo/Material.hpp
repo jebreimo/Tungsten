@@ -6,7 +6,6 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include <cstdint>
 #include <vector>
 #include "ResourceRefs.hpp"
 

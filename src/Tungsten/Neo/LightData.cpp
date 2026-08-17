@@ -107,7 +107,7 @@ namespace Tungsten
         data_[13] = std::cos(angle);
     }
 
-    const std::array<float, 32>& LightData::data() const
+    const std::array<float, LIGHT_DATA_SIZE>& LightData::data() const
     {
         return data_;
     }

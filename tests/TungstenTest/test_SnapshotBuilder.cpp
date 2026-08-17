@@ -15,7 +15,6 @@
 #include "Tungsten/Neo/RenderableComponent.hpp"
 #include "Tungsten/Neo/ResourceManager.hpp"
 #include "Tungsten/Neo/Scene.hpp"
-#include "Tungsten/Neo/TransformUpdater.hpp"
 
 using namespace Tungsten;
 using Catch::Matchers::WithinAbs;
@@ -77,7 +76,7 @@ namespace
 
         void build()
         {
-            TransformUpdater::resolve(scene);
+            scene.resolve_transforms();
             SnapshotBuilder(resources)
                 .build(scene, camera_node.id(), snapshot);
         }
@@ -91,7 +90,7 @@ namespace
     };
 }
 
-TEST_CASE("TransformUpdater: resolves world matrices through the hierarchy")
+TEST_CASE("Scene: resolve_transforms resolves world matrices through the hierarchy")
 {
     Scene scene;
     auto root = scene.add_node();
@@ -99,12 +98,12 @@ TEST_CASE("TransformUpdater: resolves world matrices through the hierarchy")
     root.set_local_transform(translate(1, 0, 0));
     child.set_local_transform(translate(5, 0, 0));
 
-    TransformUpdater::resolve(scene);
+    scene.resolve_transforms();
     REQUIRE((child.world_matrix()[0, 3]) == 6.0f);
 
     // Moving the parent moves the child on the next resolve.
     root.set_local_transform(translate(-1, 0, 0));
-    TransformUpdater::resolve(scene);
+    scene.resolve_transforms();
     REQUIRE((child.world_matrix()[0, 3]) == 4.0f);
 }
 

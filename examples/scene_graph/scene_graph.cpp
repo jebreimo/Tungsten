@@ -12,7 +12,7 @@
 // each frame through
 //
 //     update transforms
-//     TransformUpdater::resolve(scene)
+//     scene.resolve_transforms()
 //     SnapshotBuilder::build(scene, camera_node, snapshots.back())
 //     snapshots.swap()
 //     Renderer::render(snapshots.front())
@@ -172,7 +172,7 @@ namespace
 
             resources_.begin_frame(frame_);
 
-            TransformUpdater::resolve(scene_);
+            scene_.resolve_transforms();
             auto& snapshots = scene_.snapshots();
             builder_.build(scene_, camera_.id(), snapshots.back());
             snapshots.back().time =

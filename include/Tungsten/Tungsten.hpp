@@ -35,6 +35,5 @@
 #include "Tungsten/Neo/ResourceManager.hpp"
 #include "Tungsten/Neo/Scene.hpp"
 #include "Tungsten/Neo/SnapshotBuilder.hpp"
-#include "Tungsten/Neo/TransformUpdater.hpp"
 #include "TungstenException.hpp"
 #include "YimageGl.hpp"
