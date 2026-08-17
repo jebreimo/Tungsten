@@ -14,7 +14,7 @@
 namespace Tungsten
 {
     constexpr size_t RENDER_ITEM_DATA_SIZE = (4 + 3) * 4;
-    
+
     class RenderItem
     {
     public:
@@ -38,11 +38,13 @@ namespace Tungsten
 
         void set_sort_key(uint64_t sort_key);
 
-        // The item's std140 per-draw block — a column-major mat4 u_model
-        // followed by a mat3 u_normal_matrix, whose three columns std140 pads
-        // to vec4 each. 16 + 12 floats, ready to upload verbatim to the
-        // per-draw UBO (binding 2, §4). The size must keep matching the
-        // PerDraw block the shaders declare.
+        /**
+         * Returns the item's std140 per-draw block — a column-major mat4 u_model
+         * followed by a mat3 u_normal_matrix, whose three columns std140 pads
+         * to vec4 each. 16 + 12 floats, ready to upload verbatim to the
+         * per-draw UBO (binding 2). The size must keep matching the
+         * PerDraw block the shaders declare.
+         */
         [[nodiscard]]
         const std::array<float, RENDER_ITEM_DATA_SIZE>& data() const
         {

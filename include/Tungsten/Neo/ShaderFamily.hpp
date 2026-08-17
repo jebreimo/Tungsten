@@ -13,11 +13,13 @@
 
 namespace Tungsten
 {
-    // A registered shader template from which concrete ShaderProgram variants are
-    // compiled on demand (§14). A family is the GLSL source pair plus the ordered
-    // list of feature flags it understands and the vertex format its attributes
-    // expect; ResourceManager's ShaderLibrary owns the registered families and
-    // turns a ShaderVariantKey into a compiled program.
+    /**
+     * A registered shader template from which concrete ShaderProgram variants are
+     * compiled on demand. A family is the GLSL source pair plus the ordered
+     * list of feature flags it understands and the vertex format its attributes
+     * expect; ResourceManager's ShaderLibrary owns the registered families and
+     * turns a ShaderVariantKey into a compiled program.
+     */
     struct ShaderFamily
     {
         ShaderFamilyId id = 0;

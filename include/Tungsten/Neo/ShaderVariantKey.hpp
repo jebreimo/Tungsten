@@ -10,22 +10,26 @@
 
 namespace Tungsten
 {
-    // Interned identity of a shader family (e.g. "PBR", "unlit"). Callers think
-    // in terms of families and feature flags rather than concrete compiled
-    // programs; the ResourceManager maps a family name to this small comparable
-    // id when a family is registered.
+    /**
+     * Interned identity of a shader family (e.g. "PBR", "unlit"). Callers think
+     * in terms of families and feature flags rather than concrete compiled
+     * programs; the ResourceManager maps a family name to this small comparable
+     * id when a family is registered.
+     */
     using ShaderFamilyId = uint32_t;
 
-    // The lazy-compilation key for a shader variant (§5 of the design chat).
-    // Rather than register one ShaderProgram per feature combination — which
-    // explodes in count — a Material selects a family plus a bitmask of enabled
-    // features (HAS_NORMAL_MAP, HAS_SKINNING, ALPHA_CLIP, ...). ResourceManager's
-    // register_shader_variant() compiles-or-fetches the matching program and
-    // hands back a ShaderProgramRef.
-    //
-    // Equality is value-based (defaulted operator==) so the key can index the
-    // variant cache: two keys with the same family and defines resolve to the
-    // same compiled program.
+    /**
+     * The lazy-compilation key for a shader variant (of the design chat).
+     * Rather than register one ShaderProgram per feature combination — which
+     * explodes in count — a Material selects a family plus a bitmask of enabled
+     * features (HAS_NORMAL_MAP, HAS_SKINNING, ALPHA_CLIP, ...). ResourceManager's
+     * register_shader_variant() compiles-or-fetches the matching program and
+     * hands back a ShaderProgramRef.
+     *
+     * Equality is value-based (defaulted operator==) so the key can index the
+     * variant cache: two keys with the same family and defines resolve to the
+     * same compiled program.
+     */
     struct ShaderVariantKey
     {
         ShaderFamilyId family = 0;

@@ -15,20 +15,24 @@
 
 namespace Tungsten
 {
-    // The generational slot-table machinery shared by every owned resource type
-    // (Mesh, Material, ShaderProgram, Texture, BufferArena) — the ArenaSlot
-    // pattern generalized once (§10.1). ResourceManager holds one instance per
-    // type and forwards its create_* / get_* / destroy_* to insert / get / erase.
-    //
-    // A ref stays a revocable {index, generation} key (§6): freeing a slot bumps
-    // its generation, so a stale ref fails get() rather than aliasing a reused
-    // slot. Generation 0 is reserved for the null ref, so live slots start at 1.
+    /**
+     * The generational slot-table machinery shared by every owned resource type
+     * (Mesh, Material, ShaderProgram, Texture, BufferArena) — the ArenaSlot
+     * pattern generalized once. ResourceManager holds one instance per
+     * type and forwards its create_* / get_* / destroy_* to insert / get / erase.
+     *
+     * A ref stays a revocable {index, generation} key: freeing a slot bumps
+     * its generation, so a stale ref fails get() rather than aliasing a reused
+     * slot. Generation 0 is reserved for the null ref, so live slots start at 1.
+     */
     template <typename T>
     class GenerationalPool
     {
     public:
-        // Moves a fully-built resource into a free slot (reused from the
-        // free-list, or appended) and returns its ref.
+        /**
+         * Moves a fully-built resource into a free slot (reused from the
+         * free-list, or appended) and returns its ref.
+         */
         ResourceRef<T> insert(T&& value)
         {
             uint32_t index;
@@ -46,8 +50,10 @@ namespace Tungsten
             return ResourceRef<T>{index, slots_[index].generation};
         }
 
-        // Resolves a ref, throwing if it is out of range, stale (generation
-        // mismatch), or points at a freed slot.
+        /**
+         * Resolves a ref, throwing if it is out of range, stale (generation
+         * mismatch), or points at a freed slot.
+         */
         [[nodiscard]]
         T& get(ResourceRef<T> ref)
         {
@@ -60,13 +66,15 @@ namespace Tungsten
             return *slots_[validate(ref)].value;
         }
 
-        // Frees the slot: hands the departing value to on_retire (so the caller
-        // can move its GL handles onto the DeletionQueue — §11), then empties the
-        // slot, bumps its generation to revoke outstanding refs, and returns the
-        // index to the free-list. on_retire is called *before* the value is
-        // destroyed, so anything it does not move out is deleted inline by the
-        // reset that follows — the caller must move out any GL-owning members it
-        // wants deferred.
+        /**
+         * Frees the slot: hands the departing value to on_retire (so the caller
+         * can move its GL handles onto the DeletionQueue), then empties the
+         * slot, bumps its generation to revoke outstanding refs, and returns the
+         * index to the free-list. on_retire is called *before* the value is
+         * destroyed, so anything it does not move out is deleted inline by the
+         * reset that follows — the caller must move out any GL-owning members it
+         * wants deferred.
+         */
         template <typename OnRetire>
         void erase(ResourceRef<T> ref, OnRetire&& on_retire)
         {

@@ -11,16 +11,22 @@
 
 namespace Tungsten
 {
-    // Makes a node a light source. Position and direction are not stored
-    // here: they come from the owning node's world transform when the
-    // SnapshotBuilder extracts the LightData (the direction is the node's
-    // -z axis, matching the camera convention).
+    /**
+     * Makes a node a light source. Position and direction are not stored
+     * here: they come from the owning node's world transform when the
+     * SnapshotBuilder extracts the LightData (the direction is the node's
+     * -z axis, matching the camera convention).
+     */
     struct LightComponent
     {
         LightType type = LightType::POINT;
         Xyz::Vector3F color = {1, 1, 1};
         float intensity = 1.0f;
-        float range = 0.0f; // 0 means unbounded
+        /**
+         * The distance at which the light's intensity falls to zero. A value of
+         * 0 means the light is unbounded.
+         */
+        float range = 0.0f;
         float inner_cone_angle = 0.0f; // spot lights only
         float outer_cone_angle = 0.0f;
     };

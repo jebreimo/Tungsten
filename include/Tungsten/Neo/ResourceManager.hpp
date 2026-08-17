@@ -23,29 +23,31 @@
 
 namespace Tungsten
 {
-    // The single owner of GPU resources, and the only place that knows a
-    // resource's logical ref ({index, generation}, §6).
-    //
-    // It is a thin facade (§10): every public method forwards to one of five
-    // GenerationalPools (Mesh, Material, ShaderProgram, Texture, BufferArena)
-    // or to a focused collaborator it owns — LayoutRegistry (layout interning,
-    // §12), VaoCache (shared VAOs, §13), ShaderLibrary (variant compilation,
-    // §14), DeletionQueue (frame-tagged deferred deletion, §11). The facade
-    // wires them together: VaoCache resolves arenas and layouts through the
-    // arena pool and the registry, ShaderLibrary inserts compiled programs
-    // into the shader pool, and everything that takes a GL object out of
-    // service retires it into the one DeletionQueue.
+    /**
+     * The single owner of GPU resources, and the only place that knows a
+     * resource's logical ref ({index, generation}).
+     *
+     * It is a thin facade: every public method forwards to one of five
+     * GenerationalPools (Mesh, Material, ShaderProgram, Texture, BufferArena)
+     * or to a focused collaborator it owns — LayoutRegistry (layout interning),
+     * VaoCache (shared VAOs), ShaderLibrary (variant compilation),
+     * DeletionQueue (frame-tagged deferred deletion). The facade
+     * wires them together: VaoCache resolves arenas and layouts through the
+     * arena pool and the registry, ShaderLibrary inserts compiled programs
+     * into the shader pool, and everything that takes a GL object out of
+     * service retires it into the one DeletionQueue.
+     */
     class ResourceManager
     {
     public:
         ResourceManager();
 
-        // The collaborators hold callbacks bound to this instance, so the
-        // manager can be neither copied nor moved.
+        /**
+         * The collaborators hold callbacks bound to this instance, so the
+         * manager can be neither copied nor moved.
+         */
         ResourceManager(const ResourceManager&) = delete;
         ResourceManager& operator=(const ResourceManager&) = delete;
-
-        // ---- Buffer arenas (§7) -------------------------------------------
 
         BufferArenaRef create_arena(BufferUsage usage, uint16_t stride,
                                     uint32_t capacity);
@@ -53,44 +55,50 @@ namespace Tungsten
         [[nodiscard]]
         BufferArena& get_arena(BufferArenaRef ref);
 
-        // Destroys an arena: every cached VAO that binds it is evicted and
-        // its GL buffer is retired. Only valid once no live mesh draws from
-        // the arena (§13).
+        /**
+         * Destroys an arena: every cached VAO that binds it is evicted and
+         * its GL buffer is retired. Only valid once no live mesh draws from
+         * the arena.
+         */
         void destroy_arena(BufferArenaRef ref);
 
-        // Allocates a slice from an arena and stamps its identity: this is
-        // the one place the BufferArenaRef is known, so this is where the
-        // arena's bare unit offset is paired with the ref and the count to
-        // form the SharedBuffer. If the arena is full it is grown here: the
-        // displaced GL buffer is retired, the affected VAOs are re-pointed in
-        // place, and the allocation is retried.
+        /**
+         * Allocates a slice from an arena and stamps its identity: this is
+         * the one place the BufferArenaRef is known, so this is where the
+         * arena's bare unit offset is paired with the ref and the count to
+         * form the SharedBuffer. If the arena is full it is grown here: the
+         * displaced GL buffer is retired, the affected VAOs are re-pointed in
+         * place, and the allocation is retried.
+         */
         SharedBuffer allocate(BufferArenaRef ref, uint32_t count);
 
-        // Returns a slice's range to its arena.
+        /**
+         * Returns a slice's range to its arena.
+         */
         void free(const SharedBuffer& slice);
 
-        // Uploads `size` bytes into the slice's range of its arena's GL
-        // buffer. The data must fill the slice exactly: size must equal
-        // slice.count times the arena's stride. Uses the COPY_WRITE target,
-        // so no VAO's element binding is disturbed.
+        /**
+         * Uploads `size` bytes into the slice's range of its arena's GL
+         * buffer. The data must fill the slice exactly: size must equal
+         * slice.count times the arena's stride. Uses the COPY_WRITE target,
+         * so no VAO's element binding is disturbed.
+         */
         void upload(const SharedBuffer& slice, const void* data, size_t size);
-
-        // ---- Vertex layouts (§12) -----------------------------------------
 
         VertexLayoutRef register_layout(const VertexLayout& layout);
 
         [[nodiscard]]
         const VertexLayout& get_layout(VertexLayoutRef ref) const;
 
-        // ---- Meshes, materials, textures (§10.1) --------------------------
-
         MeshRef create_mesh(Mesh mesh);
 
         [[nodiscard]]
         Mesh& get_mesh(MeshRef ref);
 
-        // Destroys a mesh and returns its slices (streams and ebo) to their
-        // arenas. A mesh owns no GL object — its VAO belongs to the VaoCache.
+        /**
+         * Destroys a mesh and returns its slices (streams and ebo) to their
+         * arenas. A mesh owns no GL object — its VAO belongs to the VaoCache.
+         */
         void destroy_mesh(MeshRef ref);
 
         MaterialRef create_material(Material material);
@@ -100,44 +108,52 @@ namespace Tungsten
 
         void destroy_material(MaterialRef ref);
 
+        /**
+         * Creates a texture.
+         */
         TextureRef create_texture(Texture texture);
 
         [[nodiscard]]
         Texture& get_texture(TextureRef ref);
 
-        // Destroys a texture. Its ref is revoked immediately; the GL texture
-        // is deleted once no in-flight frame can reference it (§11).
+        /**
+         * Destroys a texture. Its ref is revoked immediately; the GL texture
+         * is deleted once no in-flight frame can reference it.
+         */
         void destroy_texture(TextureRef ref);
-
-        // ---- Shaders (§14) ------------------------------------------------
 
         void register_shader_family(ShaderFamilyId id, ShaderFamily family);
 
-        // Returns the program for the key, compiling and inserting it into
-        // the shader pool on first use.
+        /**
+         * Returns the program for the key, compiling and inserting it into
+         * the shader pool on first use.
+         */
         ShaderProgramRef register_shader_variant(const ShaderVariantKey& key);
 
         [[nodiscard]]
         ShaderProgram& get_shader(ShaderProgramRef ref);
 
-        // ---- Shared VAOs (§13) --------------------------------------------
-
-        // Returns a VAO that binds the given vertex-buffer arenas and element
-        // arena with the given layout, creating and caching it on first use.
-        // The id is non-owning; the VAO belongs to the VaoCache.
+        /**
+         * Returns a VAO that binds the given vertex-buffer arenas and element
+         * arena with the given layout, creating and caching it on first use.
+         * The id is non-owning; the VAO belongs to the VaoCache.
+         */
+        [[nodiscard]]
         uint32_t get_vao(std::span<const BufferArenaRef> vbo_arenas,
                          BufferArenaRef ebo_arena,
                          VertexLayoutRef layout);
 
-        // ---- Deferred GPU deletion (§11) ----------------------------------
-
-        // Call once per frame with the id of the frame about to be built /
-        // submitted; retired GL objects are tagged with it.
+        /**
+         * Calls once per frame with the id of the frame about to be built /
+         * submitted; retired GL objects are tagged with it.
+         */
         void begin_frame(uint64_t frame);
 
-        // Deletes every GL object retired in a frame the GPU has finished
-        // with. Single-threaded, completed_frame is the just-drawn frame;
-        // with a render thread it is the latest passed fence.
+        /**
+         * Deletes every GL object retired in a frame the GPU has finished
+         * with. Single-threaded, completed_frame is the just-drawn frame;
+         * with a render thread it is the latest passed fence.
+         */
         void collect_garbage(uint64_t completed_frame);
 
     private:

@@ -11,12 +11,14 @@
 
 namespace Tungsten
 {
-    // A GPU texture owned by the ResourceManager and referred to through a
-    // TextureRef (§6). It owns its GL object via the RAII TextureHandle, so it
-    // is move-only — destroying the Texture (dropping it from its slot) deletes
-    // the GL texture. width/height/format describe the allocated image so the
-    // renderer and material layer can reason about it without round-tripping to
-    // the driver.
+    /**
+     * A GPU texture owned by the ResourceManager and referred to through a
+     * TextureRef. It owns its GL object via the RAII TextureHandle, so it
+     * is move-only — destroying the Texture (dropping it from its slot) deletes
+     * the GL texture. width/height/format describe the allocated image so the
+     * renderer and material layer can reason about it without round-tripping to
+     * the driver.
+     */
     struct Texture
     {
         TextureHandle gl_handle;

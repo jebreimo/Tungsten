@@ -13,10 +13,15 @@
 
 namespace Tungsten
 {
-    // All offsets, counts and capacities are in stride units (vertices or
-    // indices), not bytes: an offset is directly the base vertex/index a draw
-    // uses. Byte offsets only exist where a GL call needs one, computed via
-    // stride().
+    /**
+     * A buffer arena is a buffer with a buddy allocator that manages free and
+     * allocated regions within the buffer.
+     *
+     * The buffer arena does not grow automatically; the owner is responsible
+     * for growing the buffer when needed. All offsets are in stride units
+     * (vertices or indices), not bytes. Byte offsets only exist where a GL
+     * call needs one, computed via stride().
+     */
     class BufferArena
     {
     public:
@@ -30,16 +35,20 @@ namespace Tungsten
 
         void free(uint32_t offset);
 
-        // Grows the backing buffer to hold at least new_capacity units,
-        // preserving every live allocation at its current offset, and returns
-        // the displaced (old) GL buffer for the caller to retire. The buffer id
-        // changes, so VAOs referencing this arena must be rebuilt afterwards.
-        // Throws if new_capacity is not larger than the current capacity.
+        /**
+         * Grows the backing buffer to hold at least new_capacity units,
+         * preserving every live allocation at its current offset, and returns
+         * the displaced (old) GL buffer for the caller to retire. The buffer id
+         * changes, so VAOs referencing this arena must be rebuilt afterwards.
+         * Throws if new_capacity is not larger than the current capacity.
+         */
         [[nodiscard]]
         BufferHandle grow(uint32_t new_capacity);
 
-        // Moves the GL buffer out, for retiring it when the arena itself is
-        // destroyed. The arena must not be used afterwards.
+        /**
+         * Moves the GL buffer out, for retiring it when the arena itself is
+         * destroyed. The arena must not be used afterwards.
+         */
         [[nodiscard]]
         BufferHandle release_buffer()
         {

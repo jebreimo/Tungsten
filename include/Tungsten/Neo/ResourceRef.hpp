@@ -10,19 +10,21 @@
 
 namespace Tungsten
 {
-    // A logical, generational reference to a resource owned by the
-    // ResourceManager. Distinct from the GL/RAII *Handle types (BufferHandle,
-    // ProgramHandle, ...), which own a GL id. The template parameter is a
-    // phantom tag: it carries no data but stops a ref to one resource type from
-    // being passed where another is expected.
-    //
-    // The generation is bumped when a slot is freed, so a stale ref (held
-    // across a deferred deletion + slot reuse) fails validation on lookup
-    // instead of silently aliasing a different resource. A ref is therefore
-    // revocable and must not be persisted as if it were a stable id.
-    //
-    // Generation 0 is reserved for the null ref (live slots start at 1), so a
-    // default-constructed ref is null and never resolves.
+    /**
+     * A logical, generational reference to a resource owned by the
+     * ResourceManager. Distinct from the GL/RAII *Handle types (BufferHandle,
+     * ProgramHandle, ...), which own a GL id. The template parameter is a
+     * phantom tag: it carries no data but stops a ref to one resource type from
+     * being passed where another is expected.
+     *
+     * The generation is bumped when a slot is freed, so a stale ref (held
+     * across a deferred deletion + slot reuse) fails validation on lookup
+     * instead of silently aliasing a different resource. A ref is therefore
+     * revocable and must not be persisted as if it were a stable id.
+     *
+     * Generation 0 is reserved for the null ref (live slots start at 1), so a
+     * default-constructed ref is null and never resolves.
+     */
     template <typename T>
     struct ResourceRef
     {

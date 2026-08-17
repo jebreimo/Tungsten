@@ -11,12 +11,14 @@
 
 namespace Tungsten
 {
-    // The semantic role a vertex attribute plays, independent of the shader
-    // location it ends up bound to. A VertexLayout pairs each semantic with a
-    // location when it resolves against a ShaderProgram, so meshes describe
-    // *what* an attribute is (a position, a normal, ...) rather than hard-coding
-    // *where* it goes. The indexed members (TEX_COORD_0/_1, COLOR_0) follow the
-    // glTF multi-channel convention.
+    /**
+     * The semantic role a vertex attribute plays, independent of the shader
+     * location it ends up bound to. A VertexLayout pairs each semantic with a
+     * location when it resolves against a ShaderProgram, so meshes describe
+     * *what* an attribute is (a position, a normal, ...) rather than hard-coding
+     * *where* it goes. The indexed members (TEX_COORD_0/_1, COLOR_0) follow the
+     * glTF multi-channel convention.
+     */
     enum class AttributeSemantic : uint8_t
     {
         POSITION,
@@ -30,9 +32,11 @@ namespace Tungsten
         BONE_WEIGHTS
     };
 
-    // One attribute within a VertexLayout: which semantic it carries, which
-    // vertex stream (buffer binding) it is read from, and how to interpret the
-    // bytes at offset_in_stream within that stream's vertex.
+    /**
+     * One attribute within a VertexLayout: which semantic it carries, which
+     * vertex stream (buffer binding) it is read from, and how to interpret the
+     * bytes at offset_in_stream within that stream's vertex.
+     */
     struct VertexAttribute
     {
         AttributeSemantic semantic = AttributeSemantic::POSITION;
@@ -45,13 +49,15 @@ namespace Tungsten
         bool operator==(const VertexAttribute&) const = default;
     };
 
-    // The fixed vertex-attribute location a semantic is bound to, shared by every
-    // shader and every VAO (§13). Because a cached VAO is reused across all
-    // shaders that draw a given layout, locations cannot be per-shader; the
-    // AttributeSemantic enum order *is* the location table (POSITION = 0,
-    // NORMAL = 1, ...). This is the vertex-attribute analogue of the fixed UBO
-    // binding points: every shader declares `layout(location = N) in ...` to
-    // match, and the renderer never remaps.
+    /**
+     * Returns the fixed vertex-attribute location a semantic is bound to, shared by every
+     * shader and every VAO. Because a cached VAO is reused across all
+     * shaders that draw a given layout, locations cannot be per-shader; the
+     * AttributeSemantic enum order *is* the location table (POSITION = 0,
+     * NORMAL = 1, ...). This is the vertex-attribute analogue of the fixed UBO
+     * binding points: every shader declares `layout(location = N) in ...` to
+     * match, and the renderer never remaps.
+     */
     inline uint32_t attribute_location(AttributeSemantic semantic)
     {
         return static_cast<uint32_t>(semantic);

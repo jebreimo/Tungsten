@@ -17,21 +17,38 @@ namespace Tungsten
         ORTHOGRAPHIC
     };
 
-    // Makes a node a camera. The one branch between 3D and 2D (§8): mode
-    // selects a perspective projection (uses fov) or an orthographic one
-    // (uses ortho_size). Position and viewing direction come from the owning
-    // node's world transform — the camera looks along its node's -z axis.
-    //
-    // The near and far planes are named near_plane / far_plane because `near`
-    // and `far` are macros in Windows headers. `aspect` (width / height) is
-    // viewport state the application updates on resize.
+    /**
+     * Makes a node a camera. Position and viewing direction come from the
+     * owning node's world transform — the camera looks along its node's -z axis.
+     */
     struct CameraComponent
     {
+        /**
+         * The projection mode. Perspective uses fov, orthographic uses
+         * ortho_size.
+         */
         ProjectionMode mode = ProjectionMode::PERSPECTIVE;
-        float fov = Xyz::Constants<float>::PI / 3; // vertical, in radians
+        /**
+         * The vertical field of view, in radians. Only used in perspective
+         * mode.
+         */
+        float fov = Xyz::Constants<float>::PI / 3;
+        /**
+         * The distance to the near plane. Must be positive.
+         */
         float near_plane = 0.1f;
+        /**
+         * The distance to the far plane. Must be positive.
+         */
         float far_plane = 1000.0f;
-        float ortho_size = 1.0f; // half the height of the view volume
+        /**
+         * The half-height of the orthographic view volume. Only used in
+         * orthographic mode.
+         */
+        float ortho_size = 1.0f;
+        /**
+         * The aspect ratio (width / height) of the viewport.
+         */
         float aspect = 1.0f;
 
         // The view matrix for a camera on a node with the given world

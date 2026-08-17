@@ -18,21 +18,23 @@ namespace Tungsten
     class BufferArena;
     class DeletionQueue;
 
-    // The shared-VAO cache (§13), owned by ResourceManager. A VAO bakes in its
-    // buffer-object bindings (each vertex stream's VBO and the element buffer)
-    // and the attribute format, so it is valid for exactly one
-    // (vbo arenas, ebo arena, layout) combination and is shared by every mesh
-    // with that combination regardless of which shader draws it — attribute
-    // locations follow the fixed AttributeSemantic convention, not the shader.
-    // Per-mesh base offsets (each SharedBuffer's offset) are NOT baked, so
-    // meshes differing only by offset reuse one VAO.
-    //
-    // The cache owns each VAO (returning a non-owning id, not a handle): since
-    // VAOs are shared, no single Mesh can own one. It does not own the arenas or
-    // layouts it bakes; it resolves them through the injected resolvers (the arena
-    // pool and LayoutRegistry), and retires evicted VAOs through the DeletionQueue.
-    // The key holds arena *refs*, so an entry survives an arena grow — see
-    // rebuild_for_arena.
+    /**
+     * The shared-VAO cache, owned by ResourceManager. A VAO bakes in its
+     * buffer-object bindings (each vertex stream's VBO and the element buffer)
+     * and the attribute format, so it is valid for exactly one
+     * (vbo arenas, ebo arena, layout) combination and is shared by every mesh
+     * with that combination regardless of which shader draws it — attribute
+     * locations follow the fixed AttributeSemantic convention, not the shader.
+     * Per-mesh base offsets (each SharedBuffer's offset) are NOT baked, so
+     * meshes differing only by offset reuse one VAO.
+     *
+     * The cache owns each VAO (returning a non-owning id, not a handle): since
+     * VAOs are shared, no single Mesh can own one. It does not own the arenas or
+     * layouts it bakes; it resolves them through the injected resolvers (the arena
+     * pool and LayoutRegistry), and retires evicted VAOs through the DeletionQueue.
+     * The key holds arena *refs*, so an entry survives an arena grow — see
+     * rebuild_for_arena.
+     */
     class VaoCache
     {
     public:
@@ -41,21 +43,27 @@ namespace Tungsten
 
         VaoCache(ArenaResolver arenas, LayoutResolver layouts);
 
-        // Returns the VAO for the given arenas + layout, building and caching it
-        // on first use.
+        /**
+         * Returns the VAO for the given arenas + layout, building and caching it
+         * on first use.
+         */
         uint32_t get_vao(std::span<const BufferArenaRef> vbo_arenas,
                          BufferArenaRef ebo_arena,
                          VertexLayoutRef layout);
 
-        // Re-points every cached VAO that binds `ref`'s arena at the arena's new
-        // buffer id after a grow. The VAO id is left unchanged — only the baked-in
-        // buffer object is swapped — so meshes holding the id stay valid and
-        // nothing in the snapshot needs patching.
+        /**
+         * Re-points every cached VAO that binds `ref`'s arena at the arena's new
+         * buffer id after a grow. The VAO id is left unchanged — only the baked-in
+         * buffer object is swapped — so meshes holding the id stay valid and
+         * nothing in the snapshot needs patching.
+         */
         void rebuild_for_arena(BufferArenaRef ref);
 
-        // Removes every cached VAO that binds `ref`'s arena, retiring its handle
-        // through the deferred queue. Called when an arena is destroyed, which is
-        // only valid once no live mesh draws from it.
+        /**
+         * Removes every cached VAO that binds `ref`'s arena, retiring its handle
+         * through the deferred queue. Called when an arena is destroyed, which is
+         * only valid once no live mesh draws from it.
+         */
         void evict_for_arena(BufferArenaRef ref, DeletionQueue& deletions);
 
     private:
@@ -76,8 +84,10 @@ namespace Tungsten
 
         uint32_t build_vao(VaoKey key);
 
-        // Binds one vertex stream's buffer and defines the attributes read from
-        // it. Assumes the target VAO is already bound.
+        /**
+         * Binds one vertex stream's buffer and defines the attributes read from
+         * it. Assumes the target VAO is already bound.
+         */
         void bind_stream(const VaoKey& key, const VertexLayout& layout,
                          size_t stream);
 

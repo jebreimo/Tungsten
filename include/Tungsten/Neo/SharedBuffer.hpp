@@ -10,20 +10,24 @@
 
 namespace Tungsten
 {
-    // A non-owning slice of a BufferArena's GL buffer. The arena owns the
-    // single BufferHandle; this just names a sub-range of it, so it is a plain
-    // copyable value (no refcount, no ownership). Resolve the arena to its
-    // BufferHandle through ResourceManager::get_arena().
-    //
-    // offset and count are in the arena's stride units (vertices or indices),
-    // not bytes (§7): offset is directly the base vertex / first index a draw
-    // uses and count the vertex/index count. This is why a Mesh needs no
-    // separate vertex-stream type — each of its streams, and its index slice,
-    // is just a SharedBuffer.
+    /**
+     * A non-owning slice of a BufferArena's GL buffer. The arena owns the
+     * single BufferHandle; this just names a sub-range of it, so it is a plain
+     * copyable value (no refcount, no ownership). Resolve the arena to its
+     * BufferHandle through ResourceManager::get_arena().
+     */
     struct SharedBuffer
     {
         BufferArenaRef arena;
+        /**
+         * The base vertex / first index a draw uses, in the arena's stride
+         * units (vertices or indices), not bytes.
+         */
         uint32_t offset = 0;
+        /**
+         * The vertex / index count, in the arena's stride units (vertices or
+         * indices), not bytes.
+         */
         uint32_t count = 0;
     };
 }

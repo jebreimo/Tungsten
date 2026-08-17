@@ -44,25 +44,25 @@ namespace Tungsten
         std::vector<NodeId> owners;
     };
 
-    // The mutable scene graph (§2). Nodes are not objects: the scene owns one
-    // flat array per node attribute, all indexed by NodeId::index, and a node
-    // is just that index. Nothing is allocated per node and nothing holds a
-    // pointer to one, so the per-frame passes are loops over contiguous
-    // memory rather than pointer chases through a tree.
-    //
-    // The hierarchy is stored as first-child / next-sibling links rather than
-    // a child vector per node, which keeps structural edits O(1) and keeps the
-    // topology in the same flat arrays as everything else. Roots are linked
-    // through the same sibling chain, so they need no special case.
-    //
-    // `order_` lists every live node with parents before children, which is
-    // what lets resolve_transforms() be a single linear pass. It is rebuilt
-    // only when the hierarchy actually changed, never in a steady-state frame.
+    /**
+     * The mutable scene graph. Nodes are not objects: the scene owns one
+     * flat array per node attribute, all indexed by NodeId::index, and a node
+     * is just that index. Nothing is allocated per node and nothing holds a
+     * pointer to one, so the per-frame passes are loops over contiguous
+     * memory rather than pointer chases through a tree.
+     *
+     * The hierarchy is stored as first-child / next-sibling links rather than
+     * a child vector per node, which keeps structural edits O(1) and keeps the
+     * topology in the same flat arrays as everything else. Roots are linked
+     * through the same sibling chain, so they need no special case.
+     */
     class Scene
     {
     public:
-        // Iterates a node's children through the sibling chain. Yields NodeIds
-        // and allocates nothing.
+        /**
+         * Iterates a node's children through the sibling chain. Yields NodeIds
+         * and allocates nothing.
+         */
         class ChildIterator
         {
         public:
@@ -93,6 +93,9 @@ namespace Tungsten
             NodeId id_;
         };
 
+        /**
+         * A range of a node's children, iterable with a range-based for loop.
+         */
         class ChildRange
         {
         public:
@@ -123,32 +126,45 @@ namespace Tungsten
             NodeId first_;
         };
 
-        // Creates a node and returns its id. A null parent makes it a root;
-        // otherwise it is appended after the parent's existing children.
-        // Throws if parent is non-null and does not name a live node.
+        /**
+         * Creates a node and returns its id. A null parent makes it a root;
+         * otherwise it is appended after the parent's existing children.
+         * Throws if parent is non-null and does not name a live node.
+         */
         NodeId create_node(NodeId parent = {});
 
-        // Creates a node and returns a handle to it — the ergonomic spelling
-        // of create_node().
+        /**
+         * Creates a node and returns a handle to it — the ergonomic spelling
+         * of create_node().
+         */
         NodeHandle add_node(NodeId parent = {});
 
-        // Wraps an existing id. The handle is not validated here; its
-        // accessors validate on use.
+        /**
+         * Wraps an existing id. The handle is not validated here; its
+         * accessors validate on use.
+         */
         [[nodiscard]]
         NodeHandle node(NodeId id);
 
-        // Destroys a node and its whole subtree, along with every component
-        // attached to any of them. The removed nodes' generations are bumped,
-        // so ids naming them stop resolving. Throws if id does not name a live
-        // node.
+        /**
+         * Destroys a node and its whole subtree, along with every component
+         * attached to any of them. The removed nodes' generations are bumped,
+         * so ids naming them stop resolving. Throws if id does not name a live
+         * node.
+         */
         void remove(NodeId id);
 
-        // Moves a node (with its subtree) under new_parent, or makes it a root
-        // if new_parent is null. Throws if either id is invalid, or if
-        // new_parent is inside the node's own subtree, which would make a
-        // cycle.
+        /**
+         * Moves a node (with its subtree) under new_parent, or makes it a root
+         * if new_parent is null. Throws if either id is invalid, or if
+         * new_parent is inside the node's own subtree, which would make a
+         * cycle.
+         */
         void reparent(NodeId id, NodeId new_parent);
 
+        /**
+         * Returns whether a node is alive.
+         */
         [[nodiscard]]
         bool is_alive(NodeId id) const;
 
@@ -161,7 +177,9 @@ namespace Tungsten
         [[nodiscard]]
         ChildRange children(NodeId id) const;
 
-        // The scene's root nodes, iterated through the same sibling chain.
+        /**
+         * Returns the scene's root nodes, iterated through the same sibling chain.
+         */
         [[nodiscard]]
         ChildRange root_nodes() const;
 
@@ -170,28 +188,34 @@ namespace Tungsten
 
         void set_local_transform(NodeId id, const Transform& transform);
 
-        // The node's world transform as of the last resolve_transforms().
-        // Unlike the old lazy scheme this does not recompute on access — the
-        // linear pass is cheap enough that resolving on demand would cost more
-        // bookkeeping than it saves.
+        /**
+         * Returns the node's world transform as of the last resolve_transforms().
+         * Unlike the old lazy scheme this does not recompute on access — the
+         * linear pass is cheap enough that resolving on demand would cost more
+         * bookkeeping than it saves.
+         */
         [[nodiscard]]
         const Xyz::Matrix4F& world_matrix(NodeId id) const;
 
-        // Recomputes every live node's world matrix in one pass over `order_`,
-        // rebuilding that order first if the hierarchy changed (§2).
+        /**
+         * Recomputes every live node's world matrix in one pass over `order_`,
+         * rebuilding that order first if the hierarchy changed.
+         */
         void resolve_transforms();
 
-        // Attaches a component to a node and returns a reference to it inside
-        // the store. That reference is invalidated by the next add_component
-        // of the same kind — hold the NodeId, not the pointer. Throws if id
-        // does not name a live node.
-        //
-        // A node may carry more than one component of a kind; find/get return
-        // the first.
+        /**
+         * Attaches a component to a node and returns a reference to it inside
+         * the store. That reference is invalidated by the next add_component
+         * of the same kind — hold the NodeId, not the pointer. Throws if id
+         * does not name a live node.
+         *
+         * A node may carry more than one component of a kind; find/get return
+         * the first.
+         */
         template <ComponentType T>
         T& add_component(NodeId id, T component)
         {
-            validate(id);
+            std::ignore = validate(id);
             auto& store = component_store(static_cast<T*>(nullptr));
             store.items.push_back(std::move(component));
             store.owners.push_back(id);
@@ -218,7 +242,9 @@ namespace Tungsten
             return const_cast<Scene*>(this)->find_component<T>(id);
         }
 
-        // The node's component of this kind. Throws if it has none.
+        /**
+         * Returns the node's component of this kind. Throws if it has none.
+         */
         template <ComponentType T>
         [[nodiscard]]
         T& get_component(NodeId id)
@@ -235,8 +261,10 @@ namespace Tungsten
             return const_cast<Scene*>(this)->get_component<T>(id);
         }
 
-        // Detaches the node's first component of this kind. Does nothing if it
-        // has none.
+        /**
+         * Detaches the node's first component of this kind. Does nothing if it
+         * has none.
+         */
         template <ComponentType T>
         void remove_component(NodeId id)
         {
@@ -253,7 +281,10 @@ namespace Tungsten
             }
         }
 
-        // Every component of one kind, for the passes that sweep them all.
+        /**
+         * Returns every component of one kind, for the passes that sweep them
+         * all.
+         */
         template <ComponentType T>
         [[nodiscard]]
         const ComponentStore<T>& components() const
@@ -266,26 +297,36 @@ namespace Tungsten
         DoubleBuffer<RenderSnapshot>& snapshots();
 
     private:
-        // Unlinks id from its parent's (or the root) sibling chain.
+        /**
+         * Unlinks id from its parent's (or the root) sibling chain.
+         */
         void unlink(NodeId id);
 
-        // Appends id to the end of parent's child chain, or the root chain if
-        // parent is null.
+        /**
+         * Appends id to the end of parent's child chain, or the root chain if
+         * parent is null.
+         */
         void link(NodeId id, NodeId parent);
 
-        // Rebuilds `order_` so that every parent precedes its children. The
-        // output vector doubles as the queue: appending each node's children
-        // as the walk passes over it visits the graph breadth-first, which
-        // gives the invariant for free and keeps siblings in insertion order.
+        /**
+         * Rebuilds `order_` so that every parent precedes its children. The
+         * output vector doubles as the queue: appending each node's children
+         * as the walk passes over it visits the graph breadth-first, which
+         * gives the invariant for free and keeps siblings in insertion order.
+         */
         void rebuild_order();
 
-        // Throws unless id names a live node; returns its index, which most
-        // callers want and the rest ignore.
-        uint32_t validate(NodeId id) const;
+        /**
+         * Throws unless id names a live node; returns its index, which most
+         * callers want and the rest ignore.
+         */
+        uint32_t validate(NodeId id) const; // NOLINT(*-use-nodiscard)
 
-        // Picks the store for a component kind. Tag dispatch on a null T*
-        // rather than an if-constexpr chain, so an unsupported kind fails with
-        // "no matching function" instead of a template error inside Scene.
+        /**
+         * Picks the store for a component kind. Tag dispatch on a null T*
+         * rather than an if-constexpr chain, so an unsupported kind fails with
+         * "no matching function" instead of a template error inside Scene.
+         */
         ComponentStore<RenderableComponent>& component_store(
             RenderableComponent*)
         {
@@ -302,8 +343,10 @@ namespace Tungsten
             return cameras_;
         }
 
-        // Drops every component whose owning node is gone. Called after a
-        // removal, which has already bumped the doomed nodes' generations.
+        /**
+         * Drops every component whose owning node is gone. Called after a
+         * removal, which has already bumped the doomed nodes' generations.
+         */
         template <ComponentType T>
         void drop_orphaned_components(ComponentStore<T>& store)
         {
@@ -323,8 +366,10 @@ namespace Tungsten
             store.owners.resize(out);
         }
 
-        // Arrays indexed by NodeId::index. Slots are reused through
-        // free_list_, and generations_ revokes ids to the previous occupant.
+        /**
+         * Arrays indexed by NodeId::index. Slots are reused through
+         * free_list_, and generations_ revokes ids to the previous occupant.
+         */
         std::vector<uint32_t> generations_;
         std::vector<NodeId> parents_;
         std::vector<NodeId> first_children_;
@@ -335,6 +380,11 @@ namespace Tungsten
         std::vector<uint32_t> free_list_;
 
         NodeId first_root_;
+        /**
+         * Every live node, with parents before children. Rebuilt only when the
+         * hierarchy changes. This is what lets resolve_transforms() be a
+         * single linear pass.
+         */
         std::vector<uint32_t> order_;
         bool hierarchy_dirty_ = false;
 

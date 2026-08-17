@@ -10,11 +10,16 @@
 
 namespace Tungsten
 {
-    // The two-slot hand-off between the scene and the renderer (§5): the
-    // SnapshotBuilder fills back(), swap() flips which slot is which, and the
-    // renderer only ever reads front() — so it never observes half-built
-    // state. The swap is an index flip; the slots reuse their backing storage
-    // across frames rather than reallocating.
+    /**
+     * The two-slot hand-off between the scene and the renderer: the
+     * SnapshotBuilder fills back(), swap() flips which slot is which, and the
+     * renderer only ever reads front() — so it never observes half-built
+     * state. The swap is an index flip; the slots reuse their backing storage
+     * across frames rather than reallocating.
+     *
+     * @tparam T The type of the objects stored in the double buffer. Intended
+     *  for use with RenderSnapshot, but can be used for any two-slot hand-off.
+     */
     template <typename T>
     class DoubleBuffer
     {

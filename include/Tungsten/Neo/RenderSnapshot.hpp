@@ -15,20 +15,22 @@
 
 namespace Tungsten
 {
-    // The immutable hand-off between the scene graph and the renderer (§1, §5).
-    // SnapshotBuilder fills the back buffer of Scene's DoubleBuffer; after the
-    // swap the renderer reads the front buffer and never observes half-built
-    // state. "Immutable" is by convention (the renderer only reads it), not by
-    // const members: the same instances are reused across frames, so the fields
-    // are plain and reassignable.
-    //
-    // Items are split into the two passes the renderer draws in order: opaque
-    // first (front-to-back, sorted by sort_key for state-change batching), then
-    // transparent (back-to-front for correct blending).
-    //
-    // The scalar/light fields below are the CPU-side mirror of the per-frame
-    // UBO (binding 0, §4) the renderer uploads once per frame; the trailing
-    // comments map each to its u_* slot in the shaders' PerFrame block.
+    /**
+     * The immutable hand-off between the scene graph and the renderer.
+     * SnapshotBuilder fills the back buffer of Scene's DoubleBuffer; after the
+     * swap the renderer reads the front buffer and never observes half-built
+     * state. "Immutable" is by convention (the renderer only reads it), not by
+     * const members: the same instances are reused across frames, so the fields
+     * are plain and reassignable.
+     *
+     * Items are split into the two passes the renderer draws in order: opaque
+     * first (front-to-back, sorted by sort_key for state-change batching), then
+     * transparent (back-to-front for correct blending).
+     *
+     * The scalar/light fields below are the CPU-side mirror of the per-frame
+     * UBO (binding 0) the renderer uploads once per frame; the trailing
+     * comments map each to its u_* slot in the shaders' PerFrame block.
+     */
     struct RenderSnapshot
     {
         std::vector<RenderItem> opaque_items;
@@ -40,8 +42,10 @@ namespace Tungsten
         std::vector<LightData> lights;    // u_lights / u_light_count
         float time = 0.0f;                // u_camera_pos.w
 
-        // Resets the snapshot for reuse, keeping the vectors' backing storage so
-        // rebuilding it next frame does not reallocate (§5).
+        /**
+         * Resets the snapshot for reuse, keeping the vectors' backing storage so
+         * rebuilding it next frame does not reallocate (§5).
+         */
         void clear()
         {
             opaque_items.clear();

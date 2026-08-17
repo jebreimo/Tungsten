@@ -13,37 +13,44 @@
 
 namespace Tungsten
 {
-    // A compiled GL program owned by the ResourceManager and referred to through
-    // a ShaderProgramRef (§6). It owns its GL object via the RAII ProgramHandle,
-    // so it is move-only — dropping it from its slot deletes the GL program.
-    //
-    // There is no separate numeric identity: the draw sort key packs the
-    // ShaderProgramRef's index (coherent within a snapshot, which is rebuilt
-    // every frame), and GlStateCache skips redundant binds by the GL program
-    // name (gl_handle.id()).
-    //
-    // `variant_key` records which family + feature combination this program was
-    // compiled for, so the manager can dedupe variants and recompile on demand.
-    //
-    // `required_layout` refers to the interned vertex format (§12) the program's
-    // attributes expect; it is compared against a Mesh's layout ref — interning
-    // makes equal layouts share a ref — so mismatches are caught rather than
-    // silently mis-binding attributes.
-    // `sampler_count` is the size of the family's sampler list: the program
-    // samples texture units [0, sampler_count), so the renderer knows which
-    // units must hold a texture even when the material provides none.
-    //
-    // `has_material_block` records whether the linked program actually declares
-    // the MaterialBlock of the binding convention (§4). The renderer uses it to
-    // catch a material whose parameter_data is empty although its shader reads
-    // the block — which would otherwise draw with whatever the previous
-    // material left in the UBO.
+    /**
+     * A compiled GL program owned by the ResourceManager and referred to through
+     * a ShaderProgramRef. It owns its GL object via the RAII ProgramHandle,
+     * so it is move-only — dropping it from its slot deletes the GL program.
+     *
+     * There is no separate numeric identity: the draw sort key packs the
+     * ShaderProgramRef's index (coherent within a snapshot, which is rebuilt
+     * every frame), and GlStateCache skips redundant binds by the GL program
+     * name (gl_handle.id()).
+     */
     struct ShaderProgram
     {
         ProgramHandle gl_handle;
+        /**
+         * Records which family + feature combination this program was
+         * compiled for, so the manager can dedupe variants and recompile on demand.
+         */
         ShaderVariantKey variant_key;
+        /**
+         * Refers to the interned vertex format the program's
+         * attributes expect; it is compared against a Mesh's layout ref — interning
+         * makes equal layouts share a ref — so mismatches are caught rather than
+         * silently mis-binding attributes.
+         */
         VertexLayoutRef required_layout;
+        /**
+         * The size of the family's sampler list: the program
+         * samples texture units [0, sampler_count), so the renderer knows which
+         * units must hold a texture even when the material provides none.
+         */
         uint32_t sampler_count = 0;
+        /**
+         * Records whether the linked program actually declares
+         * the MaterialBlock of the binding convention. The renderer uses it to
+         * catch a material whose parameter_data is empty although its shader reads
+         * the block — which would otherwise draw with whatever the previous
+         * material left in the UBO.
+         */
         bool has_material_block = false;
     };
 } // Tungsten

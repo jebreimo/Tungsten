@@ -10,16 +10,10 @@
 
 namespace Tungsten
 {
-    // A node's data lives in Scene's arrays, so there is no node object to
-    // hold a reference to. This is the ergonomic stand-in: a copyable
-    // {scene, id} pair that turns scene.set_local_transform(id, t) back into
-    // node.set_local_transform(t).
-    //
-    // It is a value, not a reference — copy it freely, but it is only as valid
-    // as the id inside it, so a handle to a removed node throws when used
-    // rather than resolving to whichever node took over the slot. Store the
-    // handle rather than a pointer to a component: the component arrays move
-    // their contents as they grow.
+    /**
+     * A handle to a node in a scene. It provides access to the node's
+     * properties and allows manipulation of the node within the scene.
+     */
     class NodeHandle
     {
     public:
