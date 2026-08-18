@@ -6,18 +6,10 @@ express. The exploratory discussion that led here is in `scene_graph_chat.md`.
 
 ## 1. Context
 
-The diagram's structure is sound: a four-way split (scene / bridge / resource / render) with
-an immutable `RenderSnapshot` as the only contract between the mutable scene graph and the
-renderer, and a resource layer built on shared (sub-allocated) GL buffers. Three things
-needed correcting:
-
-1. **The world transform had no home.** Where it was cached, and what made it stale, was
-   left unsaid. §2 answers that — and has since been rewritten a second time, replacing
-   per-node dirty flags with flat arrays and one linear pass.
-2. **It assumed desktop OpenGL 4.x.** Tungsten also targets WebGL2 / GLSL ES 3.00 via
-   Emscripten, where several of the assumed features do not exist.
-3. **Pieces were missing or under-specified:** resource handles, `LightData`, `VertexLayout`,
-   frustum culling, the 2D path, and double-buffering.
+The design is a four-way split — scene / bridge / resource / render — with an immutable
+`RenderSnapshot` as the only contract between the mutable scene graph and the renderer, and a
+resource layer built on shared (sub-allocated) GL buffers. The portable path must run on
+WebGL2 / GLSL ES 3.00 via Emscripten, which rules out several desktop-only features (§3).
 
 ## 2. Flat node storage and the transform pass
 
@@ -66,17 +58,13 @@ for (const uint32_t index : order_)
 
 `order_` lists every live node with parents before children, which is the entire correctness
 argument: by the time the loop reaches a node, `worlds_[parent]` is already final. It is
-rebuilt only when the hierarchy actually changed — structural edits set `hierarchyDirty`, and
-`resolve_transforms()` clears it. The rebuild appends the roots and then walks the output
-vector itself as a queue, appending each node's children as it passes over them; visiting
-breadth-first gives the parents-before-children invariant for free and keeps siblings in
-insertion order.
+rebuilt only after a structural edit, by appending the roots and then walking the output
+vector itself as a queue — visiting breadth-first gives the invariant for free and keeps
+siblings in insertion order.
 
-This replaces an earlier scheme of per-node `localDirty` / `worldVersion` /
-`parentVersionSeen` counters that recomputed lazily on access. That scheme skipped unchanged
-subtrees, but it cost three words per node, a subtle reparenting special case, and a
-pointer-chasing traversal — and the pass it was avoiding is a sequential walk over two arrays.
-Skipping work is only a win when the work is more expensive than deciding to skip it.
+Resist adding per-node dirty flags to skip unchanged subtrees: skipping work only pays when
+the work costs more than deciding to skip it, and this pass is a sequential walk over two
+arrays.
 
 **World matrices are only current after a resolve.** `world_matrix(id)` returns what the last
 `resolve_transforms()` computed; it does not recompute on access. A node reads as unmoved
@@ -90,15 +78,9 @@ aggregates: no base class, no virtual destructor, no `owner` back-pointer. Attac
 removing a node drops the components of its whole subtree by sweeping each store for owners
 that are no longer alive.
 
-The set of kinds is therefore **closed**: a new kind means a new array. That is the deliberate
-trade. It removes the `dynamic_cast` chain that used to sit inside both per-frame traversals,
-and it means the extraction pass iterates one contiguous array of a known type. User-defined
-component types are not supported; if they are wanted later, the retrofit is a type-erased
-`ComponentStore<T>` registry keyed on `type_index`, which nothing here forecloses.
-
-**Bounds do not propagate up.** An earlier version maintained an aggregate `worldBounds` per
-node for a hierarchical subtree cull. That is gone — see §15 for why, and for what culling
-does instead.
+The set of kinds is therefore **closed**: a new kind means a new array, and there is no
+dispatch on component type anywhere. User-defined components are the price; if they are ever
+wanted, the retrofit is a type-erased registry keyed on `type_index`.
 
 ## 3. WebGL2 / GLES 3.00 constraints
 
@@ -140,34 +122,21 @@ Hand-written shaders participate by using those block names.
 only rewrites its contents, once per frame. The buffer there never changes, so the bind is
 not worth caching.
 
-**Binding 2 is one packed buffer, bound by range.** The renderer sorts both passes up front,
-so before any drawing it knows every item that will be drawn and in what order. It writes
-each item's block into one staging array — spaced by `GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT`,
-since every `glBindBufferRange` offset must be a multiple of it — uploads that once, and then
-each draw only points binding 2 at its own slice.
+**Binding 2 is one packed buffer, bound by range.** The renderer sorts both passes before
+drawing, so it knows every item up front. It writes their blocks into one staging array,
+spaced by `GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT` (every `glBindBufferRange` offset must be a
+multiple of it), uploads that once, and then each draw only points binding 2 at its slice.
+The padding is the price: a 112-byte block at a typical 256-byte alignment wastes 56%, or
+256 KB per thousand items. The upload respecifies the whole store rather than sub-updating
+it, which is the cheap way to avoid writing into memory the GPU may still be reading; a true
+multi-frame ring with `glFenceSync` would go further and is available in GLES 3.0.
 
-The alternative is what this replaced: `glBufferData` into a single small buffer before every
-draw, which is N buffer respecifications per frame against N cheap range binds plus one
-upload. The cost is the padding between blocks — a 112-byte block spaced at the 256 bytes a
-typical driver demands wastes 56%, which is 256 KB for a thousand items and therefore not
-worth thinking about. Note the upload respecifies the whole store rather than sub-updating
-it: handing the driver a fresh allocation each frame is the cheap way to avoid writing into
-memory the GPU is still reading, absent explicit fences. A true multi-frame ring buffer with
-`glFenceSync` would go further, and is available in GLES 3.0 if it is ever needed.
-
-**Binding 1 works the other way round.** Each `Material` owns the buffer holding its
-parameters, uploaded once by `ResourceManager::create_material` (or again on
-`update_material_parameters`). Drawing a material only re-points binding 1 at that buffer, so
-a material's parameters are never re-uploaded just because it was drawn again. This is the
-bind `GlStateCache` exists for: the sort key groups items by material, so consecutive items
-sharing one bind nothing at all.
-
-Uploading per material switch instead would repeat the same bytes every frame for data that
-essentially never changes — and it would make a material with an empty blob draw against
-whatever the previous material had left in the shared buffer. With per-material buffers that
-state cannot arise: a material either has a buffer or it does not, and a shader that declares
-`MaterialBlock` against a material that has none is rejected outright (`ShaderProgram::
-has_material_block`).
+**Binding 1 is re-pointed at each material's own buffer.** `ResourceManager::create_material`
+uploads the parameters once (`update_material_parameters` re-uploads them), so drawing a
+material never re-uploads anything. This is the bind `GlStateCache` exists for: the sort key
+groups items by material, so consecutive items sharing one bind nothing. A material either
+has a buffer or it does not — a shader declaring `MaterialBlock` against one that has none is
+rejected outright (`ShaderProgram::has_material_block`).
 
 **Texture units follow the same fixed-convention idea.** A `ShaderFamily` lists its sampler
 uniforms in unit order (`samplers`), and the `ShaderLibrary` points sampler *i* at texture
@@ -214,71 +183,41 @@ GL buffers are not allocated one-per-mesh. A `BufferArena` owns **one** GL
 is the resource-layer mechanism behind the `SharedBuffer` slices a `Mesh` draws
 from — its vertex streams and its `ebo`.
 
-**`SharedBuffer` is a non-owning slice, not shared ownership.** It is a plain
-value `{ BufferArenaRef arena, uint32 offset, uint32 count }` — trivially
-copyable, no refcount. The name refers to the *buffer being shared* among
-allocations, not to shared ownership of the GL buffer. `offset` and `count` are
-in the arena's stride units (vertices or indices), never bytes; byte offsets
-exist only where a GL call needs one, computed via the arena's `stride()`.
+**`SharedBuffer` is a non-owning slice, not shared ownership** — a plain, trivially
+copyable `{ BufferArenaRef arena, uint32 offset, uint32 count }` naming a range of a
+shared buffer. `offset` and `count` are in the arena's stride units (vertices or
+indices), never bytes; byte offsets are computed via the arena's `stride()` only
+where a GL call needs one.
 
-**A `Mesh`'s vertex streams are plain `SharedBuffer`s.** Because the arena
-allocates in vertex units, a slice's
-`offset` *is* the base vertex a draw passes as `first` (or folds into rebased
-indices) and its `count` *is* the vertex count; a per-stream stride field would
-only duplicate the arena's `stride()`, which is the single authority on a
-stream's byte pitch (see §13). The same identity covers the index side: the
-`ebo` slice's `offset` and `count` are the first index and index count, so
-`Mesh` is just `{ vao, streams, layout, ebo, index_type, primitive }`.
+**A `Mesh`'s vertex streams are plain `SharedBuffer`s.** Because the arena allocates
+in vertex units, a slice's `offset` *is* the base vertex and its `count` *is* the
+vertex count; the same holds for the `ebo` slice's first index and index count. A
+per-stream stride field would only duplicate the arena's `stride()`, the single
+authority on a stream's byte pitch (§13). So `Mesh` is just
+`{ vao, streams, layout, ebo, index_type, primitive }`.
 
 Resolving `arena` → `BufferArena` → `BufferHandle` goes through
-`ResourceManager::get_arena(BufferArenaRef)`. This happens at **VAO build
-time** (`get_vao` bakes the VBO and element-buffer bindings into the VAO) and at
-**allocate / upload / free** time — both inside `ResourceManager`. It does *not*
-happen per draw: the renderer binds the mesh's VAO and issues the draw with
-`offset`/`count`, because the buffer bindings are already VAO state. The arena
-ref is generational like the other resource refs in §6, so a stale slice
-fails validation rather than aliasing a regrown buffer.
+`ResourceManager::get_arena`, at VAO build time and at allocate / upload / free time
+— never per draw, since the buffer bindings are already VAO state. The arena ref is
+generational (§6), so a stale slice fails validation rather than aliasing a regrown
+buffer.
 
-**VAO identity follows the buffer pairing.** Because the element-array binding is
-VAO state (not a per-draw argument), a VAO is valid only for one specific
-(VBO arena, EBO arena) pairing — `get_vao` bakes both in. Two meshes drawn from
-the same pair of arenas share a VAO; meshes from different arenas need different
-VAOs. The per-stride-arena rule above keeps this stable: a mesh stays within its
-arenas, and the offset-preserving growth means the only time the bindings change
-is when an arena reallocates its `BufferHandle`, at which point the affected VAOs
-are rebuilt anyway.
-
-(If a slice ever genuinely needed to keep its storage alive by itself — it does
-not today, the arena does — the unit to share would be the *arena*, not the bare
-handle: `shared_ptr<BufferArena>` with a deleter that returns the range to the
-free-list. Never `shared_ptr<BufferHandle>`.)
-
-**The allocator is `Detail::BuddyAllocator`, already in the tree.** A
-`BufferArena` is `BufferHandle` + `BuddyAllocator` (offset management) + growth
-logic. This pattern is not new: `TextRenderer` already pairs a GL buffer with two
-`BuddyAllocator`s and grows by re-`claim()`ing every live block into a larger
-allocator (`src/Tungsten/Render/TextRenderer.cpp`). `BufferArena` factors that out
-into a named, reusable type. `allocate()` returns the unit `offset` the
-`BuddyAllocator` hands out, or `nullopt` when the arena is full — it never grows
-on its own (see below); `free()` takes that offset back to `BuddyAllocator::free`;
-`grow()` reallocates the GL buffer and replays `claim()` for every live
-allocation.
+**The allocator is `Detail::BuddyAllocator`.** A `BufferArena` is `BufferHandle` +
+`BuddyAllocator` (offset management) + growth logic. `allocate()` returns the unit
+`offset`, or `nullopt` when the arena is full — it never grows on its own (see
+below); `free()` hands that offset back; `grow()` reallocates the GL buffer and
+replays `claim()` for every live allocation.
 
 Two decisions this commits to:
 
-- **Buddy's 2× internal fragmentation is accepted.** `BuddyAllocator` rounds each
-  request up to a power of two, so up to half an allocation's space can be wasted.
-  That is ideal for many small, similar allocations (the text path) and cheap to
-  reuse here. For arenas holding a few large, oddly-sized meshes it can waste real
-  VBO space; if that shows up in profiling, switch those arenas to a best-fit
-  free-list allocator behind the same `BufferArena` interface. Start with buddy.
-- **One arena per stride, allocating in vertex/index units.** Then a slice's
-  `offset` is directly the base vertex/index a draw uses and its `count` the
-  vertex/index count (which is what lets `Mesh` use bare `SharedBuffer`s as
-  streams), buddy's natural power-of-two alignment subsumes any explicit
-  alignment field, and VAO binding stays simple. A single arena mixing strides
-  would instead allocate in bytes and make stride/alignment do real work; the
-  per-stride split avoids that.
+- **Buddy's 2× internal fragmentation is accepted.** Rounding each request up to a
+  power of two can waste half an allocation — fine for many small, similar
+  allocations, worse for a few large oddly-sized meshes. If that shows up in
+  profiling, a best-fit free-list fits behind the same `BufferArena` interface.
+- **One arena per stride, allocating in vertex/index units.** This is what makes a
+  slice's `offset` directly usable as a base vertex/index; buddy's power-of-two
+  alignment then subsumes any explicit alignment field. One arena mixing strides
+  would have to allocate in bytes and make stride and alignment do real work.
 
 **Growth preserves offsets.** Doubling a buddy allocator's capacity leaves every
 live block at its original offset (the "claim after doubling" test in
@@ -287,26 +226,14 @@ grows, existing `SharedBuffer{offset,count}` values stay valid — only the GL
 `BufferHandle` is rebound — and the immutable `RenderSnapshot` never needs its
 meshes re-patched.
 
-**The arena deals in bare offsets; `ResourceManager` owns identity and growth
-policy.** A `BufferArena` does **not** know its own `BufferArenaRef` — that
-`{index, generation}` is `ResourceManager`'s slot bookkeeping, and `generation` is
-authoritative there. Rather than hand out a half-formed slice it cannot fully
-construct, the arena does not traffic in `SharedBuffer` at all:
-`BufferArena::allocate(count)` returns `optional<uint32> offset` (a bare unit
-offset, `nullopt` when full), and `ResourceManager::allocate(BufferArenaRef,
-count)` — the one caller that knows the ref — pairs that offset with the ref and
-the count to form the `SharedBuffer` in one shot. When the arena is full, the same
-method decides how much to grow, calls `grow()` — which returns the displaced
-`BufferHandle` — and retries the allocation. This keeps the dependency
-one-directional (`ResourceManager` → `BufferArena`, never the reverse), cleanly
-splits the two axes (the arena owns **range** / offset-and-stride;
-`ResourceManager` owns **identity** / the ref), and makes the same
-`ResourceManager` boundary the place that also (a) retires the displaced GL
-buffer a grow returns and (b) rebuilds the VAOs invalidated when the arena's
-buffer id moves. `free` is symmetric: `ResourceManager` resolves `slice.arena`
-through `get_arena` and forwards `slice.offset` to the arena. `SharedBuffer` is thus
-purely a `ResourceManager`-level type; `BufferArena` does not include its header.
-See `src/Tungsten/Neo/ResourceManager.hpp`.
+**The arena owns range; `ResourceManager` owns identity and growth policy.** An arena
+does not know its own `BufferArenaRef`, so it never constructs a `SharedBuffer`:
+`allocate(count)` returns a bare `optional<uint32>` offset, and
+`ResourceManager::allocate(ref, count)` — the one caller that knows the ref — pairs
+the two. When the arena is full that same method decides how much to grow, calls
+`grow()`, and retries; being the single boundary, it is also where the displaced
+buffer is retired and the affected VAOs rebuilt. The dependency stays
+one-directional: `BufferArena` does not include `SharedBuffer`'s header.
 
 Because cloning to grow changes the buffer id, the old buffer can still be in use
 by in-flight draws (or, with a render thread, by the snapshot being rendered). It
@@ -315,25 +242,11 @@ completed frame (single-threaded: the just-drawn frame; threaded: the latest
 passed fence) proves nothing references it — the deferred-deletion half of the
 generational scheme in §6.
 
-**The VAO cache lives in `ResourceManager`, not in `Mesh`.** Since a VAO is shared
-by every mesh with the same `(vbo arenas, ebo arena, layout)` combination, no
-single `Mesh` can *own* it. `ResourceManager` owns the cache; `get_vao(vboArenas,
-eboArena, layout)` returns a **non-owning VAO id (`uint32`)**, and a `Mesh` stores
-that id — not a `VertexArrayHandle`. (This corrects the earlier diagram, where
-`Mesh` held an owning `VertexArrayHandle`.) Two consequences:
-
-- **The cache is keyed on arena *refs*, not live buffer ids.** A grow changes an
-  arena's buffer id but not which arena a mesh draws from, so keying on the
-  `BufferArenaRef`s keeps the entry valid across growth. `rebuild_vaos_for_arena`
-  then walks the cache, and for every VAO whose key references the grown arena,
-  re-points its baked-in buffer binding at the arena's new id **in place** — the
-  VAO id is unchanged, so every `Mesh` holding it stays valid and nothing in the
-  snapshot is patched. This is why growth never needs to retire VAOs, only the old
-  buffer.
-- **Layouts are referenced by `VertexLayoutRef`**, the same generational-ref
-  family as the other resources (§6). Interning layouts gives them a small,
-  comparable identity that forms part of the VAO key without the cache needing the
-  full `VertexLayout` value.
+**The VAO cache lives in `ResourceManager`, not in `Mesh`.** A VAO is shared by
+every mesh with the same `(vbo arenas, ebo arena, layout)` triple, so no single
+`Mesh` can own it: `get_vao` returns a non-owning id (`uint32`) and a `Mesh` stores
+that. The cache is keyed on arena *refs* rather than live buffer ids, so growth
+leaves entries valid; §13 covers the keying, the rebuild and eviction.
 
 See `src/Tungsten/Neo/ResourceManager.{hpp,cpp}`.
 
@@ -356,10 +269,8 @@ wholesale:
 
 ## 10. Resource manager decomposition
 
-The naïve completion of the resource side — one bespoke slot table per type plus VAO, shader,
-and deletion logic all inlined — makes `ResourceManager` a ~30-method god object with the same
-slot code written five times. The design instead makes `ResourceManager` a **thin facade** over
-one reusable container and three focused collaborators it owns:
+`ResourceManager` is a **thin facade** over one reusable container and four focused
+collaborators it owns:
 
 - `GenerationalPool<T>` — the slot-table machinery, instantiated once per resource type (§10.1).
 - `DeletionQueue` — frame-tagged deferred deletion of all GL objects (§11).
@@ -378,20 +289,14 @@ to a collaborator; the substance lives in independently testable pieces. `Snapsh
 ### 10.1 `GenerationalPool<T>`
 
 Every owned resource type (`Mesh`, `Material`, `ShaderProgram`, `Texture`, `BufferArena`) is a
-`GenerationalPool<T>` — the `ArenaSlot` pattern generalized once. A slot is
-`{ std::optional<T> value; uint32 generation; }` (empty `value` marks a free slot), backed by a
-free-list of indices. The pool has exactly three operations:
+`GenerationalPool<T>`. A slot is `{ std::optional<T> value; uint32 generation; }` (empty
+`value` marks a free slot), backed by a free-list of indices, with `insert` / `get` / `erase`
+as the whole interface; `get` validates index, generation and occupancy, throwing otherwise.
 
-- `insert(T&&) -> ResourceRef<T>` moves a fully-built resource into a free slot (reused from the
-  free-list, or appended) and returns `{ index, slot.generation }`.
-- `get(ResourceRef<T>) -> T&` validates the ref — index in range **and** `slot.generation ==
-  ref.generation` **and** `value` non-empty — throwing `TungstenException` otherwise. This is
-  the old `get_arena` logic, written once.
-- `erase(ResourceRef<T>, on_retire)` empties the slot, **bumps its generation** (revoking every
-  outstanding ref), and returns the index to the free-list. It does **not** delete GL objects
-  itself: it invokes the `on_retire` callback with the departing value so the caller can move
-  the value's GL handles onto the `DeletionQueue`. This callback seam is what keeps the pool
-  ignorant of both GL and frames while still driving deferred deletion.
+The one non-obvious piece is that `erase` does **not** delete GL objects. It invokes an
+`on_retire` callback with the departing value so the caller can move its GL handles onto the
+`DeletionQueue` — the seam that keeps the pool ignorant of both GL and frames while still
+driving deferred deletion.
 
 The facade's `create_* / get_* / destroy_*` forward straight to `insert / get / erase`. Two
 resource types keep a richer *create* path in front of `insert`: `BufferArena` because the
@@ -399,15 +304,10 @@ manager also constructs and grows it (`create_arena(usage, stride, capacity)`), 
 `ShaderProgram` because it is only ever produced by `register_shader_variant` (§14), never
 inserted directly by callers.
 
-**Why the generation bump and deferred deletion are orthogonal.** The generation bump makes a
-*stale ref* fail lookup instead of aliasing a reused slot — a CPU-side correctness guard. The
-`DeletionQueue` keeps the *GL object* alive until no in-flight frame can still read it — a
-GPU-side lifetime guard. They solve different problems, so a slot's index may be reused on the
-very next `insert` (the fresh resource gets its own new GL object) while the destroyed
-resource's old GL object is still draining through the queue. The renderer never touches a
-stale ref because snapshots are rebuilt from scratch each frame (§5): a destroyed resource
-simply stops appearing in new snapshots, and the last snapshot that named it is retired by the
-same frame accounting that retires the GL object.
+**The generation bump and deferred deletion are orthogonal.** The bump makes a stale ref fail
+lookup instead of aliasing a reused slot (CPU-side); the `DeletionQueue` keeps the GL object
+alive until no in-flight frame can read it (GPU-side). So a slot index may be reused on the
+very next `insert` while the old GL object is still draining through the queue.
 
 ## 11. Deferred deletion — the `DeletionQueue`
 
@@ -525,14 +425,11 @@ normal-mapping, alpha-clip, …). See `scene_graph_chat.md` §"Layer 5".
   `register_shader_family(ShaderFamilyId, sources, features, required_layout)` records one; the
   `ShaderFamilyId` is an interned family name. Builtin families come from the embedded
   `Shaders/*.glsl` sources (cppembed), so this stays within the existing shader pipeline.
-- `register_shader_variant(ShaderVariantKey{ family, defines })` looks the key up in the variant
-  cache (keyed by value equality on the key). **Hit:** return the cached `ShaderProgramRef`.
-  **Miss:** run the family sources through the existing `ShaderPreprocessor`, which injects
-  `#define <features[i]>` for every set bit *i* right after the `#version` line and rewrites
-  the version itself to the platform's GLSL dialect (the sources target GLSL ES 3.00, which
-  desktop GL rejects) — then compile and link, populate the `ShaderProgram` (`gl_handle`,
-  `variant_key`, `required_layout`), insert it into the shader pool, record `key -> ref` in
-  the cache, and return the ref.
+- `register_shader_variant(ShaderVariantKey{ family, defines })` returns the cached ref on a
+  hit. On a miss it runs the sources through `ShaderPreprocessor` — which injects
+  `#define <features[i]>` for every set bit *i* and rewrites the `#version` to the platform's
+  dialect, since the sources target GLSL ES 3.00 and desktop GL rejects it — then compiles,
+  links, inserts into the shader pool and caches `key -> ref`.
 
 The `defines` bitmask, not a string set, is what makes the key cheap to compare and hash; the
 family's ordered feature list is the single place that maps a bit to its `#define` spelling.
@@ -552,28 +449,22 @@ objects.
 
 Culling runs over the flat renderable array, not over the hierarchy.
 
-**Why not the hierarchy.** An earlier design kept an aggregate `Node::worldBounds` — a node's
-own renderable bounds unioned with its children's — so that a subtree could be rejected
-without visiting it. Two things go wrong with that. A scene graph's parenting is *logical*
-(a hat on a head, a whole level under one node), and logical proximity has little to do with
-spatial proximity, so a node whose children are spread out has a huge, mostly-empty union box
-that almost never fails the frustum test. And every moving child dirties the bounds of every
-ancestor up to the root. The hierarchy earns its keep for transform composition; it is a poor
-spatial index.
+**Do not reintroduce aggregate per-node bounds for a hierarchical subtree cull.** Parenting is
+*logical* — a hat on a head, a whole level under one node — so a node whose children are
+spread out has a huge, mostly-empty union box that almost never fails the frustum test, and
+every moving child dirties its ancestors' bounds. The hierarchy earns its keep for transform
+composition; it is a poor spatial index.
 
-**What `SnapshotBuilder` does instead** — three linear passes over the renderable store:
+**`SnapshotBuilder` runs three linear passes over the renderable store:**
 
 1. **`prepare_bounds`** transforms each `local_bounds` by its owner's world matrix into
    struct-of-arrays scratch: six `vector<float>` (`min_x`, `min_y`, … `max_z`) parallel to
    the store, plus per-item `drawable` and `cullable` flags. The scratch is kept across
    frames, so a steady-state build allocates nothing.
-2. **`cull`** tests the six Gribb–Hartmann planes. Planes are the *outer* loop and items the
-   inner one, because the positive-vertex test's choice of corner depends only on the sign of
-   the plane's normal — hoisting it out picks a bounds array once per plane instead of once
-   per item, and leaves an inner loop of six loads, three multiplies and a compare with no
-   branches at all. That is the shape a compiler can vectorize; it is written as plain scalar
-   code over separate arrays rather than with intrinsics, so it autovectorizes on both the
-   desktop and the Emscripten target instead of depending on either.
+2. **`cull`** tests the six Gribb–Hartmann planes, with planes as the *outer* loop and items
+   the inner one: the positive-vertex test's choice of corner depends only on the plane's
+   sign, so hoisting it out leaves a branch-free inner loop. Written as plain scalar code over
+   separate arrays rather than intrinsics, so it autovectorizes on both targets.
 3. **`extract_renderables`** builds `RenderItem`s for the survivors only.
 
 Empty `local_bounds` still means "no bounds known": such an item is marked not-`cullable` and
