@@ -2,7 +2,7 @@
 
 Companion to `docs/diagrams/src/scene_graph.mermaid`. The class diagram shows the shape of
 the design; this document records the decisions and constraints that the diagram cannot
-express. The exploratory discussion that led here is in `scene_graph_chat.md`.
+express.
 
 ## 1. Context
 
@@ -418,7 +418,7 @@ the variant cache, and it is the *only* producer of `ShaderProgram` values — i
 into the shader pool (§10.1) and hands back a `ShaderProgramRef`, so callers never build a
 `ShaderProgram` directly. Its job is a compile-or-fetch that keeps the *count* of compiled
 programs bounded even though real shaders have many feature permutations (skinning,
-normal-mapping, alpha-clip, …). See `scene_graph_chat.md` §"Layer 5".
+normal-mapping, alpha-clip, …).
 
 - A **shader family** is a named GLSL source pair (vertex + fragment) plus the ordered list of
   feature flags it understands and the interned layout ref (§12) its attributes expect.
