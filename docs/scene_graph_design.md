@@ -250,14 +250,35 @@ leaves entries valid; §13 covers the keying, the rebuild and eviction.
 
 See `src/Tungsten/Neo/ResourceManager.{hpp,cpp}`.
 
-## 8. 2D / 3D unification
+## 8. Axis conventions and the 2D path
 
-2D and 3D share one `Node`/`Transform`, the whole resource and material layer, the snapshot,
-and the renderer. The only branch is the camera: `CameraComponent::mode` selects
-`PERSPECTIVE` (3D, uses `fov`/`near`/`far`) or `ORTHOGRAPHIC` (2D, uses `orthoSize` and
-aspect). A 2D scene is just nodes at `z = 0` with rotation about the z axis, viewed through an
-orthographic camera; draw order for 2D is handled through the existing render-layer / sort-key
-machinery rather than a separate code path.
+The scene's frame is right-handed: **-z forward, +y up, +x right**. Anything directional
+reads that off its node's world matrix the same way — a camera looks along -z, and so does a
+spot or directional light. It is one rule, not a per-component quirk.
+
+**A camera is positioned by its node, not by itself.** `CameraComponent` holds only
+projection parameters; the view matrix is the inverse of the node's world matrix. Parenting
+that node to a vehicle's therefore makes the camera ride along — through any number of
+intermediate boom or turret nodes — with no camera-specific code. To aim a node at a point
+rather than parent it rigidly, `look_at_rotation(position, target, up)` returns the rotation
+that puts -z on the target.
+
+**Never parent a camera to a scaled node.** The view matrix inverts the whole world matrix,
+so an ancestor's scale scales the rendered world. The camera's position still reads
+correctly, which makes the symptom hard to place.
+
+**Rebase orientations that arrive in vehicle axes.** Physics and flight models normally work
+in +x forward, +y lateral (left), +z up, and a node driven straight from one faces sideways.
+`x_forward_to_scene(rotation)` converts an orientation into the scene's frame;
+`x_forward_to_scene_rotation()` is the mapping itself. Beware that in that frame a positive
+turn about +y is nose *down* — the aviation convention measures pitch in an x forward / y
+right / z down frame instead (`test_SceneGraph.cpp` pins the sign).
+
+**2D and 3D share everything else** — one `Transform`, the resource and material layers, the
+snapshot, and the renderer. The only branch is `CameraComponent::mode`: `PERSPECTIVE` (uses
+`fov`) or `ORTHOGRAPHIC` (uses `ortho_size`). A 2D scene is nodes at `z = 0` rotated about z,
+viewed orthographically; draw order goes through the render-layer / sort-key machinery rather
+than a separate code path.
 
 ## 9. Integration with existing Tungsten
 

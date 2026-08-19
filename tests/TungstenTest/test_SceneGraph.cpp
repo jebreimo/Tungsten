@@ -7,6 +7,7 @@
 //****************************************************************************
 #include "Tungsten/Neo/NodeHandle.hpp"
 
+#include <cmath>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include "Tungsten/TungstenException.hpp"
@@ -80,6 +81,70 @@ TEST_CASE("Transform: rotations compose as a quaternion product")
     REQUIRE_THAT((m[0, 0]), WithinAbs(-1, 1e-6));
     REQUIRE_THAT((m[1, 1]), WithinAbs(-1, 1e-6));
     REQUIRE_THAT((m[2, 2]), WithinAbs(1, 1e-6));
+}
+
+namespace
+{
+    // Column i of a rotation's matrix is where that rotation sends basis
+    // vector i, which is the clearest way to state an axis convention.
+    Xyz::Vector3F image_of_axis(const Xyz::QuaternionF& rotation, size_t axis)
+    {
+        const auto m = Xyz::linear::to_matrix(rotation);
+        return {m[0, axis], m[1, axis], m[2, axis]};
+    }
+
+    void require_close(const Xyz::Vector3F& actual, const Xyz::Vector3F& expected)
+    {
+        for (size_t i = 0; i < 3; ++i)
+            REQUIRE_THAT(actual[i], WithinAbs(expected[i], 1e-6));
+    }
+}
+
+TEST_CASE("x_forward_to_scene_rotation: maps the vehicle axes onto the"
+          " scene's")
+{
+    const auto r = x_forward_to_scene_rotation();
+
+    // Vehicle +x is forward, and the scene's forward is -z.
+    require_close(image_of_axis(r, 0), {0, 0, -1});
+    // Vehicle +y is left; the scene's right is +x, so left is -x.
+    require_close(image_of_axis(r, 1), {-1, 0, 0});
+    // Vehicle +z is up, and so is the scene's +y.
+    require_close(image_of_axis(r, 2), {0, 1, 0});
+}
+
+TEST_CASE("x_forward_to_scene: rebases a rotation into the scene's frame")
+{
+    const float angle = Xyz::Constants<float>::PI / 3;
+
+    // A vehicle yaws about its own up axis, +z. Rebased, that has to become
+    // the same turn about the scene's up axis, +y.
+    const auto vehicle_yaw = Xyz::make_quaternion<float>(angle, {0, 0, 1});
+    const auto scene_yaw = x_forward_to_scene(vehicle_yaw);
+    const auto expected = Xyz::make_quaternion<float>(angle, {0, 1, 0});
+
+    for (size_t axis = 0; axis < 3; ++axis)
+        require_close(image_of_axis(scene_yaw, axis),
+                      image_of_axis(expected, axis));
+}
+
+TEST_CASE("x_forward_to_scene: a vehicle pitch tilts the scene forward axis")
+{
+    // A pitch is a turn about the vehicle's +y (left) axis. In a right-handed
+    // +x forward / +y left / +z up frame a *positive* turn about +y takes
+    // forward towards -z, i.e. nose down — the opposite of the aviation
+    // convention, which measures pitch in an x forward / y right / z down
+    // frame. Rebasing must carry that through: 30 degrees puts the scene's
+    // forward axis half a unit below the horizon.
+    const auto pitch = Xyz::make_quaternion<float>(
+        Xyz::Constants<float>::PI / 6, {0, 1, 0});
+    const auto rebased = x_forward_to_scene(pitch);
+
+    // Where the scene's forward axis (-z) ends up: the negated third column.
+    const auto forward = -image_of_axis(rebased, 2);
+    REQUIRE_THAT(forward[1], WithinAbs(-0.5, 1e-6)); // -sin(30 degrees)
+    REQUIRE_THAT(forward[0], WithinAbs(0, 1e-6));    // no yaw introduced
+    REQUIRE_THAT(forward[2], WithinAbs(-std::sqrt(3.0f) / 2, 1e-6));
 }
 
 TEST_CASE("Scene: a root's world matrix is its local matrix")
