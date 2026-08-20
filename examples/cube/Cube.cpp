@@ -37,8 +37,7 @@ namespace
 
         constexpr Xyz::OrientedCuboid<float> cuboid{
             .placement = {
-                .origin = {-1, -1, -1},
-                .orientation = {.yaw = 0, .pitch = 0, .roll = 0}
+                .origin = {-1, -1, -1}
             },
             .size = {2, 2, 2}
         };
@@ -149,7 +148,7 @@ namespace
             auto& snapshots = scene_.snapshots();
             builder_.build(scene_, camera_.id(), snapshots.back());
             snapshots.back().time =
-                float(SDL_GetTicks() - start_ticks_) / 1000.0f;
+                static_cast<float>(SDL_GetTicks() - start_ticks_) / 1000.0f;
             snapshots.back().ambient_light = {0.35f, 0.35f, 0.38f};
             snapshots.swap();
 
@@ -243,8 +242,8 @@ namespace
             const auto fraction = std::modf(double(ticks) / 5000, &i);
             const auto angle = float(fraction * 2 * Xyz::Constants<double>::PI);
             if ((ticks / 10000) % 2 == 0)
-                return Tungsten::euler_rotation(-angle, 0, 0);
-            return Tungsten::euler_rotation(0, angle, 0);
+                return Tungsten::euler_rotation(0, angle, 0);
+            return Tungsten::euler_rotation(0, 0, -angle);
         }
 
         Tungsten::ResourceManager resources_;
