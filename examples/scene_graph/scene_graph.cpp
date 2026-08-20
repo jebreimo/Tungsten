@@ -167,8 +167,9 @@ namespace
             set_face_culling_enabled(true);
             set_clear_color({0.12f, 0.13f, 0.16f, 1.0f});
             clear(ClearBits::COLOR_DEPTH);
-            const auto [width, height] = application().window_size();
-            set_viewport(0, 0, width, height);
+            const auto viewport = application().viewport();
+            set_viewport(viewport);
+            camera_.get<CameraComponent>().aspect = viewport.aspect_ratio();
 
             resources_.begin_frame(frame_);
 

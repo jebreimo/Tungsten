@@ -139,8 +139,9 @@ namespace
             Tungsten::set_face_culling_enabled(true);
             Tungsten::set_clear_color({0.2f, 0.3f, 0.3f, 1.0f});
             Tungsten::clear(Tungsten::ClearBits::COLOR_DEPTH);
-            auto [w, h] = application().window_size();
-            Tungsten::set_viewport(0, 0, w, h);
+            const auto viewport = application().viewport();
+            Tungsten::set_viewport(viewport);
+            camera_.get<Tungsten::CameraComponent>().aspect = viewport.aspect_ratio();
 
             resources_.begin_frame(frame_);
 
