@@ -89,6 +89,7 @@ add_library(Tungsten STATIC
     include/Tungsten/Gl/GlHandle.hpp
     include/Tungsten/Gl/GlProgram.hpp
     include/Tungsten/Gl/GlRendering.hpp
+    include/Tungsten/Gl/GlSampler.hpp
     include/Tungsten/Gl/GlShader.hpp
     include/Tungsten/Gl/GlStateManagement.hpp
     include/Tungsten/Gl/GlTexture.hpp
@@ -164,6 +165,7 @@ add_library(Tungsten STATIC
     src/Tungsten/Gl/GlFramebuffer.cpp
     src/Tungsten/Gl/GlProgram.cpp
     src/Tungsten/Gl/GlRendering.cpp
+    src/Tungsten/Gl/GlSampler.cpp
     src/Tungsten/Gl/GlShader.cpp
     src/Tungsten/Gl/GlStateManagement.cpp
     src/Tungsten/Gl/GlTexture.cpp

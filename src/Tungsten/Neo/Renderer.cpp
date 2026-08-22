@@ -76,8 +76,11 @@ namespace Tungsten
                              RGBA_TEXTURE, white);
         // The default min filter expects mipmaps; without this the lone
         // level-0 image would leave the texture incomplete.
-        set_min_filter(TextureTarget::TEXTURE_2D, TextureMinFilter::NEAREST);
-        set_mag_filter(TextureTarget::TEXTURE_2D, TextureMagFilter::NEAREST);
+        set_texture_parameters(TextureTarget::TEXTURE_2D,
+                               {
+                                   .mag_filter = SamplerMinMagFilter::NEAREST,
+                                   .mip_filter = SamplerMipFilter::NONE
+                               });
     }
 
     void Renderer::render(const RenderSnapshot& snapshot)
@@ -234,7 +237,7 @@ namespace Tungsten
             // against whichever material's buffer is still bound. Silently
             // wrong colours are worse than a thrown error.
             TUNGSTEN_THROW("Renderer: the material has no parameter_data, but"
-                           " its shader declares MaterialBlock.");
+                " its shader declares MaterialBlock.");
         }
 
         for (size_t i = 0; i < material.textures.size(); ++i)

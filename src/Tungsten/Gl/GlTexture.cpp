@@ -110,10 +110,10 @@ namespace Tungsten
                               const void* data)
     {
         get_ogl_wrapper().tex_image_2d(to_ogl_texture_target_2d(target), level,
-                                     to_ogl_internal_format(format.format),
-                                     size.x(), size.y(), 0,
-                                     to_ogl_texture_format(format.format),
-                                     to_ogl_texture_value_type(format.type), data);
+                                       to_ogl_internal_format(format.format),
+                                       size.x(), size.y(), 0,
+                                       to_ogl_texture_format(format.format),
+                                       to_ogl_texture_value_type(format.type), data);
         THROW_IF_GL_ERROR();
     }
 
@@ -121,8 +121,8 @@ namespace Tungsten
                                 Size2I size)
     {
         get_ogl_wrapper().tex_storage_2d(to_ogl_texture_target_2d(target), levels,
-                                       to_ogl_internal_format(format),
-                                       size.x(), size.y());
+                                         to_ogl_internal_format(format),
+                                         size.x(), size.y());
         THROW_IF_GL_ERROR();
     }
 
@@ -133,18 +133,19 @@ namespace Tungsten
                                   const void* data)
     {
         get_ogl_wrapper().tex_sub_image_2d(to_ogl_texture_target_2d(target), level,
-                                        offset.x(), offset.y(), size.x(), size.y(),
-                                        to_ogl_texture_format(format.format),
-                                        to_ogl_texture_value_type(format.type), data);
+                                           offset.x(), offset.y(), size.x(), size.y(),
+                                           to_ogl_texture_format(format.format),
+                                           to_ogl_texture_value_type(format.type), data);
         THROW_IF_GL_ERROR();
     }
 
     void copy_texture_sub_image_2d(TextureTarget2D target, int32_t level, Position2I offset,
                                    Position2I position, Size2I size)
     {
-        get_ogl_wrapper().copy_tex_sub_image_2d(to_ogl_texture_target_2d(target), level, position.x(),
-                                            position.y(),
-                                            offset.x(), offset.y(), size.x(), size.y());
+        get_ogl_wrapper().copy_tex_sub_image_2d(to_ogl_texture_target_2d(target), level,
+                                                position.x(),
+                                                position.y(),
+                                                offset.x(), offset.y(), size.x(), size.y());
         THROW_IF_GL_ERROR();
     }
 
@@ -167,7 +168,7 @@ namespace Tungsten
                                      float param)
     {
         get_ogl_wrapper().tex_parameter_f(to_ogl_texture_target(target),
-                                        to_ogl_texture_parameter(pname), param);
+                                          to_ogl_texture_parameter(pname), param);
         THROW_IF_GL_ERROR();
     }
 
@@ -184,61 +185,27 @@ namespace Tungsten
                                    int32_t param)
     {
         get_ogl_wrapper().tex_parameter_i(to_ogl_texture_target(target),
-                                        to_ogl_texture_parameter(pname), param);
+                                          to_ogl_texture_parameter(pname), param);
         THROW_IF_GL_ERROR();
     }
 
-    TextureMagFilter get_mag_filter(TextureTarget target)
-    {
-        return from_ogl_texture_mag_filter(
-            get_texture_int_parameter(target, TextureParameter::MAG_FILTER));
-    }
-
-    void set_mag_filter(TextureTarget target, TextureMagFilter filter)
-    {
-        set_texture_int_parameter(target, TextureParameter::MAG_FILTER,
-                                  to_ogl_texture_mag_filter(filter));
-    }
-
-    TextureMinFilter get_min_filter(TextureTarget target)
-    {
-        return from_ogl_texture_min_filter(
-            get_texture_int_parameter(target, TextureParameter::MIN_FILTER));
-    }
-
-    void set_min_filter(TextureTarget target, TextureMinFilter filter)
+    void set_texture_parameters(TextureTarget target, const SamplerDescriptor& descriptor)
     {
         set_texture_int_parameter(target, TextureParameter::MIN_FILTER,
-                                  to_ogl_texture_min_filter(filter));
-    }
-
-    TextureWrapMode get_wrap_s(TextureTarget target)
-    {
-        return from_ogl_texture_wrap_mode(
-            get_texture_int_parameter(target, TextureParameter::WRAP_S));
-    }
-
-    void set_wrap_s(TextureTarget target, TextureWrapMode mode)
-    {
+                                  to_ogl_texture_min_filter(descriptor.min_filter, descriptor.mip_filter));
+        set_texture_int_parameter(target, TextureParameter::MAG_FILTER,
+                                  to_ogl_texture_mag_filter(descriptor.mag_filter));
         set_texture_int_parameter(target, TextureParameter::WRAP_S,
-                                  to_ogl_texture_wrap_mode(mode));
-    }
-
-    TextureWrapMode get_wrap_t(TextureTarget target)
-    {
-        return from_ogl_texture_wrap_mode(
-            get_texture_int_parameter(target, TextureParameter::WRAP_T));
-    }
-
-    void set_wrap_t(TextureTarget target, TextureWrapMode mode)
-    {
+                                  to_ogl_texture_wrap_mode(descriptor.address_mode_u));
         set_texture_int_parameter(target, TextureParameter::WRAP_T,
-                                  to_ogl_texture_wrap_mode(mode));
-    }
-
-    void set_wrap(TextureTarget target, TextureWrapMode mode)
-    {
-        set_wrap_s(target, mode);
-        set_wrap_t(target, mode);
+                                  to_ogl_texture_wrap_mode(descriptor.address_mode_v));
+        set_texture_int_parameter(target, TextureParameter::WRAP_R,
+                                  to_ogl_texture_wrap_mode(descriptor.address_mode_w));
+        set_texture_int_parameter(target, TextureParameter::COMPARE_FUNC,
+                                  to_ogl_texture_compare_func(descriptor.compare_function));
+        set_texture_int_parameter(target, TextureParameter::COMPARE_MODE,
+                                  to_ogl_texture_compare_mode(descriptor.compare_function));
+        set_texture_float_parameter(target, TextureParameter::MIN_LOD, descriptor.min_lod);
+        set_texture_float_parameter(target, TextureParameter::MAX_LOD, descriptor.max_lod);
     }
 }

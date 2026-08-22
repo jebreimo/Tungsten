@@ -38,6 +38,10 @@ namespace Tungsten
         {
         }
 
+        void bind_sampler(GLuint unit, GLuint sampler) override
+        {
+        }
+
         void bind_texture(GLenum target, GLuint texture) override
         {
         }
@@ -140,6 +144,10 @@ namespace Tungsten
         {
         }
 
+        void delete_samplers(GLsizei n, const GLuint* samplers) override
+        {
+        }
+
         void delete_shader(GLuint shader) override
         {
         }
@@ -197,6 +205,10 @@ namespace Tungsten
         {
         }
 
+        void gen_samplers(GLsizei n, GLuint* samplers) override
+        {
+        }
+
         void gen_textures(GLsizei n, GLuint* textures) override
         {
         }
@@ -232,6 +244,10 @@ namespace Tungsten
         }
 
         void get_integer(GLenum pname, GLint* params) override
+        {
+        }
+
+        void get_integer_i(GLenum pname, GLuint index, GLint* params) override
         {
         }
 
@@ -297,6 +313,14 @@ namespace Tungsten
         }
 
         void link_program(GLuint program) override
+        {
+        }
+
+        void sampler_parameter_f(GLuint sampler, GLenum pname, GLfloat param) override
+        {
+        }
+
+        void sampler_parameter_i(GLuint sampler, GLenum pname, GLint param) override
         {
         }
 

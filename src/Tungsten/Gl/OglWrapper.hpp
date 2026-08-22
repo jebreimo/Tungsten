@@ -45,6 +45,11 @@ namespace Tungsten
             glBindFramebuffer(target, framebuffer);
         }
 
+        void bind_sampler(GLuint unit, GLuint sampler) override
+        {
+            glBindSampler(unit, sampler);
+        }
+
         void bind_texture(GLenum target, GLuint texture) override
         {
             glBindTexture(target, texture);
@@ -170,6 +175,11 @@ namespace Tungsten
             glDeleteProgram(program);
         }
 
+        void delete_samplers(GLsizei n, const GLuint* samplers) override
+        {
+            glDeleteSamplers(n, samplers);
+        }
+
         void delete_shader(GLuint shader) override
         {
             glDeleteShader(shader);
@@ -242,6 +252,11 @@ namespace Tungsten
             glGenFramebuffers(n, framebuffers);
         }
 
+        void gen_samplers(GLsizei n, GLuint* samplers) override
+        {
+            glGenSamplers(n, samplers);
+        }
+
         void gen_textures(GLsizei n, GLuint* textures) override
         {
             glGenTextures(n, textures);
@@ -285,6 +300,11 @@ namespace Tungsten
         void get_integer(GLenum pname, GLint* params) override
         {
             glGetIntegerv(pname, params);
+        }
+
+        void get_integer_i(GLenum pname, GLuint index, GLint* params) override
+        {
+            glGetIntegeri_v(pname, index, params);
         }
 
         void get_integer64(GLenum pname, GLint64* params) override
@@ -357,6 +377,16 @@ namespace Tungsten
         void link_program(GLuint program) override
         {
             glLinkProgram(program);
+        }
+
+        void sampler_parameter_f(GLuint sampler, GLenum pname, GLfloat param) override
+        {
+            glSamplerParameterf(sampler, pname, param);
+        }
+
+        void sampler_parameter_i(GLuint sampler, GLenum pname, GLint param) override
+        {
+            glSamplerParameteri(sampler, pname, param);
         }
 
         void shader_source(GLuint shader, GLsizei count, const GLchar* const * string,

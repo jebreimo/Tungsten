@@ -456,9 +456,15 @@ namespace Tungsten
                              0, get_size(font->image),
                              get_ogl_pixel_type(font->image.pixel_type()),
                              font->image.data());
-        set_mag_filter(TextureTarget::TEXTURE_2D, TextureMagFilter::LINEAR);
-        set_min_filter(TextureTarget::TEXTURE_2D, TextureMinFilter::LINEAR);
-        set_wrap(TextureTarget::TEXTURE_2D, TextureWrapMode::CLAMP_TO_EDGE);
+
+        set_texture_parameters(TextureTarget::TEXTURE_2D,
+                               {
+                                   .min_filter = SamplerMinMagFilter::LINEAR,
+                                   .mag_filter = SamplerMinMagFilter::LINEAR,
+                                   .mip_filter = SamplerMipFilter::NONE,
+                                   .address_mode_u = SamplerAddressMode::CLAMP_TO_EDGE,
+                                   .address_mode_v = SamplerAddressMode::CLAMP_TO_EDGE
+                               });
 
         return fd;
     }

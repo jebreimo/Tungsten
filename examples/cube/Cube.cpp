@@ -49,9 +49,6 @@ namespace
     {
         auto handle = Tungsten::generate_texture();
         bind_texture(Tungsten::TextureTarget::TEXTURE_2D, handle.id());
-        set_min_filter(Tungsten::TextureTarget::TEXTURE_2D, Tungsten::TextureMinFilter::LINEAR);
-        set_mag_filter(Tungsten::TextureTarget::TEXTURE_2D, Tungsten::TextureMagFilter::LINEAR);
-        set_wrap(Tungsten::TextureTarget::TEXTURE_2D, Tungsten::TextureWrapMode::CLAMP_TO_EDGE);
 
         set_texture_image_2d(
             Tungsten::TextureTarget2D::TEXTURE_2D,
@@ -59,6 +56,14 @@ namespace
             {int32_t(image.width()), int32_t(image.height())},
             Tungsten::get_ogl_pixel_type(image.pixel_type()),
             image.data());
+
+        Tungsten::set_texture_parameters(
+            Tungsten::TextureTarget::TEXTURE_2D,
+            {
+                .mip_filter = Tungsten::SamplerMipFilter::NONE,
+                .address_mode_u = Tungsten::SamplerAddressMode::CLAMP_TO_EDGE,
+                .address_mode_v = Tungsten::SamplerAddressMode::CLAMP_TO_EDGE
+            });
 
         return handle;
     }

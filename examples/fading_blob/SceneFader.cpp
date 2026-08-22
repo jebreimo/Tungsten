@@ -76,9 +76,11 @@ public:
             0, 2, 3
         };
         Tungsten::bind_buffer(Tungsten::BufferTarget::ARRAY, vertex_buffer_.id());
-        Tungsten::set_buffer_data(Tungsten::BufferTarget::ARRAY, std::span(vertexes), Tungsten::BufferUsage::STATIC_DRAW);
+        Tungsten::set_buffer_data(Tungsten::BufferTarget::ARRAY, std::span(vertexes),
+                                  Tungsten::BufferUsage::STATIC_DRAW);
         Tungsten::bind_buffer(Tungsten::BufferTarget::ELEMENT_ARRAY, element_buffer_.id());
-        Tungsten::set_buffer_data(Tungsten::BufferTarget::ELEMENT_ARRAY, std::span(indexes), Tungsten::BufferUsage::STATIC_DRAW);
+        Tungsten::set_buffer_data(Tungsten::BufferTarget::ELEMENT_ARRAY, std::span(indexes),
+                                  Tungsten::BufferUsage::STATIC_DRAW);
     }
 
     void set_window_size(Tungsten::Size2I size)
@@ -88,10 +90,11 @@ public:
             Tungsten::bind_texture(Tungsten::TextureTarget::TEXTURE_2D, texture.id());
             Tungsten::set_texture_image_2d(Tungsten::TextureTarget2D::TEXTURE_2D, 0, size,
                                            Tungsten::RGB_TEXTURE);
-            Tungsten::set_min_filter(Tungsten::TextureTarget::TEXTURE_2D,
-                                     Tungsten::TextureMinFilter::LINEAR);
-            Tungsten::set_mag_filter(Tungsten::TextureTarget::TEXTURE_2D,
-                                     Tungsten::TextureMagFilter::LINEAR);
+            Tungsten::set_texture_parameters(
+                Tungsten::TextureTarget::TEXTURE_2D,
+                {
+                    .mip_filter = Tungsten::SamplerMipFilter::NONE
+                });
         }
     }
 

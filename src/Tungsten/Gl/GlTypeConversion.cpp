@@ -250,85 +250,58 @@ namespace Tungsten
         }
     }
 
-    GLint to_ogl_texture_min_filter(TextureMinFilter filter)
+    GLint to_ogl_texture_min_filter(SamplerMinMagFilter min_filter, SamplerMipFilter mip_filter)
     {
-        switch (filter)
+        switch (min_filter)
         {
-        case TextureMinFilter::NEAREST: return GL_NEAREST;
-        case TextureMinFilter::LINEAR: return GL_LINEAR;
-        case TextureMinFilter::NEAREST_MIPMAP_NEAREST: return GL_NEAREST_MIPMAP_NEAREST;
-        case TextureMinFilter::LINEAR_MIPMAP_NEAREST: return GL_LINEAR_MIPMAP_NEAREST;
-        case TextureMinFilter::NEAREST_MIPMAP_LINEAR: return GL_NEAREST_MIPMAP_LINEAR;
-        case TextureMinFilter::LINEAR_MIPMAP_LINEAR: return GL_LINEAR_MIPMAP_LINEAR;
+        case SamplerMinMagFilter::NEAREST:
+            switch (mip_filter)
+            {
+            case SamplerMipFilter::NONE: return GL_NEAREST;
+            case SamplerMipFilter::NEAREST: return GL_NEAREST_MIPMAP_NEAREST;
+            case SamplerMipFilter::LINEAR: return GL_NEAREST_MIPMAP_LINEAR;
+            default:
+                TUNGSTEN_THROW("Unsupported texture mip filter: "
+                    + std::to_string(static_cast<int>(mip_filter)));
+            }
+        case SamplerMinMagFilter::LINEAR:
+            switch (mip_filter)
+            {
+            case SamplerMipFilter::NONE: return GL_LINEAR;
+            case SamplerMipFilter::NEAREST: return GL_LINEAR_MIPMAP_NEAREST;
+            case SamplerMipFilter::LINEAR: return GL_LINEAR_MIPMAP_LINEAR;
+            default:
+                TUNGSTEN_THROW("Unsupported texture mip filter: "
+                    + std::to_string(static_cast<int>(mip_filter)));
+            }
         default:
             TUNGSTEN_THROW("Unsupported texture min filter: "
-                + std::to_string(static_cast<int>(filter)));
+                + std::to_string(static_cast<int>(min_filter)));
         }
     }
 
-    TextureMinFilter from_ogl_texture_min_filter(GLint filter)
+    GLint to_ogl_texture_mag_filter(SamplerMinMagFilter filter)
     {
         switch (filter)
         {
-        case GL_NEAREST: return TextureMinFilter::NEAREST;
-        case GL_LINEAR: return TextureMinFilter::LINEAR;
-        case GL_NEAREST_MIPMAP_NEAREST: return TextureMinFilter::NEAREST_MIPMAP_NEAREST;
-        case GL_LINEAR_MIPMAP_NEAREST: return TextureMinFilter::LINEAR_MIPMAP_NEAREST;
-        case GL_NEAREST_MIPMAP_LINEAR: return TextureMinFilter::NEAREST_MIPMAP_LINEAR;
-        case GL_LINEAR_MIPMAP_LINEAR: return TextureMinFilter::LINEAR_MIPMAP_LINEAR;
-        default:
-            TUNGSTEN_THROW("Unsupported texture min filter: "
-                + std::to_string(filter));
-        }
-    }
-
-    GLint to_ogl_texture_mag_filter(TextureMagFilter filter)
-    {
-        switch (filter)
-        {
-        case TextureMagFilter::NEAREST: return GL_NEAREST;
-        case TextureMagFilter::LINEAR: return GL_LINEAR;
+        case SamplerMinMagFilter::NEAREST: return GL_NEAREST;
+        case SamplerMinMagFilter::LINEAR: return GL_LINEAR;
         default:
             TUNGSTEN_THROW("Unsupported texture mag filter: "
                 + std::to_string(static_cast<int>(filter)));
         }
     }
 
-    TextureMagFilter from_ogl_texture_mag_filter(GLint filter)
-    {
-        switch (filter)
-        {
-        case GL_NEAREST: return TextureMagFilter::NEAREST;
-        case GL_LINEAR: return TextureMagFilter::LINEAR;
-        default:
-            TUNGSTEN_THROW("Unsupported texture mag filter: "
-                + std::to_string(filter));
-        }
-    }
-
-    GLint to_ogl_texture_wrap_mode(TextureWrapMode mode)
+    GLint to_ogl_texture_wrap_mode(SamplerAddressMode mode)
     {
         switch (mode)
         {
-        case TextureWrapMode::REPEAT: return GL_REPEAT;
-        case TextureWrapMode::MIRRORED_REPEAT: return GL_MIRRORED_REPEAT;
-        case TextureWrapMode::CLAMP_TO_EDGE: return GL_CLAMP_TO_EDGE;
+        case SamplerAddressMode::REPEAT: return GL_REPEAT;
+        case SamplerAddressMode::MIRRORED_REPEAT: return GL_MIRRORED_REPEAT;
+        case SamplerAddressMode::CLAMP_TO_EDGE: return GL_CLAMP_TO_EDGE;
         default:
             TUNGSTEN_THROW("Unsupported texture wrap mode: "
                 + std::to_string(static_cast<int>(mode)));
-        }
-    }
-
-    TextureWrapMode from_ogl_texture_wrap_mode(GLint mode)
-    {
-        switch (mode)
-        {
-        case GL_REPEAT: return TextureWrapMode::REPEAT;
-        case GL_MIRRORED_REPEAT: return TextureWrapMode::MIRRORED_REPEAT;
-        case GL_CLAMP_TO_EDGE: return TextureWrapMode::CLAMP_TO_EDGE;
-        default:
-            TUNGSTEN_THROW("Unsupported texture wrap mode: "
-                + std::to_string(mode));
         }
     }
 
@@ -367,6 +340,36 @@ namespace Tungsten
         default:
             TUNGSTEN_THROW("Unsupported cull mode: "
                 + std::to_string(static_cast<int>(mode)));
+        }
+    }
+
+    GLint to_ogl_texture_compare_func(SamplerCompareFunction func)
+    {
+        switch (func)
+        {
+        case SamplerCompareFunction::LEQUAL: return GL_LEQUAL;
+        case SamplerCompareFunction::GEQUAL: return GL_GEQUAL;
+        case SamplerCompareFunction::LESS: return GL_LESS;
+        case SamplerCompareFunction::GREATER: return GL_GREATER;
+        case SamplerCompareFunction::EQUAL: return GL_EQUAL;
+        case SamplerCompareFunction::NOTEQUAL: return GL_NOTEQUAL;
+        case SamplerCompareFunction::ALWAYS: return GL_ALWAYS;
+        case SamplerCompareFunction::NONE:
+        case SamplerCompareFunction::NEVER:
+            return GL_NEVER;
+        default:
+            TUNGSTEN_THROW("Unsupported texture compare function: "
+                + std::to_string(static_cast<int>(func)));
+        }
+    }
+
+    GLint to_ogl_texture_compare_mode(SamplerCompareFunction func)
+    {
+        switch (func)
+        {
+        case SamplerCompareFunction::NONE: return GL_NONE;
+        default:
+            return GL_COMPARE_REF_TO_TEXTURE;
         }
     }
 }

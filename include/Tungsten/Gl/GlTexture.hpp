@@ -10,6 +10,7 @@
 
 #include "GlHandle.hpp"
 #include "GlTypes.hpp"
+#include "GlSampler.hpp"
 
 namespace Tungsten
 {
@@ -66,25 +67,5 @@ namespace Tungsten
 
     void set_texture_int_parameter(TextureTarget target, TextureParameter pname, int32_t param);
 
-    [[nodiscard]]
-    TextureMagFilter get_mag_filter(TextureTarget target);
-
-    void set_mag_filter(TextureTarget target, TextureMagFilter filter);
-
-    [[nodiscard]]
-    TextureMinFilter get_min_filter(TextureTarget target);
-
-    void set_min_filter(TextureTarget target, TextureMinFilter filter);
-
-    [[nodiscard]]
-    TextureWrapMode get_wrap_s(TextureTarget target);
-
-    void set_wrap_s(TextureTarget target, TextureWrapMode mode);
-
-    [[nodiscard]]
-    TextureWrapMode get_wrap_t(TextureTarget target);
-
-    void set_wrap_t(TextureTarget target, TextureWrapMode mode);
-
-    void set_wrap(TextureTarget target, TextureWrapMode mode);
+    void set_texture_parameters(TextureTarget target, const SamplerDescriptor& descriptor);
 }
