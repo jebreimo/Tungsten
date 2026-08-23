@@ -245,6 +245,12 @@ namespace Tungsten
             wrapper->delete_vertex_arrays(n, arrays);
         }
 
+        void depth_mask(GLboolean flag) override
+        {
+            log("glDepthMask({})", flag);
+            wrapper->depth_mask(flag);
+        }
+
         void disable(GLenum cap) override
         {
             log("glDisable({})", cap);

@@ -160,6 +160,10 @@ namespace Tungsten
         {
         }
 
+        void depth_mask(GLboolean flag) override
+        {
+        }
+
         void disable(GLenum cap) override
         {
         }

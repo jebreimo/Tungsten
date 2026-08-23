@@ -29,7 +29,7 @@ namespace
     // Fabricates GL ids and records the calls the renderer's behavior is
     // specified by: draws (with their index offsets, to observe ordering),
     // program binds, buffer uploads (by size, to tell the three UBOs apart),
-    // uniform-block bindings, and blend toggles.
+    // uniform-block bindings, and blend / depth-write toggles.
     class FakeOglWrapper : public DummyOglWrapper
     {
     public:
@@ -188,6 +188,11 @@ namespace
         {
             events.push_back("draw_arrays@" + std::to_string(first));
             ++draw_calls;
+        }
+
+        void depth_mask(GLboolean flag) override
+        {
+            events.emplace_back(flag ? "depth_write_on" : "depth_write_off");
         }
 
         void enable(GLenum cap) override
@@ -606,6 +611,55 @@ TEST_CASE("Renderer: transparent items draw after opaque, with blending")
     }
     REQUIRE(relevant == std::vector<std::string>{
         "blend_off", "draw", "blend_on", "draw", "blend_off"});
+}
+
+TEST_CASE("Renderer: the transparent pass does not write depth")
+{
+    const FakeGlSession session;
+    Bench bench;
+    Material transparent_value;
+    transparent_value.shader = bench.shader;
+    transparent_value.transparent = true;
+    transparent_value.parameter_data.resize(MATERIAL_BLOB_SIZE);
+    const auto transparent = bench.resources.create_material(
+        std::move(transparent_value));
+
+    const auto mesh = bench.make_mesh(4, 6);
+    bench.add_renderable(mesh, transparent, -10);
+    bench.add_renderable(mesh, bench.material, -20);
+
+    bench.build_and_render(*session.gl);
+
+    std::vector<std::string> relevant;
+    for (const auto& event : session.gl->events)
+    {
+        if (event.starts_with("draw"))
+            relevant.emplace_back("draw");
+        else if (event.starts_with("blend") || event.starts_with("depth"))
+            relevant.push_back(event);
+    }
+    // The mask is stated up front for the opaque pass, dropped around the
+    // blended one, and restored — so blended surfaces are still tested against
+    // opaque depth but never occlude each other.
+    REQUIRE(relevant == std::vector<std::string>{
+        "depth_write_on", "blend_off",
+        "draw",
+        "blend_on", "depth_write_off",
+        "draw",
+        "depth_write_on", "blend_off"});
+}
+
+TEST_CASE("Renderer: an all-opaque frame keeps depth writes on throughout")
+{
+    const FakeGlSession session;
+    Bench bench;
+    const auto mesh = bench.make_mesh(4, 6);
+    bench.add_renderable(mesh, bench.material, -10);
+
+    bench.build_and_render(*session.gl);
+
+    for (const auto& event : session.gl->events)
+        REQUIRE(event != "depth_write_off");
 }
 
 TEST_CASE("Renderer: a mesh without an index buffer uses an array draw")

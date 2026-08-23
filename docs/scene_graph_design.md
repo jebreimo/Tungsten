@@ -528,3 +528,46 @@ traversal, no pointer chasing, no branch mispredicts (Frostbite's "Culling the B
 GDC 2011, is the canonical measurement). Above that, a BVH or dynamic AABB tree built *over
 the same array* is the standard answer, and it can be added without touching the per-item
 test, which is already exactly what a BVH leaf would run.
+
+## 16. Text
+
+Text is a *source* component compiled into an ordinary renderable, not a rendering path of
+its own. `TextSystem::update(scene)` — called before `resolve_transforms()` — tessellates each
+`TextComponent` into a `Mesh` and a `Material` and publishes them through a
+`RenderableComponent` on the same node. `SnapshotBuilder` and `Renderer` are unchanged and
+know nothing about glyphs; text gets culling, layers and sort-key batching for free.
+
+**A text node therefore carries two components**: the `TextComponent` the application writes,
+and the `RenderableComponent` the system owns and overwrites. Do not edit the latter by hand.
+
+**There are no dirty flags and no setters.** `TextComponent` is a plain aggregate, and the
+system finds its work by diffing the fields against `built`, its record of what it last
+compiled. Nothing can change without the next `update()` noticing and nothing has to be
+remembered to set; the cost is one string compare per item per frame. Styles are immutable
+and shared (`shared_ptr<const TextStyle>`), so that diff is a *pointer* comparison across
+every item using one style.
+
+**The split that makes the frequent case cheap** is between what reaches the vertex data and
+what reaches the material:
+
+- font, line gap, alignment and the anchors are baked into the glyph positions — changing any
+  of them re-tessellates that one item;
+- colour lives in the `MaterialBlock`, so it never touches geometry.
+
+**One material per (atlas, colour) pair**, interned on first use. A hundred cells sharing a
+style therefore share one material and one bind, and `TextComponent::color_override` recolours
+a single item by resolving a different `MaterialRef` rather than touching its vertices. The
+materials are never retired, so an override must not be driven from a continuous value.
+
+**Do not merge items into one mesh to cut draw calls.** One draw per item is the price of
+per-item transforms and per-item culling; what is batched instead is state — one VAO for all
+text, one material per colour.
+
+**Reclamation is the system's job, not the scene's.** `Scene` drops a `TextComponent` when its
+node dies but knows nothing about the GPU memory behind it, so `TextSystem` keeps a slot table
+that each live component claims during the sweep; entries left unclaimed are released.
+
+**Co-planar text relies on the transparent pass not writing depth** (§8's draw order). Text is
+always transparent, and blended surfaces must leave the depth *mask* off — the test stays on,
+so opaque geometry still occludes them — or the first one drawn punches a hole in everything
+co-planar behind it, which silently defeats `render_layer`.

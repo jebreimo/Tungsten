@@ -108,6 +108,8 @@ namespace Tungsten
 
         virtual void delete_vertex_arrays(GLsizei n, const GLuint* arrays) = 0;
 
+        virtual void depth_mask(GLboolean flag) = 0;
+
         virtual void disable(GLenum cap) = 0;
 
         virtual void disable_vertex_attrib_array(GLuint index) = 0;

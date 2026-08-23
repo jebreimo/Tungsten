@@ -44,6 +44,17 @@ namespace Tungsten
         set_enabled(GL_DEPTH_TEST, enabled);
     }
 
+    bool is_depth_mask_enabled()
+    {
+        return get_boolean_value(GL_DEPTH_WRITEMASK);
+    }
+
+    void set_depth_mask_enabled(bool enabled)
+    {
+        get_ogl_wrapper().depth_mask(enabled ? GL_TRUE : GL_FALSE);
+        THROW_IF_GL_ERROR();
+    }
+
     bool is_face_culling_enabled()
     {
         return is_enabled(GL_CULL_FACE);

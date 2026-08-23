@@ -76,7 +76,7 @@ namespace Tungsten
         static void extract_lights(const Scene& scene, RenderSnapshot& out);
 
         /**
-         * Packs the draw order into one integer, ascending (§14). Opaque:
+         * Packs the draw order into one integer, ascending (§8). Opaque:
          * layer, shader, material, mesh, then depth — batching state changes
          * first. Transparent: layer, then *reversed* depth — back-to-front
          * for correct blending — then shader and material.
