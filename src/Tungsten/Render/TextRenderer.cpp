@@ -76,8 +76,6 @@ namespace Tungsten
 
     namespace
     {
-        using TextDataMap = std::unordered_map<size_t, std::unique_ptr<TextRenderItem>>;
-
         VertexArrayObject create_vertex_array(uint32_t vbo_id)
         {
             return VertexArrayObjectBuilder()

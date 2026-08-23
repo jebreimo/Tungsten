@@ -13,7 +13,7 @@
 #include "RingBuffer.hpp"
 #include "../show_text/Debug.hpp"
 
-class TextScroller : public Tungsten::Renderable
+class TextScroller
 {
 public:
     explicit TextScroller(std::shared_ptr<Tungsten::Font> font)
@@ -36,7 +36,7 @@ public:
         dirty_ = true;
     }
 
-    void prepare(const Tungsten::Camera& camera) override
+    void prepare(const Tungsten::Camera& camera)
     {
         if (!dirty_)
             return;
@@ -71,7 +71,7 @@ public:
         text_renderer_->prepare(camera);
     }
 
-    void render(const Tungsten::Camera& camera) const override
+    void render(const Tungsten::Camera& camera) const
     {
         text_renderer_->render(camera);
     }

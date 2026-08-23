@@ -10,9 +10,6 @@
 
 namespace Tungsten::ShaderSources
 {
-    extern const std::string OLD_BLINN_PHONG_VERTEX;
-    extern const std::string OLD_BLINN_PHONG_FRAGMENT;
-
     extern const std::string RENDER_TEXT_VERTEX;
     extern const std::string RENDER_TEXT_FRAGMENT;
 }
