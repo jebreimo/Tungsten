@@ -6,34 +6,21 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include <variant>
 
-#include "Renderable.hpp"
+#include "../Camera.hpp"
 #include "TextItem.hpp"
 
 namespace Tungsten
 {
-    struct RelativePosition
-    {
-        Xyz::Vector2F pos;
-    };
-
-    struct AbsolutePosition
-    {
-        Xyz::Vector2F pos;
-    };
-
-    using TextPosition = std::variant<RelativePosition, AbsolutePosition>;
-
     struct TextRenderItem;
     struct FontRenderData;
 
-    class TextRenderer : public Renderable
+    class TextRenderer
     {
     public:
         explicit TextRenderer();
 
-        ~TextRenderer() override;
+        ~TextRenderer();
 
         TextRenderer(const TextRenderer&) = delete;
 
@@ -53,9 +40,9 @@ namespace Tungsten
 
         TextItem* get_text_item(size_t id);
 
-        void prepare(const Camera& camera) override;
+        void prepare(const Camera& camera);
 
-        void render(const Camera& camera) const override;
+        void render(const Camera& camera) const;
     private:
         static std::unique_ptr<FontRenderData>
         make_font_data(const std::shared_ptr<Font>& font);

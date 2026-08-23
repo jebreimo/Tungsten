@@ -137,7 +137,6 @@ add_library(Tungsten STATIC
     include/Tungsten/Render/FontManager.hpp
     include/Tungsten/Render/Lights.hpp
     include/Tungsten/Render/OldShaderProgram.hpp
-    include/Tungsten/Render/Renderable.hpp
     include/Tungsten/Render/ShaderManager.hpp
     include/Tungsten/Render/ShaderPreprocessor.hpp
     include/Tungsten/Render/ShaderProgramBuilder.hpp
