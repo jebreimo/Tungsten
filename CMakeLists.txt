@@ -78,7 +78,6 @@ find_package(GLEW REQUIRED)
 find_package(SDL3 REQUIRED)
 
 add_library(Tungsten STATIC
-    include/Tungsten/Camera.hpp
     include/Tungsten/Detail/BuddyAllocator.hpp
     include/Tungsten/Detail/GenericBitmaskOperators.hpp
     include/Tungsten/DeviceInfo.hpp
@@ -131,6 +130,7 @@ add_library(Tungsten STATIC
     include/Tungsten/Neo/VaoCache.hpp
     include/Tungsten/Neo/VertexAttribute.hpp
     include/Tungsten/Neo/VertexLayout.hpp
+    include/Tungsten/Render/Camera.hpp
     include/Tungsten/Render/ColorMaterials.hpp
     include/Tungsten/Render/Font.hpp
     include/Tungsten/Render/FontManager.hpp
@@ -157,7 +157,6 @@ add_library(Tungsten STATIC
     include/Tungsten/TungstenException.hpp
     include/Tungsten/Viewport.hpp
     include/Tungsten/YimageGl.hpp
-    src/Tungsten/Camera.cpp
     src/Tungsten/Detail/BuddyAllocator.cpp
     src/Tungsten/DeviceInfo.cpp
     src/Tungsten/ExceptionHelpers.cpp
@@ -195,6 +194,7 @@ add_library(Tungsten STATIC
     src/Tungsten/Neo/SnapshotBuilder.cpp
     src/Tungsten/Neo/UboBindings.hpp
     src/Tungsten/Neo/VaoCache.cpp
+    src/Tungsten/Render/Camera.cpp
     src/Tungsten/Render/ColorMaterials.cpp
     src/Tungsten/Render/Font.cpp
     src/Tungsten/Render/FontManager.cpp

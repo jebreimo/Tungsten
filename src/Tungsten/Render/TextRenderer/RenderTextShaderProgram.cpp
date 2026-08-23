@@ -7,7 +7,6 @@
 //****************************************************************************
 #include "RenderTextShaderProgram.hpp"
 #include "Tungsten/Render/ShaderProgramBuilder.hpp"
-#include "Tungsten/Render/VertexArrayObjectBuilder.hpp"
 #include "../ShaderSources.hpp"
 
 namespace Tungsten::Detail

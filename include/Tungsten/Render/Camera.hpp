@@ -9,7 +9,7 @@
 #include <string>
 #include <Xyz/Matrix.hpp>
 
-#include "Viewport.hpp"
+#include "../Viewport.hpp"
 
 namespace Tungsten
 {
@@ -95,56 +95,6 @@ namespace Tungsten
     };
 
     std::ostream& operator<<(std::ostream& stream, const Camera& camera);
-
-    class CameraBuilder
-    {
-    public:
-        CameraBuilder();
-
-        explicit CameraBuilder(const Camera& camera);
-
-        CameraBuilder& look_at(const Xyz::Vector3F& eye,
-                               const Xyz::Vector3F& center,
-                               const Xyz::Vector3F& up = {0, 1, 0});
-
-        CameraBuilder& perspective(float fov_y_radians,
-                                   float near,
-                                   float far);
-
-        CameraBuilder& perspective(float bottom,
-                                   float top,
-                                   float near,
-                                   float far);
-
-        CameraBuilder& perspective(float left,
-                                   float right,
-                                   float bottom,
-                                   float top,
-                                   float near,
-                                   float far);
-
-        CameraBuilder& orthographic(float bottom,
-                                    float top,
-                                    float near,
-                                    float far);
-
-        CameraBuilder& orthographic(float left,
-                                    float right,
-                                    float bottom,
-                                    float top,
-                                    float near,
-                                    float far);
-
-        CameraBuilder& viewport(const Viewport& viewport);
-
-        [[nodiscard]] Camera build() const;
-
-    private:
-        Viewport viewport_;
-        Xyz::Vector3F position_;
-        ViewParameters view_parameters_;
-        ProjectionParameters projection_parameters_;
-    };
 
     /**
      * @brief Calculates the vertical field of view based on the minimum

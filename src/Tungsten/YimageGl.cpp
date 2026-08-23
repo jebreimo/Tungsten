@@ -8,8 +8,6 @@
 #include "Tungsten/YimageGl.hpp"
 #include <stdexcept>
 #include <string>
-#include <utility>
-#include <GL/glew.h>
 #include <Yimage/ImageAlgorithms.hpp>
 #include <Yimage/ReadImage.hpp>
 
@@ -60,7 +58,7 @@ namespace Tungsten
 
     Xyz::Vector2I get_size(const Yimage::Image& image)
     {
-        auto view = image.view();
+        const auto view = image.view();
         return {int(view.width()), int(view.height())};
     }
 

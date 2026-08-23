@@ -5,11 +5,10 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/Camera.hpp"
+#include "Tungsten/Render/Camera.hpp"
 
 #include <ostream>
 #include <Xyz/ProjectionMatrix.hpp>
-#include <Xyz/Utilities.hpp>
 
 namespace Tungsten
 {
@@ -95,23 +94,23 @@ namespace Tungsten
     std::ostream& operator<<(std::ostream& stream, const ViewParameters& parameters)
     {
         stream << "{\n"
-               << "  Position: " << parameters.position << "\n"
-               << "  Forward: " << parameters.forward << "\n"
-               << "  Up: " << parameters.up << "\n"
-               << "}";
+            << "  Position: " << parameters.position << "\n"
+            << "  Forward: " << parameters.forward << "\n"
+            << "  Up: " << parameters.up << "\n"
+            << "}";
         return stream;
     }
 
     std::ostream& operator<<(std::ostream& stream, const ProjectionParameters& parameters)
     {
         stream << "{\n"
-               << "  Left: " << parameters.left << ", Right: " << parameters.right << "\n"
-               << "  Bottom: " << parameters.bottom << ", Top: " << parameters.top << "\n"
-               << "  Near: " << parameters.near << ", Far: " << parameters.far << "\n"
-               << "  Type: " << parameters.type
-               << "  Use Aspect Ratio: "
-               << (parameters.use_aspect_ratio ? "true" : "false") << "\n"
-               << "}";
+            << "  Left: " << parameters.left << ", Right: " << parameters.right << "\n"
+            << "  Bottom: " << parameters.bottom << ", Top: " << parameters.top << "\n"
+            << "  Near: " << parameters.near << ", Far: " << parameters.far << "\n"
+            << "  Type: " << parameters.type
+            << "  Use Aspect Ratio: "
+            << (parameters.use_aspect_ratio ? "true" : "false") << "\n"
+            << "}";
         return stream;
     }
 
@@ -190,94 +189,10 @@ namespace Tungsten
     std::ostream& operator<<(std::ostream& stream, const Camera& camera)
     {
         stream << "{\n"
-               << "  Viewport: " << camera.viewport() << "\n"
-               << "  View Parameters: " << camera.view_parameters() << "\n"
-               << "  Projection Parameters: " <<camera.projection_parameters() << "\n"
-               << "}\n";
+            << "  Viewport: " << camera.viewport() << "\n"
+            << "  View Parameters: " << camera.view_parameters() << "\n"
+            << "  Projection Parameters: " << camera.projection_parameters() << "\n"
+            << "}\n";
         return stream;
-    }
-
-    CameraBuilder::CameraBuilder() = default;
-
-    CameraBuilder::CameraBuilder(const Camera& camera)
-        : viewport_(camera.viewport()),
-          view_parameters_(camera.view_parameters()),
-          projection_parameters_(camera.projection_parameters())
-    {
-    }
-
-    CameraBuilder& CameraBuilder::look_at(const Xyz::Vector3F& eye,
-                                          const Xyz::Vector3F& center,
-                                          const Xyz::Vector3F& up)
-    {
-        view_parameters_ = {eye, center - eye, up};
-        return *this;
-    }
-
-    CameraBuilder& CameraBuilder::perspective(float fov_y_radians, float near, float far)
-    {
-        const auto t = near * std::tan(fov_y_radians / 2);
-        return perspective(-t, t, near, far);
-    }
-
-    CameraBuilder& CameraBuilder::perspective(float bottom, float top, float near, float far)
-    {
-        projection_parameters_ = {
-            -1.0f, 1.0f,
-            bottom, top,
-            near, far,
-            ProjectionType::PERSPECTIVE,
-            true
-        };
-        return *this;
-    }
-
-    CameraBuilder& CameraBuilder::perspective(float left, float right, float bottom, float top,
-                                              float near, float far)
-    {
-        projection_parameters_ = {
-            left, right,
-            bottom, top,
-            near, far,
-            ProjectionType::PERSPECTIVE,
-            false
-        };
-        return *this;
-    }
-
-    CameraBuilder& CameraBuilder::orthographic(float bottom, float top, float near, float far)
-    {
-        projection_parameters_ = {
-            -1.0f, 1.0f,
-            bottom, top,
-            near, far,
-            ProjectionType::ORTHOGRAPHIC,
-            true
-        };
-        return *this;
-    }
-
-    CameraBuilder& CameraBuilder::orthographic(float left, float right, float bottom, float top,
-                                               float near, float far)
-    {
-        projection_parameters_ = {
-            left, right,
-            bottom, top,
-            near, far,
-            ProjectionType::ORTHOGRAPHIC,
-            false
-        };
-        return *this;
-    }
-
-    CameraBuilder& CameraBuilder::viewport(const Viewport& viewport)
-    {
-        viewport_ = viewport;
-        return *this;
-    }
-
-    Camera CameraBuilder::build() const
-    {
-        return {viewport_, view_parameters_, projection_parameters_};
     }
 } // Tungsten
