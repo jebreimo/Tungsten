@@ -130,6 +130,19 @@ namespace
             texture_binds.emplace_back(current_texture_unit_, texture);
         }
 
+        // glBindSampler names its unit explicitly rather than going through
+        // the active-texture selector, so record the unit it was given.
+        void gen_samplers(GLsizei n, GLuint* samplers) override
+        {
+            for (GLsizei i = 0; i < n; ++i)
+                samplers[i] = next_id_++;
+        }
+
+        void bind_sampler(GLuint unit, GLuint sampler) override
+        {
+            sampler_binds.emplace_back(static_cast<int>(unit), sampler);
+        }
+
         void buffer_data(GLenum, GLsizeiptr size, const void*, GLenum) override
         {
             buffer_uploads.push_back(static_cast<size_t>(size));
@@ -192,6 +205,7 @@ namespace
         std::vector<std::pair<GLuint, GLuint>> block_bindings;
         std::vector<std::pair<GLint, GLint>> int_uniforms;
         std::vector<std::pair<int, GLuint>> texture_binds;
+        std::vector<std::pair<int, GLuint>> sampler_binds;
         static constexpr GLint UBO_ALIGNMENT = 256;
 
         std::vector<size_t> buffer_uploads;
@@ -314,6 +328,7 @@ namespace
             gl.buffer_uploads.clear();
             gl.events.clear();
             gl.texture_binds.clear();
+            gl.sampler_binds.clear();
             gl.material_ubo_binds.clear();
             gl.per_draw_binds.clear();
             renderer.render(snapshot);
@@ -391,6 +406,56 @@ TEST_CASE("Renderer: unfilled sampler units get the white texture")
     // Both units hold the same texture — the constructor's 1×1 white.
     REQUIRE(binds[0].second != 0);
     REQUIRE(binds[0].second == binds[1].second);
+
+    // And both get the default sampler: a unit left without one would sample
+    // through whatever another subsystem last bound to it.
+    const auto& samplers = session.gl->sampler_binds;
+    REQUIRE(samplers.size() == 2);
+    REQUIRE(samplers[0].first == 0);
+    REQUIRE(samplers[1].first == 1);
+    REQUIRE(samplers[0].second != 0);
+    REQUIRE(samplers[0].second
+            == bench.resources.get_sampler_id(bench.resources.default_sampler()));
+}
+
+TEST_CASE("Renderer: a texture is drawn with the sampler it names")
+{
+    FakeGlSession session;
+    Bench bench;
+
+    ShaderFamily family;
+    family.vertex_source = "#version 300 es\nvoid main() {}\n";
+    family.fragment_source = "#version 300 es\nvoid main() {}\n";
+    family.samplers = {"u_diffuse_map"};
+    family.required_layout = bench.layout;
+    bench.resources.register_shader_family(3, family);
+
+    const auto sampler = bench.resources.register_sampler(
+        {.address_mode_u = SamplerAddressMode::MIRRORED_REPEAT});
+
+    Texture texture_value;
+    texture_value.gl_handle = generate_texture();
+    texture_value.sampler = sampler;
+    const auto texture = bench.resources.create_texture(
+        std::move(texture_value));
+
+    Material material_value;
+    material_value.shader = bench.resources.register_shader_variant({3, 0});
+    material_value.parameter_data.resize(MATERIAL_BLOB_SIZE);
+    material_value.textures = {texture};
+    const auto material = bench.resources.create_material(
+        std::move(material_value));
+    bench.add_renderable(bench.make_mesh(4, 6), material, -10);
+
+    bench.build_and_render(*session.gl);
+
+    const auto& samplers = session.gl->sampler_binds;
+    REQUIRE(samplers.size() == 1);
+    REQUIRE(samplers[0].first == 0);
+    REQUIRE(samplers[0].second == bench.resources.get_sampler_id(sampler));
+    // Not the default: the texture named its own.
+    REQUIRE(samplers[0].second
+            != bench.resources.get_sampler_id(bench.resources.default_sampler()));
 }
 
 TEST_CASE("Renderer: a material with no parameters for a shader that reads"

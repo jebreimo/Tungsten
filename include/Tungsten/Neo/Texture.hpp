@@ -8,6 +8,7 @@
 #pragma once
 #include <cstdint>
 #include "Tungsten/Gl/GlTexture.hpp"
+#include "ResourceRefs.hpp"
 
 namespace Tungsten
 {
@@ -18,6 +19,13 @@ namespace Tungsten
      * the GL texture. width/height/format describe the allocated image so the
      * renderer and material layer can reason about it without round-tripping to
      * the driver.
+     *
+     * Sampling state is deliberately not part of the texture: `sampler` names an
+     * interned SamplerDescriptor, and the renderer binds that sampler object to
+     * the same unit as the texture, which overrides the texture object's own
+     * glTexParameter state entirely. A null `sampler` means the manager's default
+     * sampler (linear, no mipmaps, clamped), so a caller that does not care about
+     * filtering need not say anything.
      */
     struct Texture
     {
@@ -25,5 +33,6 @@ namespace Tungsten
         uint32_t width = 0;
         uint32_t height = 0;
         TextureFormat format = TextureFormat::RGBA;
+        SamplerRef sampler;
     };
 } // Tungsten

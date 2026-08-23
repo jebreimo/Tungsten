@@ -18,12 +18,14 @@ namespace Tungsten
     void SamplerDeleter::operator()(uint32_t id) const
     {
         get_ogl_wrapper().delete_samplers(1, &id);
+        THROW_IF_GL_ERROR();
     }
 
     SamplerHandle generate_sampler()
     {
         uint32_t id;
         get_ogl_wrapper().gen_samplers(1, &id);
+        THROW_IF_GL_ERROR();
         return SamplerHandle(id);
     }
 
@@ -31,6 +33,7 @@ namespace Tungsten
     {
         std::vector<uint32_t> ids(samplers.size());
         get_ogl_wrapper().gen_samplers(static_cast<GLsizei>(ids.size()), ids.data());
+        THROW_IF_GL_ERROR();
         for (size_t i = 0; i < samplers.size(); ++i)
             samplers[i] = SamplerHandle(ids[i]);
     }
@@ -38,12 +41,14 @@ namespace Tungsten
     void bind_sampler(uint32_t unit, uint32_t sampler)
     {
         get_ogl_wrapper().bind_sampler(unit, sampler);
+        THROW_IF_GL_ERROR();
     }
 
     uint32_t bound_sampler(uint32_t unit)
     {
         GLint sampler;
         get_ogl_wrapper().get_integer_i(GL_SAMPLER_BINDING, unit, &sampler);
+        THROW_IF_GL_ERROR();
         return static_cast<uint32_t>(sampler);
     }
 

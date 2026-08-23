@@ -60,6 +60,18 @@ namespace
             live_textures -= n;
         }
 
+        void gen_samplers(GLsizei n, GLuint* samplers) override
+        {
+            for (GLsizei i = 0; i < n; ++i)
+                samplers[i] = next_id_++;
+            live_samplers += n;
+        }
+
+        void delete_samplers(GLsizei n, const GLuint*) override
+        {
+            live_samplers -= n;
+        }
+
         GLuint create_shader(GLenum) override
         {
             return next_id_++;
@@ -125,6 +137,7 @@ namespace
         int live_buffers = 0;
         int live_vertex_arrays = 0;
         int live_textures = 0;
+        int live_samplers = 0;
         int live_programs = 0;
 
     private:
@@ -579,4 +592,70 @@ TEST_CASE("ResourceManager: compiling a variant with samplers announces the"
     const auto after_compile = gl_state_epoch();
     manager.register_shader_variant({1, 0});
     REQUIRE(gl_state_epoch() == after_compile);
+}
+
+TEST_CASE("ResourceManager: equal sampler descriptors are interned")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+
+    constexpr SamplerDescriptor clamped{
+        .mip_filter = SamplerMipFilter::NONE,
+        .address_mode_u = SamplerAddressMode::CLAMP_TO_EDGE,
+        .address_mode_v = SamplerAddressMode::CLAMP_TO_EDGE
+    };
+
+    const auto first = manager.register_sampler(clamped);
+    REQUIRE(session.gl->live_samplers == 1);
+
+    // An equal descriptor is the same sampler, not a second GL object.
+    const auto again = manager.register_sampler(clamped);
+    REQUIRE(again == first);
+    REQUIRE(manager.get_sampler_id(again) == manager.get_sampler_id(first));
+    REQUIRE(session.gl->live_samplers == 1);
+
+    auto repeating = clamped;
+    repeating.address_mode_u = SamplerAddressMode::REPEAT;
+    const auto other = manager.register_sampler(repeating);
+    REQUIRE_FALSE(other == first);
+    REQUIRE(session.gl->live_samplers == 2);
+}
+
+TEST_CASE("ResourceManager: a null sampler ref resolves to the default sampler")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+
+    // Nothing is created until a sampler is actually asked for.
+    REQUIRE(session.gl->live_samplers == 0);
+
+    const auto id = manager.get_sampler_id({});
+    REQUIRE(id != 0);
+    REQUIRE(session.gl->live_samplers == 1);
+    // The default is interned like any other, so resolving it again is free.
+    REQUIRE(manager.get_sampler_id({}) == id);
+    REQUIRE(manager.get_sampler_id(manager.default_sampler()) == id);
+    REQUIRE(session.gl->live_samplers == 1);
+}
+
+TEST_CASE("ResourceManager: the default sampler expects no mipmaps")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+
+    // A single-level texture — the renderer's white dummy among them — would be
+    // incomplete if the default asked for mipmaps, which SamplerDescriptor's
+    // own defaults do.
+    const auto& descriptor = manager.get_sampler_descriptor(manager.default_sampler());
+    REQUIRE(descriptor.mip_filter == SamplerMipFilter::NONE);
+}
+
+TEST_CASE("ResourceManager: a garbage sampler ref throws")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+
+    manager.register_sampler({});
+    REQUIRE_THROWS_AS(manager.get_sampler_id({99, 1}), TungstenException);
+    REQUIRE_THROWS_AS(manager.get_sampler_descriptor({0, 99}), TungstenException);
 }

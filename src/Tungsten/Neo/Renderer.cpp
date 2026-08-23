@@ -74,13 +74,9 @@ namespace Tungsten
         constexpr uint8_t white[4] = {0xFF, 0xFF, 0xFF, 0xFF};
         set_texture_image_2d(TextureTarget2D::TEXTURE_2D, 0, {1, 1},
                              RGBA_TEXTURE, white);
-        // The default min filter expects mipmaps; without this the lone
-        // level-0 image would leave the texture incomplete.
-        set_texture_parameters(TextureTarget::TEXTURE_2D,
-                               {
-                                   .mag_filter = SamplerMinMagFilter::NEAREST,
-                                   .mip_filter = SamplerMipFilter::NONE
-                               });
+        // No texture parameters here: a sampler object is bound to every unit
+        // this texture can land on, which overrides them. The default sampler's
+        // mip_filter is what keeps this lone level-0 image complete.
     }
 
     void Renderer::render(const RenderSnapshot& snapshot)
@@ -89,6 +85,10 @@ namespace Tungsten
         // Forget the previous frame's material: its slot may have been
         // destroyed and reused between frames.
         current_material_ = {};
+
+        // Resolved here rather than in the constructor: it creates a GL sampler
+        // on first use, and the constructor may run before a context is current.
+        default_sampler_id_ = resources_.get_sampler_id({});
 
         // Both passes are sorted up front so every item's per-draw block can
         // go up in one upload; an item's index in sorted_ is its slot in the
@@ -242,9 +242,16 @@ namespace Tungsten
 
         for (size_t i = 0; i < material.textures.size(); ++i)
         {
-            state_.bind_texture(
-                static_cast<int32_t>(i),
-                resources_.get_texture(material.textures[i]).gl_handle.id());
+            const auto unit = static_cast<uint32_t>(i);
+            const Texture& texture =
+                resources_.get_texture(material.textures[i]);
+            state_.bind_texture(static_cast<int32_t>(unit),
+                                texture.gl_handle.id());
+            // Every unit gets an explicit sampler. Leaving one unbound would
+            // sample through whatever another subsystem last left on it — Neo
+            // shares its context with TextRenderer and the legacy examples.
+            state_.bind_sampler(unit,
+                                resources_.get_sampler_id(texture.sampler));
         }
 
         // The program samples units [0, sampler_count) whether or not the
@@ -253,6 +260,7 @@ namespace Tungsten
              i < shader.sampler_count; ++i)
         {
             state_.bind_texture(static_cast<int32_t>(i), white_texture_.id());
+            state_.bind_sampler(i, default_sampler_id_);
         }
 
         current_material_ = ref;

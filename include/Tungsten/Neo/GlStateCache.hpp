@@ -64,6 +64,20 @@ namespace Tungsten
         void bind_texture(int32_t unit, uint32_t texture_id);
 
         /**
+         * Binds a sampler object to the given texture unit, overriding the
+         * sampling state of whatever texture is bound there.
+         *
+         * Unlike bind_texture this issues no activate_texture_unit:
+         * glBindSampler names its unit explicitly and does not go through the
+         * active-texture selector.
+         *
+         * @param unit The texture unit to bind to, e.g. 0 for GL_TEXTURE0.
+         * @param sampler_id The GL id of the sampler, or 0 to fall back to the
+         *      bound texture's own parameters.
+         */
+        void bind_sampler(uint32_t unit, uint32_t sampler_id);
+
+        /**
          * Binds a material's own parameter buffer to the per-material binding
          * point. This is the bind a sort-key-batched draw list repeats most,
          * so it is the one the cache exists to elide: consecutive items
@@ -96,6 +110,10 @@ namespace Tungsten
          * Maps texture units to the currently bound texture id.
          */
         std::unordered_map<int32_t, uint32_t> bound_textures_;
+        /**
+         * Maps texture units to the currently bound sampler id.
+         */
+        std::unordered_map<uint32_t, uint32_t> bound_samplers_;
         uint64_t epoch_seen_ = gl_state_epoch();
     };
 } // Tungsten

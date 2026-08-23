@@ -39,6 +39,8 @@ namespace Tungsten
         float min_lod = -1000.f;
         float max_lod = 1000.f;
         SamplerCompareFunction compare_function = SamplerCompareFunction::NONE;
+
+        bool operator==(const SamplerDescriptor&) const = default;
     };
 
     void set_sampler_parameters(uint32_t sampler, const SamplerDescriptor& descriptor);

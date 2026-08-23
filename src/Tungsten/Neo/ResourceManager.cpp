@@ -111,6 +111,27 @@ namespace Tungsten
         return layout_registry_.get_layout(ref);
     }
 
+    SamplerRef ResourceManager::register_sampler(const SamplerDescriptor& descriptor)
+    {
+        return sampler_registry_.register_sampler(descriptor);
+    }
+
+    uint32_t ResourceManager::get_sampler_id(SamplerRef ref)
+    {
+        return sampler_registry_.get_sampler_id(ref);
+    }
+
+    const SamplerDescriptor&
+    ResourceManager::get_sampler_descriptor(SamplerRef ref) const
+    {
+        return sampler_registry_.get_descriptor(ref);
+    }
+
+    SamplerRef ResourceManager::default_sampler()
+    {
+        return sampler_registry_.default_sampler();
+    }
+
     MeshRef ResourceManager::create_mesh(Mesh mesh)
     {
         return meshes_.insert(std::move(mesh));

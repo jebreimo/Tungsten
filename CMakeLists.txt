@@ -117,6 +117,7 @@ add_library(Tungsten STATIC
     include/Tungsten/Neo/ResourceManager.hpp
     include/Tungsten/Neo/ResourceRef.hpp
     include/Tungsten/Neo/ResourceRefs.hpp
+    include/Tungsten/Neo/SamplerRegistry.hpp
     include/Tungsten/Neo/Scene.hpp
     include/Tungsten/Neo/ShaderFamily.hpp
     include/Tungsten/Neo/ShaderLibrary.hpp
@@ -185,6 +186,7 @@ add_library(Tungsten STATIC
     src/Tungsten/Neo/LightData.cpp
     src/Tungsten/Neo/RenderItem.cpp
     src/Tungsten/Neo/Renderer.cpp
+    src/Tungsten/Neo/SamplerRegistry.cpp
     src/Tungsten/Neo/ResourceManager.cpp
     src/Tungsten/Neo/Scene.cpp
     src/Tungsten/Neo/ShaderLibrary.cpp

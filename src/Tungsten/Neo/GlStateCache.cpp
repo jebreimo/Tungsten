@@ -61,6 +61,17 @@ namespace Tungsten
         bound_textures_[unit] = texture_id;
     }
 
+    void GlStateCache::bind_sampler(uint32_t unit, uint32_t sampler_id)
+    {
+        sync();
+        const auto it = bound_samplers_.find(unit);
+        if (it != bound_samplers_.end() && it->second == sampler_id)
+            return;
+        // Qualified to call the free wrapper, not this method.
+        Tungsten::bind_sampler(unit, sampler_id);
+        bound_samplers_[unit] = sampler_id;
+    }
+
     void GlStateCache::bind_material_ubo(uint32_t buffer_id)
     {
         sync();
@@ -77,6 +88,7 @@ namespace Tungsten
         current_vao_.reset();
         current_material_ubo_.reset();
         bound_textures_.clear();
+        bound_samplers_.clear();
         epoch_seen_ = gl_state_epoch();
     }
 

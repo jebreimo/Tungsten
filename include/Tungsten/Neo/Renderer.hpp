@@ -107,5 +107,10 @@ namespace Tungsten
          */
         size_t per_draw_stride_ = 0;
         MaterialRef current_material_;
+        /**
+         * The sampler bound to units the current material leaves unfilled.
+         * Re-resolved at the start of each frame.
+         */
+        uint32_t default_sampler_id_ = 0;
     };
 } // Tungsten

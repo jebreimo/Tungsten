@@ -93,6 +93,7 @@ that are **not** available there, and what we do instead:
 | SSBO + `gl_DrawID` per-draw indexing | Absent (GLES 3.1+) | Per-draw data via a per-draw uniform, or an **instanced vertex attribute** (`vertexAttribDivisor`, which *is* in GLES 3.0). |
 | Multi-draw indirect | Absent | One draw call per `RenderItem`; rely on sort-key batching to minimize state changes. |
 | UBOs | **Available** | Used for per-frame and per-material data (see §4). |
+| Sampler objects | **Available** (GLES 3.0) | Sampling state lives in interned sampler objects, not in texture parameters (§12.1). This does mean Neo requires an ES 3.0 / desktop context — never `ES_2` / `WEBGL_1`. |
 | 32-bit indices | Available in WebGL2 | `IndexType` allows `UNSIGNED_SHORT` or `UNSIGNED_INT`; prefer short where the mesh fits. |
 
 Two repo rules reinforced in the design:
@@ -146,6 +147,15 @@ renderer binds `Material::textures[i]` to unit *i*, so the two orders meet in th
 Units the program samples but the material leaves unfilled get the renderer's 1×1 white
 dummy texture: a sampler must always see a complete texture (macOS's GL driver warns
 otherwise), and white is the multiplicative identity if the shader reads it anyway.
+
+**Every unit also gets a sampler object.** How a texture is filtered and wrapped is not
+state baked into the GL texture object; it is a `SamplerDescriptor` interned in the
+`SamplerRegistry` (§12.1) and named by `Texture::sampler`. The renderer binds that
+sampler to the same unit as its texture, which overrides the texture object's own
+parameters entirely. Binding one to *every* unit in `[0, sampler_count)` — the default
+sampler for the units the material leaves unfilled — is deliberate: a unit left without
+a sampler samples through whatever another subsystem last bound there, and Neo shares
+its context with `TextRenderer` and the legacy examples.
 
 ## 5. Double-buffering
 
@@ -375,6 +385,27 @@ Everything downstream holds the ref, never a layout value: `Mesh::layout`,
 `VertexLayoutRef`s. Besides avoiding deep copies of interned data, this makes the load-time
 layout validation in §13 a single ref comparison — interning guarantees equal layouts share a
 ref.
+
+### 12.1 Sampler interning — the `SamplerRegistry`
+
+Sampler descriptors are interned on exactly the same basis as layouts, and for the same
+reasons: the set an application uses is small and bounded, and a sampler is never
+individually freed, so the registry is a plain interning vector — no free-list, no
+generations, no deletion path — and `SamplerRef` carries a fixed generation.
+
+The one difference from `LayoutRegistry` is that a sampler *does* own a GL object, so
+each entry keeps its `SamplerHandle` and the set is deleted when the registry dies.
+Nothing is ever retired into the `DeletionQueue` (§11), because nothing is ever taken out
+of service while frames are in flight. Creating and configuring a sampler object also
+disturbs no binding state, so — unlike VAO baking (§13) — it must *not*
+`notify_gl_state_changed()`.
+
+A null `SamplerRef` resolves to a **default sampler**: linear, clamped, and explicitly
+`mip_filter = NONE`, so a caller who does not care about filtering need say nothing and
+a single-level texture stays complete. `SamplerDescriptor`'s own defaults ask for
+mipmaps, which is why the default is spelled out rather than left implicit. It is
+interned on first use, not in a constructor — `ResourceManager` issues no GL calls while
+being constructed and must stay constructible before a context exists.
 
 ## 13. Attribute-location convention and the `VaoCache`
 

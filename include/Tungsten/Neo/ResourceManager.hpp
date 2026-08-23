@@ -13,6 +13,7 @@
 #include "DeletionQueue.hpp"
 #include "GenerationalPool.hpp"
 #include "LayoutRegistry.hpp"
+#include "SamplerRegistry.hpp"
 #include "Material.hpp"
 #include "Mesh.hpp"
 #include "ResourceRefs.hpp"
@@ -89,6 +90,32 @@ namespace Tungsten
 
         [[nodiscard]]
         const VertexLayout& get_layout(VertexLayoutRef ref) const;
+
+        /**
+         * Interns a sampler descriptor, creating its GL sampler object the
+         * first time that descriptor is seen. Put the returned ref on a Texture
+         * to say how it is sampled.
+         */
+        SamplerRef register_sampler(const SamplerDescriptor& descriptor);
+
+        /**
+         * The GL id the renderer binds for a sampler ref. A null ref resolves
+         * to the default sampler.
+         */
+        [[nodiscard]]
+        uint32_t get_sampler_id(SamplerRef ref);
+
+        /**
+         * Resolves a sampler ref to the descriptor it was interned from.
+         */
+        [[nodiscard]]
+        const SamplerDescriptor& get_sampler_descriptor(SamplerRef ref) const;
+
+        /**
+         * The sampler a texture with a null ref is drawn with. Created on first
+         * use, so this must not be called before a GL context exists.
+         */
+        SamplerRef default_sampler();
 
         MeshRef create_mesh(Mesh mesh);
 
@@ -182,6 +209,7 @@ namespace Tungsten
         GenerationalPool<ShaderProgram> shaders_;
         GenerationalPool<Texture> textures_;
         LayoutRegistry layout_registry_;
+        SamplerRegistry sampler_registry_;
         DeletionQueue deletions_;
         VaoCache vao_cache_;
         ShaderLibrary shader_library_;

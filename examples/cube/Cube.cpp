@@ -57,14 +57,6 @@ namespace
             Tungsten::get_ogl_pixel_type(image.pixel_type()),
             image.data());
 
-        Tungsten::set_texture_parameters(
-            Tungsten::TextureTarget::TEXTURE_2D,
-            {
-                .mip_filter = Tungsten::SamplerMipFilter::NONE,
-                .address_mode_u = Tungsten::SamplerAddressMode::CLAMP_TO_EDGE,
-                .address_mode_v = Tungsten::SamplerAddressMode::CLAMP_TO_EDGE
-            });
-
         return handle;
     }
 
@@ -219,6 +211,15 @@ namespace
             texture.width = image.width();
             texture.height = image.height();
             texture.format = Tungsten::TextureFormat::RGBA;
+            // How the texture is sampled is a property of the Texture resource,
+            // not state baked into the GL object: the renderer binds this
+            // sampler to the unit the texture lands on.
+            texture.sampler = resources_.register_sampler(
+                {
+                    .mip_filter = Tungsten::SamplerMipFilter::NONE,
+                    .address_mode_u = Tungsten::SamplerAddressMode::CLAMP_TO_EDGE,
+                    .address_mode_v = Tungsten::SamplerAddressMode::CLAMP_TO_EDGE
+                });
             return resources_.create_texture(std::move(texture));
         }
 

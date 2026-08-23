@@ -22,4 +22,6 @@ namespace Tungsten
     using BufferArenaRef = ResourceRef<BufferArena>;
     struct VertexLayout;
     using VertexLayoutRef = ResourceRef<VertexLayout>;
+    struct SamplerDescriptor;
+    using SamplerRef = ResourceRef<SamplerDescriptor>;
 }
