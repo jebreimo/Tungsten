@@ -24,6 +24,7 @@ add_executable(TungstenTest
     test_SdlApplication.cpp
     test_SceneGraph.cpp
     test_SnapshotBuilder.cpp
+    test_TextSystem.cpp
     test_TextUtilities.cpp
     text_Font.cpp
 )

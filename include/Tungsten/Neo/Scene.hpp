@@ -19,6 +19,7 @@
 #include "NodeId.hpp"
 #include "RenderSnapshot.hpp"
 #include "RenderableComponent.hpp"
+#include "TextComponent.hpp"
 #include "Transform.hpp"
 
 namespace Tungsten
@@ -32,7 +33,8 @@ namespace Tungsten
     template <typename T>
     concept ComponentType = std::same_as<T, RenderableComponent>
                             || std::same_as<T, LightComponent>
-                            || std::same_as<T, CameraComponent>;
+                            || std::same_as<T, CameraComponent>
+                            || std::same_as<T, TextComponent>;
 
     // One kind's components and the nodes they belong to, in lockstep:
     // owners[i] is the node that items[i] is attached to. Neither order is
@@ -280,6 +282,19 @@ namespace Tungsten
                 ->component_store(static_cast<T*>(nullptr));
         }
 
+        /**
+         * The same store, writable, for the systems that sweep a kind and put
+         * derived state back into it — TextSystem, which compiles every
+         * TextComponent into a mesh and records what it built in the component.
+         * Extraction passes take the const overload instead.
+         */
+        template <ComponentType T>
+        [[nodiscard]]
+        ComponentStore<T>& components()
+        {
+            return component_store(static_cast<T*>(nullptr));
+        }
+
         [[nodiscard]]
         DoubleBuffer<RenderSnapshot>& snapshots();
 
@@ -328,6 +343,11 @@ namespace Tungsten
         ComponentStore<CameraComponent>& component_store(CameraComponent*)
         {
             return cameras_;
+        }
+
+        ComponentStore<TextComponent>& component_store(TextComponent*)
+        {
+            return texts_;
         }
 
         /**
@@ -386,6 +406,7 @@ namespace Tungsten
         ComponentStore<RenderableComponent> renderables_;
         ComponentStore<LightComponent> lights_;
         ComponentStore<CameraComponent> cameras_;
+        ComponentStore<TextComponent> texts_;
 
         DoubleBuffer<RenderSnapshot> snapshots_;
     };

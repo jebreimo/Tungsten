@@ -28,6 +28,19 @@ namespace Tungsten
         return layout;
     }
 
+    VertexLayout text_vertex_layout()
+    {
+        VertexLayout layout;
+        layout.attributes = {
+            {AttributeSemantic::POSITION, 0,
+             VertexAttributeDataType::FLOAT, 2, false, 0},
+            {AttributeSemantic::TEX_COORD_0, 0,
+             VertexAttributeDataType::FLOAT, 2, false, 8},
+        };
+        layout.stride = 16;
+        return layout;
+    }
+
     void register_builtin_shader_families(ResourceManager& resources)
     {
         ShaderFamily blinn_phong;

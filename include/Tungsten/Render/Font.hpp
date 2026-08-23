@@ -6,6 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include <cstdint>
 #include <string>
 #include <Xyz/Rectangle.hpp>
 #include <Yimage/Image.hpp>
@@ -14,6 +15,40 @@
 
 namespace Tungsten
 {
+    /**
+     * Which point of a text's bounding rectangle sits at the origin it is
+     * placed on: the left edge, the middle, or the right edge.
+     */
+    enum class HorizontalAnchor : uint8_t
+    {
+        LEFT,
+        CENTER,
+        RIGHT
+    };
+
+    /**
+     * Which point of a text's bounding rectangle sits at the origin it is
+     * placed on, vertically. BASELINE anchors the first line's baseline
+     * rather than an edge of the rectangle.
+     */
+    enum class VerticalAnchor : uint8_t
+    {
+        TOP,
+        CENTER,
+        BOTTOM,
+        BASELINE
+    };
+
+    /**
+     * How the lines of a multi-line text line up with each other.
+     */
+    enum class HorizontalAlignment : uint8_t
+    {
+        LEFT,
+        CENTER,
+        RIGHT
+    };
+
     struct Glyph
     {
         Xyz::RectangleF tex_rect;

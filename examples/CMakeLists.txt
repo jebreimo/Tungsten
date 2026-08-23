@@ -6,6 +6,7 @@
 # License text is included with the source distribution.
 # ===========================================================================
 add_subdirectory(cube)
+add_subdirectory(neo_table)
 add_subdirectory(scene_graph)
 add_subdirectory(show_text)
 add_subdirectory(fading_blob)

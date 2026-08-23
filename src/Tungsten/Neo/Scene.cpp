@@ -87,6 +87,10 @@ namespace Tungsten
         drop_orphaned_components(renderables_);
         drop_orphaned_components(lights_);
         drop_orphaned_components(cameras_);
+        // A text component's mesh is not freed here: TextSystem
+        // reclaims it on its next sweep, when no live component
+        // claims the entry any more.
+        drop_orphaned_components(texts_);
 
         hierarchy_dirty_ = true;
     }

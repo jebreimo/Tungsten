@@ -125,6 +125,9 @@ add_library(Tungsten STATIC
     include/Tungsten/Neo/ShaderVariantKey.hpp
     include/Tungsten/Neo/SharedBuffer.hpp
     include/Tungsten/Neo/SnapshotBuilder.hpp
+    include/Tungsten/Neo/TextComponent.hpp
+    include/Tungsten/Neo/TextStyle.hpp
+    include/Tungsten/Neo/TextSystem.hpp
     include/Tungsten/Neo/Texture.hpp
     include/Tungsten/Neo/Transform.hpp
     include/Tungsten/Neo/VaoCache.hpp
@@ -192,6 +195,7 @@ add_library(Tungsten STATIC
     src/Tungsten/Neo/ShaderLibrary.cpp
     src/Tungsten/Neo/Shaders/BuiltinShaderSources.hpp
     src/Tungsten/Neo/SnapshotBuilder.cpp
+    src/Tungsten/Neo/TextSystem.cpp
     src/Tungsten/Neo/UboBindings.hpp
     src/Tungsten/Neo/VaoCache.cpp
     src/Tungsten/Render/Camera.cpp

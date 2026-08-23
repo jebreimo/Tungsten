@@ -35,5 +35,8 @@
 #include "Tungsten/Neo/ResourceManager.hpp"
 #include "Tungsten/Neo/Scene.hpp"
 #include "Tungsten/Neo/SnapshotBuilder.hpp"
+#include "Tungsten/Neo/TextComponent.hpp"
+#include "Tungsten/Neo/TextStyle.hpp"
+#include "Tungsten/Neo/TextSystem.hpp"
 #include "TungstenException.hpp"
 #include "YimageGl.hpp"

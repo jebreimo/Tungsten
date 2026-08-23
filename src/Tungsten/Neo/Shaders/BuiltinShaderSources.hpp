@@ -12,4 +12,6 @@ namespace Tungsten
 {
     extern const std::string BLINN_PHONG_VERTEX;
     extern const std::string BLINN_PHONG_FRAGMENT;
+    extern const std::string TEXT_VERTEX;
+    extern const std::string TEXT_FRAGMENT;
 }

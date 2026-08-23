@@ -13,28 +13,6 @@
 
 namespace Tungsten
 {
-    enum class HorizontalAnchor : uint8_t
-    {
-        LEFT,
-        CENTER,
-        RIGHT
-    };
-
-    enum class VerticalAnchor : uint8_t
-    {
-        TOP,
-        CENTER,
-        BOTTOM,
-        BASELINE
-    };
-
-    enum class HorizontalAlignment : uint8_t
-    {
-        LEFT,
-        CENTER,
-        RIGHT
-    };
-
     struct TextStyleData
     {
         std::shared_ptr<Font> font;
