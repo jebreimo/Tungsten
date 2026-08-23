@@ -76,7 +76,7 @@ namespace
     class Cube : public Tungsten::EventLoop
     {
     public:
-        Cube(Tungsten::SdlApplication& app)
+        explicit Cube(Tungsten::SdlApplication& app)
             : EventLoop(app),
               renderer_(resources_)
         {
@@ -120,15 +120,6 @@ namespace
 
             std::cout << Tungsten::get_device_info() << '\n';
             Tungsten::set_swap_interval(app, Tungsten::SwapInterval::VSYNC);
-        }
-
-        bool on_event(const SDL_Event& event) override
-        {
-            if (event.type == SDL_EVENT_WINDOW_RESIZED)
-            {
-                return true;
-            }
-            return false;
         }
 
         void on_update() override
@@ -263,34 +254,14 @@ namespace
         uint64_t frame_ = 0;
         uint64_t start_ticks_ = SDL_GetTicks();
     };
-
-    argos::ParsedArguments parse_arguments(int argc, char* argv[])
-    {
-        using namespace argos;
-        ArgumentParser parser;
-        parser
-            .add(Opt("-s", "--shader")
-                .argument("name")
-                .help("Name of the shader program to use. Available shaders are"
-                    " listed below, default is SMOOTH."))
-            .add(Opt("-w", "--wireframe")
-                .help("Show the cube in wireframe mode."))
-            .text(TextId::FINAL_TEXT,
-                  "Available shaders:\n"
-                  "  SMOOTH\n"
-                  "  BLINN_PHONG\n");
-        Tungsten::SdlApplication::add_command_line_options(parser);
-        return parser.parse(argc, argv);
-    }
 }
 
 int main(int argc, char** argv)
 {
     try
     {
-        const auto args = parse_arguments(argc, argv);
         Tungsten::SdlApplication app("TexturedCube");
-        app.read_command_line_options(args);
+        app.parse_command_line_options(argc, argv);
         Tungsten::set_ogl_tracing_enabled(true);
         app.run<Cube>();
     }
