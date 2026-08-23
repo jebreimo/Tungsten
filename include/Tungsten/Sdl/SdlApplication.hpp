@@ -6,8 +6,10 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include <cstddef>
 #include <iosfwd>
 #include <memory>
+#include <span>
 #include "EventLoop.hpp"
 #include "SdlSession.hpp"
 #include "../Viewport.hpp"
@@ -102,6 +104,56 @@ namespace Tungsten
 
         [[nodiscard]] Viewport viewport() const;
 
+        /**
+         * @brief Adds an event loop on top of the stack.
+         *
+         * The application holds a stack of event loops rather than a single
+         * one, so a scene, a text overlay and a set of UI controls can each be
+         * their own loop over one window. The stack runs bottom to top:
+         *
+         * - **Events** go to the *top* loop first and stop at the first one
+         *   whose on_event returns true. An overlay that handles a click
+         *   therefore keeps it from reaching the scene beneath it.
+         * - **on_update and on_draw** run bottom to top, so upper loops draw
+         *   over lower ones.
+         * - **Redrawing is all-or-nothing**: one loop asking for a redraw
+         *   redraws them all, because they share one framebuffer and one
+         *   buffer swap.
+         *
+         * The bottom loop is normally the one run() constructed. Because the
+         * loops share a framebuffer, clearing is the bottom loop's job — an
+         * upper loop that clears the colour buffer erases what is beneath it.
+         *
+         * The application does not take ownership: @a event_loop must outlive
+         * the run, or be removed before it is destroyed.
+         *
+         * Pushing the same loop twice is a no-op. A push made from inside a
+         * callback takes effect at the end of that phase — so a loop may add
+         * or remove loops, including itself, without disturbing the traversal
+         * in progress; a push made outside one, such as while setting the
+         * application up before run(), takes effect immediately.
+         */
+        void push_event_loop(EventLoop& event_loop);
+
+        /**
+         * @brief Removes an event loop from the stack.
+         *
+         * Deferred to the end of the phase when called from inside a callback,
+         * immediate otherwise. Removing a loop that is not on the stack does
+         * nothing.
+         */
+        void remove_event_loop(EventLoop& event_loop);
+
+        /**
+         * @brief The event loops, bottom first.
+         */
+        [[nodiscard]] std::span<EventLoop* const> event_loops() const;
+
+        /**
+         * @brief The bottom loop of the stack, or nullptr if there is none.
+         *
+         * This is the loop run() constructed.
+         */
         [[nodiscard]] const EventLoop* event_loop() const;
 
         [[nodiscard]] EventLoop* event_loop();
@@ -137,6 +189,19 @@ namespace Tungsten
         void run_event_loop();
 
         void run_event_loop_step();
+
+        /**
+         * Adds or removes an event loop, queueing the change if a phase is
+         * currently walking the stack.
+         */
+        void modify_event_loops(EventLoop* event_loop, bool add);
+
+        /**
+         * Applies pushes and removals requested during a traversal. Called at
+         * each phase boundary, so no phase ever iterates a stack that is being
+         * modified underneath it.
+         */
+        void apply_pending_event_loops();
 
         [[nodiscard]] SdlSession make_sdl_session();
 

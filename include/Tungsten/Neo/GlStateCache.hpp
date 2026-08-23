@@ -9,30 +9,10 @@
 #include <cstdint>
 #include <optional>
 #include <unordered_map>
+#include "Tungsten/Gl/GlStateEpoch.hpp"
 
 namespace Tungsten
 {
-    /**
-     * Signals that GL binding state has been changed outside a GlStateCache —
-     * by a subsystem that binds directly (VaoCache while baking a VAO,
-     * ShaderLibrary while pointing a new variant's samplers at their units),
-     * or by a context reset. Every cache notices at its next call and forgets
-     * what it believed was bound.
-     *
-     * A free counter rather than a call on a particular cache, because the
-     * code that binds behind the caches' backs lives under ResourceManager and
-     * has no route to a Renderer's cache — and one GL context may have several
-     * caches over it, all of which have to be told. Not thread-safe, which
-     * matches the single-threaded GL context the design assumes.
-     */
-    void notify_gl_state_changed();
-
-    /**
-     * Returns the current value of the counter notify_gl_state_changed() bumps.
-     */
-    [[nodiscard]]
-    uint64_t gl_state_epoch();
-
     /**
      * Elides redundant GL binding calls by remembering what is currently bound
      * and skipping a bind whose target is already current. The Renderer routes

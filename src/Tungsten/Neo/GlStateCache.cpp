@@ -15,21 +15,6 @@
 
 namespace Tungsten
 {
-    namespace
-    {
-        uint64_t g_gl_state_epoch = 0;
-    }
-
-    void notify_gl_state_changed()
-    {
-        ++g_gl_state_epoch;
-    }
-
-    uint64_t gl_state_epoch()
-    {
-        return g_gl_state_epoch;
-    }
-
     void GlStateCache::use_program(uint32_t program_id)
     {
         sync();

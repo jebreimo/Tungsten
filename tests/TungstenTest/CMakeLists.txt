@@ -21,6 +21,7 @@ add_executable(TungstenTest
     test_GlStateCache.cpp
     test_Renderer.cpp
     test_ResourceManager.cpp
+    test_SdlApplication.cpp
     test_SceneGraph.cpp
     test_SnapshotBuilder.cpp
     test_TextUtilities.cpp
