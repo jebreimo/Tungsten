@@ -34,15 +34,16 @@ namespace Tungsten
         constexpr uint16_t VERTEX_STRIDE = uint16_t(sizeof(TextVertex));
         constexpr uint16_t INDEX_STRIDE = uint16_t(sizeof(uint32_t));
 
-        void register_text_family(ResourceManager& resources,
-                                  VertexLayoutRef layout)
+        void register_text_family(ResourceManager& resources)
         {
             ShaderFamily family;
             family.vertex_source = TEXT_VERTEX;
             family.fragment_source = TEXT_FRAGMENT;
             // The atlas is the material's only texture, so it lands on unit 0.
             family.samplers = {"u_text_atlas"};
-            family.required_layout = layout;
+            family.required_attributes =
+                semantic_bit(AttributeSemantic::POSITION)
+                | semantic_bit(AttributeSemantic::TEX_COORD_0);
             resources.register_shader_family(TEXT_FAMILY, std::move(family));
         }
 
@@ -106,7 +107,7 @@ namespace Tungsten
         : resources_(resources)
     {
         layout_ = resources_.register_layout(text_vertex_layout());
-        register_text_family(resources_, layout_);
+        register_text_family(resources_);
         // The family has no feature flags, so there is exactly one variant and
         // it can be resolved once here rather than per material.
         shader_ = resources_.register_shader_variant({TEXT_FAMILY, 0});
@@ -256,33 +257,15 @@ namespace Tungsten
         if (built.slot == TextComponent::BuiltState::NO_SLOT)
             built.slot = acquire_slot();
 
-        if (!built.mesh)
+        // Free the existing mesh.
+        if (built.mesh)
         {
-            Mesh mesh;
-            mesh.layout = layout_;
-            mesh.index_type = ElementIndexType::UINT32;
-            mesh.primitive = TopologyType::TRIANGLES;
-            // Every text mesh draws from the same two arenas with the same
-            // layout, so they all resolve to one cached VAO. Arena growth
-            // re-points it in place, which is why the id can be taken once.
-            const BufferArenaRef vbo_arenas[] = {vertex_arena_};
-            mesh.vao = resources_.get_vao(vbo_arenas, index_arena_, layout_);
-            mesh.streams.push_back({});
-            built.mesh = resources_.create_mesh(std::move(mesh));
-            entries_[built.slot].mesh = built.mesh;
+            Mesh& previous = resources_.get_mesh(built.mesh);
+            resources_.free(previous.streams[0]);
+            resources_.free(previous.ebo);
         }
 
-        Mesh& mesh = resources_.get_mesh(built.mesh);
-
-        // Freed before the new ranges are taken: re-tessellating almost always
-        // changes the size, and holding both at once would need twice the
-        // headroom in the arenas for no benefit.
-        if (mesh.streams[0].arena)
-            resources_.free(mesh.streams[0]);
-        if (mesh.ebo.arena)
-            resources_.free(mesh.ebo);
-
-        mesh.streams[0] = resources_.allocate(
+        const SharedBuffer vertices = resources_.allocate(
             vertex_arena_, static_cast<uint32_t>(vertexes_.size()));
 
         // The layout code numbers a text's vertices from zero; the renderer
@@ -290,15 +273,41 @@ namespace Tungsten
         // arena just put this item's vertices.
         indexes_.reserve(glyph_indexes_.size());
         for (const int32_t index : glyph_indexes_)
-            indexes_.push_back(uint32_t(index) + mesh.streams[0].offset);
+            indexes_.push_back(uint32_t(index) + vertices.offset);
 
-        mesh.ebo = resources_.allocate(
+        const SharedBuffer indices = resources_.allocate(
             index_arena_, static_cast<uint32_t>(indexes_.size()));
 
-        resources_.upload(mesh.streams[0], vertexes_.data(),
+        resources_.upload(vertices, vertexes_.data(),
                           vertexes_.size() * sizeof(TextVertex));
-        resources_.upload(mesh.ebo, indexes_.data(),
+        resources_.upload(indices, indexes_.data(),
                           indexes_.size() * sizeof(uint32_t));
+
+        if (built.mesh)
+        {
+            Mesh& mesh = resources_.get_mesh(built.mesh);
+            mesh.streams[0] = vertices;
+            mesh.ebo = indices;
+        }
+        else
+        {
+            // Created with its slices already in place, so create_mesh can
+            // check the layout against the arenas it will actually be read
+            // from rather than against an empty placeholder stream.
+            Mesh mesh;
+            mesh.layout = layout_;
+            mesh.streams = {vertices};
+            mesh.ebo = indices;
+            mesh.index_type = ElementIndexType::UINT32;
+            mesh.primitive = TopologyType::TRIANGLES;
+            // Every text mesh draws from the same two arenas with the same
+            // layout, so they all resolve to one cached VAO. Arena growth
+            // re-points it in place, which is why the id can be taken once.
+            const BufferArenaRef vbo_arenas[] = {vertex_arena_};
+            mesh.vao = resources_.get_vao(vbo_arenas, index_arena_, layout_);
+            built.mesh = resources_.create_mesh(std::move(mesh));
+            entries_[built.slot].mesh = built.mesh;
+        }
 
         built.bounds = make_bounds(rect, offset);
     }

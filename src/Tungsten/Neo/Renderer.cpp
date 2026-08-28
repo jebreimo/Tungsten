@@ -85,9 +85,10 @@ namespace Tungsten
         // Forget the previous frame's material: its slot may have been
         // destroyed and reused between frames.
         current_material_ = {};
+        current_required_attributes_ = 0;
 
-        // Resolved here rather than in the constructor: it creates a GL sampler
-        // on first use, and the constructor may run before a context is current.
+        // Create a GL sampler on first use, this allows the constructor
+        // to run before a context is current.
         default_sampler_id_ = resources_.get_sampler_id({});
 
         // Both passes are sorted up front so every item's per-draw block can
@@ -205,6 +206,13 @@ namespace Tungsten
             bind_material(item.material());
 
         const Mesh& mesh = resources_.get_mesh(item.mesh());
+
+        if ((mesh.semantics & current_required_attributes_)
+            != current_required_attributes_)
+        {
+            TUNGSTEN_THROW("Renderer: the mesh does not provide every vertex"
+                " attribute its material's shader reads.");
+        }
         state_.bind_vao(mesh.vao);
 
         // The block was uploaded with all the others; point binding 2 at this
@@ -279,6 +287,7 @@ namespace Tungsten
             state_.bind_sampler(i, default_sampler_id_);
         }
 
+        current_required_attributes_ = shader.required_attributes;
         current_material_ = ref;
     }
 } // Tungsten

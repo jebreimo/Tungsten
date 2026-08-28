@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
 #include "Tungsten/Gl/DummyOglWrapper.hpp"
 #include "Tungsten/Neo/CameraComponent.hpp"
 #include "Tungsten/Neo/NodeHandle.hpp"
@@ -272,7 +273,7 @@ namespace
             layout_value.attributes.push_back(
                 {AttributeSemantic::POSITION, 0,
                  VertexAttributeDataType::FLOAT, 3, false, 0});
-            layout_value.stride = 12;
+
             layout = resources.register_layout(layout_value);
 
             vbo_arena = resources.create_arena(BufferUsage::STATIC_DRAW,
@@ -283,7 +284,6 @@ namespace
             ShaderFamily family;
             family.vertex_source = "#version 300 es\nvoid main() {}\n";
             family.fragment_source = "#version 300 es\nvoid main() {}\n";
-            family.required_layout = layout;
             resources.register_shader_family(1, family);
             shader = resources.register_shader_variant({1, 0});
 
@@ -391,7 +391,6 @@ TEST_CASE("Renderer: unfilled sampler units get the white texture")
     family.vertex_source = "#version 300 es\nvoid main() {}\n";
     family.fragment_source = "#version 300 es\nvoid main() {}\n";
     family.samplers = {"u_diffuse_map", "u_specular_map"};
-    family.required_layout = bench.layout;
     bench.resources.register_shader_family(2, family);
 
     Material material_value;
@@ -432,7 +431,6 @@ TEST_CASE("Renderer: a texture is drawn with the sampler it names")
     family.vertex_source = "#version 300 es\nvoid main() {}\n";
     family.fragment_source = "#version 300 es\nvoid main() {}\n";
     family.samplers = {"u_diffuse_map"};
-    family.required_layout = bench.layout;
     bench.resources.register_shader_family(3, family);
 
     const auto sampler = bench.resources.register_sampler(
@@ -660,6 +658,45 @@ TEST_CASE("Renderer: an all-opaque frame keeps depth writes on throughout")
 
     for (const auto& event : session.gl->events)
         REQUIRE(event != "depth_write_off");
+}
+
+TEST_CASE("Renderer: a mesh missing an attribute its shader reads throws")
+{
+    const FakeGlSession session;
+    Bench bench;
+
+    // The bench's layout provides POSITION only; ask its shader for a normal
+    // as well by recompiling the family with a wider requirement.
+    ShaderFamily family;
+    family.vertex_source = "#version 300 es\nvoid main() {}\n";
+    family.fragment_source = "#version 300 es\nvoid main() {}\n";
+    family.required_attributes = semantic_bit(AttributeSemantic::POSITION)
+                                 | semantic_bit(AttributeSemantic::NORMAL);
+    bench.resources.register_shader_family(1, family);
+    const auto shader = bench.resources.register_shader_variant({1, 0});
+
+    Material material_value;
+    material_value.shader = shader;
+    material_value.parameter_data.resize(MATERIAL_BLOB_SIZE);
+    const auto material =
+        bench.resources.create_material(std::move(material_value));
+
+    bench.add_renderable(bench.make_mesh(4, 6), material, -10);
+
+    REQUIRE_THROWS_WITH(
+        bench.build_and_render(*session.gl),
+        Catch::Matchers::ContainsSubstring(
+            "does not provide every vertex attribute"));
+}
+
+TEST_CASE("Renderer: a mesh providing more than its shader reads is fine")
+{
+    const FakeGlSession session;
+    Bench bench;
+    // bench.layout is POSITION only and the family requires nothing, so a
+    // superset draws: only the semantics a shader reads have to be present.
+    bench.add_renderable(bench.make_mesh(4, 6), bench.material, -10);
+    REQUIRE_NOTHROW(bench.build_and_render(*session.gl));
 }
 
 TEST_CASE("Renderer: a mesh without an index buffer uses an array draw")

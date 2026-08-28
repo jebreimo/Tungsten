@@ -245,7 +245,7 @@ namespace ResourceSide {
         +vertex_source: string
         +fragment_source: string
         +features: string[]
-        +required_layout: VertexLayoutRef
+        +required_attributes: AttributeSemanticMask
     }
 
     note for ResourceManager "ResourceManager is a thin facade (design section 10): its public methods forward<br>to five GenerationalPool instances (one each for Mesh, Material, ShaderProgram,<br>Texture, BufferArena) and four collaborators (LayoutRegistry, VaoCache,<br>ShaderLibrary, DeletionQueue). Pools and caches retire GL objects<br>into the one DeletionQueue."
@@ -329,7 +329,7 @@ namespace ResourceSide {
     class ShaderProgram {
         +gl_handle: ProgramHandle
         +variant_key: ShaderVariantKey
-        +required_layout: VertexLayoutRef
+        +required_attributes: AttributeSemanticMask
     }
 
     class Texture {

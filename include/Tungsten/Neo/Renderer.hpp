@@ -13,6 +13,7 @@
 #include "GlStateCache.hpp"
 #include "RenderSnapshot.hpp"
 #include "ResourceRefs.hpp"
+#include "VertexAttribute.hpp"
 
 namespace Tungsten
 {
@@ -107,6 +108,11 @@ namespace Tungsten
          */
         size_t per_draw_stride_ = 0;
         MaterialRef current_material_;
+        /**
+         * The required_attributes of current_material_'s shader, cached so the
+         * per-draw check needs no lookup. Cleared with the material.
+         */
+        AttributeSemanticMask current_required_attributes_ = 0;
         /**
          * The sampler bound to units the current material leaves unfilled.
          * Re-resolved at the start of each frame.

@@ -197,6 +197,13 @@ namespace Tungsten
 
     private:
         /**
+         * Throws unless every attribute of the mesh's layout names a stream the
+         * mesh has and ends within that stream's arena stride. Called by
+         * create_mesh.
+         */
+        void validate_mesh_layout(const Mesh& mesh, const VertexLayout& layout);
+
+        /**
          * Creates the material's UBO if it has none yet and uploads its
          * parameter_data into it. Does nothing for a material with no
          * parameters, which is left without a buffer.

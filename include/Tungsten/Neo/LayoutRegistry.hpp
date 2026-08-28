@@ -37,7 +37,7 @@ namespace Tungsten
         /**
          * Returns the ref for a layout equal to `layout`, interning it first if
          * it has not been seen. Equality is VertexLayout's defaulted operator==
-         * (deep-comparing attributes and stride).
+         * (deep-comparing the attributes).
          */
         VertexLayoutRef register_layout(const VertexLayout& layout);
 

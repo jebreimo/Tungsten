@@ -28,7 +28,8 @@ namespace Tungsten
               {
                   return shaders_.insert(std::move(program));
               })
-    {}
+    {
+    }
 
     BufferArenaRef ResourceManager::create_arena(BufferUsage usage,
                                                  uint16_t stride,
@@ -134,7 +135,44 @@ namespace Tungsten
 
     MeshRef ResourceManager::create_mesh(Mesh mesh)
     {
+        if (mesh.layout)
+        {
+            const VertexLayout& layout = get_layout(mesh.layout);
+            validate_mesh_layout(mesh, layout);
+            mesh.semantics = layout.semantics();
+        }
         return meshes_.insert(std::move(mesh));
+    }
+
+    void ResourceManager::validate_mesh_layout(const Mesh& mesh,
+                                               const VertexLayout& layout)
+    {
+        for (const VertexAttribute& attribute : layout.attributes)
+        {
+            if (attribute.stream_index >= mesh.streams.size())
+            {
+                TUNGSTEN_THROW(
+                    "ResourceManager: the mesh's layout reads a vertex stream"
+                    " the mesh does not have.");
+            }
+
+            const SharedBuffer& stream = mesh.streams[attribute.stream_index];
+            // A caller may create the mesh and fill its slices afterwards.
+            if (!stream.arena)
+                continue;
+
+            // Make sure the attribute's end offset isn't greater than the
+            // stream buffer's stride.
+            const auto stride = size_t(get_arena(stream.arena).stride());
+            const auto end = size_t(attribute.offset_in_stream)
+                             + byte_size(attribute);
+            if (end > stride)
+            {
+                TUNGSTEN_THROW(
+                    "ResourceManager: a vertex attribute extends past the end"
+                    " of its stream's vertex.");
+            }
+        }
     }
 
     Mesh& ResourceManager::get_mesh(MeshRef ref)

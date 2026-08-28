@@ -202,9 +202,10 @@ where a GL call needs one.
 **A `Mesh`'s vertex streams are plain `SharedBuffer`s.** Because the arena allocates
 in vertex units, a slice's `offset` *is* the base vertex and its `count` *is* the
 vertex count; the same holds for the `ebo` slice's first index and index count. A
-per-stream stride field would only duplicate the arena's `stride()`, the single
-authority on a stream's byte pitch (§13). So `Mesh` is just
-`{ vao, streams, layout, ebo, index_type, primitive }`.
+stride field would only duplicate the arena's `stride()`, the single authority on a
+stream's byte pitch (§13) — which is why neither `Mesh` nor `VertexLayout` carries
+one. So `Mesh` is `{ vao, streams, layout, semantics, ebo, index_type, primitive }`,
+where `semantics` is the layout's semantic set folded once at creation (§12).
 
 Resolving `arena` → `BufferArena` → `BufferHandle` goes through
 `ResourceManager::get_arena`, at VAO build time and at allocate / upload / free time
@@ -367,8 +368,8 @@ one). This subsumes the sketch's `retired_buffers_`. The facade's `begin_frame` 
 collaborator is the mechanism, reached through the facade's `register_layout` / `get_layout`.
 
 - `register_layout(const VertexLayout&) -> VertexLayoutRef` scans the intern table for a value
-  equal to the argument (`VertexLayout::operator==` is defaulted, deep-comparing attributes and
-  stride) and returns the existing ref if found, otherwise appends and returns a new one.
+  equal to the argument (`VertexLayout::operator==` is defaulted, deep-comparing the
+  attributes) and returns the existing ref if found, otherwise appends and returns a new one.
 - `get_layout(VertexLayoutRef) -> const VertexLayout&` resolves a ref for VAO building.
 
 **Layouts are never individually freed**, so the registry is a plain interning vector, *not* a
@@ -380,11 +381,17 @@ of the `VaoCache` key (§13) and be embedded in a `RenderItem`'s sort key withou
 concerns. Consequently a layout ref's `generation` is a constant; only the index carries
 information.
 
-Everything downstream holds the ref, never a layout value: `Mesh::layout`,
-`ShaderProgram::required_layout`, and `ShaderFamily::required_layout` are all
-`VertexLayoutRef`s. Besides avoiding deep copies of interned data, this makes the load-time
-layout validation in §13 a single ref comparison — interning guarantees equal layouts share a
-ref.
+Everything downstream holds the ref, never a layout value — but only the *mesh* side does:
+`Mesh::layout` is a `VertexLayoutRef`, while a shader holds no layout at all.
+
+**A shader constrains semantics, not packing.** It cannot observe which stream an attribute
+comes from or at what offset, so requiring a particular `VertexLayout` would reject meshes it
+can draw perfectly well — position/normal/uv interleaved in one stream and the same three with
+the uv in a stream of its own are different layouts and the same shader input. So
+`ShaderFamily::required_attributes` and `ShaderProgram::required_attributes` are an
+`AttributeSemanticMask`, one bit per `AttributeSemantic`, and `VertexLayout::semantics()`
+projects a layout down to that set. `ResourceManager::create_mesh` folds it onto the mesh once,
+so the check in §13 stays a mask test rather than a lookup.
 
 ### 12.1 Sampler interning — the `SamplerRegistry`
 
@@ -426,10 +433,16 @@ attribute_location(semantic) = static_cast<uint32_t>(semantic)
 
 i.e. the `AttributeSemantic` enum order *is* the location table (`POSITION = 0`, `NORMAL = 1`,
 …). This is the vertex-attribute analogue of the fixed UBO binding points in §4: every shader
-declares `layout(location = N) in …` to match, and the renderer never remaps. `ShaderProgram::
-required_layout` exists to **validate** this at load (catch a shader whose declared inputs
-disagree with the mesh format), not to relocate attributes — and since it is a
-`VertexLayoutRef` (§12), the check is a ref comparison against the mesh's `layout`.
+declares `layout(location = N) in …` to match, and the renderer never remaps.
+
+Two checks guard the convention, neither of which relocates anything. `create_mesh` validates
+a mesh against the arenas it will be read from: every attribute must name a stream the mesh
+has and must end within that stream's arena stride, so an attribute overrunning its vertex is
+caught where the layout and the arenas are both known. Then `Renderer::draw_item` tests the
+mesh's `semantics` against its shader's `required_attributes` (§12) — a mask test, both sides
+folded ahead of time — so a mesh missing something its shader reads throws instead of drawing
+from an attribute that was never enabled. Only presence is checked: GL defaults the components
+an attribute does not supply, so a missing semantic is the error that actually bites.
 
 **`build_vao(key)` bakes, per the resolved layout:**
 
@@ -437,9 +450,9 @@ disagree with the mesh format), not to relocate attributes — and since it is a
    buffer to `GL_ARRAY_BUFFER`, then for every `VertexAttribute` with `stream_index == i`
    call `define_vertex_attribute_pointer(attribute_location(semantic), component_count,
    data_type, stride, offset_in_stream, normalized)` and enable it. **The per-vertex stride is
-   the arena's `stride()`**, not `layout.stride`: the one-arena-per-stride rule (§7) makes the
-   arena the single authority on a stream's byte pitch, and it is the value available at build
-   time (the cache key holds arena refs, not streams).
+   the arena's `stride()`**: the one-arena-per-stride rule (§7) makes the arena the single
+   authority on a stream's byte pitch — which is why a layout records no stride of its own —
+   and it is the value available at build time (the cache key holds arena refs, not streams).
 2. Bind the element buffer: `bind_buffer(ELEMENT_ARRAY_BUFFER, get_arena(ebo_arena).
    buffer_id())`. This binding *is* VAO state, which is exactly why the VAO is specific to one
    EBO arena.
@@ -473,8 +486,8 @@ programs bounded even though real shaders have many feature permutations (skinni
 normal-mapping, alpha-clip, …).
 
 - A **shader family** is a named GLSL source pair (vertex + fragment) plus the ordered list of
-  feature flags it understands and the interned layout ref (§12) its attributes expect.
-  `register_shader_family(ShaderFamilyId, sources, features, required_layout)` records one; the
+  feature flags it understands and the set of semantics its attributes read (§12).
+  `register_shader_family(ShaderFamilyId, sources, features, required_attributes)` records one; the
   `ShaderFamilyId` is an interned family name. Builtin families come from the embedded
   `Shaders/*.glsl` sources (cppembed), so this stays within the existing shader pipeline.
 - `register_shader_variant(ShaderVariantKey{ family, defines })` returns the cached ref on a

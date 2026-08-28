@@ -10,6 +10,7 @@
 #include <vector>
 #include "Tungsten/Gl/GlTypes.hpp"
 #include "SharedBuffer.hpp"
+#include "VertexAttribute.hpp"
 
 namespace Tungsten
 {
@@ -39,6 +40,11 @@ namespace Tungsten
         uint32_t vao = 0;
         std::vector<SharedBuffer> streams;
         VertexLayoutRef layout;
+        /**
+         * Used for quick validation that provided vertex buffers match the
+         * shader's requirements.
+         */
+        AttributeSemanticMask semantics = 0;
         SharedBuffer ebo;
         ElementIndexType index_type = ElementIndexType::UINT16;
         TopologyType primitive = TopologyType::TRIANGLES;

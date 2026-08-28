@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include "ResourceRefs.hpp"
+#include "VertexAttribute.hpp"
 #include "ShaderVariantKey.hpp"
 
 namespace Tungsten
@@ -40,10 +41,8 @@ namespace Tungsten
          */
         std::vector<std::string> samplers;
         /**
-         * The interned vertex format every variant of this family expects;
-         * it is compared against a mesh's layout ref at load and copied onto
-         * each compiled ShaderProgram.
+         * The semantics every variant of this family reads.
          */
-        VertexLayoutRef required_layout;
+        AttributeSemanticMask required_attributes = 0;
     };
 } // Tungsten

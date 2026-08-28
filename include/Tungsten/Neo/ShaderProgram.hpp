@@ -9,6 +9,7 @@
 #include <cstdint>
 #include "Tungsten/Gl/GlProgram.hpp"
 #include "ResourceRefs.hpp"
+#include "VertexAttribute.hpp"
 #include "ShaderVariantKey.hpp"
 
 namespace Tungsten
@@ -18,10 +19,9 @@ namespace Tungsten
      * a ShaderProgramRef. It owns its GL object via the RAII ProgramHandle,
      * so it is move-only — dropping it from its slot deletes the GL program.
      *
-     * There is no separate numeric identity: the draw sort key packs the
-     * ShaderProgramRef's index (coherent within a snapshot, which is rebuilt
-     * every frame), and GlStateCache skips redundant binds by the GL program
-     * name (gl_handle.id()).
+     * The draw sort key packs the ShaderProgramRef's index (coherent within
+     * a snapshot, which is rebuilt every frame), and GlStateCache skips
+     * redundant binds by the GL program name (gl_handle.id()).
      */
     struct ShaderProgram
     {
@@ -32,12 +32,12 @@ namespace Tungsten
          */
         ShaderVariantKey variant_key;
         /**
-         * Refers to the interned vertex format the program's
-         * attributes expect; it is compared against a Mesh's layout ref — interning
-         * makes equal layouts share a ref — so mismatches are caught rather than
-         * silently mis-binding attributes.
+         * The semantics the program's attributes read, copied from its family.
+         * Renderer::draw_item tests it against the mesh's own cached set, so a
+         * mesh that does not supply something its shader reads throws rather
+         * than drawing from an attribute that was never enabled.
          */
-        VertexLayoutRef required_layout;
+        AttributeSemanticMask required_attributes = 0;
         /**
          * The size of the family's sampler list: the program
          * samples texture units [0, sampler_count), so the renderer knows which

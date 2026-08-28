@@ -24,7 +24,6 @@ namespace Tungsten
             {AttributeSemantic::TEX_COORD_0, 0,
              VertexAttributeDataType::FLOAT, 2, false, 24},
         };
-        layout.stride = 32;
         return layout;
     }
 
@@ -37,7 +36,6 @@ namespace Tungsten
             {AttributeSemantic::TEX_COORD_0, 0,
              VertexAttributeDataType::FLOAT, 2, false, 8},
         };
-        layout.stride = 16;
         return layout;
     }
 
@@ -46,13 +44,11 @@ namespace Tungsten
         ShaderFamily blinn_phong;
         blinn_phong.vertex_source = BLINN_PHONG_VERTEX;
         blinn_phong.fragment_source = BLINN_PHONG_FRAGMENT;
-        // No compile-time features yet: the maps and light counts are
-        // runtime-switched uniforms (§14 prefers runtime control).
-        // Sampler i samples texture unit i, so a material's textures list
-        // uses this order: diffuse map first, then specular map.
         blinn_phong.samplers = {"u_diffuse_map", "u_specular_map"};
-        blinn_phong.required_layout =
-            resources.register_layout(builtin_pnt_layout());
+        blinn_phong.required_attributes =
+            semantic_bit(AttributeSemantic::POSITION)
+            | semantic_bit(AttributeSemantic::NORMAL)
+            | semantic_bit(AttributeSemantic::TEX_COORD_0);
         resources.register_shader_family(BLINN_PHONG_FAMILY,
                                          std::move(blinn_phong));
     }

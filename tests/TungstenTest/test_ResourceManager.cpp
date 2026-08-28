@@ -11,6 +11,7 @@
 #include <memory>
 #include <tuple>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
 #include "Tungsten/Gl/DummyOglWrapper.hpp"
 #include "Tungsten/Gl/GlTexture.hpp"
 #include "Tungsten/Neo/GlStateCache.hpp"
@@ -166,13 +167,15 @@ namespace
         std::unique_ptr<IOglWrapper> previous_;
     };
 
-    VertexLayout make_layout(uint16_t stride)
+    // A one-attribute layout. `components` is what makes two of these differ:
+    // a layout is identified by what it binds, so varying the component count
+    // is a real difference where varying a stride would not be one.
+    VertexLayout make_layout(uint8_t components = 3)
     {
         VertexLayout layout;
         layout.attributes.push_back(
             {AttributeSemantic::POSITION, 0,
-             VertexAttributeDataType::FLOAT, 3, false, 0});
-        layout.stride = stride;
+             VertexAttributeDataType::FLOAT, components, false, 0});
         return layout;
     }
 }
@@ -267,14 +270,14 @@ TEST_CASE("ResourceManager: get_vao caches per arenas and layout")
 
     auto vbo = manager.create_arena(BufferUsage::STATIC_DRAW, 12, 16);
     auto ebo = manager.create_arena(BufferUsage::STATIC_DRAW, 2, 16);
-    auto layout = manager.register_layout(make_layout(12));
+    auto layout = manager.register_layout(make_layout());
     std::array vbos{vbo};
 
     const auto vao = manager.get_vao(vbos, ebo, layout);
     REQUIRE(manager.get_vao(vbos, ebo, layout) == vao);
     REQUIRE(session.gl->live_vertex_arrays == 1);
 
-    auto other_layout = manager.register_layout(make_layout(24));
+    auto other_layout = manager.register_layout(make_layout(2));
     REQUIRE(manager.get_vao(vbos, ebo, other_layout) != vao);
     REQUIRE(session.gl->live_vertex_arrays == 2);
 }
@@ -285,7 +288,7 @@ TEST_CASE("ResourceManager: a mesh drawn with array draws needs no ebo arena")
     ResourceManager manager;
 
     auto vbo = manager.create_arena(BufferUsage::STATIC_DRAW, 12, 16);
-    auto layout = manager.register_layout(make_layout(12));
+    auto layout = manager.register_layout(make_layout());
     std::array vbos{vbo};
 
     // A null ebo ref is how a non-indexed mesh is spelled; the renderer has an
@@ -303,7 +306,7 @@ TEST_CASE("ResourceManager: baking a VAO announces the GL state change")
 
     auto vbo = manager.create_arena(BufferUsage::STATIC_DRAW, 12, 16);
     auto ebo = manager.create_arena(BufferUsage::STATIC_DRAW, 2, 16);
-    auto layout = manager.register_layout(make_layout(12));
+    auto layout = manager.register_layout(make_layout());
     std::array vbos{vbo};
 
     // Baking binds a VAO and leaves zero bound, so any GlStateCache watching
@@ -324,9 +327,111 @@ TEST_CASE("ResourceManager: registering an equal layout returns the same ref")
     FakeGlSession session;
     ResourceManager manager;
 
-    auto layout = manager.register_layout(make_layout(12));
-    REQUIRE(manager.register_layout(make_layout(12)) == layout);
-    REQUIRE(manager.get_layout(layout).stride == 12);
+    auto layout = manager.register_layout(make_layout());
+    REQUIRE(manager.register_layout(make_layout()) == layout);
+    REQUIRE(manager.get_layout(layout).attributes.size() == 1);
+    REQUIRE(manager.get_layout(layout).semantics()
+            == semantic_bit(AttributeSemantic::POSITION));
+}
+
+TEST_CASE("ResourceManager: one shader draws either vertex arrangement")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+
+    // Position + normal + uv interleaved in one 32-byte stream.
+    VertexLayout interleaved;
+    interleaved.attributes = {
+        {AttributeSemantic::POSITION, 0, VertexAttributeDataType::FLOAT, 3, false, 0},
+        {AttributeSemantic::NORMAL, 0, VertexAttributeDataType::FLOAT, 3, false, 12},
+        {AttributeSemantic::TEX_COORD_0, 0, VertexAttributeDataType::FLOAT, 2, false, 24},
+    };
+
+    // The same attributes, with the uv in a stream of its own.
+    VertexLayout split;
+    split.attributes = {
+        {AttributeSemantic::POSITION, 0, VertexAttributeDataType::FLOAT, 3, false, 0},
+        {AttributeSemantic::NORMAL, 0, VertexAttributeDataType::FLOAT, 3, false, 12},
+        {AttributeSemantic::TEX_COORD_0, 1, VertexAttributeDataType::FLOAT, 2, false, 0},
+    };
+
+    // Different packings, so they stay distinct layouts...
+    const auto a = manager.register_layout(interleaved);
+    const auto b = manager.register_layout(split);
+    REQUIRE(a != b);
+    // ...but a shader cannot tell them apart, which is the whole point.
+    REQUIRE(interleaved.semantics() == split.semantics());
+    REQUIRE(interleaved.semantics()
+            == (semantic_bit(AttributeSemantic::POSITION)
+                | semantic_bit(AttributeSemantic::NORMAL)
+                | semantic_bit(AttributeSemantic::TEX_COORD_0)));
+
+    // Both are accepted against arenas matching their own pitches.
+    const auto pnt = manager.create_arena(BufferUsage::STATIC_DRAW, 32, 16);
+    const auto pn = manager.create_arena(BufferUsage::STATIC_DRAW, 24, 16);
+    const auto uv = manager.create_arena(BufferUsage::STATIC_DRAW, 8, 16);
+
+    Mesh one;
+    one.layout = a;
+    one.streams = {manager.allocate(pnt, 4)};
+    const auto mesh_a = manager.create_mesh(std::move(one));
+
+    Mesh two;
+    two.layout = b;
+    two.streams = {manager.allocate(pn, 4), manager.allocate(uv, 4)};
+    const auto mesh_b = manager.create_mesh(std::move(two));
+
+    REQUIRE(manager.get_mesh(mesh_a).semantics
+            == manager.get_mesh(mesh_b).semantics);
+}
+
+TEST_CASE("ResourceManager: create_mesh rejects an attribute past its vertex")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+
+    VertexLayout layout_value;
+    // 12 bytes of data at offset 4 needs a 16-byte vertex.
+    layout_value.attributes.push_back(
+        {AttributeSemantic::POSITION, 0,
+         VertexAttributeDataType::FLOAT, 3, false, 4});
+    const auto layout = manager.register_layout(layout_value);
+
+    const auto tight = manager.create_arena(BufferUsage::STATIC_DRAW, 12, 16);
+    Mesh overrun;
+    overrun.layout = layout;
+    overrun.streams = {manager.allocate(tight, 4)};
+    REQUIRE_THROWS_WITH(
+        manager.create_mesh(std::move(overrun)),
+        Catch::Matchers::ContainsSubstring("past the end"));
+
+    const auto roomy = manager.create_arena(BufferUsage::STATIC_DRAW, 16, 16);
+    Mesh fits;
+    fits.layout = layout;
+    fits.streams = {manager.allocate(roomy, 4)};
+    REQUIRE_NOTHROW(manager.create_mesh(std::move(fits)));
+}
+
+TEST_CASE("ResourceManager: create_mesh rejects a stream the mesh lacks")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+
+    VertexLayout layout_value;
+    layout_value.attributes = {
+        {AttributeSemantic::POSITION, 0, VertexAttributeDataType::FLOAT, 3, false, 0},
+        {AttributeSemantic::TEX_COORD_0, 1, VertexAttributeDataType::FLOAT, 2, false, 0},
+    };
+    const auto layout = manager.register_layout(layout_value);
+    const auto arena = manager.create_arena(BufferUsage::STATIC_DRAW, 12, 16);
+
+    Mesh mesh;
+    mesh.layout = layout;
+    mesh.streams = {manager.allocate(arena, 4)}; // only one, layout wants two
+    REQUIRE_THROWS_WITH(
+        manager.create_mesh(std::move(mesh)),
+        Catch::Matchers::ContainsSubstring(
+            "reads a vertex stream the mesh does not have"));
 }
 
 TEST_CASE("ResourceManager: growth rebuilds the shared VAO in place")
@@ -337,7 +442,7 @@ TEST_CASE("ResourceManager: growth rebuilds the shared VAO in place")
 
     auto vbo = manager.create_arena(BufferUsage::STATIC_DRAW, 12, 4);
     auto ebo = manager.create_arena(BufferUsage::STATIC_DRAW, 2, 16);
-    auto layout = manager.register_layout(make_layout(12));
+    auto layout = manager.register_layout(make_layout());
     std::array vbos{vbo};
 
     const auto vao = manager.get_vao(vbos, ebo, layout);
@@ -356,7 +461,7 @@ TEST_CASE("ResourceManager: destroying an arena evicts its VAOs")
 
     auto vbo = manager.create_arena(BufferUsage::STATIC_DRAW, 12, 16);
     auto ebo = manager.create_arena(BufferUsage::STATIC_DRAW, 2, 16);
-    auto layout = manager.register_layout(make_layout(12));
+    auto layout = manager.register_layout(make_layout());
     std::array vbos{vbo};
     std::ignore = manager.get_vao(vbos, ebo, layout);
 
@@ -376,7 +481,7 @@ TEST_CASE("ResourceManager: destroying a mesh returns its slices")
 
     auto vbo = manager.create_arena(BufferUsage::STATIC_DRAW, 12, 16);
     auto ebo = manager.create_arena(BufferUsage::STATIC_DRAW, 2, 32);
-    auto layout = manager.register_layout(make_layout(12));
+    auto layout = manager.register_layout(make_layout());
 
     Mesh mesh;
     std::array vbos{vbo};
@@ -523,7 +628,6 @@ TEST_CASE("ResourceManager: shader variants are compiled once per key")
     family.vertex_source = "#version 300 es\nvoid main() {}\n";
     family.fragment_source = "#version 300 es\nvoid main() {}\n";
     family.features = {"HAS_A", "HAS_B"};
-    family.required_layout = manager.register_layout(make_layout(12));
     manager.register_shader_family(1, family);
 
     auto p1 = manager.register_shader_variant({1, 0b01});
@@ -535,7 +639,8 @@ TEST_CASE("ResourceManager: shader variants are compiled once per key")
     REQUIRE(session.gl->live_programs == 2);
 
     REQUIRE(manager.get_shader(p1).variant_key == ShaderVariantKey{1, 0b01});
-    REQUIRE(manager.get_shader(p1).required_layout == family.required_layout);
+    REQUIRE(manager.get_shader(p1).required_attributes
+            == family.required_attributes);
 
     REQUIRE_THROWS_AS(manager.register_shader_variant({2, 0}),
                       TungstenException);
@@ -549,7 +654,6 @@ TEST_CASE("ResourceManager: re-registering a family recompiles its variants")
     ShaderFamily family;
     family.vertex_source = "#version 300 es\nvoid main() {}\n";
     family.fragment_source = "#version 300 es\nvoid main() {}\n";
-    family.required_layout = manager.register_layout(make_layout(12));
     manager.register_shader_family(1, family);
 
     const auto first = manager.register_shader_variant({1, 0});
@@ -578,7 +682,6 @@ TEST_CASE("ResourceManager: compiling a variant with samplers announces the"
     ShaderFamily family;
     family.vertex_source = "#version 300 es\nvoid main() {}\n";
     family.fragment_source = "#version 300 es\nvoid main() {}\n";
-    family.required_layout = manager.register_layout(make_layout(12));
     // Pointing the samplers at their units needs the program bound, and there
     // is nothing to restore it to afterwards — so the caches must be told.
     family.samplers = {"u_diffuse"};

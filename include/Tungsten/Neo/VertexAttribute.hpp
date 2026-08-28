@@ -50,6 +50,42 @@ namespace Tungsten
     };
 
     /**
+     * A set of AttributeSemantics, one bit per enumerator.
+     */
+    using AttributeSemanticMask = uint16_t;
+
+    constexpr AttributeSemanticMask semantic_bit(AttributeSemantic semantic)
+    {
+        return AttributeSemanticMask(1u << uint32_t(semantic));
+    }
+
+    /**
+     * The size of one component of a vertex attribute, in bytes.
+     */
+    constexpr uint32_t byte_size(VertexAttributeDataType type)
+    {
+        switch (type)
+        {
+        case VertexAttributeDataType::INT32:
+        case VertexAttributeDataType::UINT32:
+        case VertexAttributeDataType::FLOAT:
+            return 4;
+        case VertexAttributeDataType::NONE:
+            break;
+        }
+        return 0;
+    }
+
+    /**
+     * How many bytes of a vertex this attribute occupies, which is what its
+     * offset within a stream has to leave room for.
+     */
+    constexpr uint32_t byte_size(const VertexAttribute& attribute)
+    {
+        return byte_size(attribute.data_type) * attribute.component_count;
+    }
+
+    /**
      * Returns the fixed vertex-attribute location a semantic is bound to, shared by every
      * shader and every VAO. Because a cached VAO is reused across all
      * shaders that draw a given layout, locations cannot be per-shader; the

@@ -13,24 +13,33 @@
 namespace Tungsten
 {
     /**
-     * The vertex format a Mesh advertises and a ShaderProgram requires: the set
-     * of attributes (each tagged with its semantic and source stream) plus the
-     * byte stride of a vertex.
+     * How a Mesh's vertices are packed: which attributes exist, and where each
+     * one sits — which stream it is read from and at what offset within that
+     * stream's vertex.
      *
      * Layouts are interned by ResourceManager and handed out as VertexLayoutRef:
-     * a small comparable value identifies the format and forms part of
+     * a small comparable value identifies the packing and forms part of
      * the VAO cache key without the cache needing the full layout. Interning and
      * the cache key both rely on value equality, hence the defaulted operator==.
-     *
-     * A stream's byte pitch is its arena's stride (one arena per stride);
-     * this stride describes the common (single, interleaved) stream case and is
-     * what the caller uses to pick or create the right arena.
      */
     struct VertexLayout
     {
         std::vector<VertexAttribute> attributes;
-        uint16_t stride = 0;
 
         bool operator==(const VertexLayout&) const = default;
+
+        /**
+         * The set of semantics this layout provides, with the packing dropped.
+         * Cheap to fold, and cached on a Mesh at creation so the per-draw check
+         * against a shader's requirement costs no lookup.
+         */
+        [[nodiscard]]
+        AttributeSemanticMask semantics() const
+        {
+            AttributeSemanticMask mask = 0;
+            for (const VertexAttribute& attribute : attributes)
+                mask = AttributeSemanticMask(mask | semantic_bit(attribute.semantic));
+            return mask;
+        }
     };
 } // Tungsten

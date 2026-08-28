@@ -137,7 +137,7 @@ namespace Tungsten
         program.has_material_block = apply_ubo_bindings(program.gl_handle.id());
         apply_sampler_bindings(program.gl_handle.id(), family.samplers);
         program.variant_key = key;
-        program.required_layout = family.required_layout;
+        program.required_attributes = family.required_attributes;
         program.sampler_count = static_cast<uint32_t>(family.samplers.size());
 
         ShaderProgramRef ref = insert_shader_(std::move(program));
