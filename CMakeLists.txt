@@ -89,21 +89,17 @@ add_library(Tungsten STATIC
     include/Tungsten/Gl/GlProgram.hpp
     include/Tungsten/Gl/GlRendering.hpp
     include/Tungsten/Gl/GlSampler.hpp
-    include/Tungsten/Gl/GlStateEpoch.hpp
     include/Tungsten/Gl/GlShader.hpp
+    include/Tungsten/Gl/GlStateEpoch.hpp
     include/Tungsten/Gl/GlStateManagement.hpp
     include/Tungsten/Gl/GlTexture.hpp
     include/Tungsten/Gl/GlUniform.hpp
     include/Tungsten/Gl/GlVertexArray.hpp
     include/Tungsten/Gl/IOglWrapper.hpp
-    include/Tungsten/Neo/BufferArena.hpp
     include/Tungsten/Neo/BuiltinShaders.hpp
     include/Tungsten/Neo/CameraComponent.hpp
-    include/Tungsten/Neo/DeletionQueue.hpp
     include/Tungsten/Neo/DoubleBuffer.hpp
-    include/Tungsten/Neo/GenerationalPool.hpp
     include/Tungsten/Neo/GlStateCache.hpp
-    include/Tungsten/Neo/LayoutRegistry.hpp
     include/Tungsten/Neo/LightComponent.hpp
     include/Tungsten/Neo/LightData.hpp
     include/Tungsten/Neo/Material.hpp
@@ -117,10 +113,8 @@ add_library(Tungsten STATIC
     include/Tungsten/Neo/ResourceManager.hpp
     include/Tungsten/Neo/ResourceRef.hpp
     include/Tungsten/Neo/ResourceRefs.hpp
-    include/Tungsten/Neo/SamplerRegistry.hpp
     include/Tungsten/Neo/Scene.hpp
     include/Tungsten/Neo/ShaderFamily.hpp
-    include/Tungsten/Neo/ShaderLibrary.hpp
     include/Tungsten/Neo/ShaderProgram.hpp
     include/Tungsten/Neo/ShaderVariantKey.hpp
     include/Tungsten/Neo/SharedBuffer.hpp
@@ -130,7 +124,6 @@ add_library(Tungsten STATIC
     include/Tungsten/Neo/TextSystem.hpp
     include/Tungsten/Neo/Texture.hpp
     include/Tungsten/Neo/Transform.hpp
-    include/Tungsten/Neo/VaoCache.hpp
     include/Tungsten/Neo/VertexAttribute.hpp
     include/Tungsten/Neo/VertexLayout.hpp
     include/Tungsten/Render/Camera.hpp
@@ -169,8 +162,8 @@ add_library(Tungsten STATIC
     src/Tungsten/Gl/GlProgram.cpp
     src/Tungsten/Gl/GlRendering.cpp
     src/Tungsten/Gl/GlSampler.cpp
-    src/Tungsten/Gl/GlStateEpoch.cpp
     src/Tungsten/Gl/GlShader.cpp
+    src/Tungsten/Gl/GlStateEpoch.cpp
     src/Tungsten/Gl/GlStateManagement.cpp
     src/Tungsten/Gl/GlTexture.cpp
     src/Tungsten/Gl/GlTypeConversion.cpp
@@ -181,23 +174,30 @@ add_library(Tungsten STATIC
     src/Tungsten/Gl/OglWrapper.hpp
     src/Tungsten/Gl/TracingOglWrapper.hpp
     src/Tungsten/Neo/BufferArena.cpp
+    src/Tungsten/Neo/BufferArena.hpp
     src/Tungsten/Neo/BuiltinShaders.cpp
     src/Tungsten/Neo/CameraComponent.cpp
     src/Tungsten/Neo/DeletionQueue.cpp
+    src/Tungsten/Neo/DeletionQueue.hpp
+    src/Tungsten/Neo/GenerationalPool.hpp
     src/Tungsten/Neo/GlStateCache.cpp
     src/Tungsten/Neo/LayoutRegistry.cpp
+    src/Tungsten/Neo/LayoutRegistry.hpp
     src/Tungsten/Neo/LightData.cpp
     src/Tungsten/Neo/RenderItem.cpp
     src/Tungsten/Neo/Renderer.cpp
-    src/Tungsten/Neo/SamplerRegistry.cpp
     src/Tungsten/Neo/ResourceManager.cpp
+    src/Tungsten/Neo/SamplerRegistry.cpp
+    src/Tungsten/Neo/SamplerRegistry.hpp
     src/Tungsten/Neo/Scene.cpp
     src/Tungsten/Neo/ShaderLibrary.cpp
+    src/Tungsten/Neo/ShaderLibrary.hpp
     src/Tungsten/Neo/Shaders/BuiltinShaderSources.hpp
     src/Tungsten/Neo/SnapshotBuilder.cpp
     src/Tungsten/Neo/TextSystem.cpp
     src/Tungsten/Neo/UboBindings.hpp
     src/Tungsten/Neo/VaoCache.cpp
+    src/Tungsten/Neo/VaoCache.hpp
     src/Tungsten/Render/Camera.cpp
     src/Tungsten/Render/ColorMaterials.cpp
     src/Tungsten/Render/Font.cpp

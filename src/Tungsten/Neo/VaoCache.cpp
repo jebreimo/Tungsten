@@ -5,14 +5,14 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/Neo/VaoCache.hpp"
+#include "VaoCache.hpp"
 #include <algorithm>
 #include <utility>
 #include "Tungsten/Gl/GlBuffer.hpp"
-#include "Tungsten/Neo/BufferArena.hpp"
-#include "Tungsten/Neo/DeletionQueue.hpp"
 #include "Tungsten/Neo/GlStateCache.hpp"
 #include "Tungsten/Neo/VertexLayout.hpp"
+#include "BufferArena.hpp"
+#include "DeletionQueue.hpp"
 
 namespace Tungsten
 {

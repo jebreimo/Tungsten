@@ -9,10 +9,10 @@
 #include <functional>
 #include <utility>
 #include <vector>
-#include "ResourceRefs.hpp"
-#include "ShaderFamily.hpp"
-#include "ShaderProgram.hpp"
-#include "ShaderVariantKey.hpp"
+#include "Tungsten/Neo/ResourceRefs.hpp"
+#include "Tungsten/Neo/ShaderFamily.hpp"
+#include "Tungsten/Neo/ShaderProgram.hpp"
+#include "Tungsten/Neo/ShaderVariantKey.hpp"
 
 namespace Tungsten
 {

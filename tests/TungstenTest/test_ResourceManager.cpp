@@ -19,8 +19,10 @@
 #include "Tungsten/Neo/GlStateCache.hpp"
 #include "Tungsten/Neo/Material.hpp"
 #include "Tungsten/Neo/Mesh.hpp"
+#include "Tungsten/Neo/ShaderProgram.hpp"
 #include "Tungsten/Neo/Texture.hpp"
 #include "Tungsten/Neo/VertexLayout.hpp"
+#include "../../src/Tungsten/Neo/BufferArena.hpp"
 
 using namespace Tungsten;
 

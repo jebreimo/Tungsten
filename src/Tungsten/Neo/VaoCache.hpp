@@ -6,12 +6,11 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include <cstdint>
 #include <functional>
 #include <span>
 #include <vector>
-#include "ResourceRefs.hpp"
 #include "Tungsten/Gl/GlVertexArray.hpp"
+#include "Tungsten/Neo/ResourceRefs.hpp"
 
 namespace Tungsten
 {

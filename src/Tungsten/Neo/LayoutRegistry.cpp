@@ -5,7 +5,7 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/Neo/LayoutRegistry.hpp"
+#include "LayoutRegistry.hpp"
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten

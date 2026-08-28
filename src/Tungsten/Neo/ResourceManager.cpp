@@ -11,18 +11,18 @@
 #include <limits>
 #include <utility>
 
-#include "Tungsten/Neo/BufferArena.hpp"
-#include "Tungsten/Neo/DeletionQueue.hpp"
-#include "Tungsten/Neo/GenerationalPool.hpp"
-#include "Tungsten/Neo/LayoutRegistry.hpp"
-#include "Tungsten/Neo/SamplerRegistry.hpp"
 #include "Tungsten/Neo/Material.hpp"
 #include "Tungsten/Neo/Mesh.hpp"
 #include "Tungsten/Neo/ResourceRefs.hpp"
-#include "Tungsten/Neo/ShaderLibrary.hpp"
 #include "Tungsten/Neo/SharedBuffer.hpp"
 #include "Tungsten/Neo/Texture.hpp"
-#include "Tungsten/Neo/VaoCache.hpp"
+#include "BufferArena.hpp"
+#include "DeletionQueue.hpp"
+#include "GenerationalPool.hpp"
+#include "LayoutRegistry.hpp"
+#include "SamplerRegistry.hpp"
+#include "ShaderLibrary.hpp"
+#include "VaoCache.hpp"
 
 namespace Tungsten
 {

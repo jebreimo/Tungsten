@@ -15,6 +15,7 @@
 #include "Tungsten/Neo/Material.hpp"
 #include "Tungsten/Neo/Mesh.hpp"
 #include "Tungsten/Neo/ResourceManager.hpp"
+#include "Tungsten/Neo/ShaderProgram.hpp"
 #include "Tungsten/Neo/Texture.hpp"
 #include "Tungsten/TungstenException.hpp"
 #include "UboBindings.hpp"

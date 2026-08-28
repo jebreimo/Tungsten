@@ -9,7 +9,7 @@
 #include <cstdint>
 #include <vector>
 #include "Tungsten/Gl/GlSampler.hpp"
-#include "ResourceRefs.hpp"
+#include "Tungsten/Neo/ResourceRefs.hpp"
 
 namespace Tungsten
 {

@@ -8,8 +8,8 @@
 #pragma once
 #include <cstdint>
 #include <vector>
-#include "ResourceRefs.hpp"
-#include "VertexLayout.hpp"
+#include "Tungsten/Neo/ResourceRefs.hpp"
+#include "Tungsten/Neo/VertexLayout.hpp"
 
 namespace Tungsten
 {

@@ -11,7 +11,7 @@
 #include <utility>
 #include <vector>
 #include "Tungsten/TungstenException.hpp"
-#include "ResourceRef.hpp"
+#include "Tungsten/Neo/ResourceRef.hpp"
 
 namespace Tungsten
 {
