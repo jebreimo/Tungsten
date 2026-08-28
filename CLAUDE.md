@@ -65,6 +65,11 @@ Match the surrounding code. Established patterns:
   one class/function per concept. Keep lines reasonably short.
 - Build with warnings enabled (`Xyz_enable_all_warnings`); keep the tree
   warning-clean.
+- **Comments** in header files must be Doxygen comments that briefly describe
+  what a function does and/or its purpose. Parameters and return values are only documented
+  explicitly if their meaning cannot be easily deduced from their names.
+  Comments in source files should be similarly brief and only describe what 
+  the code's purpose to do in cases where that isn't immediately clear.
 
 ## OpenGL & error handling
 
