@@ -11,6 +11,8 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include "Tungsten/Neo/CameraComponent.hpp"
 #include "Tungsten/Neo/LightComponent.hpp"
+#include "Tungsten/Neo/Material.hpp"
+#include "Tungsten/Neo/Mesh.hpp"
 #include "Tungsten/Neo/NodeHandle.hpp"
 #include "Tungsten/Neo/RenderableComponent.hpp"
 #include "Tungsten/Neo/ResourceManager.hpp"
@@ -53,12 +55,6 @@ namespace
                 .far_plane = 100.0f,
                 .ortho_size = 5.0f
             });
-        }
-
-        [[nodiscard]]
-        CameraComponent& camera() const
-        {
-            return camera_node.get<CameraComponent>();
         }
 
         // Adds a root node with a renderable at the given position.

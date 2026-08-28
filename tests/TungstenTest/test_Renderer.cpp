@@ -15,11 +15,15 @@
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include "Tungsten/Gl/DummyOglWrapper.hpp"
 #include "Tungsten/Neo/CameraComponent.hpp"
+#include "Tungsten/Neo/Material.hpp"
+#include "Tungsten/Neo/Mesh.hpp"
 #include "Tungsten/Neo/NodeHandle.hpp"
 #include "Tungsten/Neo/RenderableComponent.hpp"
 #include "Tungsten/Neo/ResourceManager.hpp"
 #include "Tungsten/Neo/Scene.hpp"
 #include "Tungsten/Neo/SnapshotBuilder.hpp"
+#include "Tungsten/Neo/Texture.hpp"
+#include "Tungsten/Neo/VertexLayout.hpp"
 #include "Tungsten/TungstenException.hpp"
 #include "../../src/Tungsten/Neo/UboBindings.hpp"
 

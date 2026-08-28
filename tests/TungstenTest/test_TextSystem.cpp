@@ -11,6 +11,8 @@
 #include <memory>
 #include <catch2/catch_test_macros.hpp>
 #include "Tungsten/Gl/DummyOglWrapper.hpp"
+#include "Tungsten/Neo/Material.hpp"
+#include "Tungsten/Neo/Mesh.hpp"
 #include "Tungsten/Neo/NodeHandle.hpp"
 #include "Tungsten/Neo/RenderableComponent.hpp"
 #include "Tungsten/Neo/ResourceManager.hpp"

@@ -7,19 +7,13 @@
 //****************************************************************************
 #pragma once
 #include <cstdint>
+#include <memory>
 #include <span>
 #include "Tungsten/Gl/GlTypes.hpp"
 #include "BufferArena.hpp"
-#include "DeletionQueue.hpp"
-#include "GenerationalPool.hpp"
-#include "LayoutRegistry.hpp"
-#include "SamplerRegistry.hpp"
-#include "Material.hpp"
-#include "Mesh.hpp"
 #include "ResourceRefs.hpp"
 #include "ShaderLibrary.hpp"
 #include "SharedBuffer.hpp"
-#include "Texture.hpp"
 #include "VaoCache.hpp"
 
 namespace Tungsten
@@ -43,12 +37,13 @@ namespace Tungsten
     public:
         ResourceManager();
 
-        /**
-         * The collaborators hold callbacks bound to this instance, so the
-         * manager can be neither copied nor moved.
-         */
+        ~ResourceManager();
+
         ResourceManager(const ResourceManager&) = delete;
         ResourceManager& operator=(const ResourceManager&) = delete;
+
+        ResourceManager(ResourceManager&&) noexcept;
+        ResourceManager& operator=(ResourceManager&&) noexcept;
 
         BufferArenaRef create_arena(BufferUsage usage, uint16_t stride,
                                     uint32_t capacity);
@@ -210,15 +205,7 @@ namespace Tungsten
          */
         static void upload_material_parameters(Material& material);
 
-        GenerationalPool<BufferArena> arenas_;
-        GenerationalPool<Mesh> meshes_;
-        GenerationalPool<Material> materials_;
-        GenerationalPool<ShaderProgram> shaders_;
-        GenerationalPool<Texture> textures_;
-        LayoutRegistry layout_registry_;
-        SamplerRegistry sampler_registry_;
-        DeletionQueue deletions_;
-        VaoCache vao_cache_;
-        ShaderLibrary shader_library_;
+        struct Members;
+        std::unique_ptr<Members> members_;
     };
 }

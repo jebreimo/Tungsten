@@ -12,9 +12,15 @@
 #include <tuple>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
+
+#include "Tungsten/TungstenException.hpp"
 #include "Tungsten/Gl/DummyOglWrapper.hpp"
 #include "Tungsten/Gl/GlTexture.hpp"
 #include "Tungsten/Neo/GlStateCache.hpp"
+#include "Tungsten/Neo/Material.hpp"
+#include "Tungsten/Neo/Mesh.hpp"
+#include "Tungsten/Neo/Texture.hpp"
+#include "Tungsten/Neo/VertexLayout.hpp"
 
 using namespace Tungsten;
 

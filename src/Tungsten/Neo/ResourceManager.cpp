@@ -11,44 +11,89 @@
 #include <limits>
 #include <utility>
 
+#include "Tungsten/Neo/BufferArena.hpp"
+#include "Tungsten/Neo/DeletionQueue.hpp"
+#include "Tungsten/Neo/GenerationalPool.hpp"
+#include "Tungsten/Neo/LayoutRegistry.hpp"
+#include "Tungsten/Neo/SamplerRegistry.hpp"
+#include "Tungsten/Neo/Material.hpp"
+#include "Tungsten/Neo/Mesh.hpp"
+#include "Tungsten/Neo/ResourceRefs.hpp"
+#include "Tungsten/Neo/ShaderLibrary.hpp"
+#include "Tungsten/Neo/SharedBuffer.hpp"
+#include "Tungsten/Neo/Texture.hpp"
+#include "Tungsten/Neo/VaoCache.hpp"
+
 namespace Tungsten
 {
-    ResourceManager::ResourceManager()
-        : vao_cache_(
-              [this](BufferArenaRef ref) -> const BufferArena&
-              {
-                  return arenas_.get(ref);
-              },
-              [this](VertexLayoutRef ref) -> const VertexLayout&
-              {
-                  return layout_registry_.get_layout(ref);
-              }),
-          shader_library_(
-              [this](ShaderProgram program)
-              {
-                  return shaders_.insert(std::move(program));
-              })
+    struct ResourceManager::Members
     {
+        GenerationalPool<BufferArena> arenas;
+        GenerationalPool<Mesh> meshes;
+        GenerationalPool<Material> materials;
+        GenerationalPool<ShaderProgram> shaders;
+        GenerationalPool<Texture> textures;
+        LayoutRegistry layout_registry;
+        SamplerRegistry sampler_registry;
+        DeletionQueue deletions;
+        VaoCache vao_cache;
+        ShaderLibrary shader_library;
+
+        Members()
+            : vao_cache(
+                  [this](BufferArenaRef ref) -> const BufferArena&
+                  {
+                      return arenas.get(ref);
+                  },
+                  [this](VertexLayoutRef ref) -> const VertexLayout&
+                  {
+                      return layout_registry.get_layout(ref);
+                  }),
+              shader_library(
+                  [this](ShaderProgram program)
+                  {
+                      return shaders.insert(std::move(program));
+                  })
+        {
+        }
+    };
+
+    ResourceManager::ResourceManager()
+        : members_(std::make_unique<Members>())
+    {
+    }
+
+    ResourceManager::~ResourceManager() = default;
+
+    ResourceManager::ResourceManager(ResourceManager&& rhs) noexcept
+        : members_(std::move(rhs.members_))
+    {
+    }
+
+    ResourceManager& ResourceManager::operator=(ResourceManager&& rhs) noexcept
+    {
+        members_ = std::move(rhs.members_);
+        return *this;
     }
 
     BufferArenaRef ResourceManager::create_arena(BufferUsage usage,
                                                  uint16_t stride,
                                                  uint32_t capacity)
     {
-        return arenas_.insert(BufferArena(usage, stride, capacity));
+        return members_->arenas.insert(BufferArena(usage, stride, capacity));
     }
 
     BufferArena& ResourceManager::get_arena(BufferArenaRef ref)
     {
-        return arenas_.get(ref);
+        return members_->arenas.get(ref);
     }
 
     void ResourceManager::destroy_arena(BufferArenaRef ref)
     {
-        vao_cache_.evict_for_arena(ref, deletions_);
-        arenas_.erase(ref, [this](BufferArena&& arena)
+        members_->vao_cache.evict_for_arena(ref, members_->deletions);
+        members_->arenas.erase(ref, [this](BufferArena&& arena)
         {
-            deletions_.retire(arena.release_buffer());
+            members_->deletions.retire(arena.release_buffer());
         });
     }
 
@@ -71,12 +116,12 @@ namespace Tungsten
 
         // The arena's buffer id changed. Re-point every VAO that baked in
         // this arena's buffer before the next draw.
-        vao_cache_.rebuild_for_arena(ref);
+        members_->vao_cache.rebuild_for_arena(ref);
 
         // The old buffer may still be referenced by in-flight draws
         // (or, with a render thread, by the snapshot being rendered),
         // so it is retired rather than deleted now.
-        deletions_.retire(std::move(displaced));
+        members_->deletions.retire(std::move(displaced));
 
         const auto offset = arena.allocate(count);
         if (!offset)
@@ -104,33 +149,33 @@ namespace Tungsten
 
     VertexLayoutRef ResourceManager::register_layout(const VertexLayout& layout)
     {
-        return layout_registry_.register_layout(layout);
+        return members_->layout_registry.register_layout(layout);
     }
 
     const VertexLayout& ResourceManager::get_layout(VertexLayoutRef ref) const
     {
-        return layout_registry_.get_layout(ref);
+        return members_->layout_registry.get_layout(ref);
     }
 
     SamplerRef ResourceManager::register_sampler(const SamplerDescriptor& descriptor)
     {
-        return sampler_registry_.register_sampler(descriptor);
+        return members_->sampler_registry.register_sampler(descriptor);
     }
 
     uint32_t ResourceManager::get_sampler_id(SamplerRef ref)
     {
-        return sampler_registry_.get_sampler_id(ref);
+        return members_->sampler_registry.get_sampler_id(ref);
     }
 
     const SamplerDescriptor&
     ResourceManager::get_sampler_descriptor(SamplerRef ref) const
     {
-        return sampler_registry_.get_descriptor(ref);
+        return members_->sampler_registry.get_descriptor(ref);
     }
 
     SamplerRef ResourceManager::default_sampler()
     {
-        return sampler_registry_.default_sampler();
+        return members_->sampler_registry.default_sampler();
     }
 
     MeshRef ResourceManager::create_mesh(Mesh mesh)
@@ -141,7 +186,7 @@ namespace Tungsten
             validate_mesh_layout(mesh, layout);
             mesh.semantics = layout.semantics();
         }
-        return meshes_.insert(std::move(mesh));
+        return members_->meshes.insert(std::move(mesh));
     }
 
     void ResourceManager::validate_mesh_layout(const Mesh& mesh,
@@ -177,12 +222,12 @@ namespace Tungsten
 
     Mesh& ResourceManager::get_mesh(MeshRef ref)
     {
-        return meshes_.get(ref);
+        return members_->meshes.get(ref);
     }
 
     void ResourceManager::destroy_mesh(MeshRef ref)
     {
-        meshes_.erase(ref, [this](Mesh&& mesh)
+        members_->meshes.erase(ref, [this](Mesh&& mesh)
         {
             for (const auto& stream : mesh.streams)
                 free(stream);
@@ -195,13 +240,13 @@ namespace Tungsten
     MaterialRef ResourceManager::create_material(Material material)
     {
         upload_material_parameters(material);
-        return materials_.insert(std::move(material));
+        return members_->materials.insert(std::move(material));
     }
 
     void ResourceManager::update_material_parameters(
         MaterialRef ref, std::span<const std::byte> parameters)
     {
-        Material& material = materials_.get(ref);
+        Material& material = members_->materials.get(ref);
         material.parameter_data.assign(parameters.begin(), parameters.end());
         upload_material_parameters(material);
     }
@@ -227,68 +272,68 @@ namespace Tungsten
 
     Material& ResourceManager::get_material(MaterialRef ref)
     {
-        return materials_.get(ref);
+        return members_->materials.get(ref);
     }
 
     void ResourceManager::destroy_material(MaterialRef ref)
     {
         // The parameter UBO is the material's own; its shader and textures are
         // refs to resources with their own lifetimes.
-        materials_.erase(ref, [this](Material&& material)
+        members_->materials.erase(ref, [this](Material&& material)
         {
-            deletions_.retire(std::move(material.ubo));
+            members_->deletions.retire(std::move(material.ubo));
         });
     }
 
     TextureRef ResourceManager::create_texture(Texture texture)
     {
-        return textures_.insert(std::move(texture));
+        return members_->textures.insert(std::move(texture));
     }
 
     Texture& ResourceManager::get_texture(TextureRef ref)
     {
-        return textures_.get(ref);
+        return members_->textures.get(ref);
     }
 
     void ResourceManager::destroy_texture(TextureRef ref)
     {
-        textures_.erase(ref, [this](Texture&& texture)
+        members_->textures.erase(ref, [this](Texture&& texture)
         {
-            deletions_.retire(std::move(texture.gl_handle));
+            members_->deletions.retire(std::move(texture.gl_handle));
         });
     }
 
     void ResourceManager::register_shader_family(ShaderFamilyId id,
                                                  ShaderFamily family)
     {
-        shader_library_.register_family(id, std::move(family));
+        members_->shader_library.register_family(id, std::move(family));
     }
 
     ShaderProgramRef ResourceManager::register_shader_variant(
         const ShaderVariantKey& key)
     {
-        return shader_library_.register_variant(key);
+        return members_->shader_library.register_variant(key);
     }
 
     ShaderProgram& ResourceManager::get_shader(ShaderProgramRef ref)
     {
-        return shaders_.get(ref);
+        return members_->shaders.get(ref);
     }
 
     uint32_t ResourceManager::get_vao(std::span<const BufferArenaRef> vbo_arenas,
                                       BufferArenaRef ebo_arena,
                                       VertexLayoutRef layout)
     {
-        return vao_cache_.get_vao(vbo_arenas, ebo_arena, layout);
+        return members_->vao_cache.get_vao(vbo_arenas, ebo_arena, layout);
     }
 
     void ResourceManager::begin_frame(uint64_t frame)
     {
-        deletions_.begin_frame(frame);
+        members_->deletions.begin_frame(frame);
     }
 
     void ResourceManager::collect_garbage(uint64_t completed_frame)
     {
-        deletions_.collect_garbage(completed_frame);
+        members_->deletions.collect_garbage(completed_frame);
     }
 }

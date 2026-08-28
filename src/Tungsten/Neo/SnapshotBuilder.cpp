@@ -12,6 +12,7 @@
 
 #include "Tungsten/Neo/CameraComponent.hpp"
 #include "Tungsten/Neo/LightComponent.hpp"
+#include "Tungsten/Neo/Material.hpp"
 #include "Tungsten/Neo/RenderableComponent.hpp"
 #include "Tungsten/Neo/ResourceManager.hpp"
 #include "Tungsten/Neo/Scene.hpp"
