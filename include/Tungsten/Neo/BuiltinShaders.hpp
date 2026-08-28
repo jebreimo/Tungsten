@@ -7,7 +7,6 @@
 //****************************************************************************
 #pragma once
 #include "ShaderVariantKey.hpp"
-#include "VertexLayout.hpp"
 
 namespace Tungsten
 {
@@ -36,24 +35,6 @@ namespace Tungsten
      * The first shader family id that applications may use for their own families.
      */
     inline constexpr ShaderFamilyId FIRST_USER_SHADER_FAMILY = 1000;
-
-    /**
-     * The interleaved position / normal / texcoord vertex format the builtin
-     * families expect: three streams' worth of attributes in one 32-byte
-     * stream, at the fixed AttributeSemantic locations (§13).
-     */
-    [[nodiscard]]
-    VertexLayout builtin_pnt_layout();
-
-    /**
-     * The vertex format the text family expects: an interleaved 2D position
-     * and texture coordinate in one 16-byte stream, at the fixed
-     * AttributeSemantic locations (§13). Glyph quads are flat in their node's
-     * xy plane, so the position needs no z — the node's transform is what
-     * places the text in the world.
-     */
-    [[nodiscard]]
-    VertexLayout text_vertex_layout();
 
     /**
      * Registers the builtin shader families (currently BlinnPhong, from the

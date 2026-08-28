@@ -157,8 +157,10 @@ namespace
             // orientation — so moving it is enough to sweep its highlight
             // across the cubes.
             Transform point;
-            point.translation = {3.2f * std::cos(0.9f * t), 1.5f,
-                                 3.2f * std::sin(0.9f * t)};
+            point.translation = {
+                3.2f * std::cos(0.9f * t), 1.5f,
+                3.2f * std::sin(0.9f * t)
+            };
             point_light_.set_local_transform(point);
         }
 
@@ -207,8 +209,11 @@ namespace
 
             constexpr size_t STRIDE = 8; // 3 coords + 3 normals + 2 tex coords
 
-            const auto layout = resources_.register_layout(
-                builtin_pnt_layout());
+            const auto layout = resources_.register_layout(VertexLayoutBuilder()
+                .add_attribute(AttributeSemantic::POSITION)
+                .add_attribute(AttributeSemantic::NORMAL)
+                .add_attribute(AttributeSemantic::TEX_COORD_0)
+                .build());
             vbo_arena_ = resources_.create_arena(
                 BufferUsage::STATIC_DRAW, STRIDE * sizeof(float),
                 uint32_t(vertexes.size() / STRIDE));

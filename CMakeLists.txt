@@ -126,6 +126,7 @@ add_library(Tungsten STATIC
     include/Tungsten/Neo/Transform.hpp
     include/Tungsten/Neo/VertexAttribute.hpp
     include/Tungsten/Neo/VertexLayout.hpp
+    include/Tungsten/Neo/VertexLayoutBuilder.hpp
     include/Tungsten/Render/Camera.hpp
     include/Tungsten/Render/ColorMaterials.hpp
     include/Tungsten/Render/Font.hpp
@@ -198,6 +199,7 @@ add_library(Tungsten STATIC
     src/Tungsten/Neo/UboBindings.hpp
     src/Tungsten/Neo/VaoCache.cpp
     src/Tungsten/Neo/VaoCache.hpp
+    src/Tungsten/Neo/VertexLayoutBuilder.cpp
     src/Tungsten/Render/Camera.cpp
     src/Tungsten/Render/ColorMaterials.cpp
     src/Tungsten/Render/Font.cpp

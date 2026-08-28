@@ -41,5 +41,6 @@
 #include "Tungsten/Neo/TextStyle.hpp"
 #include "Tungsten/Neo/TextSystem.hpp"
 #include "Tungsten/Neo/Texture.hpp"
+#include "Tungsten/Neo/VertexLayoutBuilder.hpp"
 #include "TungstenException.hpp"
 #include "YimageGl.hpp"

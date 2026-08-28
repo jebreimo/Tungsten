@@ -24,6 +24,7 @@
 #include "../Render/FontUtilities.hpp"
 #include "../Render/TextUtilities.hpp"
 #include "Shaders/BuiltinShaderSources.hpp"
+#include "Tungsten/Neo/VertexLayoutBuilder.hpp"
 
 namespace Tungsten
 {
@@ -109,7 +110,11 @@ namespace Tungsten
     TextSystem::TextSystem(ResourceManager& resources)
         : resources_(resources)
     {
-        layout_ = resources_.register_layout(text_vertex_layout());
+        layout_ = resources_.register_layout(VertexLayoutBuilder()
+            .add_attribute(Tungsten::AttributeSemantic::POSITION)
+            .set_component_count(2)
+            .add_attribute(Tungsten::AttributeSemantic::TEX_COORD_0)
+            .build());
         register_text_family(resources_);
         // The family has no feature flags, so there is exactly one variant and
         // it can be resolved once here rather than per material.
@@ -170,11 +175,11 @@ namespace Tungsten
                                       || built.text != text.text;
         const bool material_changed = built.style != text.style
                                       || built.color_override
-                                         != text.color_override;
+                                      != text.color_override;
         const bool renderable_changed = geometry_changed || material_changed
                                         || built.visible != text.visible
                                         || built.render_layer
-                                           != text.render_layer;
+                                        != text.render_layer;
         if (!renderable_changed)
             return;
 

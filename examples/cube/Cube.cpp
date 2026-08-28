@@ -168,7 +168,11 @@ namespace
             constexpr size_t STRIDE = 8; // 3 coords + 3 normals + 2 tex coords
 
             const auto layout = resources_.register_layout(
-                Tungsten::builtin_pnt_layout());
+                Tungsten::VertexLayoutBuilder()
+                    .add_attribute(Tungsten::AttributeSemantic::POSITION)
+                    .add_attribute(Tungsten::AttributeSemantic::NORMAL)
+                    .add_attribute(Tungsten::AttributeSemantic::TEX_COORD_0)
+                    .build());
             vbo_arena_ = resources_.create_arena(
                 Tungsten::BufferUsage::STATIC_DRAW, STRIDE * sizeof(float),
                 uint32_t(vertexes.size() / STRIDE));
