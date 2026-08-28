@@ -112,9 +112,7 @@ namespace Tungsten
             draw_item(*sorted_[i], i);
 
         if (opaque_count != sorted_.size())
-        {
             render_transparent_items(opaque_count);
-        }
     }
 
     void Renderer::render_transparent_items(size_t start_index)

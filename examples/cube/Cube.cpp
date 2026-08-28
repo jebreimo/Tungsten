@@ -72,6 +72,7 @@ namespace
             : EventLoop(app),
               renderer_(resources_)
         {
+            std::cout << Tungsten::get_device_info() << '\n';
             Tungsten::register_builtin_shader_families(resources_);
             const auto shader = resources_.register_shader_variant(
                 {.family = Tungsten::BLINN_PHONG_FAMILY});
@@ -88,29 +89,26 @@ namespace
             add_renderable(hub_, mesh, gold);
 
             camera_ = scene_.add_node();
-            Tungsten::Transform camera_transform;
-            camera_transform.translation = {2, 2, 8};
-            camera_transform.rotation = Tungsten::look_at_rotation({2, 2, 8}, {0, 0, 0});
-            camera_.set_local_transform(camera_transform);
+            camera_.set_local_transform({
+                .translation = {2, 2, 8},
+                .rotation = Tungsten::look_at_rotation({2, 2, 8}, {0, 0, 0})
+            });
             camera_.add(Tungsten::CameraComponent{
                 .near_plane = 0.5f,
-                .far_plane = 50.0f,
-                .aspect = app.viewport().aspect_ratio()
+                .far_plane = 50.0f
             });
 
             auto light_node = scene_.add_node();
-            Tungsten::Transform light_transform;
             // A directional light shines along its node's -z axis; tilt the
             // node so the light comes in from the upper right.
-            light_transform.rotation = Tungsten::euler_rotation(-0.6f, 0.4f, 0.0f);
-            light_node.set_local_transform(light_transform);
+            light_node.set_local_transform({
+                .rotation = Tungsten::euler_rotation(-0.6f, 0.4f, 0.0f)
+            });
             light_node.add(Tungsten::LightComponent{
                 .type = Tungsten::LightType::DIRECTIONAL,
                 .color = {1.0f, 0.97f, 0.9f},
                 .intensity = 1.0f
             });
-
-            std::cout << Tungsten::get_device_info() << '\n';
             Tungsten::set_swap_interval(app, Tungsten::SwapInterval::VSYNC);
         }
 
