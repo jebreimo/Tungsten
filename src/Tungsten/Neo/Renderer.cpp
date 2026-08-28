@@ -113,24 +113,25 @@ namespace Tungsten
 
         if (opaque_count != sorted_.size())
         {
-            set_blend_enabled(true);
-            set_blend_function(BlendFunction::SRC_ALPHA,
-                               BlendFunction::ONE_MINUS_SRC_ALPHA);
-            // The depth *test* stays on, so opaque geometry still occludes
-            // these; only the write is masked. Blended surfaces are sorted
-            // back-to-front precisely so they need not occlude each other, and
-            // letting them write depth would mean the first one drawn punches
-            // a hole in everything coplanar behind it. That is what made
-            // RenderableComponent::render_layer inert for co-planar 2D — a
-            // higher layer is drawn later, then fails the depth test against
-            // what the lower one already wrote. With the mask off, draw order
-            // is the sort key's business alone.
-            set_depth_mask_enabled(false);
-            for (size_t i = opaque_count; i < sorted_.size(); ++i)
-                draw_item(*sorted_[i], i);
-            set_depth_mask_enabled(true);
-            set_blend_enabled(false);
+            render_transparent_items(opaque_count);
         }
+    }
+
+    void Renderer::render_transparent_items(size_t start_index)
+    {
+        set_blend_enabled(true);
+        set_blend_function(BlendFunction::SRC_ALPHA,
+                           BlendFunction::ONE_MINUS_SRC_ALPHA);
+        // The depth *test* stays on, so opaque geometry still occludes
+        // these; only the write is masked. Blended surfaces are sorted
+        // back-to-front precisely so they need not occlude each other.
+        // Letting them write depth would mean the first one drawn punches
+        // a hole in everything coplanar behind it.
+        set_depth_mask_enabled(false);
+        for (size_t i = start_index; i < sorted_.size(); ++i)
+            draw_item(*sorted_[i], i);
+        set_depth_mask_enabled(true);
+        set_blend_enabled(false);
     }
 
     void Renderer::bind_per_frame(const RenderSnapshot& snapshot)

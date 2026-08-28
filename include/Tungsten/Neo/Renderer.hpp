@@ -48,6 +48,8 @@ namespace Tungsten
         void render(const RenderSnapshot& snapshot);
 
     private:
+        void render_transparent_items(size_t start_index);
+
         /**
          * Uploads the per-frame block: camera matrices, camera position and
          * time, ambient light, and up to MAX_LIGHTS lights.
