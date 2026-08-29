@@ -16,6 +16,10 @@ namespace Tungsten
     public:
         VertexLayoutBuilder& add_attribute(AttributeSemantic semantic);
 
+        /**
+         * @note offset_in_stream is set to 0 unless @a index is the same
+         *  as before.
+         */
         VertexLayoutBuilder& set_stream_index(uint8_t index);
 
         VertexLayoutBuilder& set_data_type(VertexAttributeDataType type);

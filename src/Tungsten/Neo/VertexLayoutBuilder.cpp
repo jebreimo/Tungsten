@@ -26,7 +26,12 @@ namespace Tungsten
 
     VertexLayoutBuilder& VertexLayoutBuilder::set_stream_index(uint8_t index)
     {
-        current().stream_index = index;
+        auto& c = current();
+        if (c.stream_index != index)
+        {
+            c.stream_index = index;
+            c.offset_in_stream = 0;
+        }
         return *this;
     }
 
