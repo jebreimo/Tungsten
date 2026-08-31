@@ -6,23 +6,14 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include <cstdint>
+#include <cstddef>
 #include <memory>
-#include <optional>
-#include <tuple>
-#include <vector>
-#include <Xyz/Rectangle.hpp>
 #include <Xyz/Vector.hpp>
-#include "NodeId.hpp"
-#include "ResourceRefs.hpp"
 
 namespace Tungsten
 {
-    struct Font;
     class ResourceManager;
     class Scene;
-    struct TextComponent;
-    struct TextStyle;
 
     /**
      * One corner of a glyph quad — the vertex format text_vertex_layout()
@@ -84,6 +75,8 @@ namespace Tungsten
          */
         explicit TextSystem(ResourceManager& resources);
 
+        ~TextSystem();
+
         /**
          * The system holds refs into one ResourceManager and slots that
          * components point back at, so it is neither copied nor moved.
@@ -109,103 +102,7 @@ namespace Tungsten
         size_t live_item_count() const;
 
     private:
-        /**
-         * Brings one component up to date: rebuilds its geometry and material
-         * as needed, then writes the node's RenderableComponent.
-         */
-        void update_component(Scene& scene, NodeId owner, TextComponent& text);
-
-        /**
-         * Re-tessellates a component's glyph quads and uploads them into fresh
-         * slices of the arenas, freeing the ones it held. Text that has become
-         * empty releases its mesh entirely rather than keeping a zero-length
-         * one.
-         */
-        void rebuild_geometry(TextComponent& text);
-
-        /**
-         * The material for a font's atlas and an effective colour, created on
-         * first use of that pair.
-         */
-        MaterialRef resolve_material(const TextStyle& style,
-                                     const std::optional<Xyz::Vector4F>& color);
-
-        /**
-         * The atlas texture for a font, uploaded on first use.
-         */
-        TextureRef get_atlas(const std::shared_ptr<const Font>& font);
-
-        /**
-         * Takes a slot in the entry table, reusing a released one when there
-         * is one.
-         */
-        uint32_t acquire_slot();
-
-        /**
-         * Destroys the entry's mesh — which returns its slices to the arenas —
-         * and frees the slot.
-         */
-        void release_slot(uint32_t slot);
-
-        ResourceManager& resources_;
-        BufferArenaRef vertex_arena_;
-        BufferArenaRef index_arena_;
-        VertexLayoutRef layout_;
-        ShaderProgramRef shader_;
-
-        struct Atlas
-        {
-            std::shared_ptr<const Font> font;
-            TextureRef texture;
-        };
-
-        struct MaterialEntry
-        {
-            TextureRef atlas;
-            Xyz::Vector4F color;
-            MaterialRef material;
-        };
-
-        /**
-         * One entry per live text item, indexed by TextComponent's
-         * BuiltState::slot. Entries are never shifted — a released one goes on
-         * free_slots_ instead — so the index a component stores stays valid.
-         */
-        struct Entry
-        {
-            MeshRef mesh;
-        };
-
-        /**
-         * Both are searched linearly. The number of distinct fonts, and of
-         * distinct (atlas, colour) pairs, is small and bounded in any real
-         * application — the same assumption ShaderLibrary's variant cache
-         * makes.
-         */
-        std::vector<Atlas> atlases_;
-        std::vector<MaterialEntry> materials_;
-
-        std::vector<Entry> entries_;
-        std::vector<uint32_t> free_slots_;
-        /**
-         * Which entries a live component claimed during the current sweep.
-         * Whatever is left unclaimed afterwards belongs to a component that
-         * was removed, or whose node was, and is released. Kept as a member so
-         * the per-frame sweep does not allocate.
-         */
-        std::vector<uint8_t> claimed_;
-
-        /**
-         * Tessellation scratch, reused across items and frames so that a
-         * steady state — a handful of values changing each frame — does not
-         * allocate. The glyph_* pair is what the font layout code fills (its
-         * GlyphVertex is this tuple, spelled out to keep an internal header
-         * out of this one); vertexes_ and indexes_ are the anchored, rebased
-         * form that goes to the GPU.
-         */
-        std::vector<std::tuple<Xyz::Vector2F, Xyz::Vector2F>> glyph_vertexes_;
-        std::vector<int32_t> glyph_indexes_;
-        std::vector<TextVertex> vertexes_;
-        std::vector<uint32_t> indexes_;
+        struct Members;
+        std::unique_ptr<Members> members_;
     };
 } // Tungsten

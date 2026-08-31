@@ -28,24 +28,6 @@ namespace Tungsten
      * So a text node carries two components — this one, which the application
      * writes, and a RenderableComponent, which TextSystem owns and overwrites.
      * Do not edit the latter by hand; the next update() would undo it.
-     *
-     * There are no dirty flags and no setters. The component is a plain
-     * aggregate whose fields are assigned directly, and TextSystem finds the
-     * work by diffing them against `built` — its record of what it last
-     * compiled. Nothing can be changed without the next update() noticing, and
-     * there is no bookkeeping to forget. The price is a sweep over every text
-     * component per frame, comparing a string and a handful of scalars, which
-     * is far cheaper than the tessellation it guards.
-     *
-     * Which changes cost what:
-     *
-     * - `text` or `style` — re-tessellates the glyph quads and re-uploads that
-     *   item's slices. This is the frequent-value case, and it touches only
-     *   the one item.
-     * - `color_override`, `visible`, `render_layer` — re-resolves the material
-     *   or re-publishes the renderable. No vertex work.
-     * - the node's transform — nothing at all. Position, rotation and scale
-     *   are the node's, and reach the shader through the per-draw UBO.
      */
     struct TextComponent
     {

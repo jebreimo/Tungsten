@@ -9,22 +9,28 @@
 
 #include <algorithm>
 #include <cstring>
+#include <optional>
+#include <tuple>
+#include <vector>
+#include <Xyz/Rectangle.hpp>
 #include "Tungsten/Gl/GlTexture.hpp"
 #include "Tungsten/Neo/BuiltinShaders.hpp"
 #include "Tungsten/Neo/Material.hpp"
 #include "Tungsten/Neo/Mesh.hpp"
+#include "Tungsten/Neo/NodeId.hpp"
 #include "Tungsten/Neo/RenderableComponent.hpp"
 #include "Tungsten/Neo/ResourceManager.hpp"
+#include "Tungsten/Neo/ResourceRefs.hpp"
 #include "Tungsten/Neo/Scene.hpp"
 #include "Tungsten/Neo/TextComponent.hpp"
 #include "Tungsten/Neo/TextStyle.hpp"
 #include "Tungsten/Neo/Texture.hpp"
+#include "Tungsten/Neo/VertexLayoutBuilder.hpp"
 #include "Tungsten/TungstenException.hpp"
 #include "Tungsten/YimageGl.hpp"
 #include "../Render/FontUtilities.hpp"
 #include "../Render/TextUtilities.hpp"
 #include "Shaders/BuiltinShaderSources.hpp"
-#include "Tungsten/Neo/VertexLayoutBuilder.hpp"
 
 namespace Tungsten
 {
@@ -107,32 +113,140 @@ namespace Tungsten
         }
     }
 
-    TextSystem::TextSystem(ResourceManager& resources)
-        : resources_(resources)
+    struct TextSystem::Members
     {
-        layout_ = resources_.register_layout(VertexLayoutBuilder()
+        explicit Members(ResourceManager& resources);
+
+        void update(Scene& scene);
+
+        [[nodiscard]]
+        size_t live_item_count() const;
+
+        /**
+         * Brings one component up to date: rebuilds its geometry and material
+         * as needed, then writes the node's RenderableComponent.
+         */
+        void update_component(Scene& scene, NodeId owner, TextComponent& text);
+
+        /**
+         * Re-tessellates a component's glyph quads and uploads them into fresh
+         * slices of the arenas, freeing the ones it held. Text that has become
+         * empty releases its mesh entirely rather than keeping a zero-length
+         * one.
+         */
+        void rebuild_geometry(TextComponent& text);
+
+        /**
+         * The material for a font's atlas and an effective colour, created on
+         * first use of that pair.
+         */
+        MaterialRef resolve_material(const TextStyle& style,
+                                     const std::optional<Xyz::Vector4F>& color);
+
+        /**
+         * The atlas texture for a font, uploaded on first use.
+         */
+        TextureRef get_atlas(const std::shared_ptr<const Font>& font);
+
+        /**
+         * Takes a slot in the entry table, reusing a released one when there
+         * is one.
+         */
+        uint32_t acquire_slot();
+
+        /**
+         * Destroys the entry's mesh — which returns its slices to the arenas —
+         * and frees the slot.
+         */
+        void release_slot(uint32_t slot);
+
+        ResourceManager& resources;
+        BufferArenaRef vertex_arena;
+        BufferArenaRef index_arena;
+        VertexLayoutRef layout;
+        ShaderProgramRef shader;
+
+        struct Atlas
+        {
+            std::shared_ptr<const Font> font;
+            TextureRef texture;
+        };
+
+        struct MaterialEntry
+        {
+            TextureRef atlas;
+            Xyz::Vector4F color;
+            MaterialRef material;
+        };
+
+        /**
+         * One entry per live text item, indexed by TextComponent's
+         * BuiltState::slot. Entries are never shifted — a released one goes on
+         * free_slots instead — so the index a component stores stays valid.
+         */
+        struct Entry
+        {
+            MeshRef mesh;
+        };
+
+        /**
+         * Both are searched linearly. The number of distinct fonts, and of
+         * distinct (atlas, colour) pairs, is small and bounded in any real
+         * application — the same assumption ShaderLibrary's variant cache
+         * makes.
+         */
+        std::vector<Atlas> atlases;
+        std::vector<MaterialEntry> materials;
+
+        std::vector<Entry> entries;
+        std::vector<uint32_t> free_slots;
+        /**
+         * Which entries a live component claimed during the current sweep.
+         * Whatever is left unclaimed afterwards belongs to a component that
+         * was removed, or whose node was, and is released. Kept as a member so
+         * the per-frame sweep does not allocate.
+         */
+        std::vector<uint8_t> claimed;
+
+        /**
+         * Tessellation scratch, reused across items and frames so that a
+         * steady state — a handful of values changing each frame — does not
+         * allocate. The glyph_* pair is what the font layout code fills (its
+         * GlyphVertex is this tuple); vertexes and indexes are the anchored,
+         * rebased form that goes to the GPU.
+         */
+        std::vector<GlyphVertex> glyph_vertexes;
+        std::vector<int32_t> glyph_indexes;
+        std::vector<TextVertex> vertexes;
+        std::vector<uint32_t> indexes;
+    };
+
+    TextSystem::Members::Members(ResourceManager& resources)
+        : resources(resources)
+    {
+        layout = resources.register_layout(VertexLayoutBuilder()
             .add_attribute(Tungsten::AttributeSemantic::POSITION)
             .set_component_count(2)
             .add_attribute(Tungsten::AttributeSemantic::TEX_COORD_0)
             .build());
-        register_text_family(resources_);
+        register_text_family(resources);
         // The family has no feature flags, so there is exactly one variant and
         // it can be resolved once here rather than per material.
-        shader_ = resources_.register_shader_variant({TEXT_FAMILY, 0});
+        shader = resources.register_shader_variant({TEXT_FAMILY, 0});
 
-        vertex_arena_ = resources_.create_arena(BufferUsage::DYNAMIC_DRAW,
-                                                VERTEX_STRIDE,
-                                                INITIAL_VERTEX_CAPACITY);
-        index_arena_ = resources_.create_arena(BufferUsage::DYNAMIC_DRAW,
-                                               INDEX_STRIDE,
-                                               INITIAL_INDEX_CAPACITY);
+        vertex_arena = resources.create_arena(BufferUsage::DYNAMIC_DRAW,
+                                              VERTEX_STRIDE,
+                                              INITIAL_VERTEX_CAPACITY);
+        index_arena = resources.create_arena(BufferUsage::DYNAMIC_DRAW,
+                                             INDEX_STRIDE,
+                                             INITIAL_INDEX_CAPACITY);
     }
 
-    void TextSystem::update(Scene& scene)
+    void TextSystem::Members::update(Scene& scene)
     {
         auto& store = scene.components<TextComponent>();
 
-        claimed_.assign(entries_.size(), 0);
+        claimed.assign(entries.size(), 0);
 
         for (size_t i = 0; i < store.items.size(); ++i)
         {
@@ -140,31 +254,31 @@ namespace Tungsten
 
             // Claimed after the fact rather than inside update_component, so
             // that every path through it — rebuilt, unchanged, or released —
-            // is covered by one statement. acquire_slot() has grown claimed_
+            // is covered by one statement. acquire_slot() has grown claimed
             // to match by now if a slot was taken.
             const auto slot = store.items[i].built.slot;
             if (slot != TextComponent::BuiltState::NO_SLOT)
-                claimed_[slot] = 1;
+                claimed[slot] = 1;
         }
 
         // Whatever no live component claimed belongs to one that has been
         // removed — or whose node was, taking the component with it. This is
         // the only place text meshes are reclaimed: Scene knows nothing about
         // the GPU memory a TextComponent stands for.
-        for (uint32_t slot = 0; slot < entries_.size(); ++slot)
+        for (uint32_t slot = 0; slot < entries.size(); ++slot)
         {
-            if (!claimed_[slot] && entries_[slot].mesh)
+            if (!claimed[slot] && entries[slot].mesh)
                 release_slot(slot);
         }
     }
 
-    size_t TextSystem::live_item_count() const
+    size_t TextSystem::Members::live_item_count() const
     {
-        return entries_.size() - free_slots_.size();
+        return entries.size() - free_slots.size();
     }
 
-    void TextSystem::update_component(Scene& scene, NodeId owner,
-                                      TextComponent& text)
+    void TextSystem::Members::update_component(Scene& scene, NodeId owner,
+                                               TextComponent& text)
     {
         auto& built = text.built;
 
@@ -223,31 +337,31 @@ namespace Tungsten
         renderable->render_layer = text.render_layer;
     }
 
-    void TextSystem::rebuild_geometry(TextComponent& text)
+    void TextSystem::Members::rebuild_geometry(TextComponent& text)
     {
         auto& built = text.built;
 
-        vertexes_.clear();
-        indexes_.clear();
+        vertexes.clear();
+        indexes.clear();
         Xyz::RectangleF rect;
         Xyz::Vector2F offset;
 
         if (text.style && text.style->font && !text.text.empty())
         {
             const TextStyle& style = *text.style;
-            glyph_vertexes_.clear();
-            glyph_indexes_.clear();
-            rect = add_vertexes(glyph_vertexes_, glyph_indexes_, *style.font,
+            glyph_vertexes.clear();
+            glyph_indexes.clear();
+            rect = add_vertexes(glyph_vertexes, glyph_indexes, *style.font,
                                 utf8_to_utf32(text.text), style.line_gap,
                                 style.horizontal_alignment);
             offset = anchor_offset(style, rect);
 
-            vertexes_.reserve(glyph_vertexes_.size());
-            for (const auto& [position, tex_coord] : glyph_vertexes_)
-                vertexes_.push_back({position - offset, tex_coord});
+            vertexes.reserve(glyph_vertexes.size());
+            for (const auto& [position, tex_coord] : glyph_vertexes)
+                vertexes.push_back({position - offset, tex_coord});
         }
 
-        if (vertexes_.empty())
+        if (vertexes.empty())
         {
             // Nothing to draw. Releasing rather than keeping a zero-length
             // mesh means empty text holds no arena space and no mesh slot —
@@ -268,32 +382,32 @@ namespace Tungsten
         // Free the existing mesh.
         if (built.mesh)
         {
-            Mesh& previous = resources_.get_mesh(built.mesh);
-            resources_.free(previous.streams[0]);
-            resources_.free(previous.ebo);
+            Mesh& previous = resources.get_mesh(built.mesh);
+            resources.free(previous.streams[0]);
+            resources.free(previous.ebo);
         }
 
-        const SharedBuffer vertices = resources_.allocate(
-            vertex_arena_, static_cast<uint32_t>(vertexes_.size()));
+        const SharedBuffer vertices = resources.allocate(
+            vertex_arena, static_cast<uint32_t>(vertexes.size()));
 
         // The layout code numbers a text's vertices from zero; the renderer
         // draws with absolute indices, so they are rebased onto wherever the
         // arena just put this item's vertices.
-        indexes_.reserve(glyph_indexes_.size());
-        for (const int32_t index : glyph_indexes_)
-            indexes_.push_back(uint32_t(index) + vertices.offset);
+        indexes.reserve(glyph_indexes.size());
+        for (const int32_t index : glyph_indexes)
+            indexes.push_back(uint32_t(index) + vertices.offset);
 
-        const SharedBuffer indices = resources_.allocate(
-            index_arena_, static_cast<uint32_t>(indexes_.size()));
+        const SharedBuffer indices = resources.allocate(
+            index_arena, static_cast<uint32_t>(indexes.size()));
 
-        resources_.upload(vertices, vertexes_.data(),
-                          vertexes_.size() * sizeof(TextVertex));
-        resources_.upload(indices, indexes_.data(),
-                          indexes_.size() * sizeof(uint32_t));
+        resources.upload(vertices, vertexes.data(),
+                         vertexes.size() * sizeof(TextVertex));
+        resources.upload(indices, indexes.data(),
+                         indexes.size() * sizeof(uint32_t));
 
         if (built.mesh)
         {
-            Mesh& mesh = resources_.get_mesh(built.mesh);
+            Mesh& mesh = resources.get_mesh(built.mesh);
             mesh.streams[0] = vertices;
             mesh.ebo = indices;
         }
@@ -303,7 +417,7 @@ namespace Tungsten
             // check the layout against the arenas it will actually be read
             // from rather than against an empty placeholder stream.
             Mesh mesh;
-            mesh.layout = layout_;
+            mesh.layout = layout;
             mesh.streams = {vertices};
             mesh.ebo = indices;
             mesh.index_type = ElementIndexType::UINT32;
@@ -311,30 +425,30 @@ namespace Tungsten
             // Every text mesh draws from the same two arenas with the same
             // layout, so they all resolve to one cached VAO. Arena growth
             // re-points it in place, which is why the id can be taken once.
-            const BufferArenaRef vbo_arenas[] = {vertex_arena_};
-            mesh.vao = resources_.get_vao(vbo_arenas, index_arena_, layout_);
-            built.mesh = resources_.create_mesh(std::move(mesh));
-            entries_[built.slot].mesh = built.mesh;
+            const BufferArenaRef vbo_arenas[] = {vertex_arena};
+            mesh.vao = resources.get_vao(vbo_arenas, index_arena, layout);
+            built.mesh = resources.create_mesh(std::move(mesh));
+            entries[built.slot].mesh = built.mesh;
         }
 
         built.bounds = make_bounds(rect, offset);
     }
 
-    MaterialRef TextSystem::resolve_material(
+    MaterialRef TextSystem::Members::resolve_material(
         const TextStyle& style,
         const std::optional<Xyz::Vector4F>& color_override)
     {
         const TextureRef atlas = get_atlas(style.font);
         const Xyz::Vector4F color = color_override.value_or(style.color);
 
-        for (const auto& entry : materials_)
+        for (const auto& entry : materials)
         {
             if (entry.atlas == atlas && entry.color == color)
                 return entry.material;
         }
 
         Material material;
-        material.shader = shader_;
+        material.shader = shader;
         // The MaterialBlock is one vec4. It is written as an opaque blob here,
         // exactly as the shader declares it; ResourceManager uploads it into
         // the material's own UBO without interpreting it.
@@ -346,14 +460,15 @@ namespace Tungsten
         // the back-to-front pass, never the opaque one.
         material.transparent = true;
 
-        const auto ref = resources_.create_material(std::move(material));
-        materials_.push_back({atlas, color, ref});
+        const auto ref = resources.create_material(std::move(material));
+        materials.push_back({atlas, color, ref});
         return ref;
     }
 
-    TextureRef TextSystem::get_atlas(const std::shared_ptr<const Font>& font)
+    TextureRef TextSystem::Members::get_atlas(
+        const std::shared_ptr<const Font>& font)
     {
-        for (const auto& atlas : atlases_)
+        for (const auto& atlas : atlases)
         {
             if (atlas.font == font)
                 return atlas.texture;
@@ -374,39 +489,56 @@ namespace Tungsten
         // mipmaps, clamped — which is exactly what an atlas wants, so there is
         // no descriptor to register.
 
-        const auto ref = resources_.create_texture(std::move(texture));
-        atlases_.push_back({font, ref});
+        const auto ref = resources.create_texture(std::move(texture));
+        atlases.push_back({font, ref});
         return ref;
     }
 
-    uint32_t TextSystem::acquire_slot()
+    uint32_t TextSystem::Members::acquire_slot()
     {
-        if (!free_slots_.empty())
+        if (!free_slots.empty())
         {
-            const auto slot = free_slots_.back();
-            free_slots_.pop_back();
+            const auto slot = free_slots.back();
+            free_slots.pop_back();
             return slot;
         }
-        entries_.emplace_back();
-        // Kept the same length as entries_, so the sweep at the end of update()
+        entries.emplace_back();
+        // Kept the same length as entries, so the sweep at the end of update()
         // can index it with any slot handed out during that same sweep.
-        claimed_.push_back(0);
-        return static_cast<uint32_t>(entries_.size() - 1);
+        claimed.push_back(0);
+        return static_cast<uint32_t>(entries.size() - 1);
     }
 
-    void TextSystem::release_slot(uint32_t slot)
+    void TextSystem::Members::release_slot(uint32_t slot)
     {
-        if (slot >= entries_.size())
+        if (slot >= entries.size())
             TUNGSTEN_THROW("TextSystem: invalid slot.");
 
-        Entry& entry = entries_[slot];
+        Entry& entry = entries[slot];
         if (entry.mesh)
         {
             // Destroying the mesh is what returns its vertex and index slices
             // to the arenas; the mesh owns no GL object of its own.
-            resources_.destroy_mesh(entry.mesh);
+            resources.destroy_mesh(entry.mesh);
             entry.mesh = {};
         }
-        free_slots_.push_back(slot);
+        free_slots.push_back(slot);
+    }
+
+    TextSystem::TextSystem(ResourceManager& resources)
+        : members_(std::make_unique<Members>(resources))
+    {
+    }
+
+    TextSystem::~TextSystem() = default;
+
+    void TextSystem::update(Scene& scene)
+    {
+        members_->update(scene);
+    }
+
+    size_t TextSystem::live_item_count() const
+    {
+        return members_->live_item_count();
     }
 } // Tungsten
