@@ -8,15 +8,22 @@
 #include "Tungsten/Neo/Renderer.hpp"
 
 #include <algorithm>
+#include <cstddef>
 #include <cstring>
+#include <vector>
 
+#include "Tungsten/Gl/GlBuffer.hpp"
 #include "Tungsten/Gl/GlRendering.hpp"
 #include "Tungsten/Gl/GlStateManagement.hpp"
+#include "Tungsten/Gl/GlTexture.hpp"
+#include "Tungsten/Neo/GlStateCache.hpp"
 #include "Tungsten/Neo/Material.hpp"
 #include "Tungsten/Neo/Mesh.hpp"
 #include "Tungsten/Neo/ResourceManager.hpp"
+#include "Tungsten/Neo/ResourceRefs.hpp"
 #include "Tungsten/Neo/ShaderProgram.hpp"
 #include "Tungsten/Neo/Texture.hpp"
+#include "Tungsten/Neo/VertexAttribute.hpp"
 #include "Tungsten/TungstenException.hpp"
 #include "UboBindings.hpp"
 
@@ -54,28 +61,108 @@ namespace Tungsten
         }
     }
 
-    Renderer::Renderer(ResourceManager& resources)
-        : resources_(resources)
+    struct Renderer::Members
     {
-        per_frame_ubo_ = generate_buffer();
-        per_draw_ubo_ = generate_buffer();
+        explicit Members(ResourceManager& resources);
+
+        void render(const RenderSnapshot& snapshot);
+
+        void render_transparent_items(size_t start_index);
+
+        /**
+         * Uploads the per-frame block: camera matrices, camera position and
+         * time, ambient light, and up to MAX_LIGHTS lights.
+         */
+        void bind_per_frame(const RenderSnapshot& snapshot);
+
+        /**
+         * Appends pointers to the items to sorted and orders that run by sort
+         * key, leaving anything already there untouched.
+         */
+        void append_sorted(const std::vector<RenderItem>& items);
+
+        /**
+         * Packs every sorted item's per-draw block into one buffer, spaced by
+         * per_draw_stride, and uploads it. An item's index in sorted is its
+         * slot, so draw_item can bind its slice without a lookup.
+         */
+        void upload_per_draw_blocks();
+
+        /**
+         * Draws one item, binding its slice of the packed per-draw buffer.
+         */
+        void draw_item(const RenderItem& item, size_t slot);
+
+        /**
+         * Selects the item's program, uploads the material's parameter blob
+         * to the per-material UBO, and binds its textures to consecutive
+         * units. Called only when the material differs from the previous
+         * item's, which the sort keeps rare.
+         */
+        void bind_material(MaterialRef ref);
+
+        ResourceManager& resources;
+        GlStateCache state;
+        BufferHandle per_frame_ubo;
+        BufferHandle per_draw_ubo;
+        /**
+         * 1×1 white, bound to every sampler unit the material leaves
+         * unfilled: a sampler must see a complete texture even when the
+         * shader's runtime flags never read it, and white is the
+         * multiplicative identity if it is read anyway.
+         */
+        TextureHandle white_texture;
+        /**
+         * Sort scratch, reused across frames to avoid reallocation. Holds the
+         * opaque run first, then the transparent one; an item's index here is
+         * its slot in the per-draw buffer.
+         */
+        std::vector<const RenderItem*> sorted;
+        /**
+         * The packed per-draw blocks, staged here before the one upload.
+         */
+        std::vector<std::byte> staging;
+        /**
+         * Spacing between per-draw blocks: the block size rounded up to
+         * GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, which every glBindBufferRange
+         * offset has to be a multiple of.
+         */
+        size_t per_draw_stride = 0;
+        MaterialRef current_material;
+        /**
+         * The required_attributes of current_material's shader, cached so the
+         * per-draw check needs no lookup. Cleared with the material.
+         */
+        AttributeSemanticMask current_required_attributes = 0;
+        /**
+         * The sampler bound to units the current material leaves unfilled.
+         * Re-resolved at the start of each frame.
+         */
+        uint32_t default_sampler_id = 0;
+    };
+
+    Renderer::Members::Members(ResourceManager& resources)
+        : resources(resources)
+    {
+        per_frame_ubo = generate_buffer();
+        per_draw_ubo = generate_buffer();
 
         // Only binding 0 is set once and left alone; its buffer never changes,
         // so there is no repeated bind for the state cache to elide. Binding 1
         // is re-pointed at each material's own parameter buffer, and binding 2
         // at each item's slice of the packed per-draw buffer.
         bind_buffer_base(BufferTarget::UNIFORM, PER_FRAME_UBO_BINDING,
-                         per_frame_ubo_.id());
+                         per_frame_ubo.id());
 
         // Every bind_buffer_range offset must be a multiple of this, so the
         // per-draw blocks are spaced out to match. It is commonly 256 against
         // a 112-byte block; the padding is the price of one upload per frame.
         const auto alignment = size_t(get_uniform_buffer_offset_alignment());
         constexpr size_t block_size = RENDER_ITEM_DATA_SIZE * sizeof(float);
-        per_draw_stride_ = (block_size + alignment - 1) / alignment * alignment;
+        per_draw_stride = (block_size + alignment - 1) / alignment * alignment;
 
-        white_texture_ = generate_texture();
-        bind_texture(TextureTarget::TEXTURE_2D, white_texture_.id());
+        white_texture = generate_texture();
+        bind_texture(TextureTarget::TEXTURE_2D, white_texture.id());
         constexpr uint8_t white[4] = {0xFF, 0xFF, 0xFF, 0xFF};
         set_texture_image_2d(TextureTarget2D::TEXTURE_2D, 0, {1, 1},
                              RGBA_TEXTURE, white);
@@ -84,24 +171,24 @@ namespace Tungsten
         // mip_filter is what keeps this lone level-0 image complete.
     }
 
-    void Renderer::render(const RenderSnapshot& snapshot)
+    void Renderer::Members::render(const RenderSnapshot& snapshot)
     {
         bind_per_frame(snapshot);
         // Forget the previous frame's material: its slot may have been
         // destroyed and reused between frames.
-        current_material_ = {};
-        current_required_attributes_ = 0;
+        current_material = {};
+        current_required_attributes = 0;
 
         // Create a GL sampler on first use, this allows the constructor
         // to run before a context is current.
-        default_sampler_id_ = resources_.get_sampler_id({});
+        default_sampler_id = resources.get_sampler_id({});
 
         // Both passes are sorted up front so every item's per-draw block can
-        // go up in one upload; an item's index in sorted_ is its slot in the
+        // go up in one upload; an item's index in sorted is its slot in the
         // per-draw buffer.
-        sorted_.clear();
+        sorted.clear();
         append_sorted(snapshot.opaque_items);
-        const size_t opaque_count = sorted_.size();
+        const size_t opaque_count = sorted.size();
         append_sorted(snapshot.transparent_items);
         upload_per_draw_blocks();
 
@@ -114,13 +201,13 @@ namespace Tungsten
         set_blend_enabled(false);
 
         for (size_t i = 0; i < opaque_count; ++i)
-            draw_item(*sorted_[i], i);
+            draw_item(*sorted[i], i);
 
-        if (opaque_count != sorted_.size())
+        if (opaque_count != sorted.size())
             render_transparent_items(opaque_count);
     }
 
-    void Renderer::render_transparent_items(size_t start_index)
+    void Renderer::Members::render_transparent_items(size_t start_index)
     {
         set_blend_enabled(true);
         set_blend_function(BlendFunction::SRC_ALPHA,
@@ -131,13 +218,13 @@ namespace Tungsten
         // Letting them write depth would mean the first one drawn punches
         // a hole in everything coplanar behind it.
         set_depth_mask_enabled(false);
-        for (size_t i = start_index; i < sorted_.size(); ++i)
-            draw_item(*sorted_[i], i);
+        for (size_t i = start_index; i < sorted.size(); ++i)
+            draw_item(*sorted[i], i);
         set_depth_mask_enabled(true);
         set_blend_enabled(false);
     }
 
-    void Renderer::bind_per_frame(const RenderSnapshot& snapshot)
+    void Renderer::Members::bind_per_frame(const RenderSnapshot& snapshot)
     {
         PerFrameBlock block = {};
         copy_column_major(snapshot.view_matrix, block.view);
@@ -157,73 +244,73 @@ namespace Tungsten
         }
         block.light_count[0] = static_cast<int32_t>(count);
 
-        bind_buffer(BufferTarget::UNIFORM, per_frame_ubo_.id());
+        bind_buffer(BufferTarget::UNIFORM, per_frame_ubo.id());
         set_buffer_data(BufferTarget::UNIFORM, sizeof(block), &block,
                         BufferUsage::DYNAMIC_DRAW);
     }
 
-    void Renderer::append_sorted(const std::vector<RenderItem>& items)
+    void Renderer::Members::append_sorted(const std::vector<RenderItem>& items)
     {
-        const auto first = sorted_.size();
-        sorted_.reserve(first + items.size());
+        const auto first = sorted.size();
+        sorted.reserve(first + items.size());
         for (const RenderItem& item : items)
-            sorted_.push_back(&item);
+            sorted.push_back(&item);
         // Only the newly appended run is sorted: the two passes are ordered
         // independently and must stay in the order they were appended, opaque
         // before transparent.
-        std::sort(sorted_.begin() + ptrdiff_t(first), sorted_.end(),
+        std::sort(sorted.begin() + ptrdiff_t(first), sorted.end(),
                   [](const RenderItem* a, const RenderItem* b)
                   {
                       return a->sort_key() < b->sort_key();
                   });
     }
 
-    void Renderer::upload_per_draw_blocks()
+    void Renderer::Members::upload_per_draw_blocks()
     {
-        if (sorted_.empty())
+        if (sorted.empty())
             return;
 
         // One block per item, each starting at a offset the driver will accept
         // for glBindBufferRange. The padding between them is wasted, but it is
         // bounded by the alignment (typically 256 bytes against a 112-byte
         // block) and buys one upload per frame instead of one per draw.
-        staging_.assign(sorted_.size() * per_draw_stride_, std::byte{});
-        for (size_t i = 0; i < sorted_.size(); ++i)
+        staging.assign(sorted.size() * per_draw_stride, std::byte{});
+        for (size_t i = 0; i < sorted.size(); ++i)
         {
-            std::memcpy(staging_.data() + i * per_draw_stride_,
-                        sorted_[i]->data().data(),
+            std::memcpy(staging.data() + i * per_draw_stride,
+                        sorted[i]->data().data(),
                         RENDER_ITEM_DATA_SIZE * sizeof(float));
         }
 
         // Respecify rather than sub-update: handing the driver a fresh store
         // each frame lets it hand back memory the GPU is not still reading,
         // which is the cheap way to avoid a stall without fences.
-        bind_buffer(BufferTarget::UNIFORM, per_draw_ubo_.id());
+        bind_buffer(BufferTarget::UNIFORM, per_draw_ubo.id());
         set_buffer_data(BufferTarget::UNIFORM,
-                        static_cast<ptrdiff_t>(staging_.size()),
-                        staging_.data(), BufferUsage::DYNAMIC_DRAW);
+                        static_cast<ptrdiff_t>(staging.size()),
+                        staging.data(), BufferUsage::DYNAMIC_DRAW);
     }
 
-    void Renderer::draw_item(const RenderItem& item, size_t slot)
+    void Renderer::Members::draw_item(const RenderItem& item, size_t slot)
     {
-        if (item.material() != current_material_)
+        if (item.material() != current_material)
             bind_material(item.material());
 
-        const Mesh& mesh = resources_.get_mesh(item.mesh());
+        const Mesh& mesh = resources.get_mesh(item.mesh());
 
-        if ((mesh.semantics & current_required_attributes_)
-            != current_required_attributes_)
+        if ((mesh.semantics & current_required_attributes)
+            != current_required_attributes)
         {
             TUNGSTEN_THROW("Renderer: the mesh does not provide every vertex"
                 " attribute its material's shader reads.");
         }
-        state_.bind_vao(mesh.vao);
+        state.bind_vao(mesh.vao);
 
         // The block was uploaded with all the others; point binding 2 at this
         // item's slice of that buffer rather than rewriting it.
         bind_buffer_range(BufferTarget::UNIFORM, PER_DRAW_UBO_BINDING,
-                          per_draw_ubo_.id(),
-                          static_cast<ptrdiff_t>(slot * per_draw_stride_),
+                          per_draw_ubo.id(),
+                          static_cast<ptrdiff_t>(slot * per_draw_stride),
                           RENDER_ITEM_DATA_SIZE * sizeof(float));
 
         if (mesh.ebo.arena)
@@ -245,19 +332,19 @@ namespace Tungsten
         }
     }
 
-    void Renderer::bind_material(MaterialRef ref)
+    void Renderer::Members::bind_material(MaterialRef ref)
     {
-        const Material& material = resources_.get_material(ref);
-        const ShaderProgram& shader = resources_.get_shader(material.shader);
+        const Material& material = resources.get_material(ref);
+        const ShaderProgram& shader = resources.get_shader(material.shader);
 
-        state_.use_program(shader.gl_handle.id());
+        state.use_program(shader.gl_handle.id());
 
         if (material.ubo)
         {
             // The parameters were uploaded when the material was created, so
             // switching materials only moves the binding point onto another
             // buffer. Consecutive items sharing a material bind nothing.
-            state_.bind_material_ubo(material.ubo.id());
+            state.bind_material_ubo(material.ubo.id());
         }
         else if (shader.has_material_block)
         {
@@ -272,14 +359,14 @@ namespace Tungsten
         {
             const auto unit = static_cast<uint32_t>(i);
             const Texture& texture =
-                resources_.get_texture(material.textures[i]);
-            state_.bind_texture(static_cast<int32_t>(unit),
-                                texture.gl_handle.id());
+                resources.get_texture(material.textures[i]);
+            state.bind_texture(static_cast<int32_t>(unit),
+                               texture.gl_handle.id());
             // Every unit gets an explicit sampler. Leaving one unbound would
             // sample through whatever another subsystem last left on it — Neo
             // shares its context with TextRenderer and the legacy examples.
-            state_.bind_sampler(unit,
-                                resources_.get_sampler_id(texture.sampler));
+            state.bind_sampler(unit,
+                               resources.get_sampler_id(texture.sampler));
         }
 
         // The program samples units [0, sampler_count) whether or not the
@@ -287,11 +374,23 @@ namespace Tungsten
         for (auto i = static_cast<uint32_t>(material.textures.size());
              i < shader.sampler_count; ++i)
         {
-            state_.bind_texture(static_cast<int32_t>(i), white_texture_.id());
-            state_.bind_sampler(i, default_sampler_id_);
+            state.bind_texture(static_cast<int32_t>(i), white_texture.id());
+            state.bind_sampler(i, default_sampler_id);
         }
 
-        current_required_attributes_ = shader.required_attributes;
-        current_material_ = ref;
+        current_required_attributes = shader.required_attributes;
+        current_material = ref;
+    }
+
+    Renderer::Renderer(ResourceManager& resources)
+        : members_(std::make_unique<Members>(resources))
+    {
+    }
+
+    Renderer::~Renderer() = default;
+
+    void Renderer::render(const RenderSnapshot& snapshot)
+    {
+        members_->render(snapshot);
     }
 } // Tungsten
