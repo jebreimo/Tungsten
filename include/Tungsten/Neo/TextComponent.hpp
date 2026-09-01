@@ -67,23 +67,22 @@ namespace Tungsten
          * the inputs above, plus the resources they produced. The diff against
          * the fields above is what takes the place of dirty flags.
          *
-         * Written only by TextSystem. Treat it as private — it is here, rather
-         * than in a side table keyed by node, so that a component and the
-         * record of what it built stay together when the scene's swap-and-pop
-         * removal moves it.
+         * Only TextSystem can write it — the shadow copies are what the diff
+         * compares against, so an application that edited them would make the
+         * system miss a change. It lives here, rather than in a side table
+         * keyed by node, so that a component and the record of what it built
+         * stay together when the scene's swap-and-pop removal moves it.
+         *
+         * The accessors are for tests and for anything that wants to observe
+         * what a text item resolved to; there is nothing to set.
          */
-        struct BuiltState
+        class BuiltState
         {
+        public:
             /**
              * `slot`'s value before this component has ever been built.
              */
             static constexpr uint32_t NO_SLOT = UINT32_MAX;
-
-            std::string text;
-            std::shared_ptr<const TextStyle> style;
-            std::optional<Xyz::Vector4F> color_override;
-            bool visible = false;
-            uint32_t render_layer = 0;
 
             /**
              * The mesh holding this text's glyph quads. The ref stays the same
@@ -92,25 +91,52 @@ namespace Tungsten
              * Null while the text is empty, which is also when the item owns
              * no GPU memory at all.
              */
-            MeshRef mesh;
+            [[nodiscard]]
+            MeshRef mesh() const
+            {
+                return mesh_;
+            }
+
             /**
              * The material pairing the font's atlas with the effective colour.
              * Shared with every other item that resolves to the same pair.
              */
-            MaterialRef material;
+            [[nodiscard]]
+            MaterialRef material() const
+            {
+                return material_;
+            }
+
             /**
              * The tessellated text's extent in the node's local space, handed
              * to the RenderableComponent so text is frustum-culled like any
              * other geometry. Flat in z.
              */
-            Xyz::BBox3F bounds;
+            [[nodiscard]]
+            const Xyz::BBox3F& bounds() const
+            {
+                return bounds_;
+            }
+
+        private:
+            friend class TextSystem;
+
+            std::string text_;
+            std::shared_ptr<const TextStyle> style_;
+            std::optional<Xyz::Vector4F> color_override_;
+            bool visible_ = false;
+            uint32_t render_layer_ = 0;
+
+            MeshRef mesh_;
+            MaterialRef material_;
+            Xyz::BBox3F bounds_;
             /**
              * Index of this component's entry in TextSystem's slot table, or
              * NO_SLOT. The table is how the system reclaims meshes whose
              * component — or whose whole node — has been removed: after each
              * sweep, an entry no live component claims is released.
              */
-            uint32_t slot = NO_SLOT;
+            uint32_t slot_ = NO_SLOT;
         };
 
         BuiltState built;

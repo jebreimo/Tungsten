@@ -236,7 +236,7 @@ TEST_CASE("TextSystem: only changed text is re-uploaded")
 
     SECTION("recolouring one item uploads nothing")
     {
-        const auto before = value.get<TextComponent>().built.material;
+        const auto before = value.get<TextComponent>().built.material();
         session.gl->sub_uploads.clear();
 
         value.get<TextComponent>().color_override = Xyz::Vector4F{1, 0, 0, 1};
@@ -322,7 +322,7 @@ TEST_CASE("TextSystem: a removed text item's mesh is reclaimed")
 
     text_system.update(scene);
     REQUIRE(text_system.live_item_count() == 2);
-    const auto doomed_mesh = doomed.get<TextComponent>().built.mesh;
+    const auto doomed_mesh = doomed.get<TextComponent>().built.mesh();
 
     SECTION("when its node is destroyed")
     {

@@ -181,7 +181,7 @@ namespace Tungsten
 
         /**
          * One entry per live text item, indexed by TextComponent's
-         * BuiltState::slot. Entries are never shifted — a released one goes on
+         * BuiltState::slot_. Entries are never shifted — a released one goes on
          * free_slots instead — so the index a component stores stays valid.
          */
         struct Entry
@@ -256,7 +256,7 @@ namespace Tungsten
             // that every path through it — rebuilt, unchanged, or released —
             // is covered by one statement. acquire_slot() has grown claimed
             // to match by now if a slot was taken.
-            const auto slot = store.items[i].built.slot;
+            const auto slot = store.items[i].built.slot_;
             if (slot != TextComponent::BuiltState::NO_SLOT)
                 claimed[slot] = 1;
         }
@@ -285,14 +285,14 @@ namespace Tungsten
         // The diff that replaces dirty flags. Styles are immutable and shared,
         // so comparing the pointer is enough — and is what makes a style
         // change cheap to detect across hundreds of items.
-        const bool geometry_changed = built.style != text.style
-                                      || built.text != text.text;
-        const bool material_changed = built.style != text.style
-                                      || built.color_override
+        const bool geometry_changed = built.style_ != text.style
+                                      || built.text_ != text.text;
+        const bool material_changed = built.style_ != text.style
+                                      || built.color_override_
                                       != text.color_override;
         const bool renderable_changed = geometry_changed || material_changed
-                                        || built.visible != text.visible
-                                        || built.render_layer
+                                        || built.visible_ != text.visible
+                                        || built.render_layer_
                                         != text.render_layer;
         if (!renderable_changed)
             return;
@@ -304,17 +304,17 @@ namespace Tungsten
 
         if (material_changed)
         {
-            built.material = has_font
+            built.material_ = has_font
                                  ? resolve_material(*text.style,
                                                     text.color_override)
                                  : MaterialRef{};
         }
 
-        built.text = text.text;
-        built.style = text.style;
-        built.color_override = text.color_override;
-        built.visible = text.visible;
-        built.render_layer = text.render_layer;
+        built.text_ = text.text;
+        built.style_ = text.style;
+        built.color_override_ = text.color_override;
+        built.visible_ = text.visible;
+        built.render_layer_ = text.render_layer;
 
         // Publish. A component that has never had anything to draw gets no
         // RenderableComponent at all, so empty text costs the extraction pass
@@ -322,7 +322,7 @@ namespace Tungsten
         auto* renderable = scene.find_component<RenderableComponent>(owner);
         if (!renderable)
         {
-            if (!built.mesh)
+            if (!built.mesh_)
                 return;
             scene.add_component(owner, RenderableComponent{});
             // add_component invalidates references into the store it grew, so
@@ -330,10 +330,10 @@ namespace Tungsten
             renderable = scene.find_component<RenderableComponent>(owner);
         }
 
-        renderable->mesh = built.mesh;
-        renderable->material = built.material;
-        renderable->local_bounds = built.bounds;
-        renderable->visible = text.visible && bool(built.mesh);
+        renderable->mesh = built.mesh_;
+        renderable->material = built.material_;
+        renderable->local_bounds = built.bounds_;
+        renderable->visible = text.visible && bool(built.mesh_);
         renderable->render_layer = text.render_layer;
     }
 
@@ -366,23 +366,23 @@ namespace Tungsten
             // Nothing to draw. Releasing rather than keeping a zero-length
             // mesh means empty text holds no arena space and no mesh slot —
             // and it keeps Mesh's invariant that its slices name live arenas.
-            if (built.slot != TextComponent::BuiltState::NO_SLOT)
+            if (built.slot_ != TextComponent::BuiltState::NO_SLOT)
             {
-                release_slot(built.slot);
-                built.slot = TextComponent::BuiltState::NO_SLOT;
+                release_slot(built.slot_);
+                built.slot_ = TextComponent::BuiltState::NO_SLOT;
             }
-            built.mesh = {};
-            built.bounds = {};
+            built.mesh_ = {};
+            built.bounds_ = {};
             return;
         }
 
-        if (built.slot == TextComponent::BuiltState::NO_SLOT)
-            built.slot = acquire_slot();
+        if (built.slot_ == TextComponent::BuiltState::NO_SLOT)
+            built.slot_ = acquire_slot();
 
         // Free the existing mesh.
-        if (built.mesh)
+        if (built.mesh_)
         {
-            Mesh& previous = resources.get_mesh(built.mesh);
+            Mesh& previous = resources.get_mesh(built.mesh_);
             resources.free(previous.streams[0]);
             resources.free(previous.ebo);
         }
@@ -405,9 +405,9 @@ namespace Tungsten
         resources.upload(indices, indexes.data(),
                          indexes.size() * sizeof(uint32_t));
 
-        if (built.mesh)
+        if (built.mesh_)
         {
-            Mesh& mesh = resources.get_mesh(built.mesh);
+            Mesh& mesh = resources.get_mesh(built.mesh_);
             mesh.streams[0] = vertices;
             mesh.ebo = indices;
         }
@@ -427,11 +427,11 @@ namespace Tungsten
             // re-points it in place, which is why the id can be taken once.
             const BufferArenaRef vbo_arenas[] = {vertex_arena};
             mesh.vao = resources.get_vao(vbo_arenas, index_arena, layout);
-            built.mesh = resources.create_mesh(std::move(mesh));
-            entries[built.slot].mesh = built.mesh;
+            built.mesh_ = resources.create_mesh(std::move(mesh));
+            entries[built.slot_].mesh = built.mesh_;
         }
 
-        built.bounds = make_bounds(rect, offset);
+        built.bounds_ = make_bounds(rect, offset);
     }
 
     MaterialRef TextSystem::Members::resolve_material(
