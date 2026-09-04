@@ -30,7 +30,6 @@ public:
             program.id(), "u_projection_matrix");
         color = Tungsten::get_uniform<Xyz::Vector4F>(program.id(), "u_color");
         z = Tungsten::get_uniform<float>(program.id(), "u_z");
-        point_size = Tungsten::get_uniform<float>(program.id(), "u_point_size");
     }
 
     Tungsten::ProgramHandle program;
@@ -39,7 +38,6 @@ public:
     Tungsten::Uniform<Xyz::Matrix3F> projection_matrix;
     Tungsten::Uniform<Xyz::Vector4F> color;
     Tungsten::Uniform<float> z;
-    Tungsten::Uniform<float> point_size;
 
     uint32_t position_attr;
 };

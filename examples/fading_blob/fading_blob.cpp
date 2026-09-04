@@ -5,6 +5,7 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
+#include <cmath>
 #include <iostream>
 #include <Tungsten/Tungsten.hpp>
 #include "Shape2D.hpp"

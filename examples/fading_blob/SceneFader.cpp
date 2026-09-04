@@ -96,6 +96,21 @@ public:
                     .mip_filter = Tungsten::SamplerMipFilter::NONE
                 });
         }
+
+        // Fresh texture storage holds undefined data, and both buffers are
+        // sampled before either has been drawn to. Clear them so the first
+        // frame fades in from black instead of from whatever was in memory.
+        Tungsten::bind_framebuffer(Tungsten::FramebufferTarget::FRAMEBUFFER, frame_buffer_.id());
+        Tungsten::set_clear_color(0.f, 0.f, 0.f, 1.f);
+        for (auto& texture : textures_)
+        {
+            Tungsten::framebuffer_texture_2d(Tungsten::FramebufferTarget::FRAMEBUFFER,
+                                             Tungsten::FrameBufferAttachment::COLOR0,
+                                             Tungsten::TextureTarget2D::TEXTURE_2D,
+                                             texture.id());
+            Tungsten::clear(Tungsten::ClearBits::COLOR);
+        }
+        Tungsten::bind_framebuffer(Tungsten::FramebufferTarget::FRAMEBUFFER, 0);
     }
 
     void draw_previous_scene(float fade_step)
