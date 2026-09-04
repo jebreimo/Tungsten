@@ -154,8 +154,7 @@ state baked into the GL texture object; it is a `SamplerDescriptor` interned in 
 sampler to the same unit as its texture, which overrides the texture object's own
 parameters entirely. Binding one to *every* unit in `[0, sampler_count)` — the default
 sampler for the units the material leaves unfilled — is deliberate: a unit left without
-a sampler samples through whatever another subsystem last bound there, and Neo shares
-its context with `Fonts` and the legacy examples.
+a sampler samples through whatever another subsystem last bound there.
 
 ## 5. Double-buffering
 

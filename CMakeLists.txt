@@ -130,13 +130,10 @@ add_library(Tungsten STATIC
     include/Tungsten/Neo/TextSystem.hpp
     include/Tungsten/Neo/Texture.hpp
     include/Tungsten/Neo/Transform.hpp
+    include/Tungsten/Neo/VertexArray.hpp
     include/Tungsten/Neo/VertexAttribute.hpp
     include/Tungsten/Neo/VertexLayout.hpp
     include/Tungsten/Neo/VertexLayoutBuilder.hpp
-    include/Tungsten/Render/VertexArrayObject.hpp
-    include/Tungsten/Render/VertexArrayObjectBuilder.hpp
-    include/Tungsten/Render/VertexAttributeDefinition.hpp
-    include/Tungsten/Render/VertexAttributeType.hpp
     include/Tungsten/Sdl/SdlApplication.hpp
     include/Tungsten/Sdl/SdlDisplay.hpp
     include/Tungsten/Sdl/SdlGlContext.hpp
@@ -203,10 +200,8 @@ add_library(Tungsten STATIC
     src/Tungsten/Neo/UboBindings.hpp
     src/Tungsten/Neo/VaoCache.cpp
     src/Tungsten/Neo/VaoCache.hpp
+    src/Tungsten/Neo/VertexArray.cpp
     src/Tungsten/Neo/VertexLayoutBuilder.cpp
-    src/Tungsten/Render/VertexArrayObject.cpp
-    src/Tungsten/Render/VertexArrayObjectBuilder.cpp
-    src/Tungsten/Render/VertexAttributeType.cpp
     src/Tungsten/Sdl/CommandLine.cpp
     src/Tungsten/Sdl/CommandLine.hpp
     src/Tungsten/Sdl/SdlApplication.cpp

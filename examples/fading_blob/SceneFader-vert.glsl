@@ -12,8 +12,8 @@ precision highp int;
 precision highp float;
 #endif
 
-in vec2 a_position;
-in vec2 a_tex_position;
+layout (location = 0) in vec2 a_position;
+layout (location = 4) in vec2 a_tex_position;
 out vec2 v_tex_position;
 void main()
 {

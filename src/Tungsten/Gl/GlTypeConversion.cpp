@@ -207,7 +207,7 @@ namespace Tungsten
         case VertexAttributeDataType::FLOAT:
             return GL_FLOAT;
         default:
-            TUNGSTEN_THROW("Unknown VertexAttributeType: "
+            TUNGSTEN_THROW("Unknown VertexAttributeDataType: "
                 + std::to_string(static_cast<int>(type)));
         }
     }

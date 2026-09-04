@@ -26,6 +26,7 @@ add_executable(TungstenTest
     test_SnapshotBuilder.cpp
     test_TextSystem.cpp
     test_TextUtilities.cpp
+    test_VertexArray.cpp
     text_Font.cpp
 )
 

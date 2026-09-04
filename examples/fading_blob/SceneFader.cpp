@@ -25,24 +25,14 @@ namespace
                             pp.preprocess(std::string_view(SCENE_FADER_FRAGMENT)))
                 .build();
 
-            position_attr = Tungsten::get_vertex_attribute(program.id(), "a_position");
-            tex_position_attr = Tungsten::get_vertex_attribute(program.id(), "a_tex_position");
             texture = Tungsten::get_uniform<int32_t>(program.id(), "u_texture");
             color_delta = Tungsten::get_uniform<Xyz::Vector3F>(program.id(), "u_color_delta");
         }
 
         Tungsten::ProgramHandle program;
 
-        uint32_t position_attr;
-        uint32_t tex_position_attr;
         Tungsten::Uniform<int32_t> texture;
         Tungsten::Uniform<Xyz::Vector3F> color_delta;
-    };
-
-    struct TextureFaderVertex
-    {
-        Xyz::Vector2F pos;
-        Xyz::Vector2F tex_pos;
     };
 }
 
@@ -59,11 +49,16 @@ public:
         vertex_buffer_ = Tungsten::generate_buffer();
         element_buffer_ = Tungsten::generate_buffer();
 
-        vertex_array_ = Tungsten::VertexArrayObjectBuilder()
-            .bind_buffer(vertex_buffer_.id())
-            .add_float(program_.position_attr, 2)
-            .add_float(program_.tex_position_attr, 2)
-            .build();
+        // POSITION defaults to three components; the quad is flat, so it
+        // carries two, and the texture coordinate follows it in the same
+        // buffer. The stride is derived from the layout.
+        vertex_array_ = Tungsten::make_vertex_array(
+            vertex_buffer_.id(),
+            Tungsten::VertexLayoutBuilder()
+                .add_attribute(Tungsten::AttributeSemantic::POSITION)
+                .set_component_count(2)
+                .add_attribute(Tungsten::AttributeSemantic::TEX_COORD_0)
+                .build());
 
         const std::vector<float> vertexes = {
             -1, -1, 0, 0,
@@ -131,7 +126,7 @@ public:
         Tungsten::use_program(program_.program.id());
         program_.texture.set(0);
         program_.color_delta.set({-fade_step, -fade_step, -fade_step});
-        vertex_array_.bind();
+        Tungsten::bind_vertex_array(vertex_array_.id());
         Tungsten::draw_triangle_elements_16(0, 6);
         announce_state_change();
     }
@@ -145,7 +140,7 @@ public:
         Tungsten::use_program(program_.program.id());
         program_.texture.set(0);
         program_.color_delta.set({0.f, 0.f, 0.f});
-        vertex_array_.bind();
+        Tungsten::bind_vertex_array(vertex_array_.id());
         Tungsten::draw_triangle_elements_16(0, 6);
         announce_state_change();
 
@@ -165,7 +160,7 @@ private:
 
     Tungsten::FramebufferHandle frame_buffer_;
     std::array<Tungsten::TextureHandle, 2> textures_;
-    Tungsten::VertexArrayObject vertex_array_;
+    Tungsten::VertexArrayHandle vertex_array_;
     Tungsten::BufferHandle vertex_buffer_;
     Tungsten::BufferHandle element_buffer_;
     TextureFaderProgram program_;
