@@ -98,7 +98,7 @@ public:
         }
     }
 
-    void draw_previous_scene(float fadeout)
+    void draw_previous_scene(float fade_step)
     {
         Tungsten::bind_framebuffer(Tungsten::FramebufferTarget::FRAMEBUFFER, frame_buffer_.id());
         Tungsten::framebuffer_texture_2d(Tungsten::FramebufferTarget::FRAMEBUFFER,
@@ -110,7 +110,7 @@ public:
         Tungsten::bind_texture(Tungsten::TextureTarget::TEXTURE_2D, textures_[1 - index_].id());
         Tungsten::use_program(program_.program.id());
         program_.texture.set(0);
-        program_.color_delta.set({-1.f / 256.f, -1.f / 256.f, -1.f / 256.f});
+        program_.color_delta.set({-fade_step, -fade_step, -fade_step});
         vertex_array_.bind();
         Tungsten::draw_triangle_elements_16(0, 6);
     }
@@ -119,7 +119,7 @@ public:
     {
         Tungsten::bind_framebuffer(Tungsten::FramebufferTarget::FRAMEBUFFER, 0);
         Tungsten::activate_texture_unit(0);
-        Tungsten::bind_texture(Tungsten::TextureTarget::TEXTURE_2D, textures_[1 - index_].id());
+        Tungsten::bind_texture(Tungsten::TextureTarget::TEXTURE_2D, textures_[index_].id());
         Tungsten::use_program(program_.program.id());
         program_.texture.set(0);
         program_.color_delta.set({0.f, 0.f, 0.f});
@@ -130,7 +130,6 @@ public:
     }
 
 private:
-    Xyz::Vector3F color_delta_ = {0, 0, 0};
     Tungsten::FramebufferHandle frame_buffer_;
     std::array<Tungsten::TextureHandle, 2> textures_;
     Tungsten::VertexArrayObject vertex_array_;
@@ -152,9 +151,9 @@ void SceneFader::set_window_size(Tungsten::Size2I window_size)
     impl_->set_window_size(window_size);
 }
 
-void SceneFader::draw_previous_scene(float fadeout)
+void SceneFader::draw_previous_scene(float fade_step)
 {
-    impl_->draw_previous_scene(fadeout);
+    impl_->draw_previous_scene(fade_step);
 }
 
 void SceneFader::render_scene()

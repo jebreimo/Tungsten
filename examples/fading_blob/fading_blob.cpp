@@ -15,7 +15,8 @@ class fading_blob : public Tungsten::EventLoop
 public:
     explicit fading_blob(Tungsten::SdlApplication& app)
         : EventLoop(app),
-          fader_(app.window_size())
+          fader_(app.window_size()),
+          window_size_(app.window_size())
     {
         const std::vector<Xyz::Vector2F> vertexes = {
             {-1, -1},
@@ -31,21 +32,18 @@ public:
         // set_swap_interval(app, Tungsten::SwapInterval::VSYNC);
     }
 
-    bool on_event(const SDL_Event& event) override
-    {
-        if (event.type == SDL_EVENT_WINDOW_RESIZED)
-        {
-            Tungsten::finish_rendering();
-            Tungsten::set_viewport(0, 0, event.window.data1, event.window.data2);
-            fader_.set_window_size({event.window.data1, event.window.data2});
-            return true;
-        }
-        return false;
-    }
-
     void on_draw() override
     {
-        fader_.draw_previous_scene(0.97);
+        const auto viewport = application().viewport();
+        Tungsten::set_viewport(viewport);
+        const Tungsten::Size2I size = {int(viewport.size[0]), int(viewport.size[1])};
+        if (size != window_size_)
+        {
+            window_size_ = size;
+            fader_.set_window_size(size);
+        }
+
+        fader_.draw_previous_scene(1.f / 256.f);
 
         float angle = std::fmod(static_cast<float>(SDL_GetTicks()) * 0.001f, 2 * Xyz::Constants<float>::PI);
         renderer_.set_model_view_matrix(
@@ -57,6 +55,8 @@ public:
 
         fader_.render_scene();
 
+        Tungsten::set_ogl_tracing_enabled(false);
+
         redraw();
     }
 
@@ -64,6 +64,7 @@ private:
     Shape2DRenderer renderer_;
     SceneFader fader_;
     Shape2D rectangle_;
+    Tungsten::Size2I window_size_;
 };
 
 int main(int argc, char* argv[])

@@ -57,6 +57,11 @@ Shape2D::Shape2D(Tungsten::VertexArrayObject vertex_array,
 {
 }
 
+uint32_t Shape2D::element_count() const
+{
+    return element_count_;
+}
+
 const Xyz::Vector4F& Shape2D::color() const
 {
     return color_;
@@ -87,19 +92,9 @@ Shape2DRenderer::Shape2DRenderer()
 
 Shape2DRenderer::~Shape2DRenderer() = default;
 
-Shape2DRenderer::Shape2DRenderer(Shape2DRenderer&& rhs) noexcept
-    : program_(std::move(rhs.program_))
-{
-}
+Shape2DRenderer::Shape2DRenderer(Shape2DRenderer&&) noexcept = default;
 
-Shape2DRenderer& Shape2DRenderer::operator=(Shape2DRenderer&& rhs) noexcept
-{
-    if (this == &rhs)
-        return *this;
-
-    program_ = std::move(rhs.program_);
-    return *this;
-}
+Shape2DRenderer& Shape2DRenderer::operator=(Shape2DRenderer&&) noexcept = default;
 
 Shape2D Shape2DRenderer::create_shape(const std::vector<Xyz::Vector2F>& vertexes,
                                       const std::vector<uint16_t>& indexes,
@@ -145,5 +140,5 @@ void Shape2DRenderer::draw(const Shape2D& shape)
     program_->model_view_matrix.set(model_view_matrix_);
     program_->projection_matrix.set(projection_matrix_);
     program_->z.set(0);
-    Tungsten::draw_triangle_elements_16(0, 6);
+    Tungsten::draw_triangle_elements_16(0, int32_t(shape.element_count()));
 }

@@ -23,6 +23,8 @@ public:
             uint32_t element_count,
             const Xyz::Vector4F& color);
 
+    [[nodiscard]] uint32_t element_count() const;
+
     [[nodiscard]] const Xyz::Vector4F& color() const;
 
     void set_color(const Xyz::Vector4F& color);
@@ -34,7 +36,7 @@ private:
     Tungsten::VertexArrayObject vertex_array_;
     Tungsten::BufferHandle vertex_buffer_;
     Tungsten::BufferHandle element_buffer_;
-    uint32_t element_count_;
+    uint32_t element_count_ = 0;
     Xyz::Vector4F color_;
 };
 
