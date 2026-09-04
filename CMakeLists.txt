@@ -98,7 +98,11 @@ add_library(Tungsten STATIC
     include/Tungsten/Gl/IOglWrapper.hpp
     include/Tungsten/Neo/BuiltinShaders.hpp
     include/Tungsten/Neo/CameraComponent.hpp
+    include/Tungsten/Neo/ColorMaterials.hpp
     include/Tungsten/Neo/DoubleBuffer.hpp
+    include/Tungsten/Neo/Font.hpp
+    include/Tungsten/Neo/FontManager.hpp
+    include/Tungsten/Neo/FontManager.hpp
     include/Tungsten/Neo/GlStateCache.hpp
     include/Tungsten/Neo/LightComponent.hpp
     include/Tungsten/Neo/LightData.hpp
@@ -115,7 +119,9 @@ add_library(Tungsten STATIC
     include/Tungsten/Neo/ResourceRefs.hpp
     include/Tungsten/Neo/Scene.hpp
     include/Tungsten/Neo/ShaderFamily.hpp
+    include/Tungsten/Neo/ShaderPreprocessor.hpp
     include/Tungsten/Neo/ShaderProgram.hpp
+    include/Tungsten/Neo/ShaderProgramBuilder.hpp
     include/Tungsten/Neo/ShaderVariantKey.hpp
     include/Tungsten/Neo/SharedBuffer.hpp
     include/Tungsten/Neo/SnapshotBuilder.hpp
@@ -127,19 +133,6 @@ add_library(Tungsten STATIC
     include/Tungsten/Neo/VertexAttribute.hpp
     include/Tungsten/Neo/VertexLayout.hpp
     include/Tungsten/Neo/VertexLayoutBuilder.hpp
-    include/Tungsten/Render/Camera.hpp
-    include/Tungsten/Render/ColorMaterials.hpp
-    include/Tungsten/Render/Font.hpp
-    include/Tungsten/Render/FontManager.hpp
-    include/Tungsten/Render/FontManager.hpp
-    include/Tungsten/Render/Lights.hpp
-    include/Tungsten/Render/OldShaderProgram.hpp
-    include/Tungsten/Render/ShaderManager.hpp
-    include/Tungsten/Render/ShaderPreprocessor.hpp
-    include/Tungsten/Render/ShaderProgramBuilder.hpp
-    include/Tungsten/Render/ShaderTools.hpp
-    include/Tungsten/Render/TextItem.hpp
-    include/Tungsten/Render/TextRenderer.hpp
     include/Tungsten/Render/VertexArrayObject.hpp
     include/Tungsten/Render/VertexArrayObjectBuilder.hpp
     include/Tungsten/Render/VertexAttributeDefinition.hpp
@@ -178,8 +171,15 @@ add_library(Tungsten STATIC
     src/Tungsten/Neo/BufferArena.hpp
     src/Tungsten/Neo/BuiltinShaders.cpp
     src/Tungsten/Neo/CameraComponent.cpp
+    src/Tungsten/Neo/ColorMaterials.cpp
     src/Tungsten/Neo/DeletionQueue.cpp
     src/Tungsten/Neo/DeletionQueue.hpp
+    src/Tungsten/Neo/Font.cpp
+    src/Tungsten/Neo/FontManager.cpp
+    src/Tungsten/Neo/FontUtilities.cpp
+    src/Tungsten/Neo/FontUtilities.hpp
+    src/Tungsten/Neo/Fonts/Monaco32.hpp
+    src/Tungsten/Neo/Fonts/Monaco64.hpp
     src/Tungsten/Neo/GenerationalPool.hpp
     src/Tungsten/Neo/GlStateCache.cpp
     src/Tungsten/Neo/LayoutRegistry.cpp
@@ -193,34 +193,17 @@ add_library(Tungsten STATIC
     src/Tungsten/Neo/Scene.cpp
     src/Tungsten/Neo/ShaderLibrary.cpp
     src/Tungsten/Neo/ShaderLibrary.hpp
+    src/Tungsten/Neo/ShaderPreprocessor.cpp
+    src/Tungsten/Neo/ShaderProgramBuilder.cpp
     src/Tungsten/Neo/Shaders/BuiltinShaderSources.hpp
     src/Tungsten/Neo/SnapshotBuilder.cpp
     src/Tungsten/Neo/TextSystem.cpp
+    src/Tungsten/Neo/TextUtilities.cpp
+    src/Tungsten/Neo/TextUtilities.hpp
     src/Tungsten/Neo/UboBindings.hpp
     src/Tungsten/Neo/VaoCache.cpp
     src/Tungsten/Neo/VaoCache.hpp
     src/Tungsten/Neo/VertexLayoutBuilder.cpp
-    src/Tungsten/Render/Camera.cpp
-    src/Tungsten/Render/ColorMaterials.cpp
-    src/Tungsten/Render/Font.cpp
-    src/Tungsten/Render/FontManager.cpp
-    src/Tungsten/Render/FontUtilities.cpp
-    src/Tungsten/Render/FontUtilities.hpp
-    src/Tungsten/Render/OldShaderProgram.cpp
-    src/Tungsten/Render/ShaderManager.cpp
-    src/Tungsten/Render/ShaderPreprocessor.cpp
-    src/Tungsten/Render/ShaderProgramBuilder.cpp
-    src/Tungsten/Render/ShaderSources.cpp.in
-    src/Tungsten/Render/ShaderSources.hpp
-    src/Tungsten/Render/ShaderTools.cpp
-    src/Tungsten/Render/TextItem.cpp
-    src/Tungsten/Render/TextRenderer.cpp
-    src/Tungsten/Render/TextRenderer/Monaco32.hpp
-    src/Tungsten/Render/TextRenderer/Monaco64.hpp
-    src/Tungsten/Render/TextRenderer/RenderTextShaderProgram.cpp
-    src/Tungsten/Render/TextRenderer/RenderTextShaderProgram.hpp
-    src/Tungsten/Render/TextUtilities.cpp
-    src/Tungsten/Render/TextUtilities.hpp
     src/Tungsten/Render/VertexArrayObject.cpp
     src/Tungsten/Render/VertexArrayObjectBuilder.cpp
     src/Tungsten/Render/VertexAttributeType.cpp
@@ -268,7 +251,6 @@ list(APPEND CMAKE_MODULE_PATH ${cppembed_SOURCE_DIR}/cmake)
 include(TargetEmbedCppData)
 target_embed_cpp_data(Tungsten
     FILES
-    src/Tungsten/Render/ShaderSources.cpp.in
     src/Tungsten/Neo/Shaders/BuiltinShaderSources.cpp.in
 )
 

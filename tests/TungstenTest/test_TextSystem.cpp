@@ -19,7 +19,7 @@
 #include "Tungsten/Neo/Scene.hpp"
 #include "Tungsten/Neo/TextComponent.hpp"
 #include "Tungsten/Neo/TextStyle.hpp"
-#include "Tungsten/Render/FontManager.hpp"
+#include "Tungsten/Neo/FontManager.hpp"
 
 using namespace Tungsten;
 

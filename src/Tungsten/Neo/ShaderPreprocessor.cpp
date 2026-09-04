@@ -5,7 +5,7 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/Render/ShaderPreprocessor.hpp"
+#include "Tungsten/Neo/ShaderPreprocessor.hpp"
 
 #include <fstream>
 

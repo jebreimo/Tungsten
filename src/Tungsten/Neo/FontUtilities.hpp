@@ -6,8 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include "Tungsten/Render/Font.hpp"
-#include "Tungsten/Render/TextStyleData.hpp"
+#include "Tungsten/Neo/Font.hpp"
 
 namespace Tungsten
 {

@@ -1,4 +1,5 @@
-#include "Tungsten/Render/Font.hpp"
+#pragma once
+#include "Tungsten/Neo/Font.hpp"
 #include "Tungsten/YimageGl.hpp"
 
 namespace
@@ -1149,7 +1150,7 @@ namespace
     "\302\5\0\0\0\0IEND\256B`\202";
 }
 
-std::unique_ptr<Tungsten::Font> get_monaco_64()
+inline std::unique_ptr<Tungsten::Font> get_monaco_64()
 {
     return std::make_unique<Tungsten::Font>(
         Tungsten::FontId{"Monaco", "Normal", 64},

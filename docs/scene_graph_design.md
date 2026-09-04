@@ -155,7 +155,7 @@ sampler to the same unit as its texture, which overrides the texture object's ow
 parameters entirely. Binding one to *every* unit in `[0, sampler_count)` — the default
 sampler for the units the material leaves unfilled — is deliberate: a unit left without
 a sampler samples through whatever another subsystem last bound there, and Neo shares
-its context with `TextRenderer` and the legacy examples.
+its context with `Fonts` and the legacy examples.
 
 ## 5. Double-buffering
 

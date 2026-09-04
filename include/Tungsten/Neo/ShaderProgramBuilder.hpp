@@ -6,6 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include <filesystem>
 #include <string>
 #include "../Gl/GlProgram.hpp"
 #include "../Gl/GlTypes.hpp"
@@ -18,6 +19,8 @@ namespace Tungsten
         ShaderProgramBuilder();
 
         ShaderProgramBuilder& add_shader(ShaderType type, const std::string& src);
+
+        ShaderProgramBuilder& add_shader(ShaderType type, const std::filesystem::path& path);
 
         ProgramHandle build();
 

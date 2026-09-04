@@ -194,7 +194,7 @@ namespace Tungsten
 
         set_depth_test_enabled(true);
         // Stated rather than assumed, like the blend state beside it: the
-        // context is shared with the legacy TextRenderer and the older
+        // context is shared with the legacy Fonts and the older
         // examples, and an opaque pass that silently stopped writing depth
         // would be very hard to place.
         set_depth_mask_enabled(true);
@@ -364,7 +364,7 @@ namespace Tungsten
                                texture.gl_handle.id());
             // Every unit gets an explicit sampler. Leaving one unbound would
             // sample through whatever another subsystem last left on it — Neo
-            // shares its context with TextRenderer and the legacy examples.
+            // shares its context with Fonts and the legacy examples.
             state.bind_sampler(unit,
                                resources.get_sampler_id(texture.sampler));
         }

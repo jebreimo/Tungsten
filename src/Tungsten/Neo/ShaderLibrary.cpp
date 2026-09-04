@@ -11,8 +11,8 @@
 #include "Tungsten/Gl/GlTypes.hpp"
 #include "Tungsten/Gl/GlUniform.hpp"
 #include "Tungsten/Neo/GlStateCache.hpp"
-#include "Tungsten/Render/ShaderPreprocessor.hpp"
-#include "Tungsten/Render/ShaderProgramBuilder.hpp"
+#include "Tungsten/Neo/ShaderPreprocessor.hpp"
+#include "Tungsten/Neo/ShaderProgramBuilder.hpp"
 #include "Tungsten/TungstenException.hpp"
 #include "Tungsten/Neo/UboBindings.hpp"
 

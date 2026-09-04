@@ -28,9 +28,9 @@
 #include "Tungsten/Neo/VertexLayoutBuilder.hpp"
 #include "Tungsten/TungstenException.hpp"
 #include "Tungsten/YimageGl.hpp"
-#include "../Render/FontUtilities.hpp"
-#include "../Render/TextUtilities.hpp"
+#include "FontUtilities.hpp"
 #include "Shaders/BuiltinShaderSources.hpp"
+#include "TextUtilities.hpp"
 
 namespace Tungsten
 {

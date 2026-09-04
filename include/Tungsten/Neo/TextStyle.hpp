@@ -9,7 +9,7 @@
 #include <memory>
 #include <utility>
 #include <Xyz/Vector.hpp>
-#include "Tungsten/Render/Font.hpp"
+#include "Font.hpp"
 
 namespace Tungsten
 {

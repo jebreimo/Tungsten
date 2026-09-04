@@ -5,12 +5,12 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/Render/Font.hpp"
+#include "Tungsten/Neo/Font.hpp"
 
 #include <cfloat>
 #include <string_view>
 
-#include "Tungsten/Render/TextUtilities.hpp"
+#include "TextUtilities.hpp"
 
 namespace Tungsten
 {

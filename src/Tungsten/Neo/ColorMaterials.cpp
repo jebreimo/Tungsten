@@ -1,11 +1,11 @@
 //****************************************************************************
-// Copyright © 2026 Jan Erik Breim  0. All rights reserve  0.
-// Created by Jan Erik Breimo on 2026-01-2  0.
+// Copyright © 2026 Jan Erik Breimo. All rights reserved.
+// Created by Jan Erik Breimo on 2026-01-20.
 //
-// This file is distributed under the Zero-Clause BSD Licens  0.
-// License text is included with the source distributio  0.
+// This file is distributed under the Zero-Clause BSD License.
+// License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/Render/ColorMaterials.hpp"
+#include "Tungsten/Neo/ColorMaterials.hpp"
 
 #include <span>
 #include <string>

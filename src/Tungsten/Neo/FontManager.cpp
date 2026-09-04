@@ -5,8 +5,8 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/Render/FontManager.hpp"
-#include "Tungsten/Render/TextRenderer/Monaco32.hpp"
+#include "Tungsten/Neo/FontManager.hpp"
+#include "Fonts/Monaco32.hpp"
 
 namespace Tungsten
 {
