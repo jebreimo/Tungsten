@@ -8,8 +8,8 @@
 #pragma once
 #include <string>
 
-extern const std::string BASIC2D_VERTEX;
-extern const std::string BASIC2D_FRAGMENT;
+extern const std::string BLOB_VERTEX;
+extern const std::string BLOB_FRAGMENT;
 
 extern const std::string SCENE_FADER_VERTEX;
 extern const std::string SCENE_FADER_FRAGMENT;

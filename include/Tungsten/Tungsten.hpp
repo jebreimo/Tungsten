@@ -12,6 +12,7 @@
 #include "Gl/GlFramebuffer.hpp"
 #include "Gl/GlProgram.hpp"
 #include "Gl/GlRendering.hpp"
+#include "Gl/GlStateEpoch.hpp"
 #include "Gl/GlStateManagement.hpp"
 #include "Gl/GlTexture.hpp"
 #include "Gl/GlTypes.hpp"

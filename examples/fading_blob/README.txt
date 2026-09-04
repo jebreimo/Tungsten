@@ -21,6 +21,39 @@ render target — the usual ping-pong arrangement:
 So every frame is the previous one darkened plus whatever was drawn this time,
 and a pixel the rectangle has passed over decays towards black on its own.
 
+## Neo and hand-written GL in one frame
+
+Step 2 is the ordinary scene-graph pipeline, and steps 1 and 3 are hand-written
+GL. The scene graph has no notion of a render target — there is no framebuffer
+anywhere in Neo — and that is what lets the two compose: Renderer::render draws
+into whatever framebuffer happens to be bound, so the fader binds one and the
+renderer fills it, without either side knowing about the other.
+
+Two things have to be got right at the seam, both in SceneFader:
+
+  * Every bind the fader makes is invisible to Neo's GlStateCache, which elides
+    a bind it believes is already current. The fader announces its own binds
+    with notify_gl_state_changed(); without that the renderer skips binds it
+    genuinely needs and draws the blob with the fader's program.
+
+  * The renderer leaves the depth test enabled. A full-screen quad has no
+    meaningful depth and the default framebuffer's depth buffer is never
+    cleared here, so the fader disables the depth test before its own draws —
+    otherwise the quad passes on the first frame, writes its depth, and fails
+    on every frame after that.
+
+The blob is drawn by a shader family of the example's own, registered at
+FIRST_USER_SHADER_FAMILY. It is the only example that registers one — the
+builtin Blinn-Phong and text families are registered inside the library — so it
+doubles as the worked example of that extension point. The shader is unlit and
+about as small as a family gets: a vec2 position at the fixed POSITION
+location, the two matrices it needs out of the per-frame block, the model
+matrix out of the per-draw block, and a colour out of the material block.
+
+The orbit is a hub node that rotates and a child offset along +x. Composing the
+two is resolve_transforms()'s job, so on_update sets one rotation per frame and
+nothing touches the blob's own transform or its vertices.
+
 ## Why the fade is subtractive
 
 The obvious way to fade towards black is to multiply each channel by something

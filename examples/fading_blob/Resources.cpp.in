@@ -7,8 +7,8 @@
 //****************************************************************************
 #include <string>
 
-extern const std::string BASIC2D_VERTEX(#embed_text "Basic2D-vert.glsl");
-extern const std::string BASIC2D_FRAGMENT(#embed_text "Basic2D-frag.glsl");
+extern const std::string BLOB_VERTEX(#embed_text "Blob-vert.glsl");
+extern const std::string BLOB_FRAGMENT(#embed_text "Blob-frag.glsl");
 
 extern const std::string SCENE_FADER_VERTEX(#embed_text "SceneFader-vert.glsl");
 extern const std::string SCENE_FADER_FRAGMENT(#embed_text "SceneFader-frag.glsl");

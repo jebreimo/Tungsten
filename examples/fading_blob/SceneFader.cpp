@@ -115,6 +115,11 @@ public:
 
     void draw_previous_scene(float fade_step)
     {
+        // Neo's renderer leaves the depth test on. A full-screen quad has no
+        // meaningful depth, and the default framebuffer's depth buffer is
+        // never cleared here, so a quad drawn at the same depth every frame
+        // would fail the test from the second frame on.
+        Tungsten::set_depth_test_enabled(false);
         Tungsten::bind_framebuffer(Tungsten::FramebufferTarget::FRAMEBUFFER, frame_buffer_.id());
         Tungsten::framebuffer_texture_2d(Tungsten::FramebufferTarget::FRAMEBUFFER,
                                          Tungsten::FrameBufferAttachment::COLOR0,
@@ -128,10 +133,12 @@ public:
         program_.color_delta.set({-fade_step, -fade_step, -fade_step});
         vertex_array_.bind();
         Tungsten::draw_triangle_elements_16(0, 6);
+        announce_state_change();
     }
 
     void render_scene()
     {
+        Tungsten::set_depth_test_enabled(false);
         Tungsten::bind_framebuffer(Tungsten::FramebufferTarget::FRAMEBUFFER, 0);
         Tungsten::activate_texture_unit(0);
         Tungsten::bind_texture(Tungsten::TextureTarget::TEXTURE_2D, textures_[index_].id());
@@ -140,11 +147,22 @@ public:
         program_.color_delta.set({0.f, 0.f, 0.f});
         vertex_array_.bind();
         Tungsten::draw_triangle_elements_16(0, 6);
+        announce_state_change();
 
         index_ = 1 - index_;
     }
 
 private:
+    // GlStateCache elides a bind whose target it believes is already current,
+    // and is only correct while every bind of those targets either goes
+    // through it or is announced. This class binds a program, a VAO and a
+    // texture directly, so it has to say so — otherwise the renderer skips
+    // binds it genuinely needs, and draws the blob with the fader's program.
+    static void announce_state_change()
+    {
+        Tungsten::notify_gl_state_changed();
+    }
+
     Tungsten::FramebufferHandle frame_buffer_;
     std::array<Tungsten::TextureHandle, 2> textures_;
     Tungsten::VertexArrayObject vertex_array_;
