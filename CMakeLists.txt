@@ -96,44 +96,43 @@ add_library(Tungsten STATIC
     include/Tungsten/Gl/GlUniform.hpp
     include/Tungsten/Gl/GlVertexArray.hpp
     include/Tungsten/Gl/IOglWrapper.hpp
-    include/Tungsten/Neo/BuiltinShaders.hpp
-    include/Tungsten/Neo/CameraComponent.hpp
-    include/Tungsten/Neo/ColorMaterials.hpp
-    include/Tungsten/Neo/DoubleBuffer.hpp
-    include/Tungsten/Neo/Font.hpp
-    include/Tungsten/Neo/FontManager.hpp
-    include/Tungsten/Neo/FontManager.hpp
-    include/Tungsten/Neo/GlStateCache.hpp
-    include/Tungsten/Neo/LightComponent.hpp
-    include/Tungsten/Neo/LightData.hpp
-    include/Tungsten/Neo/Material.hpp
-    include/Tungsten/Neo/Mesh.hpp
-    include/Tungsten/Neo/NodeHandle.hpp
-    include/Tungsten/Neo/NodeId.hpp
-    include/Tungsten/Neo/RenderItem.hpp
-    include/Tungsten/Neo/RenderSnapshot.hpp
-    include/Tungsten/Neo/RenderableComponent.hpp
-    include/Tungsten/Neo/Renderer.hpp
-    include/Tungsten/Neo/ResourceManager.hpp
-    include/Tungsten/Neo/ResourceRef.hpp
-    include/Tungsten/Neo/ResourceRefs.hpp
-    include/Tungsten/Neo/Scene.hpp
-    include/Tungsten/Neo/ShaderFamily.hpp
-    include/Tungsten/Neo/ShaderPreprocessor.hpp
-    include/Tungsten/Neo/ShaderProgram.hpp
-    include/Tungsten/Neo/ShaderProgramBuilder.hpp
-    include/Tungsten/Neo/ShaderVariantKey.hpp
-    include/Tungsten/Neo/SharedBuffer.hpp
-    include/Tungsten/Neo/SnapshotBuilder.hpp
-    include/Tungsten/Neo/TextComponent.hpp
-    include/Tungsten/Neo/TextStyle.hpp
-    include/Tungsten/Neo/TextSystem.hpp
-    include/Tungsten/Neo/Texture.hpp
-    include/Tungsten/Neo/Transform.hpp
-    include/Tungsten/Neo/VertexArray.hpp
-    include/Tungsten/Neo/VertexAttribute.hpp
-    include/Tungsten/Neo/VertexLayout.hpp
-    include/Tungsten/Neo/VertexLayoutBuilder.hpp
+    include/Tungsten/Rendering/DoubleBuffer.hpp
+    include/Tungsten/Rendering/Font.hpp
+    include/Tungsten/Rendering/FontManager.hpp
+    include/Tungsten/Rendering/RenderItem.hpp
+    include/Tungsten/Rendering/RenderSnapshot.hpp
+    include/Tungsten/Rendering/Renderer.hpp
+    include/Tungsten/Rendering/SnapshotBuilder.hpp
+    include/Tungsten/Rendering/TextStyle.hpp
+    include/Tungsten/Rendering/TextSystem.hpp
+    include/Tungsten/Resources/BuiltinShaders.hpp
+    include/Tungsten/Resources/ColorMaterials.hpp
+    include/Tungsten/Resources/GlStateCache.hpp
+    include/Tungsten/Resources/LightData.hpp
+    include/Tungsten/Resources/Material.hpp
+    include/Tungsten/Resources/Mesh.hpp
+    include/Tungsten/Resources/ResourceManager.hpp
+    include/Tungsten/Resources/ResourceRef.hpp
+    include/Tungsten/Resources/ResourceRefs.hpp
+    include/Tungsten/Resources/ShaderFamily.hpp
+    include/Tungsten/Resources/ShaderPreprocessor.hpp
+    include/Tungsten/Resources/ShaderProgram.hpp
+    include/Tungsten/Resources/ShaderProgramBuilder.hpp
+    include/Tungsten/Resources/ShaderVariantKey.hpp
+    include/Tungsten/Resources/SharedBuffer.hpp
+    include/Tungsten/Resources/Texture.hpp
+    include/Tungsten/Resources/VertexArray.hpp
+    include/Tungsten/Resources/VertexAttribute.hpp
+    include/Tungsten/Resources/VertexLayout.hpp
+    include/Tungsten/Resources/VertexLayoutBuilder.hpp
+    include/Tungsten/SceneGraph/CameraComponent.hpp
+    include/Tungsten/SceneGraph/LightComponent.hpp
+    include/Tungsten/SceneGraph/NodeHandle.hpp
+    include/Tungsten/SceneGraph/NodeId.hpp
+    include/Tungsten/SceneGraph/RenderableComponent.hpp
+    include/Tungsten/SceneGraph/Scene.hpp
+    include/Tungsten/SceneGraph/TextComponent.hpp
+    include/Tungsten/SceneGraph/Transform.hpp
     include/Tungsten/Sdl/SdlApplication.hpp
     include/Tungsten/Sdl/SdlDisplay.hpp
     include/Tungsten/Sdl/SdlGlContext.hpp
@@ -164,44 +163,44 @@ add_library(Tungsten STATIC
     src/Tungsten/Gl/IOglWrapper.cpp
     src/Tungsten/Gl/OglWrapper.hpp
     src/Tungsten/Gl/TracingOglWrapper.hpp
-    src/Tungsten/Neo/BufferArena.cpp
-    src/Tungsten/Neo/BufferArena.hpp
-    src/Tungsten/Neo/BuiltinShaders.cpp
-    src/Tungsten/Neo/CameraComponent.cpp
-    src/Tungsten/Neo/ColorMaterials.cpp
-    src/Tungsten/Neo/DeletionQueue.cpp
-    src/Tungsten/Neo/DeletionQueue.hpp
-    src/Tungsten/Neo/Font.cpp
-    src/Tungsten/Neo/FontManager.cpp
-    src/Tungsten/Neo/FontUtilities.cpp
-    src/Tungsten/Neo/FontUtilities.hpp
-    src/Tungsten/Neo/Fonts/Monaco32.hpp
-    src/Tungsten/Neo/Fonts/Monaco64.hpp
-    src/Tungsten/Neo/GenerationalPool.hpp
-    src/Tungsten/Neo/GlStateCache.cpp
-    src/Tungsten/Neo/LayoutRegistry.cpp
-    src/Tungsten/Neo/LayoutRegistry.hpp
-    src/Tungsten/Neo/LightData.cpp
-    src/Tungsten/Neo/RenderItem.cpp
-    src/Tungsten/Neo/Renderer.cpp
-    src/Tungsten/Neo/ResourceManager.cpp
-    src/Tungsten/Neo/SamplerRegistry.cpp
-    src/Tungsten/Neo/SamplerRegistry.hpp
-    src/Tungsten/Neo/Scene.cpp
-    src/Tungsten/Neo/ShaderLibrary.cpp
-    src/Tungsten/Neo/ShaderLibrary.hpp
-    src/Tungsten/Neo/ShaderPreprocessor.cpp
-    src/Tungsten/Neo/ShaderProgramBuilder.cpp
-    src/Tungsten/Neo/Shaders/BuiltinShaderSources.hpp
-    src/Tungsten/Neo/SnapshotBuilder.cpp
-    src/Tungsten/Neo/TextSystem.cpp
-    src/Tungsten/Neo/TextUtilities.cpp
-    src/Tungsten/Neo/TextUtilities.hpp
-    src/Tungsten/Neo/UboBindings.hpp
-    src/Tungsten/Neo/VaoCache.cpp
-    src/Tungsten/Neo/VaoCache.hpp
-    src/Tungsten/Neo/VertexArray.cpp
-    src/Tungsten/Neo/VertexLayoutBuilder.cpp
+    src/Tungsten/Rendering/Font.cpp
+    src/Tungsten/Rendering/FontManager.cpp
+    src/Tungsten/Rendering/FontUtilities.cpp
+    src/Tungsten/Rendering/FontUtilities.hpp
+    src/Tungsten/Rendering/Fonts/Monaco32.hpp
+    src/Tungsten/Rendering/Fonts/Monaco64.hpp
+    src/Tungsten/Rendering/RenderItem.cpp
+    src/Tungsten/Rendering/Renderer.cpp
+    src/Tungsten/Rendering/SnapshotBuilder.cpp
+    src/Tungsten/Rendering/TextSystem.cpp
+    src/Tungsten/Rendering/TextUtilities.cpp
+    src/Tungsten/Rendering/TextUtilities.hpp
+    src/Tungsten/Resources/BufferArena.cpp
+    src/Tungsten/Resources/BufferArena.hpp
+    src/Tungsten/Resources/BuiltinShaders.cpp
+    src/Tungsten/Resources/ColorMaterials.cpp
+    src/Tungsten/Resources/DeletionQueue.cpp
+    src/Tungsten/Resources/DeletionQueue.hpp
+    src/Tungsten/Resources/GenerationalPool.hpp
+    src/Tungsten/Resources/GlStateCache.cpp
+    src/Tungsten/Resources/LayoutRegistry.cpp
+    src/Tungsten/Resources/LayoutRegistry.hpp
+    src/Tungsten/Resources/LightData.cpp
+    src/Tungsten/Resources/ResourceManager.cpp
+    src/Tungsten/Resources/SamplerRegistry.cpp
+    src/Tungsten/Resources/SamplerRegistry.hpp
+    src/Tungsten/Resources/ShaderLibrary.cpp
+    src/Tungsten/Resources/ShaderLibrary.hpp
+    src/Tungsten/Resources/ShaderPreprocessor.cpp
+    src/Tungsten/Resources/ShaderProgramBuilder.cpp
+    src/Tungsten/Resources/Shaders/BuiltinShaderSources.hpp
+    src/Tungsten/Resources/UboBindings.hpp
+    src/Tungsten/Resources/VaoCache.cpp
+    src/Tungsten/Resources/VaoCache.hpp
+    src/Tungsten/Resources/VertexArray.cpp
+    src/Tungsten/Resources/VertexLayoutBuilder.cpp
+    src/Tungsten/SceneGraph/CameraComponent.cpp
+    src/Tungsten/SceneGraph/Scene.cpp
     src/Tungsten/Sdl/CommandLine.cpp
     src/Tungsten/Sdl/CommandLine.hpp
     src/Tungsten/Sdl/SdlApplication.cpp
@@ -246,7 +245,7 @@ list(APPEND CMAKE_MODULE_PATH ${cppembed_SOURCE_DIR}/cmake)
 include(TargetEmbedCppData)
 target_embed_cpp_data(Tungsten
     FILES
-    src/Tungsten/Neo/Shaders/BuiltinShaderSources.cpp.in
+    src/Tungsten/Resources/Shaders/BuiltinShaderSources.cpp.in
 )
 
 ##

@@ -132,7 +132,7 @@ namespace
             resources_.begin_frame(frame_);
 
             scene_.resolve_transforms();
-            auto& snapshots = scene_.snapshots();
+            auto& snapshots = snapshots_;
             builder_.build(scene_, camera_.id(), snapshots.back());
             snapshots.back().time =
                 static_cast<float>(SDL_GetTicks() - start_ticks_) / 1000.0f;
@@ -248,6 +248,7 @@ namespace
 
         Tungsten::ResourceManager resources_;
         Tungsten::Scene scene_;
+        Tungsten::DoubleBuffer<Tungsten::RenderSnapshot> snapshots_;
         Tungsten::SnapshotBuilder builder_{resources_};
         Tungsten::Renderer renderer_;
         Tungsten::BufferArenaRef vbo_arena_;

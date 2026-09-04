@@ -5,14 +5,14 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/Neo/VertexArray.hpp"
+#include "Tungsten/Resources/VertexArray.hpp"
 
 #include <memory>
 #include <tuple>
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
 #include "Tungsten/Gl/DummyOglWrapper.hpp"
-#include "Tungsten/Neo/VertexLayoutBuilder.hpp"
+#include "Tungsten/Resources/VertexLayoutBuilder.hpp"
 #include "Tungsten/TungstenException.hpp"
 
 using namespace Tungsten;

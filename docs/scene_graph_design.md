@@ -258,7 +258,7 @@ every mesh with the same `(vbo arenas, ebo arena, layout)` triple, so no single
 that. The cache is keyed on arena *refs* rather than live buffer ids, so growth
 leaves entries valid; §13 covers the keying, the rebuild and eviction.
 
-See `src/Tungsten/Neo/ResourceManager.{hpp,cpp}`.
+See `src/Tungsten/Resources/ResourceManager.{hpp,cpp}`.
 
 ## 8. Axis conventions and the 2D path
 

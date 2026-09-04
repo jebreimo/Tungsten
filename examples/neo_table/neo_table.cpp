@@ -227,7 +227,7 @@ namespace
             text_system_.update(scene_);
             scene_.resolve_transforms();
 
-            auto& snapshots = scene_.snapshots();
+            auto& snapshots = snapshots_;
             builder_.build(scene_, camera_.id(), snapshots.back());
             snapshots.swap();
             renderer_.render(snapshots.front());
@@ -280,6 +280,7 @@ namespace
         ResourceManager resources_;
         FontManager font_manager_;
         Scene scene_;
+        DoubleBuffer<RenderSnapshot> snapshots_;
         TextSystem text_system_;
         SnapshotBuilder builder_{resources_};
         Renderer renderer_;

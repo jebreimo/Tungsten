@@ -17,12 +17,20 @@ It is one of several `jebreimo` libraries and depends on sibling projects
 ## Layout
 
 - `include/Tungsten/` — public headers. `Tungsten.hpp` is the umbrella include.
-  Subdirs: `Gl/` (OpenGL object wrappers), `ShaderPrograms/`, `Commands/`,
-  `Detail/` (internal helpers).
+  Subdirs, in dependency order — each may only include from the ones above it:
+  - `Gl/` — thin OpenGL object wrappers. Depends on nothing else in the
+    library, and **must never include from any folder below**.
+  - `Resources/` — GPU resources, shaders and vertex formats: the
+    ResourceManager and everything it hands out refs to.
+  - `SceneGraph/` — the mutable scene graph, its nodes and components.
+  - `Rendering/` — snapshot extraction, the renderer, and the text/font
+    pipeline.
+  - `Sdl/` (application scaffold), `Detail/` (internal helpers).
 - `src/Tungsten/` — implementation. Mirrors the include tree, plus
-  `Shaders/` (GLSL sources) and `TextRenderer/`.
-- `examples/` — runnable sample apps (`cube`, `fading_blob`, `show_text`,
-  `touch_events`). Treat these as the usage reference and keep them building.
+  `Resources/Shaders/` (builtin GLSL) and `Rendering/Fonts/` (builtin fonts).
+- `examples/` — runnable sample apps (`cube`, `fading_blob`, `neo_table`,
+  `scene_graph`, `show_text`, `touch_events`). Treat these as the usage
+  reference and keep them building.
 - `tests/TungstenTest/` — Catch2 v3 unit tests.
 - `cmake-build-*/` — out-of-source build dirs (debug, release, emscripten).
   Generated; never edit by hand.

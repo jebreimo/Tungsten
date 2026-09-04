@@ -115,7 +115,7 @@ namespace
             // Deliberately no clear: the faded copy underneath is the trail.
             resources_.begin_frame(frame_);
             scene_.resolve_transforms();
-            auto& snapshots = scene_.snapshots();
+            auto& snapshots = snapshots_;
             builder_.build(scene_, camera_.id(), snapshots.back());
             snapshots.swap();
             renderer_.render(snapshots.front());
@@ -200,6 +200,7 @@ namespace
 
         ResourceManager resources_;
         Scene scene_;
+        DoubleBuffer<RenderSnapshot> snapshots_;
         SnapshotBuilder builder_{resources_};
         Renderer renderer_;
         SceneFader fader_;

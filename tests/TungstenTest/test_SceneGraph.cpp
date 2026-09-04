@@ -5,7 +5,10 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/Neo/NodeHandle.hpp"
+#include "Tungsten/SceneGraph/NodeHandle.hpp"
+
+#include "Tungsten/Rendering/DoubleBuffer.hpp"
+#include "Tungsten/Rendering/RenderSnapshot.hpp"
 
 #include <cmath>
 #include <catch2/catch_test_macros.hpp>
@@ -366,10 +369,9 @@ TEST_CASE("Scene: attaching a component to a dead node throws")
                       TungstenException);
 }
 
-TEST_CASE("Scene: the snapshot double-buffer swaps front and back")
+TEST_CASE("DoubleBuffer: swapping exchanges front and back")
 {
-    Scene scene;
-    auto& snapshots = scene.snapshots();
+    DoubleBuffer<RenderSnapshot> snapshots;
     snapshots.back().time = 1.0f;
     snapshots.swap();
     REQUIRE(snapshots.front().time == 1.0f);

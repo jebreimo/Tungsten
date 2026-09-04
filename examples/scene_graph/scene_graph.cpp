@@ -176,7 +176,7 @@ namespace
             resources_.begin_frame(frame_);
 
             scene_.resolve_transforms();
-            auto& snapshots = scene_.snapshots();
+            auto& snapshots = snapshots_;
             builder_.build(scene_, camera_.id(), snapshots.back());
             snapshots.back().time =
                 float(SDL_GetTicks() - start_ticks_) / 1000.0f;
@@ -275,6 +275,7 @@ namespace
 
         ResourceManager resources_;
         Scene scene_;
+        DoubleBuffer<RenderSnapshot> snapshots_;
         SnapshotBuilder builder_{resources_};
         Renderer renderer_;
         BufferArenaRef vbo_arena_;

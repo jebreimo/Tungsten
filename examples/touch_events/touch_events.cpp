@@ -128,7 +128,7 @@ namespace
             text_scroller_.layout(viewport);
             scene_.resolve_transforms();
 
-            auto& snapshots = scene_.snapshots();
+            auto& snapshots = snapshots_;
             builder_.build(scene_, camera_.id(), snapshots.back());
             snapshots.swap();
             renderer_.render(snapshots.front());
@@ -142,6 +142,7 @@ namespace
         Tungsten::ResourceManager resources_;
         Tungsten::FontManager font_manager_;
         Tungsten::Scene scene_;
+        Tungsten::DoubleBuffer<Tungsten::RenderSnapshot> snapshots_;
         Tungsten::TextSystem text_system_;
         Tungsten::SnapshotBuilder builder_{resources_};
         Tungsten::Renderer renderer_;

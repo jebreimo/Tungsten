@@ -5,7 +5,7 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/Neo/FontManager.hpp"
+#include "Tungsten/Rendering/FontManager.hpp"
 #include <catch2/catch_test_macros.hpp>
 
 TEST_CASE("Font: get_text_rec exact size")

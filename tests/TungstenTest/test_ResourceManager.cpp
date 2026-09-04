@@ -5,7 +5,7 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/Neo/ResourceManager.hpp"
+#include "Tungsten/Resources/ResourceManager.hpp"
 
 #include <array>
 #include <memory>
@@ -16,13 +16,13 @@
 #include "Tungsten/TungstenException.hpp"
 #include "Tungsten/Gl/DummyOglWrapper.hpp"
 #include "Tungsten/Gl/GlTexture.hpp"
-#include "Tungsten/Neo/GlStateCache.hpp"
-#include "Tungsten/Neo/Material.hpp"
-#include "Tungsten/Neo/Mesh.hpp"
-#include "Tungsten/Neo/ShaderProgram.hpp"
-#include "Tungsten/Neo/Texture.hpp"
-#include "Tungsten/Neo/VertexLayout.hpp"
-#include "../../src/Tungsten/Neo/BufferArena.hpp"
+#include "Tungsten/Resources/GlStateCache.hpp"
+#include "Tungsten/Resources/Material.hpp"
+#include "Tungsten/Resources/Mesh.hpp"
+#include "Tungsten/Resources/ShaderProgram.hpp"
+#include "Tungsten/Resources/Texture.hpp"
+#include "Tungsten/Resources/VertexLayout.hpp"
+#include "../../src/Tungsten/Resources/BufferArena.hpp"
 
 using namespace Tungsten;
 

@@ -5,21 +5,21 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/Neo/TextSystem.hpp"
+#include "Tungsten/Rendering/TextSystem.hpp"
 
 #include <cstring>
 #include <memory>
 #include <catch2/catch_test_macros.hpp>
 #include "Tungsten/Gl/DummyOglWrapper.hpp"
-#include "Tungsten/Neo/Material.hpp"
-#include "Tungsten/Neo/Mesh.hpp"
-#include "Tungsten/Neo/NodeHandle.hpp"
-#include "Tungsten/Neo/RenderableComponent.hpp"
-#include "Tungsten/Neo/ResourceManager.hpp"
-#include "Tungsten/Neo/Scene.hpp"
-#include "Tungsten/Neo/TextComponent.hpp"
-#include "Tungsten/Neo/TextStyle.hpp"
-#include "Tungsten/Neo/FontManager.hpp"
+#include "Tungsten/Resources/Material.hpp"
+#include "Tungsten/Resources/Mesh.hpp"
+#include "Tungsten/SceneGraph/NodeHandle.hpp"
+#include "Tungsten/SceneGraph/RenderableComponent.hpp"
+#include "Tungsten/Resources/ResourceManager.hpp"
+#include "Tungsten/SceneGraph/Scene.hpp"
+#include "Tungsten/SceneGraph/TextComponent.hpp"
+#include "Tungsten/Rendering/TextStyle.hpp"
+#include "Tungsten/Rendering/FontManager.hpp"
 
 using namespace Tungsten;
 

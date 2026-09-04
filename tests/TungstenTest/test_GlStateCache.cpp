@@ -5,7 +5,7 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "Tungsten/Neo/GlStateCache.hpp"
+#include "Tungsten/Resources/GlStateCache.hpp"
 
 #include <memory>
 #include <vector>
