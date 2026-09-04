@@ -5,7 +5,7 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "BuddyAllocator.hpp"
+#include "Tungsten/Detail/BuddyAllocator.hpp"
 
 #include <bit>
 #include <cassert>

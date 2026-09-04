@@ -146,27 +146,37 @@ namespace Tungsten
         INCOMPLETE_MULTISAMPLE
     };
 
-    enum class TextureMinFilter
+    enum class SamplerMipFilter
     {
+        NONE,
         NEAREST,
-        LINEAR,
-        NEAREST_MIPMAP_NEAREST,
-        LINEAR_MIPMAP_NEAREST,
-        NEAREST_MIPMAP_LINEAR,
-        LINEAR_MIPMAP_LINEAR
+        LINEAR
     };
 
-    enum class TextureMagFilter
+    enum class SamplerMinMagFilter
     {
         NEAREST,
         LINEAR
     };
 
-    enum class TextureWrapMode
+    enum class SamplerAddressMode
     {
         REPEAT,
         MIRRORED_REPEAT,
         CLAMP_TO_EDGE
+    };
+
+    enum class SamplerCompareFunction
+    {
+        NONE,
+        LEQUAL,
+        GEQUAL,
+        LESS,
+        GREATER,
+        EQUAL,
+        NOTEQUAL,
+        ALWAYS,
+        NEVER
     };
 
     enum class BlendFunction

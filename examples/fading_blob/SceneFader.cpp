@@ -25,24 +25,14 @@ namespace
                             pp.preprocess(std::string_view(SCENE_FADER_FRAGMENT)))
                 .build();
 
-            position_attr = Tungsten::get_vertex_attribute(program.id(), "a_position");
-            tex_position_attr = Tungsten::get_vertex_attribute(program.id(), "a_tex_position");
             texture = Tungsten::get_uniform<int32_t>(program.id(), "u_texture");
             color_delta = Tungsten::get_uniform<Xyz::Vector3F>(program.id(), "u_color_delta");
         }
 
         Tungsten::ProgramHandle program;
 
-        uint32_t position_attr;
-        uint32_t tex_position_attr;
         Tungsten::Uniform<int32_t> texture;
         Tungsten::Uniform<Xyz::Vector3F> color_delta;
-    };
-
-    struct TextureFaderVertex
-    {
-        Xyz::Vector2F pos;
-        Xyz::Vector2F tex_pos;
     };
 }
 
@@ -59,24 +49,33 @@ public:
         vertex_buffer_ = Tungsten::generate_buffer();
         element_buffer_ = Tungsten::generate_buffer();
 
-        vertex_array_ = Tungsten::VertexArrayObjectBuilder()
-            .bind_buffer(vertex_buffer_.id())
-            .add_float(program_.position_attr, 2)
-            .add_float(program_.tex_position_attr, 2)
-            .build();
+        // POSITION defaults to three components; the quad is flat, so it
+        // carries two, and the texture coordinate follows it in the same
+        // buffer. The stride is derived from the layout.
+        vertex_array_ = Tungsten::make_vertex_array(
+            vertex_buffer_.id(),
+            Tungsten::VertexLayoutBuilder()
+                .add_attribute(Tungsten::AttributeSemantic::POSITION)
+                .set_component_count(2)
+                .add_attribute(Tungsten::AttributeSemantic::TEX_COORD_0)
+                .build());
 
-        Tungsten::MeshData<TextureFaderVertex> buffer;
-        Tungsten::MeshDataBuilder builder(buffer);
-        builder.add_vertex({{-1, -1}, {0, 0}})
-            .add_vertex({{1, -1}, {1, 0}})
-            .add_vertex({{1, 1}, {1, 1}})
-            .add_vertex({{-1, 1}, {0, 1}});
-        builder.add_indexes(0, 1, 2)
-            .add_indexes(0, 2, 3);
+        const std::vector<float> vertexes = {
+            -1, -1, 0, 0,
+            1, -1, 1, 0,
+            1, 1, 1, 1,
+            -1, 1, 0, 1
+        };
+        const std::vector<uint16_t> indexes = {
+            0, 1, 2,
+            0, 2, 3
+        };
         Tungsten::bind_buffer(Tungsten::BufferTarget::ARRAY, vertex_buffer_.id());
-        Tungsten::set_buffer_data(Tungsten::BufferTarget::ARRAY, std::span(buffer.vertices), Tungsten::BufferUsage::STATIC_DRAW);
+        Tungsten::set_buffer_data(Tungsten::BufferTarget::ARRAY, std::span(vertexes),
+                                  Tungsten::BufferUsage::STATIC_DRAW);
         Tungsten::bind_buffer(Tungsten::BufferTarget::ELEMENT_ARRAY, element_buffer_.id());
-        Tungsten::set_buffer_data(Tungsten::BufferTarget::ELEMENT_ARRAY, std::span(buffer.indices), Tungsten::BufferUsage::STATIC_DRAW);
+        Tungsten::set_buffer_data(Tungsten::BufferTarget::ELEMENT_ARRAY, std::span(indexes),
+                                  Tungsten::BufferUsage::STATIC_DRAW);
     }
 
     void set_window_size(Tungsten::Size2I size)
@@ -86,15 +85,36 @@ public:
             Tungsten::bind_texture(Tungsten::TextureTarget::TEXTURE_2D, texture.id());
             Tungsten::set_texture_image_2d(Tungsten::TextureTarget2D::TEXTURE_2D, 0, size,
                                            Tungsten::RGB_TEXTURE);
-            Tungsten::set_min_filter(Tungsten::TextureTarget::TEXTURE_2D,
-                                     Tungsten::TextureMinFilter::LINEAR);
-            Tungsten::set_mag_filter(Tungsten::TextureTarget::TEXTURE_2D,
-                                     Tungsten::TextureMagFilter::LINEAR);
+            Tungsten::set_texture_parameters(
+                Tungsten::TextureTarget::TEXTURE_2D,
+                {
+                    .mip_filter = Tungsten::SamplerMipFilter::NONE
+                });
         }
+
+        // Fresh texture storage holds undefined data, and both buffers are
+        // sampled before either has been drawn to. Clear them so the first
+        // frame fades in from black instead of from whatever was in memory.
+        Tungsten::bind_framebuffer(Tungsten::FramebufferTarget::FRAMEBUFFER, frame_buffer_.id());
+        Tungsten::set_clear_color(0.f, 0.f, 0.f, 1.f);
+        for (auto& texture : textures_)
+        {
+            Tungsten::framebuffer_texture_2d(Tungsten::FramebufferTarget::FRAMEBUFFER,
+                                             Tungsten::FrameBufferAttachment::COLOR0,
+                                             Tungsten::TextureTarget2D::TEXTURE_2D,
+                                             texture.id());
+            Tungsten::clear(Tungsten::ClearBits::COLOR);
+        }
+        Tungsten::bind_framebuffer(Tungsten::FramebufferTarget::FRAMEBUFFER, 0);
     }
 
-    void draw_previous_scene(float fadeout)
+    void draw_previous_scene(float fade_step)
     {
+        // Neo's renderer leaves the depth test on. A full-screen quad has no
+        // meaningful depth, and the default framebuffer's depth buffer is
+        // never cleared here, so a quad drawn at the same depth every frame
+        // would fail the test from the second frame on.
+        Tungsten::set_depth_test_enabled(false);
         Tungsten::bind_framebuffer(Tungsten::FramebufferTarget::FRAMEBUFFER, frame_buffer_.id());
         Tungsten::framebuffer_texture_2d(Tungsten::FramebufferTarget::FRAMEBUFFER,
                                          Tungsten::FrameBufferAttachment::COLOR0,
@@ -105,30 +125,42 @@ public:
         Tungsten::bind_texture(Tungsten::TextureTarget::TEXTURE_2D, textures_[1 - index_].id());
         Tungsten::use_program(program_.program.id());
         program_.texture.set(0);
-        program_.color_delta.set({-1.f / 256.f, -1.f / 256.f, -1.f / 256.f});
-        vertex_array_.bind();
+        program_.color_delta.set({-fade_step, -fade_step, -fade_step});
+        Tungsten::bind_vertex_array(vertex_array_.id());
         Tungsten::draw_triangle_elements_16(0, 6);
+        announce_state_change();
     }
 
     void render_scene()
     {
+        Tungsten::set_depth_test_enabled(false);
         Tungsten::bind_framebuffer(Tungsten::FramebufferTarget::FRAMEBUFFER, 0);
         Tungsten::activate_texture_unit(0);
-        Tungsten::bind_texture(Tungsten::TextureTarget::TEXTURE_2D, textures_[1 - index_].id());
+        Tungsten::bind_texture(Tungsten::TextureTarget::TEXTURE_2D, textures_[index_].id());
         Tungsten::use_program(program_.program.id());
         program_.texture.set(0);
         program_.color_delta.set({0.f, 0.f, 0.f});
-        vertex_array_.bind();
+        Tungsten::bind_vertex_array(vertex_array_.id());
         Tungsten::draw_triangle_elements_16(0, 6);
+        announce_state_change();
 
         index_ = 1 - index_;
     }
 
 private:
-    Xyz::Vector3F color_delta_ = {0, 0, 0};
+    // GlStateCache elides a bind whose target it believes is already current,
+    // and is only correct while every bind of those targets either goes
+    // through it or is announced. This class binds a program, a VAO and a
+    // texture directly, so it has to say so — otherwise the renderer skips
+    // binds it genuinely needs, and draws the blob with the fader's program.
+    static void announce_state_change()
+    {
+        Tungsten::notify_gl_state_changed();
+    }
+
     Tungsten::FramebufferHandle frame_buffer_;
     std::array<Tungsten::TextureHandle, 2> textures_;
-    Tungsten::VertexArrayObject vertex_array_;
+    Tungsten::VertexArrayHandle vertex_array_;
     Tungsten::BufferHandle vertex_buffer_;
     Tungsten::BufferHandle element_buffer_;
     TextureFaderProgram program_;
@@ -147,9 +179,9 @@ void SceneFader::set_window_size(Tungsten::Size2I window_size)
     impl_->set_window_size(window_size);
 }
 
-void SceneFader::draw_previous_scene(float fadeout)
+void SceneFader::draw_previous_scene(float fade_step)
 {
-    impl_->draw_previous_scene(fadeout);
+    impl_->draw_previous_scene(fade_step);
 }
 
 void SceneFader::render_scene()

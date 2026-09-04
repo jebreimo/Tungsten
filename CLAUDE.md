@@ -17,12 +17,20 @@ It is one of several `jebreimo` libraries and depends on sibling projects
 ## Layout
 
 - `include/Tungsten/` — public headers. `Tungsten.hpp` is the umbrella include.
-  Subdirs: `Gl/` (OpenGL object wrappers), `ShaderPrograms/`, `Commands/`,
-  `Detail/` (internal helpers).
+  Subdirs, in dependency order — each may only include from the ones above it:
+  - `Gl/` — thin OpenGL object wrappers. Depends on nothing else in the
+    library, and **must never include from any folder below**.
+  - `Resources/` — GPU resources, shaders and vertex formats: the
+    ResourceManager and everything it hands out refs to.
+  - `SceneGraph/` — the mutable scene graph, its nodes and components.
+  - `Rendering/` — snapshot extraction, the renderer, and the text/font
+    pipeline.
+  - `Sdl/` (application scaffold), `Detail/` (internal helpers).
 - `src/Tungsten/` — implementation. Mirrors the include tree, plus
-  `Shaders/` (GLSL sources) and `TextRenderer/`.
-- `examples/` — runnable sample apps (`cube`, `fading_blob`, `show_text`,
-  `touch_events`). Treat these as the usage reference and keep them building.
+  `Resources/Shaders/` (builtin GLSL) and `Rendering/Fonts/` (builtin fonts).
+- `examples/` — runnable sample apps (`cube`, `fading_blob`, `neo_table`,
+  `scene_graph`, `show_text`, `touch_events`). Treat these as the usage
+  reference and keep them building.
 - `tests/TungstenTest/` — Catch2 v3 unit tests.
 - `cmake-build-*/` — out-of-source build dirs (debug, release, emscripten).
   Generated; never edit by hand.
@@ -37,7 +45,7 @@ cmake --build cmake-build-debug --target Tungsten # library only
 ctest --test-dir cmake-build-debug                # run tests
 ```
 
-- C++ standard is **C++20**; CMake minimum is 3.15.
+- C++ standard is **C++23**; CMake minimum is 3.23.
 - Tests use **Catch2 v3**. Add new test files to
   `tests/TungstenTest/CMakeLists.txt`.
 - Options: `TUNGSTEN_BUILD_TEST`, `TUNGSTEN_BUILD_EXAMPLES`, `TUNGSTEN_INSTALL`
@@ -65,6 +73,11 @@ Match the surrounding code. Established patterns:
   one class/function per concept. Keep lines reasonably short.
 - Build with warnings enabled (`Xyz_enable_all_warnings`); keep the tree
   warning-clean.
+- **Comments** in header files must be Doxygen comments that briefly describe
+  what a function does and/or its purpose. Parameters and return values are only documented
+  explicitly if their meaning cannot be easily deduced from their names.
+  Comments in source files should be similarly brief and only describe what 
+  the code's purpose to do in cases where that isn't immediately clear.
 
 ## OpenGL & error handling
 

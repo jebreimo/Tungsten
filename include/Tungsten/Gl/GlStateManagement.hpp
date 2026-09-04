@@ -23,6 +23,17 @@ namespace Tungsten
 
     void set_depth_test_enabled(bool enabled);
 
+    [[nodiscard]] bool is_depth_mask_enabled();
+
+    /**
+     * Enables or disables writing to the depth buffer. Distinct from the depth
+     * *test*, which keeps reading it: a blended pass normally leaves the test
+     * on and the mask off, so transparent surfaces are still occluded by
+     * opaque geometry but do not occlude each other — their order is decided
+     * by the back-to-front sort instead.
+     */
+    void set_depth_mask_enabled(bool enabled);
+
     [[nodiscard]] bool is_face_culling_enabled();
 
     void set_face_culling_enabled(bool enabled);

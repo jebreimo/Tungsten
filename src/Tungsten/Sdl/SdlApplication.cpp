@@ -7,11 +7,15 @@
 //****************************************************************************
 #include "Tungsten/Sdl/SdlApplication.hpp"
 
+#include <algorithm>
 #include <chrono>
 #include <iostream>
 #include <memory>
+#include <utility>
+#include <vector>
 #include <GL/glew.h>
 #include <Argos/ArgumentParser.hpp>
+#include "Tungsten/Gl/GlStateEpoch.hpp"
 #include "Tungsten/Sdl/EventLoop.hpp"
 #include "Tungsten/Sdl/SdlDisplay.hpp"
 #include "Tungsten/Sdl/SdlGlContext.hpp"
@@ -58,6 +62,37 @@ namespace Tungsten
         }
 
 #endif
+
+        /**
+         * Marks a stretch of code as walking the event-loop stack, so a push
+         * or a removal made from inside a callback is queued instead of
+         * invalidating the walk. Restores the previous value rather than
+         * clearing the flag, so a traversal nested in another one — an event
+         * dispatched from inside a phase — leaves the outer one intact.
+         */
+        class TraversalGuard
+        {
+        public:
+            explicit TraversalGuard(bool& flag)
+                : flag_(flag),
+                  previous_(flag)
+            {
+                flag_ = true;
+            }
+
+            ~TraversalGuard()
+            {
+                flag_ = previous_;
+            }
+
+            TraversalGuard(const TraversalGuard&) = delete;
+
+            TraversalGuard& operator=(const TraversalGuard&) = delete;
+
+        private:
+            bool& flag_;
+            bool previous_;
+        };
     }
 
     struct SdlApplication::Data
@@ -67,7 +102,14 @@ namespace Tungsten
         {
         }
 
-        EventLoop* event_loop = nullptr;
+        // Bottom first: events go to the back of this, drawing to the front.
+        std::vector<EventLoop*> event_loops;
+        // Pushes (true) and removals (false) requested during a traversal,
+        // applied at the next phase boundary.
+        std::vector<std::pair<EventLoop*, bool>> pending_event_loops;
+        // True while a phase is iterating event_loops, which is the only time
+        // a push or a removal has to be deferred.
+        bool traversing = false;
         SdlSession* session = nullptr;
 
         std::string name;
@@ -116,7 +158,7 @@ namespace Tungsten
 
     bool SdlApplication::is_running() const
     {
-        return data_->event_loop != nullptr;
+        return !data_->event_loops.empty();
     }
 
     void SdlApplication::quit()
@@ -173,20 +215,46 @@ namespace Tungsten
 
     void SdlApplication::process_event(const SDL_Event& event)
     {
-        if (!data_->event_loop->on_event(event))
+        // Top down: the loop drawn last sees the event first, and the first
+        // one to return true consumes it. An overlay that handles a click
+        // therefore keeps it from also reaching the scene beneath it.
+        //
+        // Guarded here rather than by the caller: a handler is free to edit
+        // the stack, and this walk must survive it however it was reached.
+        bool handled = false;
         {
-            switch (event.type)
+            const TraversalGuard guard(data_->traversing);
+            const auto& loops = data_->event_loops;
+            for (auto it = loops.rbegin(); it != loops.rend(); ++it)
             {
-            case SDL_EVENT_QUIT:
-                quit();
-                break;
-            case SDL_EVENT_KEY_UP:
-                if (event.key.key == SDLK_ESCAPE)
-                    quit();
-                break;
-            default:
-                break;
+                if ((*it)->on_event(event))
+                {
+                    handled = true;
+                    break;
+                }
             }
+        }
+
+        // Only when this was not nested in a phase — otherwise the phase
+        // boundary applies the queue, once, for the whole phase.
+        if (!data_->traversing)
+            apply_pending_event_loops();
+
+        if (handled)
+            return;
+
+        // Nothing claimed it: fall back to the application's own handling.
+        switch (event.type)
+        {
+        case SDL_EVENT_QUIT:
+            quit();
+            break;
+        case SDL_EVENT_KEY_UP:
+            if (event.key.key == SDLK_ESCAPE)
+                quit();
+            break;
+        default:
+            break;
         }
     }
 
@@ -248,17 +316,21 @@ namespace Tungsten
     void SdlApplication::run_event_loop(SdlSession& session, EventLoop& event_loop)
     {
         data_->session = &session;
-        data_->event_loop = &event_loop;
+        // The loop run() constructed goes at the bottom, beneath anything
+        // that was pushed before the run started.
+        data_->event_loops.insert(data_->event_loops.begin(), &event_loop);
         try
         {
             run_event_loop();
             data_->session = nullptr;
-            data_->event_loop = nullptr;
+            data_->event_loops.clear();
+            data_->pending_event_loops.clear();
         }
         catch (...)
         {
             data_->session = nullptr;
-            data_->event_loop = nullptr;
+            data_->event_loops.clear();
+            data_->pending_event_loops.clear();
             throw;
         }
     }
@@ -302,20 +374,56 @@ namespace Tungsten
     {
         const auto time = std::chrono::high_resolution_clock::now();
 
-        SDL_Event event;
-        while (SDL_PollEvent(&event))
-            process_event(event);
-
-        data_->event_loop->on_update();
-
-        if (data_->event_loop->should_redraw())
+        const auto wants_redraw = [this]
         {
-            data_->event_loop->clear_redraw();
-            data_->event_loop->on_draw();
+            return std::any_of(data_->event_loops.begin(),
+                               data_->event_loops.end(),
+                               [](const EventLoop* loop)
+                               {
+                                   return loop->should_redraw();
+                               });
+        };
+
+        {
+            // One queue-application for the whole polling phase, rather than
+            // one per event.
+            const TraversalGuard guard(data_->traversing);
+            SDL_Event event;
+            while (SDL_PollEvent(&event))
+                process_event(event);
+        }
+        apply_pending_event_loops();
+
+        {
+            const TraversalGuard guard(data_->traversing);
+            for (auto* loop : data_->event_loops)
+                loop->on_update();
+        }
+        apply_pending_event_loops();
+
+        // All or nothing: the loops share one framebuffer and one swap, so a
+        // redraw asked for by any of them has to redraw all of them.
+        if (wants_redraw())
+        {
+            const TraversalGuard guard(data_->traversing);
+            bool is_first = true;
+            for (auto* loop : data_->event_loops)
+            {
+                // Between two loops' draws, and only between them: whatever
+                // the previous loop bound is still current, and a GlStateCache
+                // in this one would otherwise elide a bind it still needs.
+                // With a single loop this never runs, so its cache survives
+                // the frame intact.
+                if (!std::exchange(is_first, false))
+                    notify_gl_state_changed();
+                loop->clear_redraw();
+                loop->on_draw();
+            }
             SDL_GL_SwapWindow(window());
         }
+        apply_pending_event_loops();
 
-        if (!data_->event_loop->should_redraw()
+        if (!wants_redraw()
             && data_->event_loop_mode == EventLoopMode::WAIT_FOR_EVENTS)
         {
             SDL_WaitEventTimeout(nullptr, 10);
@@ -325,14 +433,67 @@ namespace Tungsten
         data_->seconds_per_frame = std::chrono::duration<double>(newTime - time).count();
     }
 
+    void SdlApplication::push_event_loop(EventLoop& event_loop)
+    {
+        modify_event_loops(&event_loop, true);
+    }
+
+    void SdlApplication::remove_event_loop(EventLoop& event_loop)
+    {
+        modify_event_loops(&event_loop, false);
+    }
+
+    void SdlApplication::modify_event_loops(EventLoop* event_loop, bool add)
+    {
+        // Deferred only while a phase is walking the stack; outside one — most
+        // importantly when the application is being set up, before run() — the
+        // change takes effect at once, so the stack is never in a state the
+        // caller cannot observe.
+        if (data_->traversing)
+        {
+            data_->pending_event_loops.emplace_back(event_loop, add);
+            return;
+        }
+
+        auto& loops = data_->event_loops;
+        const auto it = std::find(loops.begin(), loops.end(), event_loop);
+        if (add)
+        {
+            if (it == loops.end())
+                loops.push_back(event_loop);
+        }
+        else if (it != loops.end())
+        {
+            loops.erase(it);
+        }
+    }
+
+    void SdlApplication::apply_pending_event_loops()
+    {
+        // Taken by move: applying an operation must not see operations that
+        // it, in turn, requests.
+        while (!data_->pending_event_loops.empty())
+        {
+            const auto pending = std::move(data_->pending_event_loops);
+            data_->pending_event_loops.clear();
+            for (const auto& [loop, add] : pending)
+                modify_event_loops(loop, add);
+        }
+    }
+
+    std::span<EventLoop* const> SdlApplication::event_loops() const
+    {
+        return data_->event_loops;
+    }
+
     const EventLoop* SdlApplication::event_loop() const
     {
-        return data_->event_loop;
+        return data_->event_loops.empty() ? nullptr : data_->event_loops.front();
     }
 
     EventLoop* SdlApplication::event_loop()
     {
-        return data_->event_loop;
+        return data_->event_loops.empty() ? nullptr : data_->event_loops.front();
     }
 
     const WindowParameters& SdlApplication::window_parameters() const
@@ -373,12 +534,12 @@ namespace Tungsten
 
     EventLoop& SdlApplication::callbacks()
     {
-        return *data_->event_loop;
+        return *data_->event_loops.front();
     }
 
     const EventLoop& SdlApplication::callbacks() const
     {
-        return *data_->event_loop;
+        return *data_->event_loops.front();
     }
 
     double SdlApplication::seconds_per_frame() const

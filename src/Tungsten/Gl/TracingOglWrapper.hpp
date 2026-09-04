@@ -61,6 +61,12 @@ namespace Tungsten
             wrapper->bind_framebuffer(target, framebuffer);
         }
 
+        void bind_sampler(GLuint unit, GLuint sampler) override
+        {
+            log("glBindSampler({}, {})", unit, sampler);
+            wrapper->bind_sampler(unit, sampler);
+        }
+
         void bind_texture(GLenum target, GLuint texture) override
         {
             log("glBindTexture({}, {})", target, texture);
@@ -215,6 +221,12 @@ namespace Tungsten
             wrapper->delete_program(program);
         }
 
+        void delete_samplers(GLsizei n, const GLuint* samplers) override
+        {
+            log("glDeleteSamplers({}, {})", n, static_cast<const void*>(samplers));
+            wrapper->delete_samplers(n, samplers);
+        }
+
         void delete_shader(GLuint shader) override
         {
             log("glDeleteShader({})", shader);
@@ -231,6 +243,12 @@ namespace Tungsten
         {
             log("glDeleteVertexArrays({}, {})", n, static_cast<const void*>(arrays));
             wrapper->delete_vertex_arrays(n, arrays);
+        }
+
+        void depth_mask(GLboolean flag) override
+        {
+            log("glDepthMask({})", flag);
+            wrapper->depth_mask(flag);
         }
 
         void disable(GLenum cap) override
@@ -303,6 +321,12 @@ namespace Tungsten
             wrapper->gen_framebuffers(n, framebuffers);
         }
 
+        void gen_samplers(GLsizei n, GLuint* samplers) override
+        {
+            log("glGenSamplers({}, {})", n, static_cast<const void*>(samplers));
+            wrapper->gen_samplers(n, samplers);
+        }
+
         void gen_textures(GLsizei n, GLuint* textures) override
         {
             log("glGenTextures({}, {})", n, static_cast<const void*>(textures));
@@ -359,6 +383,12 @@ namespace Tungsten
         {
             log("glGetIntegerv({}, {})", pname, static_cast<const void*>(params));
             wrapper->get_integer(pname, params);
+        }
+
+        void get_integer_i(GLenum pname, GLuint index, GLint* params) override
+        {
+            log("glGetIntegeri_v({}, {}, {})", pname, index, static_cast<const void*>(params));
+            wrapper->get_integer_i(pname, index, params);
         }
 
         void get_integer64(GLenum pname, GLint64* params) override
@@ -419,6 +449,12 @@ namespace Tungsten
             wrapper->get_tex_parameter(target, pname, params);
         }
 
+        GLuint get_uniform_block_index(GLuint program, const GLchar* name) override
+        {
+            log("glGetUniformBlockIndex({}, \"{}\")", program, std::string_view(name));
+            return wrapper->get_uniform_block_index(program, name);
+        }
+
         GLint get_uniform_location(GLuint program, const GLchar* name) override
         {
             log("glGetUniformLocation({}, \"{}\")", program, std::string_view(name));
@@ -441,6 +477,18 @@ namespace Tungsten
         {
             log("glLinkProgram({})", program);
             wrapper->link_program(program);
+        }
+
+        void sampler_parameter_f(GLuint sampler, GLenum pname, GLfloat param) override
+        {
+            log("glSamplerParameterf({}, {}, {})", sampler, pname, param);
+            wrapper->sampler_parameter_f(sampler, pname, param);
+        }
+
+        void sampler_parameter_i(GLuint sampler, GLenum pname, GLint param) override
+        {
+            log("glSamplerParameteri({}, {}, {})", sampler, pname, param);
+            wrapper->sampler_parameter_i(sampler, pname, param);
         }
 
         void shader_source(GLuint shader, GLsizei count, const GLchar* const * string,
@@ -491,6 +539,13 @@ namespace Tungsten
                 format, type, static_cast<const void*>(pixels));
             wrapper->tex_sub_image_2d(target, level, xOffset, yOffset, width, height, format, type,
                                       pixels);
+        }
+
+        void uniform_block_binding(GLuint program, GLuint block_index,
+                                   GLuint binding) override
+        {
+            log("glUniformBlockBinding({}, {}, {})", program, block_index, binding);
+            wrapper->uniform_block_binding(program, block_index, binding);
         }
 
         void uniform1_f(GLint location, GLfloat v0) override

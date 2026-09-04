@@ -18,7 +18,13 @@ public:
 
     void set_window_size(Tungsten::Size2I window_size);
 
-    void draw_previous_scene(float fadeout);
+    /**
+     * @brief Copies the previous frame's scene, darkened by @a fade_step.
+     *
+     * @param fade_step the amount subtracted from each color channel,
+     *      where 1.0 is the full range from black to white.
+     */
+    void draw_previous_scene(float fade_step);
 
     void render_scene();
 private:

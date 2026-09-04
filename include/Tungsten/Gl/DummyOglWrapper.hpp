@@ -38,6 +38,10 @@ namespace Tungsten
         {
         }
 
+        void bind_sampler(GLuint unit, GLuint sampler) override
+        {
+        }
+
         void bind_texture(GLenum target, GLuint texture) override
         {
         }
@@ -140,6 +144,10 @@ namespace Tungsten
         {
         }
 
+        void delete_samplers(GLsizei n, const GLuint* samplers) override
+        {
+        }
+
         void delete_shader(GLuint shader) override
         {
         }
@@ -149,6 +157,10 @@ namespace Tungsten
         }
 
         void delete_vertex_arrays(GLsizei n, const GLuint* arrays) override
+        {
+        }
+
+        void depth_mask(GLboolean flag) override
         {
         }
 
@@ -197,6 +209,10 @@ namespace Tungsten
         {
         }
 
+        void gen_samplers(GLsizei n, GLuint* samplers) override
+        {
+        }
+
         void gen_textures(GLsizei n, GLuint* textures) override
         {
         }
@@ -232,6 +248,10 @@ namespace Tungsten
         }
 
         void get_integer(GLenum pname, GLint* params) override
+        {
+        }
+
+        void get_integer_i(GLenum pname, GLuint index, GLint* params) override
         {
         }
 
@@ -275,6 +295,12 @@ namespace Tungsten
         {
         }
 
+        GLuint get_uniform_block_index(GLuint program, const GLchar* name) override
+        {
+            // GL_INVALID_INDEX: "no such block", so callers skip the binding.
+            return 0xFFFFFFFFu;
+        }
+
         GLint get_uniform_location(GLuint program, const GLchar* name) override
         {
             return 0;
@@ -291,6 +317,14 @@ namespace Tungsten
         }
 
         void link_program(GLuint program) override
+        {
+        }
+
+        void sampler_parameter_f(GLuint sampler, GLenum pname, GLfloat param) override
+        {
+        }
+
+        void sampler_parameter_i(GLuint sampler, GLenum pname, GLint param) override
         {
         }
 
@@ -321,6 +355,11 @@ namespace Tungsten
         void tex_sub_image_2d(GLenum target, GLint level, GLint xOffset, GLint yOffset,
                               GLsizei width, GLsizei height, GLenum format, GLenum type,
                               const void* pixels) override
+        {
+        }
+
+        void uniform_block_binding(GLuint program, GLuint block_index,
+                                   GLuint binding) override
         {
         }
 

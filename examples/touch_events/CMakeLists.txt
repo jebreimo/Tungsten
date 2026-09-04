@@ -12,6 +12,7 @@ set(CMAKE_CXX_STANDARD 23)
 add_executable(touch_events
     touch_events.cpp
     RingBuffer.hpp
+    TextScroller.hpp
 )
 
 target_link_libraries(touch_events

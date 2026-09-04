@@ -5,134 +5,205 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
+
+// Text anchoring, drawn through Neo's scene graph: the same block of text
+// pinned to each corner of the window and to its centre, each with the anchor
+// that keeps it inside the window as it grows.
+#include <array>
+#include <chrono>
 #include <iostream>
 #include <thread>
-#include <Tungsten/Render/TextRenderer.hpp>
 #include <Tungsten/Tungsten.hpp>
 
-Xyz::Vector4F RED = {1.f, 0.f, 0.f, 1.f};
-Xyz::Vector4F BLUE = {0.f, 0.f, 1.f, 1.f};
-Xyz::Vector4F GREEN = {0.f, 0.f, 1.f, 1.f};
-Xyz::Vector4F BLACK = {0.f, 0.f, 0.f, 1.f};
-Xyz::Vector4F WHITE = {1.f, 1.f, 1.f, 1.f};
-
-auto get_horizontal_alignment(float x)
-    -> Tungsten::HorizontalAlignment
+namespace
 {
-    if (x == 0)
-        return Tungsten::HorizontalAlignment::LEFT;
-    if (x == 1)
-        return Tungsten::HorizontalAlignment::RIGHT;
-    return Tungsten::HorizontalAlignment::CENTER;
-}
+    using namespace Tungsten;
 
-auto get_horizontal_anchor(float x)
-    -> Tungsten::HorizontalAnchor
-{
-    if (x == 0)
-        return Tungsten::HorizontalAnchor::LEFT;
-    if (x == 1)
-        return Tungsten::HorizontalAnchor::RIGHT;
-    return Tungsten::HorizontalAnchor::CENTER;
-}
+    const Xyz::Vector4F RED = {1.f, 0.f, 0.f, 1.f};
+    const Xyz::Vector4F GREEN = {0.f, 1.f, 0.f, 1.f};
+    const Xyz::Vector4F BLUE = {0.f, 0.f, 1.f, 1.f};
+    const Xyz::Vector4F BLACK = {0.f, 0.f, 0.f, 1.f};
+    const Xyz::Vector4F WHITE = {1.f, 1.f, 1.f, 1.f};
 
-auto get_vertical_anchor(float y)
-    -> Tungsten::VerticalAnchor
-{
-    if (y == 0)
-        return Tungsten::VerticalAnchor::BOTTOM;
-    if (y == 1)
-        return Tungsten::VerticalAnchor::TOP;
-    return Tungsten::VerticalAnchor::CENTER;
-}
-
-size_t make_text_item(Tungsten::TextRenderer& renderer,
-                      std::shared_ptr<Tungsten::Font> font,
-                      const Xyz::Vector4F& color,
-                      const Xyz::Vector2F& position)
-{
-    auto item = std::make_unique<Tungsten::TextItem>("", std::move(font));
-    item->set_color(color);
-    item->set_horizontal_alignment(get_horizontal_alignment(position.x()));
-    item->set_horizontal_anchor(get_horizontal_anchor(position.x()));
-    item->set_vertical_anchor(get_vertical_anchor(position.y()));
-    return renderer.add_text_item(std::move(item));
-}
-
-class ShowText : public Tungsten::EventLoop
-{
-public:
-    explicit ShowText(Tungsten::SdlApplication& app)
-        : EventLoop(app),
-          text_manager_(std::make_shared<Tungsten::TextRenderer>()),
-          text_item_ids_{}
+    // Where a block sits, in viewport-normalized coordinates: (0, 0) is the
+    // bottom-left corner, (1, 1) the top-right.
+    struct Corner
     {
-        const auto font = font_manager_.default_font();
-        text_item_ids_[0] = make_text_item(*text_manager_, font, RED, positions_[0]);
-        text_item_ids_[1] = make_text_item(*text_manager_, font, GREEN, positions_[1]);
-        text_item_ids_[2] = make_text_item(*text_manager_, font, BLUE, positions_[2]);
-        text_item_ids_[3] = make_text_item(*text_manager_, font, BLACK, positions_[3]);
-        text_item_ids_[4] = make_text_item(*text_manager_, font, WHITE, positions_[4]);
-    }
-
-    void on_update() override
-    {
-        const auto current_second = SDL_GetTicks() / 1000;
-        if (current_second != second_)
-        {
-            second_ = current_second;
-            const auto text = "Jan Erik Breimo\nNatasha Barrett\nTime: " + std::to_string(second_);
-            for (const auto id : text_item_ids_)
-            {
-                const auto item = text_manager_->get_text_item(id);
-                item->set_text(text);
-            }
-            redraw();
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
-
-    void on_draw() override
-    {
-        Tungsten::set_clear_color(0.4, 0.6, 0.8, 1);
-        Tungsten::clear(Tungsten::ClearBits::COLOR_DEPTH);
-        const auto viewport = application().viewport();
-        Tungsten::set_viewport(viewport);
-        for (size_t i = 0; i < 5; ++i)
-        {
-            const auto id = text_item_ids_[i];
-            const auto item = text_manager_->get_text_item(id);
-            item->set_position(viewport.normalized_to_pixel(positions_[i]));
-        }
-
-        const Tungsten::Camera camera(viewport, {}, {});
-        text_manager_->prepare(camera);
-        text_manager_->render(camera);
-
-        Tungsten::set_ogl_tracing_enabled(false);
-    }
-
-private:
-    Tungsten::FontManager font_manager_;
-    std::shared_ptr<Tungsten::TextRenderer> text_manager_;
-    size_t text_item_ids_[5];
-    std::array<Xyz::Vector2F, 5> positions_{
-        Xyz::Vector2F(0.f, 0.f),
-        Xyz::Vector2F(0.f, 1.f),
-        Xyz::Vector2F(1.f, 0.f),
-        Xyz::Vector2F(1.f, 1.f),
-        Xyz::Vector2F(0.5f, 0.5f)
+        Xyz::Vector2F position;
+        Xyz::Vector4F color;
     };
-    uint32_t second_ = UINT32_MAX;
-};
+
+    const std::array<Corner, 5> CORNERS = {{
+        {{0.0f, 0.0f}, RED},
+        {{0.0f, 1.0f}, GREEN},
+        {{1.0f, 0.0f}, BLUE},
+        {{1.0f, 1.0f}, BLACK},
+        {{0.5f, 0.5f}, WHITE}
+    }};
+
+    HorizontalAlignment get_horizontal_alignment(float x)
+    {
+        if (x == 0)
+            return HorizontalAlignment::LEFT;
+        if (x == 1)
+            return HorizontalAlignment::RIGHT;
+        return HorizontalAlignment::CENTER;
+    }
+
+    HorizontalAnchor get_horizontal_anchor(float x)
+    {
+        if (x == 0)
+            return HorizontalAnchor::LEFT;
+        if (x == 1)
+            return HorizontalAnchor::RIGHT;
+        return HorizontalAnchor::CENTER;
+    }
+
+    VerticalAnchor get_vertical_anchor(float y)
+    {
+        if (y == 0)
+            return VerticalAnchor::BOTTOM;
+        if (y == 1)
+            return VerticalAnchor::TOP;
+        return VerticalAnchor::CENTER;
+    }
+
+    Transform at(float x, float y, float z = 0.0f)
+    {
+        Transform transform;
+        transform.translation = {x, y, z};
+        return transform;
+    }
+
+    class ShowText : public EventLoop
+    {
+    public:
+        explicit ShowText(SdlApplication& app)
+            : EventLoop(app),
+              text_system_(resources_),
+              renderer_(resources_)
+        {
+            const std::shared_ptr<const Font> font =
+                font_manager_.default_font();
+
+            for (const auto& [position, color] : CORNERS)
+            {
+                // One style per block: they differ in colour and in which
+                // point of the text lands on the node's origin. Styles are
+                // immutable, so each is made once and never touched again.
+                auto node = scene_.add_node();
+                node.add(TextComponent{
+                    .style = make_text_style({
+                        .font = font,
+                        .color = color,
+                        .horizontal_alignment =
+                            get_horizontal_alignment(position.x()),
+                        .horizontal_anchor =
+                            get_horizontal_anchor(position.x()),
+                        .vertical_anchor = get_vertical_anchor(position.y())
+                    })
+                });
+                nodes_.push_back(node);
+            }
+
+            // A 2D scene is nodes at z = 0 seen by an orthographic camera. The
+            // camera sits in front of that plane looking down its node's -z
+            // axis.
+            camera_ = scene_.add_node();
+            camera_.set_local_transform(at(0, 0, 100));
+            camera_.add(CameraComponent{
+                .mode = ProjectionMode::ORTHOGRAPHIC,
+                .near_plane = 1.0f,
+                .far_plane = 200.0f,
+                .aspect = app.viewport().aspect_ratio()
+            });
+        }
+
+        void on_update() override
+        {
+            const auto current_second = SDL_GetTicks() / 1000;
+            if (current_second != second_)
+            {
+                second_ = current_second;
+                const auto text = "Jan Erik Breimo\nNatasha Barrett\nTime: "
+                                  + std::to_string(second_);
+                // One component is one text run however many lines it has, so
+                // each of these is a single mesh and a single draw.
+                for (auto& node : nodes_)
+                    node.get<TextComponent>().text = text;
+                redraw();
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+
+        void on_draw() override
+        {
+            const auto viewport = application().viewport();
+            set_viewport(viewport);
+            set_clear_color(0.4f, 0.6f, 0.8f, 1.0f);
+            clear(ClearBits::COLOR_DEPTH);
+
+            // One world unit per pixel: the orthographic half-height is half
+            // the viewport's, so the visible volume is exactly the window in
+            // pixels, with the origin at its centre.
+            auto& camera = camera_.get<CameraComponent>();
+            camera.ortho_size = viewport.size[1] / 2.0f;
+            camera.aspect = viewport.aspect_ratio();
+
+            // Follow the window's corners. This runs every draw and re-uploads
+            // nothing — the position reaches the shader through the per-draw
+            // UBO, never through the vertex data.
+            for (size_t i = 0; i < nodes_.size(); ++i)
+            {
+                const auto centre_offset =
+                    (CORNERS[i].position - Xyz::Vector2F(0.5f, 0.5f))
+                    * viewport.size;
+                nodes_[i].set_local_transform(
+                    at(centre_offset.x(), centre_offset.y()));
+            }
+
+            resources_.begin_frame(frame_);
+
+            // Before the resolve, so the meshes and bounds it publishes are in
+            // place for the extraction pass that follows.
+            text_system_.update(scene_);
+            scene_.resolve_transforms();
+
+            auto& snapshots = snapshots_;
+            builder_.build(scene_, camera_.id(), snapshots.back());
+            snapshots.swap();
+            renderer_.render(snapshots.front());
+
+            // Single-threaded: the frame just drawn is complete.
+            resources_.collect_garbage(frame_);
+            ++frame_;
+
+            set_ogl_tracing_enabled(false);
+        }
+
+    private:
+        ResourceManager resources_;
+        FontManager font_manager_;
+        Scene scene_;
+        DoubleBuffer<RenderSnapshot> snapshots_;
+        TextSystem text_system_;
+        SnapshotBuilder builder_{resources_};
+        Renderer renderer_;
+
+        std::vector<NodeHandle> nodes_;
+        NodeHandle camera_;
+        uint64_t frame_ = 0;
+        uint32_t second_ = UINT32_MAX;
+    };
+}
 
 int main(int argc, char* argv[])
 {
     try
     {
-        Tungsten::SdlApplication app("ShowText");
+        SdlApplication app("ShowText");
         app.parse_command_line_options(argc, argv);
-        Tungsten::set_ogl_tracing_enabled(true);
+        set_ogl_tracing_enabled(true);
         app.run<ShowText>();
     }
     catch (std::exception& ex)

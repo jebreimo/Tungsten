@@ -1,0 +1,56 @@
+//****************************************************************************
+// Copyright © 2026 Jan Erik Breimo. All rights reserved.
+// Created by Jan Erik Breimo on 2026-06-24.
+//
+// This file is distributed under the Zero-Clause BSD License.
+// License text is included with the source distribution.
+//****************************************************************************
+#include "BufferArena.hpp"
+
+#include <bit>
+#include <limits>
+#include <utility>
+
+#include "Tungsten/TungstenException.hpp"
+
+namespace Tungsten
+{
+    BufferArena::BufferArena(BufferUsage usage, uint16_t stride, uint32_t capacity)
+        : usage_(usage),
+          stride_(stride),
+          allocator_(capacity)
+    {
+        // Sized from the allocator's capacity, not the requested one: the
+        // BuddyAllocator rounds up to the next power of two, and it will hand
+        // out offsets across that whole range. Sizing from the raw argument
+        // would leave every allocation above it pointing past the buffer.
+        buffer_ = generate_buffer(
+            static_cast<ptrdiff_t>(allocator_.capacity() * stride), usage);
+    }
+
+    std::optional<uint32_t> BufferArena::allocate(uint32_t count)
+    {
+        if (const auto offset = allocator_.allocate(count))
+            return static_cast<uint32_t>(*offset);
+        return std::nullopt;
+    }
+
+    void BufferArena::free(uint32_t offset)
+    {
+        allocator_.free(offset);
+    }
+
+    BufferHandle BufferArena::grow(uint32_t new_capacity)
+    {
+        const auto new_capacity64 = std::bit_ceil(static_cast<uint64_t>(new_capacity));
+        if (new_capacity64 <= allocator_.capacity())
+            TUNGSTEN_THROW("BufferArena: new capacity must be greater than current capacity");
+        if (new_capacity64 > std::numeric_limits<uint32_t>::max())
+            TUNGSTEN_THROW("BufferArena: capacity overflow");
+
+        auto newBuffer = clone_buffer(buffer_.id(), static_cast<ptrdiff_t>(new_capacity64 * stride_));
+        allocator_ = allocator_.resized(new_capacity64);
+        std::swap(buffer_, newBuffer);
+        return newBuffer;
+    }
+} // Tungsten

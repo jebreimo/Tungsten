@@ -7,6 +7,7 @@
 //****************************************************************************
 #include "Tungsten/Gl/GlBuffer.hpp"
 
+#include <algorithm>
 #include <vector>
 
 #include "GlTypeConversion.hpp"
@@ -75,6 +76,15 @@ namespace Tungsten
         get_ogl_wrapper().bind_buffer_range(to_ogl_buffer_target(target), index,
                                             buffer, offset, size);
         THROW_IF_GL_ERROR();
+    }
+
+    int32_t get_uniform_buffer_offset_alignment()
+    {
+        constexpr unsigned GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT_ = 0x8A34;
+        // Clamped so callers can divide by it unconditionally; a backend that
+        // answers no queries would otherwise hand back zero.
+        return std::max(
+            get_int32_value(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT_), 1);
     }
 
     void set_buffer_data(BufferTarget target, ptrdiff_t size, const void* data,

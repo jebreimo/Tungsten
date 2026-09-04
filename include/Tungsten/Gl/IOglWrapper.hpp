@@ -43,6 +43,8 @@ namespace Tungsten
 
         virtual void bind_framebuffer(GLenum target, GLuint framebuffer) = 0;
 
+        virtual void bind_sampler(GLuint unit, GLuint sampler) = 0;
+
         virtual void bind_texture(GLenum target, GLuint texture) = 0;
 
         virtual void bind_vertex_array(GLuint array) = 0;
@@ -98,11 +100,15 @@ namespace Tungsten
 
         virtual void delete_program(GLuint program) = 0;
 
+        virtual void delete_samplers(GLsizei n, const GLuint* samplers) = 0;
+
         virtual void delete_shader(GLuint shader) = 0;
 
         virtual void delete_textures(GLsizei n, const GLuint* textures) = 0;
 
         virtual void delete_vertex_arrays(GLsizei n, const GLuint* arrays) = 0;
+
+        virtual void depth_mask(GLboolean flag) = 0;
 
         virtual void disable(GLenum cap) = 0;
 
@@ -131,6 +137,8 @@ namespace Tungsten
 
         virtual void gen_framebuffers(GLsizei n, GLuint* framebuffers) = 0;
 
+        virtual void gen_samplers(GLsizei n, GLuint* samplers) = 0;
+
         virtual void gen_textures(GLsizei n, GLuint* textures) = 0;
 
         virtual void gen_vertex_arrays(GLsizei n, GLuint* arrays) = 0;
@@ -148,6 +156,8 @@ namespace Tungsten
         virtual void get_float(GLenum pname, GLfloat* params) = 0;
 
         virtual void get_integer(GLenum pname, GLint* params) = 0;
+
+        virtual void get_integer_i(GLenum pname, GLuint index, GLint* params) = 0;
 
         virtual void get_integer64(GLenum pname, GLint64* params) = 0;
 
@@ -169,6 +179,8 @@ namespace Tungsten
 
         virtual void get_tex_parameter(GLenum target, GLenum pname, GLint* params) = 0;
 
+        virtual GLuint get_uniform_block_index(GLuint program, const GLchar* name) = 0;
+
         virtual GLint get_uniform_location(GLuint program, const GLchar* name) = 0;
 
         virtual GLboolean is_buffer(GLuint buffer) = 0;
@@ -176,6 +188,10 @@ namespace Tungsten
         virtual GLboolean is_enabled(GLenum cap) = 0;
 
         virtual void link_program(GLuint program) = 0;
+
+        virtual void sampler_parameter_f(GLuint sampler, GLenum pname, GLfloat param) = 0;
+
+        virtual void sampler_parameter_i(GLuint sampler, GLenum pname, GLint param) = 0;
 
         virtual void shader_source(GLuint shader, GLsizei count,
                                    const GLchar* const* string,
@@ -200,6 +216,9 @@ namespace Tungsten
                                       GLsizei width,
                                       GLsizei height, GLenum format, GLenum type,
                                       const void* pixels) = 0;
+
+        virtual void uniform_block_binding(GLuint program, GLuint block_index,
+                                           GLuint binding) = 0;
 
         virtual void uniform1_f(GLint location, GLfloat v0) = 0;
 

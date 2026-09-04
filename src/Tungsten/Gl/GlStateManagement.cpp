@@ -44,6 +44,17 @@ namespace Tungsten
         set_enabled(GL_DEPTH_TEST, enabled);
     }
 
+    bool is_depth_mask_enabled()
+    {
+        return get_boolean_value(GL_DEPTH_WRITEMASK);
+    }
+
+    void set_depth_mask_enabled(bool enabled)
+    {
+        get_ogl_wrapper().depth_mask(enabled ? GL_TRUE : GL_FALSE);
+        THROW_IF_GL_ERROR();
+    }
+
     bool is_face_culling_enabled()
     {
         return is_enabled(GL_CULL_FACE);
@@ -100,7 +111,10 @@ namespace Tungsten
 
     int32_t get_int32_value(unsigned parameter_name)
     {
-        int32_t value;
+        // Zero-initialized because the dummy and Emscripten backends may
+        // leave the output untouched; returning an indeterminate value from a
+        // query that "succeeded" is worse than returning zero.
+        int32_t value = 0;
         get_ogl_wrapper().get_integer(parameter_name, &value);
         THROW_IF_GL_ERROR();
         return value;
@@ -108,7 +122,7 @@ namespace Tungsten
 
     int64_t get_int64_value(unsigned parameter_name)
     {
-        int64_t value;
+        int64_t value = 0;
         get_ogl_wrapper().get_integer64(parameter_name, &value);
         THROW_IF_GL_ERROR();
         return value;

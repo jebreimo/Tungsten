@@ -42,6 +42,12 @@ namespace Tungsten
     void bind_buffer_range(BufferTarget target, uint32_t index, uint32_t buffer,
                            ptrdiff_t offset, ptrdiff_t size);
 
+    // The value bind_buffer_range's `offset` must be a multiple of for a
+    // uniform-buffer target — GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, commonly
+    // 256. Never returns less than 1, so it is always safe to divide by: the
+    // dummy and Emscripten backends may leave the query unanswered.
+    [[nodiscard]] int32_t get_uniform_buffer_offset_alignment();
+
     void set_buffer_data(BufferTarget target, ptrdiff_t size,
                          const void* data, BufferUsage usage);
 
