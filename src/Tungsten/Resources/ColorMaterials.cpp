@@ -204,10 +204,11 @@ namespace Tungsten
 
     std::vector<std::byte>
     make_blinn_phong_material_params(const ColorMaterial& material,
-                                     float opacity)
+                                     float opacity,
+                                     float normal_map_strength)
     {
         const float values[12] = {
-            material.ambient[0], material.ambient[1], material.ambient[2], /* unused */0,
+            material.ambient[0], material.ambient[1], material.ambient[2], normal_map_strength,
             material.diffuse[0], material.diffuse[1], material.diffuse[2], opacity,
             material.specular[0], material.specular[1], material.specular[2], material.shininess
         };
@@ -217,10 +218,11 @@ namespace Tungsten
 
     std::vector<std::byte>
     make_blinn_phong_material_params(StandardColorMaterial material,
-                                     float opacity)
+                                     float opacity,
+                                     float normal_map_strength)
     {
         return make_blinn_phong_material_params(
             get_standard_color_material(material),
-            opacity);
+            opacity, normal_map_strength);
     }
 } // Tungsten

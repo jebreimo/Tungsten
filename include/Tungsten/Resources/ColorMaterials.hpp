@@ -52,17 +52,31 @@ namespace Tungsten
 
     /**
      * Returns a std140 MaterialBlock of the builtin BlinnPhong family:
-     * ambient, diffuse (w = opacity), specular (w = shininess).
+     * ambient (w = normal map strength), diffuse (w = opacity),
+     * specular (w = shininess).
+     *
+     * @param normal_map_strength how far the normal map may lean the surface
+     *      normal: 0 — the default — means the material has no normal map, and
+     *      the shader skips sampling it altogether. The map itself goes in the
+     *      material's third texture slot.
      */
     std::vector<std::byte>
     make_blinn_phong_material_params(const ColorMaterial& material,
-                                     float opacity = 1.0f);
+                                     float opacity = 1.0f,
+                                     float normal_map_strength = 0.0f);
 
     /**
      * Returns a std140 MaterialBlock of the builtin BlinnPhong family:
-     * ambient, diffuse (w = opacity), specular (w = shininess).
+     * ambient (w = normal map strength), diffuse (w = opacity),
+     * specular (w = shininess).
+     *
+     * @param normal_map_strength how far the normal map may lean the surface
+     *      normal: 0 — the default — means the material has no normal map, and
+     *      the shader skips sampling it altogether. The map itself goes in the
+     *      material's third texture slot.
      */
     std::vector<std::byte>
     make_blinn_phong_material_params(StandardColorMaterial material,
-                                     float opacity = 1.0f);
+                                     float opacity = 1.0f,
+                                     float normal_map_strength = 0.0f);
 } // Tungsten

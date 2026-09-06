@@ -64,13 +64,14 @@ layout (std140) uniform PerFrame
 // change. The samplers themselves cannot live in a UBO.
 layout (std140) uniform MaterialBlock
 {
-    vec4 u_ambient;          // rgb
+    vec4 u_ambient;          // rgb, w = normal map strength (0 = no map)
     vec4 u_diffuse;          // rgb, w = opacity
     vec4 u_specular;         // rgb, w = shininess
 };
 
 uniform sampler2D u_diffuse_map;
 uniform sampler2D u_specular_map;
+uniform sampler2D u_normal_map;
 
 struct ColorMaterial
 {
@@ -94,6 +95,43 @@ ColorMaterial get_material()
                         * vec3(texture(u_specular_map, fs_in.texcoord));
     material.shininess = u_specular.w;
     return material;
+}
+
+// A tangent basis built from screen-space derivatives rather than from a
+// TANGENT vertex attribute, so a normal-mapped mesh needs no vertex data the
+// unmapped ones lack. The trade is quality: the basis is per-fragment and
+// derived from the interpolated surface, which is fine for gentle bump detail
+// but faceted on low-poly meshes and wrong across mirrored UVs. Vertex
+// tangents (and a family that requires them) are the answer if that matters.
+//
+// Everything needing derivatives — the four differences and the implicit-LOD
+// fetch — is done up front, before the divergent test below: derivatives are
+// undefined in non-uniform control flow.
+vec3 perturb_normal(vec3 normal, vec3 frag_pos, vec2 texcoord, float strength)
+{
+    vec3 dpos_dx = dFdx(frag_pos);
+    vec3 dpos_dy = dFdy(frag_pos);
+    vec2 duv_dx = dFdx(texcoord);
+    vec2 duv_dy = dFdy(texcoord);
+    vec3 sampled = texture(u_normal_map, texcoord).xyz * 2.0 - 1.0;
+
+    vec3 dpos_dy_perp = cross(dpos_dy, normal);
+    vec3 dpos_dx_perp = cross(normal, dpos_dx);
+    vec3 tangent = dpos_dy_perp * duv_dx.x + dpos_dx_perp * duv_dy.x;
+    vec3 bitangent = dpos_dy_perp * duv_dx.y + dpos_dx_perp * duv_dy.y;
+
+    // Degenerate texture coordinates leave no gradient to build a basis from;
+    // normalizing a zero vector would give NaNs, so keep the flat normal.
+    float max_length2 = max(dot(tangent, tangent), dot(bitangent, bitangent));
+    if (max_length2 <= 0.0)
+        return normal;
+
+    float scale = inversesqrt(max_length2);
+    mat3 tbn = mat3(tangent * scale, bitangent * scale, normal);
+    // Strength leans the perturbation toward or away from the flat normal;
+    // the z component is left alone so the result stays a unit vector.
+    sampled.xy *= strength;
+    return normalize(tbn * sampled);
 }
 
 // Smooth, range-bounded inverse-square falloff (Frostbite / UE style): a
@@ -155,6 +193,18 @@ vec3 calc_light(Light light, ColorMaterial material,
 void main()
 {
     vec3 normal = normalize(fs_in.normal);
+
+    // u_ambient.w is the normal map's strength, and zero means the material
+    // has none: the whole block, derivatives and texture fetch included, is
+    // skipped. The test reads a UBO field, so it is the same for every
+    // fragment of the draw — a coherent branch, which is both what makes the
+    // derivatives inside it legal and what makes skipping it free.
+    if (u_ambient.w > 0.0)
+    {
+        normal = perturb_normal(normal, fs_in.frag_pos, fs_in.texcoord,
+                                u_ambient.w);
+    }
+
     vec3 view_dir = normalize(u_camera_pos.xyz - fs_in.frag_pos);
 
     ColorMaterial material = get_material();

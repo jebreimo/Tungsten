@@ -16,6 +16,7 @@ FetchContent_MakeAvailable(catch)
 
 add_executable(TungstenTest
     test_BuddyAllocator.cpp
+    test_ColorMaterials.cpp
     test_FontUtilities.cpp
     test_GenerationalPool.cpp
     test_GlStateCache.cpp

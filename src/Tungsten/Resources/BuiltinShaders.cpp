@@ -17,7 +17,8 @@ namespace Tungsten
         ShaderFamily blinn_phong;
         blinn_phong.vertex_source = BLINN_PHONG_VERTEX;
         blinn_phong.fragment_source = BLINN_PHONG_FRAGMENT;
-        blinn_phong.samplers = {"u_diffuse_map", "u_specular_map"};
+        blinn_phong.samplers = {"u_diffuse_map", "u_specular_map",
+                                "u_normal_map"};
         blinn_phong.required_attributes =
             semantic_bit(AttributeSemantic::POSITION)
             | semantic_bit(AttributeSemantic::NORMAL)

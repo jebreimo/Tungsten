@@ -5,6 +5,7 @@
 # This file is distributed under the Zero-Clause BSD License.
 # License text is included with the source distribution.
 # ===========================================================================
+add_subdirectory(bump_cube)
 add_subdirectory(cube)
 add_subdirectory(neo_table)
 add_subdirectory(scene_graph)
