@@ -7,7 +7,8 @@
 ##****************************************************************************
 cmake_minimum_required(VERSION 3.23)
 
-project(Tungsten VERSION 0.8.2)
+project(Tungsten VERSION 0.9.0
+    DESCRIPTION "A C++ library for 2D and 3D rendering")
 
 set(CMAKE_CXX_STANDARD 23)
 
@@ -53,7 +54,7 @@ FetchContent_Declare(cppembed
 
 FetchContent_Declare(xyz
     GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
-    GIT_TAG v0.13.2)
+    GIT_TAG v0.14.0)
 
 FetchContent_Declare(yconvert
     GIT_REPOSITORY "https://github.com/jebreimo/Yconvert.git"

@@ -1,8 +1,8 @@
 {
   "name": "tungsten",
-  "version-string": "0.8.2",
+  "version-string": "0.9.0",
   "license": "0BSD",
-  "builtin-baseline": "b81cab76a175645e047601da8f982ad86bff1cc3",
+  "builtin-baseline": "04a9d8e5212d01ee1dd9478eadd9caade4f8b0d4",
   "dependencies": [
     "freetype",
     "glew",

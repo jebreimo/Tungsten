@@ -122,7 +122,10 @@ namespace Tungsten
         double seconds_per_frame = 0;
     };
 
-    SdlApplication::SdlApplication() = default;
+    SdlApplication::SdlApplication()
+        : SdlApplication("Tungsten")
+    {
+    }
 
     SdlApplication::SdlApplication(std::string name)
         : data_(std::make_unique<Data>(std::move(name)))

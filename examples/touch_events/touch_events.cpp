@@ -157,9 +157,9 @@ int main(int argc, char* argv[])
 {
     try
     {
-        SDL_SetHint(SDL_HINT_TRACKPAD_IS_TOUCH_ONLY, "1");
         Tungsten::SdlApplication app("touch_events");
         app.parse_command_line_options(argc, argv);
+        app.set_touch_events_enabled(true);
         app.set_event_loop_mode(Tungsten::EventLoopMode::WAIT_FOR_EVENTS);
         Tungsten::set_ogl_tracing_enabled(true);
         app.run<TouchEventsLoop>();
