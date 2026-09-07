@@ -142,6 +142,16 @@ namespace
             buffer_sizes.push_back(size);
         }
 
+        // Records the internal format every texture level is allocated with,
+        // which is where the colour/data distinction actually lands.
+        void tex_image_2d(GLenum, GLint, GLint internal_format, GLsizei,
+                          GLsizei, GLint, GLenum, GLenum,
+                          const void*) override
+        {
+            texture_internal_formats.push_back(internal_format);
+        }
+
+        std::vector<GLint> texture_internal_formats;
         std::vector<GLsizeiptr> buffer_sizes;
         int live_buffers = 0;
         int live_vertex_arrays = 0;
@@ -692,7 +702,7 @@ TEST_CASE("ResourceManager: compiling a variant with samplers announces the"
     family.fragment_source = "#version 300 es\nvoid main() {}\n";
     // Pointing the samplers at their units needs the program bound, and there
     // is nothing to restore it to afterwards — so the caches must be told.
-    family.samplers = {"u_diffuse"};
+    family.samplers = {{"u_diffuse"}};
     manager.register_shader_family(1, family);
 
     const auto before = gl_state_epoch();
@@ -769,4 +779,106 @@ TEST_CASE("ResourceManager: a garbage sampler ref throws")
     manager.register_sampler({});
     REQUIRE_THROWS_AS(manager.get_sampler_id({99, 1}), TungstenException);
     REQUIRE_THROWS_AS(manager.get_sampler_descriptor({0, 99}), TungstenException);
+}
+
+TEST_CASE("ResourceManager: a colour texture is stored as sRGB")
+{
+    constexpr GLint GL_SRGB8_ALPHA8_ = 0x8C43;
+
+    FakeGlSession session;
+    ResourceManager manager;
+
+    constexpr uint8_t pixels[4] = {128, 128, 128, 255};
+    const auto ref = manager.create_texture({
+        .size = {1, 1},
+        .format = RGBA_TEXTURE,
+        .content = TextureContent::COLOR,
+        .pixels = pixels
+    });
+
+    REQUIRE(session.gl->texture_internal_formats.size() == 1);
+    REQUIRE(session.gl->texture_internal_formats[0] == GL_SRGB8_ALPHA8_);
+    // The content is recorded as well as acted on, so the material layer can
+    // check it later against the slot the texture is bound to.
+    REQUIRE(manager.get_texture(ref).content == TextureContent::COLOR);
+}
+
+TEST_CASE("ResourceManager: a data texture keeps its texels untouched")
+{
+    constexpr GLint GL_RGBA_ = 0x1908;
+
+    FakeGlSession session;
+    ResourceManager manager;
+
+    constexpr uint8_t pixels[4] = {128, 128, 255, 255};
+    manager.create_texture({
+        .size = {1, 1},
+        .format = RGBA_TEXTURE,
+        .content = TextureContent::DATA,
+        .pixels = pixels
+    });
+
+    REQUIRE(session.gl->texture_internal_formats.size() == 1);
+    REQUIRE(session.gl->texture_internal_formats[0] == GL_RGBA_);
+}
+
+namespace
+{
+    // A family whose two slots want different things, which is what makes a
+    // mismatch detectable at all.
+    ShaderProgramRef register_two_slot_family(ResourceManager& manager)
+    {
+        ShaderFamily family;
+        family.vertex_source = "#version 300 es\nvoid main() {}\n";
+        family.fragment_source = "#version 300 es\nvoid main() {}\n";
+        family.samplers = {
+            {"u_diffuse_map", TextureContent::COLOR},
+            {"u_normal_map", TextureContent::DATA}
+        };
+        manager.register_shader_family(1, std::move(family));
+        return manager.register_shader_variant({1, 0});
+    }
+
+    TextureRef make_texture(ResourceManager& manager, TextureContent content)
+    {
+        constexpr uint8_t pixels[4] = {128, 128, 255, 255};
+        return manager.create_texture({
+            .size = {1, 1},
+            .format = RGBA_TEXTURE,
+            .content = content,
+            .pixels = pixels
+        });
+    }
+}
+
+TEST_CASE("ResourceManager: a texture in a slot that wants the other kind throws")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+    const auto shader = register_two_slot_family(manager);
+
+    Material material;
+    material.shader = shader;
+    // Slot 1 is the normal map, so a colour texture there would be sRGB-decoded
+    // into something that is no longer a unit vector.
+    material.textures = {make_texture(manager, TextureContent::COLOR),
+                         make_texture(manager, TextureContent::COLOR)};
+
+    REQUIRE_THROWS_AS(manager.create_material(std::move(material)),
+                      TungstenException);
+}
+
+TEST_CASE("ResourceManager: matching textures and empty slots are accepted")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+    const auto shader = register_two_slot_family(manager);
+
+    Material material;
+    material.shader = shader;
+    // A null ref is the renderer's white fallback, which reads the same in
+    // either encoding, so it fits any slot.
+    material.textures = {{}, make_texture(manager, TextureContent::DATA)};
+
+    REQUIRE_NOTHROW(manager.create_material(std::move(material)));
 }

@@ -141,7 +141,18 @@ namespace Tungsten
         void destroy_material(MaterialRef ref);
 
         /**
-         * Creates a texture.
+         * Uploads an image and creates the texture that owns it. The image's
+         * `content` picks the internal format — sRGB for 8-bit colour, linear
+         * for everything else — and is recorded on the Texture, so the two
+         * cannot disagree. This is the way to create a texture from pixels.
+         */
+        TextureRef create_texture(const TextureImage2D& image);
+
+        /**
+         * Adopts a texture whose GL object the caller allocated and filled
+         * itself, for the cases the overload above cannot express — an atlas
+         * built up incrementally, or a render target. The caller is then also
+         * responsible for `content` matching the internal format it chose.
          */
         TextureRef create_texture(Texture texture);
 
@@ -195,6 +206,13 @@ namespace Tungsten
          * create_mesh.
          */
         void validate_mesh_layout(const Mesh& mesh, const VertexLayout& layout);
+
+        /**
+         * Throws if a texture's content disagrees with the sampler slot its
+         * position binds it to, which would mean sampling colour as data or
+         * the other way round. Called by create_material.
+         */
+        void validate_material_textures(const Material& material);
 
         /**
          * Creates the material's UBO if it has none yet and uploads its

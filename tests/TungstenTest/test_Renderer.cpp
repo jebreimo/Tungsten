@@ -376,7 +376,7 @@ TEST_CASE("ShaderLibrary: sampler uniforms get consecutive texture units")
     ShaderFamily family;
     family.vertex_source = "#version 300 es\nvoid main() {}\n";
     family.fragment_source = "#version 300 es\nvoid main() {}\n";
-    family.samplers = {"u_diffuse_map", "u_specular_map"};
+    family.samplers = {{"u_diffuse_map"}, {"u_specular_map"}};
     resources.register_shader_family(1, family);
     resources.register_shader_variant({1, 0});
 
@@ -394,7 +394,7 @@ TEST_CASE("Renderer: unfilled sampler units get the white texture")
     ShaderFamily family;
     family.vertex_source = "#version 300 es\nvoid main() {}\n";
     family.fragment_source = "#version 300 es\nvoid main() {}\n";
-    family.samplers = {"u_diffuse_map", "u_specular_map"};
+    family.samplers = {{"u_diffuse_map"}, {"u_specular_map"}};
     bench.resources.register_shader_family(2, family);
 
     Material material_value;
@@ -434,7 +434,7 @@ TEST_CASE("Renderer: a texture is drawn with the sampler it names")
     ShaderFamily family;
     family.vertex_source = "#version 300 es\nvoid main() {}\n";
     family.fragment_source = "#version 300 es\nvoid main() {}\n";
-    family.samplers = {"u_diffuse_map"};
+    family.samplers = {{"u_diffuse_map"}};
     bench.resources.register_shader_family(3, family);
 
     const auto sampler = bench.resources.register_sampler(

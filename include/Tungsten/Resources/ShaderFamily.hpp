@@ -9,11 +9,25 @@
 #include <string>
 #include <vector>
 #include "ResourceRefs.hpp"
+#include "Texture.hpp"
 #include "VertexAttribute.hpp"
 #include "ShaderVariantKey.hpp"
 
 namespace Tungsten
 {
+    /**
+     * One sampler uniform of a shader family, and the kind of texture it
+     * expects. The content is what makes a mislabelled texture an error at
+     * material creation rather than a subtly wrong image on screen — feeding
+     * an sRGB-decoded texture to a normal map slot is the mistake this exists
+     * to catch.
+     */
+    struct SamplerSlot
+    {
+        std::string name;
+        TextureContent content = TextureContent::COLOR;
+    };
+
     /**
      * A registered shader template from which concrete ShaderProgram variants are
      * compiled on demand. A family is the GLSL source pair plus the ordered
@@ -35,11 +49,11 @@ namespace Tungsten
          */
         std::vector<std::string> features;
         /**
-         * A list of the names of the sampler uniforms in the shader, in
-         * texture-unit order: sampler i samples unit i, which is the unit
-         * the renderer binds a material's texture i to.
+         * The sampler uniforms in the shader, in texture-unit order: sampler i
+         * samples unit i, which is the unit the renderer binds a material's
+         * texture i to. Each slot also declares the content it expects.
          */
-        std::vector<std::string> samplers;
+        std::vector<SamplerSlot> samplers;
         /**
          * The semantics every variant of this family reads.
          */

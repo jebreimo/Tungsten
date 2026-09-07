@@ -180,7 +180,8 @@ namespace
             builder_.build(scene_, camera_.id(), snapshots_.back());
             snapshots_.back().time =
                 float(SDL_GetTicks() - start_ticks_) / 1000.0f;
-            snapshots_.back().ambient_light = {0.30f, 0.30f, 0.33f};
+            snapshots_.back().ambient_light =
+                srgb_to_linear(Xyz::Vector3F{0.30f, 0.30f, 0.33f});
             snapshots_.swap();
 
             renderer_.render(snapshots_.front());
@@ -207,40 +208,13 @@ namespace
             material.shader = shader;
             material.parameter_data = make_blinn_phong_material_params(
                 StandardColorMaterial::COPPER, 1.0f, strength);
+            // The renderer binds textures to consecutive units, so the normal
+            // map can only reach unit 2 behind two others. Null refs get the
+            // renderer's white fallback, which leaves the material's own
+            // colours unmodulated.
             if (with_map)
-                material.textures = {white_texture(), white_texture(), normal_map()};
+                material.textures = {{}, {}, normal_map()};
             return resources_.create_material(std::move(material));
-        }
-
-        TextureRef make_texture(const void* pixels, int size)
-        {
-            Texture texture;
-            texture.gl_handle = generate_texture();
-            bind_texture(TextureTarget::TEXTURE_2D, texture.gl_handle.id());
-            set_texture_image_2d(TextureTarget2D::TEXTURE_2D, 0, {size, size},
-                                 RGB_TEXTURE, pixels);
-            texture.width = uint32_t(size);
-            texture.height = uint32_t(size);
-            texture.format = TextureFormat::RGB;
-            texture.sampler = resources_.register_sampler({
-                .mip_filter = SamplerMipFilter::NONE,
-                .address_mode_u = SamplerAddressMode::CLAMP_TO_EDGE,
-                .address_mode_v = SamplerAddressMode::CLAMP_TO_EDGE
-            });
-            return resources_.create_texture(std::move(texture));
-        }
-
-        // The diffuse and specular slots the normal map has to sit behind.
-        // White leaves the material's own colours unmodulated, which is what
-        // the renderer's own fallback would do.
-        TextureRef white_texture()
-        {
-            if (!white_)
-            {
-                constexpr uint8_t WHITE[3] = {255, 255, 255};
-                white_ = make_texture(WHITE, 1);
-            }
-            return white_;
         }
 
         TextureRef normal_map()
@@ -248,7 +222,20 @@ namespace
             if (!normal_map_)
             {
                 const auto pixels = make_stud_normal_map();
-                normal_map_ = make_texture(pixels.data(), NORMAL_MAP_SIZE);
+                // DATA, not COLOR: these texels are a tangent-space vector
+                // field. Decoding them as sRGB would not dim the bumps, it
+                // would bend every normal the wrong way.
+                normal_map_ = resources_.create_texture({
+                    .size = {NORMAL_MAP_SIZE, NORMAL_MAP_SIZE},
+                    .format = RGB_TEXTURE,
+                    .content = TextureContent::DATA,
+                    .pixels = pixels.data(),
+                    .sampler = resources_.register_sampler({
+                        .mip_filter = SamplerMipFilter::NONE,
+                        .address_mode_u = SamplerAddressMode::CLAMP_TO_EDGE,
+                        .address_mode_v = SamplerAddressMode::CLAMP_TO_EDGE
+                    })
+                });
             }
             return normal_map_;
         }
@@ -316,7 +303,6 @@ namespace
         Renderer renderer_;
         BufferArenaRef vbo_arena_;
         BufferArenaRef ebo_arena_;
-        TextureRef white_;
         TextureRef normal_map_;
         NodeHandle hub_;
         NodeHandle camera_;

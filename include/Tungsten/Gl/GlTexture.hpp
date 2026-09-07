@@ -35,14 +35,23 @@ namespace Tungsten
 
     constexpr TextureSourceFormat RGB_TEXTURE = {TextureFormat::RGB, TextureValueType::UINT8};
     constexpr TextureSourceFormat RGBA_TEXTURE = {TextureFormat::RGBA, TextureValueType::UINT8};
+    constexpr TextureSourceFormat SRGB_TEXTURE = {TextureFormat::RGB, TextureValueType::UINT8,
+                                                 ColorSpace::SRGB};
+    constexpr TextureSourceFormat SRGBA_TEXTURE = {TextureFormat::RGBA, TextureValueType::UINT8,
+                                                  ColorSpace::SRGB};
 
     void set_texture_image_2d(TextureTarget2D target, int32_t level,
                               Size2I size,
                               TextureSourceFormat format,
                               const void* data = nullptr);
 
+    /**
+     * Note that glTexStorage2D demands a sized internal format, which of the
+     * formats here only the sRGB ones are. Allocating immutable storage for a
+     * linear texture needs the sized linear formats added first.
+     */
     void set_texture_storage_2d(TextureTarget2D target, int32_t levels,
-                                TextureFormat format,
+                                TextureSourceFormat format,
                                 Size2I size);
 
     void set_texture_sub_image_2d(TextureTarget2D target, int32_t level,

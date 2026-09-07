@@ -16,11 +16,6 @@ namespace Tungsten
 {
     namespace
     {
-        GLint to_ogl_internal_format(TextureFormat format)
-        {
-            return static_cast<int>(to_ogl_texture_format(format));
-        }
-
         GLenum map_texture_binding(GLenum target)
         {
             switch (target)
@@ -110,18 +105,19 @@ namespace Tungsten
                               const void* data)
     {
         get_ogl_wrapper().tex_image_2d(to_ogl_texture_target_2d(target), level,
-                                       to_ogl_internal_format(format.format),
+                                       to_ogl_texture_internal_format(format),
                                        size.x(), size.y(), 0,
                                        to_ogl_texture_format(format.format),
                                        to_ogl_texture_value_type(format.type), data);
         THROW_IF_GL_ERROR();
     }
 
-    void set_texture_storage_2d(TextureTarget2D target, int32_t levels, TextureFormat format,
+    void set_texture_storage_2d(TextureTarget2D target, int32_t levels,
+                                TextureSourceFormat format,
                                 Size2I size)
     {
         get_ogl_wrapper().tex_storage_2d(to_ogl_texture_target_2d(target), levels,
-                                         to_ogl_internal_format(format),
+                                         to_ogl_texture_internal_format(format),
                                          size.x(), size.y());
         THROW_IF_GL_ERROR();
     }

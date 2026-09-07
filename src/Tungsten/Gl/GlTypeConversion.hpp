@@ -27,6 +27,8 @@ namespace Tungsten
 
     GLenum to_ogl_texture_format(TextureFormat format);
 
+    GLint to_ogl_texture_internal_format(TextureSourceFormat format);
+
     GLenum to_ogl_texture_value_type(TextureValueType type);
 
     GLenum to_ogl_texture_parameter(TextureParameter parameter);

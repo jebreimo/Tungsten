@@ -20,6 +20,8 @@ namespace Tungsten
     struct LightComponent
     {
         LightType type = LightType::POINT;
+        /** The light's colour, as authored: sRGB. The SnapshotBuilder
+         *  converts it to linear on its way into the per-frame UBO. */
         Xyz::Vector3F color = {1, 1, 1};
         float intensity = 1.0f;
         /**

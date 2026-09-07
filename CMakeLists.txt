@@ -54,7 +54,7 @@ FetchContent_Declare(cppembed
 
 FetchContent_Declare(xyz
     GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
-    GIT_TAG v0.14.0)
+    GIT_TAG v0.14.1)
 
 FetchContent_Declare(yconvert
     GIT_REPOSITORY "https://github.com/jebreimo/Yconvert.git"
@@ -81,6 +81,7 @@ find_package(SDL3 REQUIRED)
 add_library(Tungsten STATIC
     include/Tungsten/Detail/BuddyAllocator.hpp
     include/Tungsten/Detail/GenericBitmaskOperators.hpp
+    include/Tungsten/Color.hpp
     include/Tungsten/DeviceInfo.hpp
     include/Tungsten/Environment.hpp
     include/Tungsten/Gl/DummyOglWrapper.hpp
@@ -195,6 +196,7 @@ add_library(Tungsten STATIC
     src/Tungsten/Resources/ShaderPreprocessor.cpp
     src/Tungsten/Resources/ShaderProgramBuilder.cpp
     src/Tungsten/Resources/Shaders/BuiltinShaderSources.hpp
+    src/Tungsten/Resources/Texture.cpp
     src/Tungsten/Resources/UboBindings.hpp
     src/Tungsten/Resources/VaoCache.cpp
     src/Tungsten/Resources/VaoCache.hpp

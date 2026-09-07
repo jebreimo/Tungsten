@@ -7,6 +7,8 @@
 //****************************************************************************
 #include "Tungsten/Rendering/SnapshotBuilder.hpp"
 
+#include "Tungsten/Color.hpp"
+
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include "Tungsten/SceneGraph/CameraComponent.hpp"
@@ -267,7 +269,9 @@ TEST_CASE("SnapshotBuilder: extracts lights with node position and direction")
     REQUIRE(data.position() == Xyz::Vector3F{1, 2, 3});
     // An unrotated node shines along -z, like the camera convention.
     REQUIRE_THAT(data.direction()[2], WithinAbs(-1, 1e-6));
-    REQUIRE(data.color() == Xyz::Vector3F{1, 0.5f, 0.25f});
+    // LightComponent::color is authored in sRGB; the snapshot mirrors the
+    // per-frame UBO, so what lands in LightData is linear.
+    REQUIRE(data.color() == srgb_to_linear(Xyz::Vector3F{1, 0.5f, 0.25f}));
     REQUIRE(data.intensity() == 2.0f);
     REQUIRE(data.range() == 20.0f);
 }

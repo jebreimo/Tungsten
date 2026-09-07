@@ -11,6 +11,11 @@
 
 namespace Tungsten
 {
+    /**
+     * The reflectances of a Blinn-Phong surface, as authored: sRGB, the
+     * numbers a colour picker shows. make_blinn_phong_material_params converts
+     * them to the linear values the shader needs.
+     */
     struct ColorMaterial
     {
         Xyz::Vector3F ambient = {0.5, 0.5, 0.5};

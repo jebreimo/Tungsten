@@ -12,6 +12,8 @@
     precision highp float;
 #endif
 
+#include "Tungsten/ColorSpace.glsl"
+
 // MAX_LIGHTS sizes the unified light array in the per-frame block, so it must
 // be known at compile time and must match the vertex shader. The number of
 // lights actually used is controlled at runtime by u_light_count.
@@ -217,5 +219,6 @@ void main()
 
     // The material's opacity feeds the transparent pass; opaque materials
     // set it to 1 (the renderer draws them with blending disabled anyway).
-    color = vec4(result, u_diffuse.w);
+    // Alpha is coverage, not colour, so only the rgb is encoded.
+    color = vec4(linear_to_srgb(result), u_diffuse.w);
 }

@@ -239,8 +239,44 @@ namespace Tungsten
 
     MaterialRef ResourceManager::create_material(Material material)
     {
+        validate_material_textures(material);
         upload_material_parameters(material);
         return members_->materials.insert(std::move(material));
+    }
+
+    void ResourceManager::validate_material_textures(const Material& material)
+    {
+        // A material may be built before its shader is resolved to a variant,
+        // in which case there is no slot list to check against yet.
+        if (!material.shader)
+            return;
+
+        const ShaderProgram& shader = get_shader(material.shader);
+        const ShaderFamily& family =
+            members_->shader_library.get_family(shader.variant_key.family);
+
+        const auto count = std::min(material.textures.size(),
+                                    family.samplers.size());
+        for (size_t i = 0; i < count; ++i)
+        {
+            // Null refs are the renderer's white fallback, which reads the
+            // same in either encoding.
+            if (!material.textures[i])
+                continue;
+
+            const Texture& texture = get_texture(material.textures[i]);
+            if (texture.content == family.samplers[i].content)
+                continue;
+
+            TUNGSTEN_THROW(
+                "Texture " + std::to_string(i) + " of this material is "
+                + (texture.content == TextureContent::COLOR ? "colour" : "data")
+                + ", but sampler '" + family.samplers[i].name + "' expects "
+                + (family.samplers[i].content == TextureContent::COLOR
+                       ? "colour" : "data")
+                + ". Colour textures are sRGB-decoded when sampled and data"
+                  " textures are not, so the two are not interchangeable.");
+        }
     }
 
     void ResourceManager::update_material_parameters(
@@ -283,6 +319,26 @@ namespace Tungsten
         {
             members_->deletions.retire(std::move(material.ubo));
         });
+    }
+
+    TextureRef ResourceManager::create_texture(const TextureImage2D& image)
+    {
+        Texture texture;
+        texture.gl_handle = generate_texture();
+        texture.width = uint32_t(image.size.x());
+        texture.height = uint32_t(image.size.y());
+        texture.format = image.format.format;
+        texture.content = image.content;
+        texture.sampler = image.sampler;
+
+        auto format = image.format;
+        format.color_space = to_color_space(image.content, format);
+
+        bind_texture(TextureTarget::TEXTURE_2D, texture.gl_handle.id());
+        set_texture_image_2d(TextureTarget2D::TEXTURE_2D, 0, image.size,
+                             format, image.pixels);
+
+        return members_->textures.insert(std::move(texture));
     }
 
     TextureRef ResourceManager::create_texture(Texture texture)

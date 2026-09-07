@@ -17,8 +17,13 @@ namespace Tungsten
         ShaderFamily blinn_phong;
         blinn_phong.vertex_source = BLINN_PHONG_VERTEX;
         blinn_phong.fragment_source = BLINN_PHONG_FRAGMENT;
-        blinn_phong.samplers = {"u_diffuse_map", "u_specular_map",
-                                "u_normal_map"};
+        // The specular map is a reflectance mask and the normal map a vector
+        // field: neither is colour, so neither is sRGB-decoded on sampling.
+        blinn_phong.samplers = {
+            {"u_diffuse_map", TextureContent::COLOR},
+            {"u_specular_map", TextureContent::DATA},
+            {"u_normal_map", TextureContent::DATA}
+        };
         blinn_phong.required_attributes =
             semantic_bit(AttributeSemantic::POSITION)
             | semantic_bit(AttributeSemantic::NORMAL)

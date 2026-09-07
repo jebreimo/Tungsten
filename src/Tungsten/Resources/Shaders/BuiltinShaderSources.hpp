@@ -10,6 +10,7 @@
 
 namespace Tungsten
 {
+    extern const std::string COLOR_SPACE_GLSL;
     extern const std::string BLINN_PHONG_VERTEX;
     extern const std::string BLINN_PHONG_FRAGMENT;
     extern const std::string TEXT_VERTEX;

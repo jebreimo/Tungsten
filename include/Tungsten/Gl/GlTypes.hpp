@@ -26,10 +26,30 @@ namespace Tungsten
         FLOAT
     };
 
+    /**
+     * How the texels handed to the GL are encoded.
+     *
+     * SRGB texels are decoded to linear by the sampler, so filtering and
+     * mipmap generation average linear values rather than encoded ones. Only
+     * 8-bit RGB and RGBA can be stored this way.
+     */
+    enum class ColorSpace
+    {
+        LINEAR,
+        SRGB
+    };
+
     struct TextureSourceFormat
     {
         TextureFormat format;
         TextureValueType type;
+        /**
+         * The encoding of the data being uploaded, which selects the texture's
+         * internal format. It is a property of the allocation, so
+         * set_texture_sub_image_2d ignores it — a sub-image inherits the
+         * encoding the level was created with.
+         */
+        ColorSpace color_space = ColorSpace::LINEAR;
     };
 
     enum class BufferTarget

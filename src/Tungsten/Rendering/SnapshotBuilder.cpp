@@ -15,6 +15,7 @@
 #include <Xyz/Matrix.hpp>
 #include <Xyz/Vector.hpp>
 
+#include "Tungsten/Color.hpp"
 #include "Tungsten/SceneGraph/CameraComponent.hpp"
 #include "Tungsten/SceneGraph/LightComponent.hpp"
 #include "Tungsten/Resources/Material.hpp"
@@ -123,7 +124,9 @@ namespace Tungsten
                 // normalized to strip any scale.
                 data.set_direction(Xyz::normalize(
                     Xyz::Vector3F{-world[0, 2], -world[1, 2], -world[2, 2]}));
-                data.set_color(light.color);
+                // LightComponent::color is authored in sRGB; LightData is
+                // the CPU-side mirror of the per-frame UBO, which is linear.
+                data.set_color(srgb_to_linear(light.color));
                 data.set_intensity(light.intensity);
                 data.set_range(light.range);
                 data.set_inner_cone_angle(light.inner_cone_angle);

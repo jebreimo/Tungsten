@@ -53,9 +53,13 @@ namespace Tungsten
          */
         ShaderProgramRef register_variant(const ShaderVariantKey& key);
 
-    private:
+        /**
+         * The registered family, which is also where a program's sampler slots
+         * are declared. Throws if the id names no family.
+         */
         [[nodiscard]] const ShaderFamily& get_family(ShaderFamilyId id) const;
 
+    private:
         ShaderInserter insert_shader_;
         std::vector<ShaderFamily> families_;
         /**

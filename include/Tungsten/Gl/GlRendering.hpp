@@ -12,6 +12,12 @@
 
 namespace Tungsten
 {
+    /**
+     * The colour glClear writes. Unlike colours that reach the framebuffer
+     * through a fragment shader, this one is written verbatim and never
+     * encoded, so it is given in sRGB — the same space every other colour in
+     * the library is authored in.
+     */
     void set_clear_color(float r, float g, float b, float a);
 
     void set_clear_color(const Xyz::Vector4F& color);

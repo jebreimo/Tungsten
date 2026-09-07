@@ -358,6 +358,18 @@ namespace Tungsten
         for (size_t i = 0; i < material.textures.size(); ++i)
         {
             const auto unit = static_cast<uint32_t>(i);
+            // A null ref leaves a slot deliberately empty — a material that
+            // only fills a later slot still has to say something about the
+            // earlier ones. Those get the same white texture as the trailing
+            // slots below.
+            if (!material.textures[i])
+            {
+                state.bind_texture(static_cast<int32_t>(unit),
+                                   white_texture.id());
+                state.bind_sampler(unit, default_sampler_id);
+                continue;
+            }
+
             const Texture& texture =
                 resources.get_texture(material.textures[i]);
             state.bind_texture(static_cast<int32_t>(unit),

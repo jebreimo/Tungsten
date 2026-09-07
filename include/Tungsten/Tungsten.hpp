@@ -7,6 +7,7 @@
 //****************************************************************************
 #pragma once
 
+#include "Color.hpp"
 #include "DeviceInfo.hpp"
 #include "Gl/GlBuffer.hpp"
 #include "Gl/GlFramebuffer.hpp"

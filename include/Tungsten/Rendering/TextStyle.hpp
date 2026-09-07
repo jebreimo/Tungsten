@@ -49,6 +49,8 @@ namespace Tungsten
     struct TextStyle
     {
         std::shared_ptr<const Font> font;
+        /** sRGB, as authored; converted to linear on its way into the
+         *  material's uniform block. */
         Xyz::Vector4F color = {0.f, 0.f, 0.f, 1.f};
         /**
          * Space between consecutive baselines beyond the font's own line

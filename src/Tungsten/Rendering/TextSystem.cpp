@@ -13,6 +13,7 @@
 #include <tuple>
 #include <vector>
 #include <Xyz/Rectangle.hpp>
+#include "Tungsten/Color.hpp"
 #include "Tungsten/Gl/GlTexture.hpp"
 #include "Tungsten/Rendering/TextStyle.hpp"
 #include "Tungsten/Resources/BuiltinShaders.hpp"
@@ -50,7 +51,8 @@ namespace Tungsten
             family.vertex_source = TEXT_VERTEX;
             family.fragment_source = TEXT_FRAGMENT;
             // The atlas is the material's only texture, so it lands on unit 0.
-            family.samplers = {"u_text_atlas"};
+            // The atlas stores glyph coverage, not colour.
+            family.samplers = {{"u_text_atlas", TextureContent::DATA}};
             family.required_attributes =
                 semantic_bit(AttributeSemantic::POSITION)
                 | semantic_bit(AttributeSemantic::TEX_COORD_0);
@@ -452,8 +454,13 @@ namespace Tungsten
         // The MaterialBlock is one vec4. It is written as an opaque blob here,
         // exactly as the shader declares it; ResourceManager uploads it into
         // the material's own UBO without interpreting it.
+        // The style's colour is authored in sRGB; uniform blocks hold linear.
+        // The shader encodes it again on output, so unlit text comes back out
+        // exactly as authored — the round trip is what keeps text consistent
+        // with surfaces that really are shaded.
+        const auto linear_color = srgb_to_linear(color);
         material.parameter_data.resize(sizeof(float) * 4);
-        std::memcpy(material.parameter_data.data(), color.values.data(),
+        std::memcpy(material.parameter_data.data(), linear_color.values.data(),
                     sizeof(float) * 4);
         material.textures = {atlas};
         // Glyph edges are antialiased, so text always blends: it belongs in
@@ -477,19 +484,16 @@ namespace Tungsten
         const Yimage::Image& image = font->image;
         const auto source_format = get_ogl_pixel_type(image.pixel_type());
 
-        Texture texture;
-        texture.gl_handle = generate_texture();
-        bind_texture(TextureTarget::TEXTURE_2D, texture.gl_handle.id());
-        set_texture_image_2d(TextureTarget2D::TEXTURE_2D, 0, get_size(image),
-                             source_format, image.data());
-        texture.width = static_cast<uint32_t>(image.width());
-        texture.height = static_cast<uint32_t>(image.height());
-        texture.format = source_format.format;
-        // A null sampler ref resolves to the manager's default — linear, no
-        // mipmaps, clamped — which is exactly what an atlas wants, so there is
-        // no descriptor to register.
-
-        const auto ref = resources.create_texture(std::move(texture));
+        // DATA: an atlas texel is a glyph's coverage, not a colour. Decoding
+        // it would bend the antialiased edges. A null sampler ref resolves to
+        // the manager's default — linear, no mipmaps, clamped — which is
+        // exactly what an atlas wants, so there is no descriptor to register.
+        const auto ref = resources.create_texture({
+            .size = get_size(image),
+            .format = source_format,
+            .content = TextureContent::DATA,
+            .pixels = image.data()
+        });
         atlases.push_back({font, ref});
         return ref;
     }

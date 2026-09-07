@@ -127,6 +127,33 @@ namespace Tungsten
         }
     }
 
+    GLint to_ogl_texture_internal_format(TextureSourceFormat format)
+    {
+        // Linear textures keep the unsized internal format the GL has always
+        // been given here — notably GL_LUMINANCE, which is how single-channel
+        // textures reach WebGL. sRGB has no unsized spelling, so those are the
+        // only formats named explicitly.
+        if (format.color_space == ColorSpace::LINEAR)
+            return static_cast<GLint>(to_ogl_texture_format(format.format));
+
+        if (format.type != TextureValueType::UINT8)
+            TUNGSTEN_THROW("sRGB textures must be 8 bits per channel.");
+
+        switch (format.format)
+        {
+        case TextureFormat::RGB:
+            return GL_SRGB8;
+        case TextureFormat::RGBA:
+            return GL_SRGB8_ALPHA8;
+        default:
+            // GLES 3.0 has no single-channel sRGB format, so there is nothing
+            // to fall back to that would not silently be the wrong curve.
+            TUNGSTEN_THROW(
+                "Unsupported sRGB texture format: "
+                + std::to_string(static_cast<int>(format.format)));
+        }
+    }
+
     GLenum to_ogl_texture_value_type(TextureValueType type)
     {
         switch (type)

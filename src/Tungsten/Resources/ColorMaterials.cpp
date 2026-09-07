@@ -9,6 +9,7 @@
 
 #include <span>
 #include <string>
+#include "Tungsten/Color.hpp"
 #include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
@@ -207,10 +208,16 @@ namespace Tungsten
                                      float opacity,
                                      float normal_map_strength)
     {
+        // ColorMaterial holds the colours as authored — sRGB, the numbers a
+        // colour picker shows. The MaterialBlock is read by shaders that do
+        // their arithmetic in linear space, so this is where they cross over.
+        const auto ambient = srgb_to_linear(material.ambient);
+        const auto diffuse = srgb_to_linear(material.diffuse);
+        const auto specular = srgb_to_linear(material.specular);
         const float values[12] = {
-            material.ambient[0], material.ambient[1], material.ambient[2], normal_map_strength,
-            material.diffuse[0], material.diffuse[1], material.diffuse[2], opacity,
-            material.specular[0], material.specular[1], material.specular[2], material.shininess
+            ambient[0], ambient[1], ambient[2], normal_map_strength,
+            diffuse[0], diffuse[1], diffuse[2], opacity,
+            specular[0], specular[1], specular[2], material.shininess
         };
         auto span = as_bytes(std::span(values));
         return {span.begin(), span.end()};

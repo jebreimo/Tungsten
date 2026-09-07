@@ -11,6 +11,8 @@
 precision highp float;
 #endif
 
+#include "Tungsten/ColorSpace.glsl"
+
 in vec2 v_tex_coord;
 
 // Sampler 0 of the family's sampler list, so it samples texture unit 0 — the
@@ -37,5 +39,10 @@ void main()
     // per glyph most of a text's fragments fall between the letters.
     if (coverage == 0.0)
         discard;
-    frag_color = vec4(u_text_color.rgb, u_text_color.a * coverage);
+    // u_text_color is linear, like every other colour in a uniform block, so
+    // it is encoded on the way out with the same curve as everything else.
+    // For unlit text this round-trips exactly back to the authored colour;
+    // it is done anyway so text composes with the rest of the pipeline.
+    frag_color = vec4(linear_to_srgb(u_text_color.rgb),
+                      u_text_color.a * coverage);
 }

@@ -37,27 +37,12 @@ namespace
 
         constexpr Xyz::OrientedCuboid<float> cuboid{
             .placement = {
-                .origin = {-1, -1, -1}
+                .origin = {-1, -1, 1}
             },
             .size = {2, 2, 2}
         };
         Xyz::build_mesh(builder, cuboid, std::function(get_tex_rect));
         return {std::move(indexes), std::move(vertexes)};
-    }
-
-    Tungsten::TextureHandle make_texture(const Yimage::Image& image)
-    {
-        auto handle = Tungsten::generate_texture();
-        bind_texture(Tungsten::TextureTarget::TEXTURE_2D, handle.id());
-
-        set_texture_image_2d(
-            Tungsten::TextureTarget2D::TEXTURE_2D,
-            0,
-            {int32_t(image.width()), int32_t(image.height())},
-            Tungsten::get_ogl_pixel_type(image.pixel_type()),
-            image.data());
-
-        return handle;
     }
 
     Yimage::Image get_image()
@@ -136,7 +121,10 @@ namespace
             builder_.build(scene_, camera_.id(), snapshots.back());
             snapshots.back().time =
                 static_cast<float>(SDL_GetTicks() - start_ticks_) / 1000.0f;
-            snapshots.back().ambient_light = {0.35f, 0.35f, 0.38f};
+            // The snapshot mirrors the per-frame UBO, so its colours are
+            // linear; this one is picked by eye, hence sRGB.
+            snapshots.back().ambient_light =
+                Tungsten::srgb_to_linear(Xyz::Vector3F{0.35f, 0.35f, 0.38f});
             snapshots.swap();
 
             renderer_.render(snapshots.front());
@@ -207,22 +195,23 @@ namespace
 
         Tungsten::TextureRef make_texture(const Yimage::Image& image)
         {
-            auto handle = ::make_texture(image);
-            Tungsten::Texture texture;
-            texture.gl_handle = std::move(handle);
-            texture.width = image.width();
-            texture.height = image.height();
-            texture.format = Tungsten::TextureFormat::RGBA;
-            // How the texture is sampled is a property of the Texture resource,
-            // not state baked into the GL object: the renderer binds this
-            // sampler to the unit the texture lands on.
-            texture.sampler = resources_.register_sampler(
-                {
-                    .mip_filter = Tungsten::SamplerMipFilter::NONE,
-                    .address_mode_u = Tungsten::SamplerAddressMode::CLAMP_TO_EDGE,
-                    .address_mode_v = Tungsten::SamplerAddressMode::CLAMP_TO_EDGE
-                });
-            return resources_.create_texture(std::move(texture));
+            // COLOR: an image file's pixels are sRGB, so the sampler decodes
+            // them and the shader gets linear values to light. How the texture
+            // is sampled is a property of the Texture resource, not state baked
+            // into the GL object: the renderer binds this sampler to the unit
+            // the texture lands on.
+            return resources_.create_texture({
+                .size = {int32_t(image.width()), int32_t(image.height())},
+                .format = Tungsten::get_ogl_pixel_type(image.pixel_type()),
+                .content = Tungsten::TextureContent::COLOR,
+                .pixels = image.data(),
+                .sampler = resources_.register_sampler(
+                    {
+                        .mip_filter = Tungsten::SamplerMipFilter::NONE,
+                        .address_mode_u = Tungsten::SamplerAddressMode::CLAMP_TO_EDGE,
+                        .address_mode_v = Tungsten::SamplerAddressMode::CLAMP_TO_EDGE
+                    })
+            });
         }
 
         static void add_renderable(Tungsten::NodeHandle node,

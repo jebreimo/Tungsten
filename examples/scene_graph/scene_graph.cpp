@@ -180,7 +180,8 @@ namespace
             builder_.build(scene_, camera_.id(), snapshots.back());
             snapshots.back().time =
                 float(SDL_GetTicks() - start_ticks_) / 1000.0f;
-            snapshots.back().ambient_light = {0.35f, 0.35f, 0.38f};
+            snapshots.back().ambient_light =
+                Tungsten::srgb_to_linear(Xyz::Vector3F{0.35f, 0.35f, 0.38f});
             snapshots.swap();
 
             renderer_.render(snapshots.front());

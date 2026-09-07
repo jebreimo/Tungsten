@@ -12,6 +12,7 @@
 #include "Tungsten/Gl/GlUniform.hpp"
 #include "Tungsten/Resources/GlStateCache.hpp"
 #include "Tungsten/Resources/ShaderPreprocessor.hpp"
+#include "Shaders/BuiltinShaderSources.hpp"
 #include "Tungsten/Resources/ShaderProgramBuilder.hpp"
 #include "Tungsten/TungstenException.hpp"
 #include "Tungsten/Resources/UboBindings.hpp"
@@ -55,7 +56,7 @@ namespace Tungsten
         // *current* program, so the program is bound here. A sampler the
         // variant's feature set compiles away has no location and is skipped.
         void apply_sampler_bindings(uint32_t program_id,
-                                    const std::vector<std::string>& samplers)
+                                    const std::vector<SamplerSlot>& samplers)
         {
             if (samplers.empty())
                 return;
@@ -63,7 +64,7 @@ namespace Tungsten
             for (size_t i = 0; i < samplers.size(); ++i)
             {
                 const auto location =
-                    get_uniform_location(program_id, samplers[i].c_str());
+                    get_uniform_location(program_id, samplers[i].name.c_str());
                 if (location != -1)
                     set_uniform(location, static_cast<int32_t>(i));
             }
@@ -118,6 +119,9 @@ namespace Tungsten
         // The family's ordered feature list is the single place a bit maps to
         // its #define spelling (§14); bits beyond the list are ignored.
         ShaderPreprocessor preprocessor;
+        // Available to every family, builtin or not, so a user's shader can
+        // encode its output with the same curve the builtin ones use.
+        preprocessor.add_include("Tungsten/ColorSpace.glsl", COLOR_SPACE_GLSL);
         for (size_t i = 0; i < family.features.size() && i < 32; ++i)
         {
             if (key.defines & (uint32_t{1} << i))

@@ -7,6 +7,8 @@
 //****************************************************************************
 #include "Tungsten/Resources/ColorMaterials.hpp"
 
+#include "Tungsten/Color.hpp"
+
 #include <cstring>
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
@@ -37,14 +39,16 @@ TEST_CASE("BlinnPhong params: three vec4s in std140 order")
 {
     const auto values = floats(make_blinn_phong_material_params(MATERIAL));
 
+    // A ColorMaterial is authored in sRGB and the MaterialBlock is read by a
+    // shader that works in linear space, so the values cross over here.
     REQUIRE(values.size() == 12);
-    REQUIRE(values[0] == 0.1f);
-    REQUIRE(values[1] == 0.2f);
-    REQUIRE(values[2] == 0.3f);
-    REQUIRE(values[4] == 0.4f);
-    REQUIRE(values[6] == 0.6f);
-    REQUIRE(values[8] == 0.7f);
-    REQUIRE(values[10] == 0.9f);
+    REQUIRE(values[0] == srgb_to_linear(0.1f));
+    REQUIRE(values[1] == srgb_to_linear(0.2f));
+    REQUIRE(values[2] == srgb_to_linear(0.3f));
+    REQUIRE(values[4] == srgb_to_linear(0.4f));
+    REQUIRE(values[6] == srgb_to_linear(0.6f));
+    REQUIRE(values[8] == srgb_to_linear(0.7f));
+    REQUIRE(values[10] == srgb_to_linear(0.9f));
 }
 
 TEST_CASE("BlinnPhong params: the w components carry the scalars")

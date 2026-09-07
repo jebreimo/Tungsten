@@ -29,7 +29,9 @@ namespace Tungsten
      *
      * The scalar/light fields below are the CPU-side mirror of the per-frame
      * UBO (binding 0) the renderer uploads once per frame; the trailing
-     * comments map each to its u_* slot in the shaders' PerFrame block.
+     * comments map each to its u_* slot in the shaders' PerFrame block. Being
+     * that mirror, its colours are linear — the conversion from the sRGB a
+     * caller authors in happens on the way in, not here.
      */
     struct RenderSnapshot
     {
@@ -38,6 +40,8 @@ namespace Tungsten
         Xyz::Matrix4F view_matrix;        // u_view
         Xyz::Matrix4F projection_matrix;  // u_projection
         Xyz::Vector3F camera_position;    // u_camera_pos.xyz (world space)
+        /** Linear, like every colour in the per-frame block. A value picked
+         *  by eye is sRGB and has to go through srgb_to_linear first. */
         Xyz::Vector3F ambient_light;      // u_ambient_light.rgb
         std::vector<LightData> lights;    // u_lights / u_light_count
         float time = 0.0f;                // u_camera_pos.w
