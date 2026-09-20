@@ -92,7 +92,7 @@ namespace
                 .aspect = app.viewport().aspect_ratio()
             });
 
-            std::cout << get_device_info() << '\n';
+            set_swap_interval(app, SwapInterval::VSYNC);
         }
 
         void on_update() override
