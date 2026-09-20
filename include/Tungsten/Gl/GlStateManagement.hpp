@@ -6,8 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include "GlTypes.hpp"
-#include <string>
+#include "../Gpu/GpuTypes.hpp"
 
 #include "../Viewport.hpp"
 
@@ -19,9 +18,22 @@ namespace Tungsten
 
     void set_blend_function(BlendFunction src, BlendFunction dst);
 
+    /**
+     * Sets the colour and alpha blend factors independently. The
+     * two-argument set_blend_function is the common case where they agree.
+     */
+    void set_blend_function_separate(BlendFunction src_color,
+                                     BlendFunction dst_color,
+                                     BlendFunction src_alpha,
+                                     BlendFunction dst_alpha);
+
+    void set_blend_equation(BlendEquation color, BlendEquation alpha);
+
     [[nodiscard]] bool is_depth_test_enabled();
 
     void set_depth_test_enabled(bool enabled);
+
+    void set_depth_function(CompareFunction func);
 
     [[nodiscard]] bool is_depth_mask_enabled();
 
@@ -40,31 +52,28 @@ namespace Tungsten
 
     void set_face_culling_mode(FaceCullingMode mode);
 
+    void set_front_face(FrontFace front_face);
+
+    void set_color_write_mask(ColorWriteMask mask);
+
     [[nodiscard]] bool is_multisampling_enabled();
 
     void set_multisampling_enabled(bool enabled);
 
+    [[nodiscard]] bool is_scissor_enabled();
+
+    /**
+     * Enables or disables the scissor test. Unlike the pipeline state beside
+     * it this belongs to a render pass, not to a draw: Metal and Vulkan both
+     * treat the scissor rectangle as encoder state.
+     */
+    void set_scissor_enabled(bool enabled);
+
+    void set_scissor(int x, int y, int width, int height);
+
     void set_viewport(int x, int y, int width, int height);
 
     void set_viewport(const Viewport& viewport);
-
-    [[nodiscard]] bool get_boolean_value(unsigned parameter_name);
-
-    [[nodiscard]] float get_float_value(unsigned parameter_name);
-
-    [[nodiscard]] int32_t get_int32_value(unsigned parameter_name);
-
-    [[nodiscard]] int64_t get_int64_value(unsigned parameter_name);
-
-    [[nodiscard]] std::string get_string_value(unsigned parameter_name);
-
-    [[nodiscard]] bool is_enabled(unsigned capability);
-
-    void set_enabled(unsigned capability, bool enabled);
-
-    void enable(unsigned capability);
-
-    void disable(unsigned capability);
 
     class BlendRestorer
     {

@@ -167,6 +167,7 @@ namespace Tungsten
         BufferArenaRef index_arena;
         VertexLayoutRef layout;
         ShaderProgramRef shader;
+        PipelineRef pipeline;
 
         struct Atlas
         {
@@ -235,6 +236,38 @@ namespace Tungsten
         // The family has no feature flags, so there is exactly one variant and
         // it can be resolved once here rather than per material.
         shader = resources.register_shader_variant({TEXT_FAMILY, 0});
+
+        // One pipeline serves every text material; only the colour and atlas
+        // differ between them, and those are material state.
+        //
+        // Both of the non-obvious settings here used to come for free from the
+        // renderer's hard-coded transparent pass and from the fact that most
+        // applications never enable culling. Now that the state travels on the
+        // pipeline they have to be stated:
+        //
+        //  - depth writes are OFF because glyph quads are co-planar with each
+        //    other and with whatever they label. The depth *test* stays on, so
+        //    opaque geometry still occludes text; letting text write depth
+        //    would let the first glyph drawn punch a hole through everything
+        //    co-planar behind it, silently defeating render_layer.
+        //  - culling is OFF because a glyph quad's winding is not guaranteed,
+        //    and text must not disappear because the application happened to
+        //    enable back-face culling for its own geometry.
+        pipeline = resources.register_pipeline({
+            .shader = shader,
+            .layout = layout,
+            .primitive = TopologyType::TRIANGLES,
+            .queue = RenderQueue::TRANSPARENT,
+            .depth = {.test = true, .write = false},
+            .blend = {
+                .enabled = true,
+                .src_color = BlendFunction::SRC_ALPHA,
+                .dst_color = BlendFunction::ONE_MINUS_SRC_ALPHA,
+                .src_alpha = BlendFunction::SRC_ALPHA,
+                .dst_alpha = BlendFunction::ONE_MINUS_SRC_ALPHA
+            },
+            .raster = {.cull_enabled = false}
+        });
 
         vertex_arena = resources.create_arena(BufferUsage::DYNAMIC_DRAW,
                                               VERTEX_STRIDE,
@@ -423,12 +456,9 @@ namespace Tungsten
             mesh.streams = {vertices};
             mesh.ebo = indices;
             mesh.index_type = ElementIndexType::UINT32;
-            mesh.primitive = TopologyType::TRIANGLES;
             // Every text mesh draws from the same two arenas with the same
-            // layout, so they all resolve to one cached VAO. Arena growth
-            // re-points it in place, which is why the id can be taken once.
-            const BufferArenaRef vbo_arenas[] = {vertex_arena};
-            mesh.vao = resources.get_vao(vbo_arenas, index_arena, layout);
+            // layout, so create_mesh resolves them all to one binding. Arena
+            // growth re-points it in place, so it stays valid.
             built.mesh_ = resources.create_mesh(std::move(mesh));
             entries[built.slot_].mesh = built.mesh_;
         }
@@ -450,7 +480,7 @@ namespace Tungsten
         }
 
         Material material;
-        material.shader = shader;
+        material.pipeline = pipeline;
         // The MaterialBlock is one vec4. It is written as an opaque blob here,
         // exactly as the shader declares it; ResourceManager uploads it into
         // the material's own UBO without interpreting it.
@@ -463,9 +493,9 @@ namespace Tungsten
         std::memcpy(material.parameter_data.data(), linear_color.values.data(),
                     sizeof(float) * 4);
         material.textures = {atlas};
-        // Glyph edges are antialiased, so text always blends: it belongs in
-        // the back-to-front pass, never the opaque one.
-        material.transparent = true;
+        // The queue is folded from the pipeline by create_material; glyph
+        // edges are antialiased, so text always belongs in the back-to-front
+        // pass, never the opaque one.
 
         const auto ref = resources.create_material(std::move(material));
         materials.push_back({atlas, color, ref});

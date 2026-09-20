@@ -8,6 +8,7 @@
 #include "Tungsten/Resources/ResourceManager.hpp"
 
 #include <algorithm>
+#include <ranges>
 #include <limits>
 #include <utility>
 
@@ -15,11 +16,14 @@
 #include "Tungsten/Resources/Mesh.hpp"
 #include "Tungsten/Resources/ResourceRefs.hpp"
 #include "Tungsten/Resources/SharedBuffer.hpp"
+#include "Tungsten/Gl/GlStateEpoch.hpp"
+#include "Tungsten/Resources/RenderTarget.hpp"
 #include "Tungsten/Resources/Texture.hpp"
 #include "BufferArena.hpp"
 #include "DeletionQueue.hpp"
 #include "GenerationalPool.hpp"
 #include "LayoutRegistry.hpp"
+#include "PipelineRegistry.hpp"
 #include "SamplerRegistry.hpp"
 #include "ShaderLibrary.hpp"
 #include "VaoCache.hpp"
@@ -33,7 +37,9 @@ namespace Tungsten
         GenerationalPool<Material> materials;
         GenerationalPool<ShaderProgram> shaders;
         GenerationalPool<Texture> textures;
+        GenerationalPool<RenderTarget> render_targets;
         LayoutRegistry layout_registry;
+        PipelineRegistry pipeline_registry;
         SamplerRegistry sampler_registry;
         DeletionQueue deletions;
         VaoCache vao_cache;
@@ -186,7 +192,31 @@ namespace Tungsten
             validate_mesh_layout(mesh, layout);
             mesh.semantics = layout.semantics();
         }
+        // The binding is derived here rather than supplied by the caller, so
+        // a mesh cannot be created naming arenas its binding does not cover.
+        mesh.binding = get_geometry_binding(mesh);
         return members_->meshes.insert(std::move(mesh));
+    }
+
+    GeometryBinding ResourceManager::get_geometry_binding(const Mesh& mesh)
+    {
+        if (!mesh.layout)
+            return GeometryBinding::NONE;
+
+        std::vector<BufferArenaRef> vbo_arenas;
+        vbo_arenas.reserve(mesh.streams.size());
+        for (const SharedBuffer& stream : mesh.streams)
+            vbo_arenas.push_back(stream.arena);
+
+        // A mesh whose slices are filled in after creation has nothing to
+        // bind yet; validate_mesh_layout permits that, so this must too.
+        const bool has_arena = std::ranges::any_of(
+            vbo_arenas, [](BufferArenaRef ref) { return bool(ref); });
+        if (!has_arena && !mesh.ebo.arena)
+            return GeometryBinding::NONE;
+
+        return GeometryBinding(members_->vao_cache.get_vao(
+            vbo_arenas, mesh.ebo.arena, mesh.layout));
     }
 
     void ResourceManager::validate_mesh_layout(const Mesh& mesh,
@@ -241,17 +271,23 @@ namespace Tungsten
     {
         validate_material_textures(material);
         upload_material_parameters(material);
+        // Folded once here so SnapshotBuilder never resolves the pipeline in
+        // its per-renderable loop, and so a material may still be created
+        // before its pipeline exists.
+        if (material.pipeline)
+            material.queue = get_pipeline(material.pipeline).queue;
         return members_->materials.insert(std::move(material));
     }
 
     void ResourceManager::validate_material_textures(const Material& material)
     {
-        // A material may be built before its shader is resolved to a variant,
-        // in which case there is no slot list to check against yet.
-        if (!material.shader)
+        // A material may be built before its pipeline is registered, in which
+        // case there is no slot list to check against yet.
+        if (!material.pipeline)
             return;
 
-        const ShaderProgram& shader = get_shader(material.shader);
+        const ShaderProgram& shader
+            = get_shader(get_pipeline(material.pipeline).shader);
         const ShaderFamily& family =
             members_->shader_library.get_family(shader.variant_key.family);
 
@@ -359,6 +395,69 @@ namespace Tungsten
         });
     }
 
+    RenderTargetRef ResourceManager::create_render_target(TextureRef color,
+                                                          bool with_depth)
+    {
+        const Texture& color_texture = get_texture(color);
+
+        RenderTarget target;
+        target.color = color;
+        target.size = {int32_t(color_texture.width),
+                       int32_t(color_texture.height)};
+
+        if (with_depth)
+        {
+            // A depth *texture*, not a renderbuffer: it is what Metal and
+            // Vulkan attach, and it can be sampled afterwards. No pixels —
+            // the target's own passes are what fill it.
+            target.depth = create_texture(TextureImage2D{
+                .size = target.size,
+                .format = {TextureFormat::DEPTH, TextureValueType::UINT32},
+                .content = TextureContent::DATA,
+                .pixels = nullptr
+            });
+        }
+
+        target.framebuffer = generate_framebuffer();
+        bind_framebuffer(FramebufferTarget::FRAMEBUFFER,
+                         target.framebuffer.id());
+        framebuffer_texture_2d(FramebufferTarget::FRAMEBUFFER,
+                               FrameBufferAttachment::COLOR0,
+                               TextureTarget2D::TEXTURE_2D,
+                               color_texture.gl_handle.id());
+        if (target.depth)
+        {
+            framebuffer_texture_2d(FramebufferTarget::FRAMEBUFFER,
+                                   FrameBufferAttachment::DEPTH,
+                                   TextureTarget2D::TEXTURE_2D,
+                                   get_texture(target.depth).gl_handle.id());
+        }
+        assert_framebuffer_complete(FramebufferTarget::FRAMEBUFFER);
+        bind_framebuffer(FramebufferTarget::FRAMEBUFFER, 0);
+        // Building the target bound a framebuffer and a texture behind the
+        // caches' backs, exactly as VAO baking does.
+        notify_gl_state_changed();
+
+        return members_->render_targets.insert(std::move(target));
+    }
+
+    RenderTarget& ResourceManager::get_render_target(RenderTargetRef ref)
+    {
+        return members_->render_targets.get(ref);
+    }
+
+    void ResourceManager::destroy_render_target(RenderTargetRef ref)
+    {
+        members_->render_targets.erase(ref, [this](RenderTarget&& target)
+        {
+            members_->deletions.retire(std::move(target.framebuffer));
+            // The depth texture was created here, so it goes here. The colour
+            // texture belongs to the caller.
+            if (target.depth)
+                destroy_texture(target.depth);
+        });
+    }
+
     void ResourceManager::register_shader_family(ShaderFamilyId id,
                                                  ShaderFamily family)
     {
@@ -376,11 +475,26 @@ namespace Tungsten
         return members_->shaders.get(ref);
     }
 
-    uint32_t ResourceManager::get_vao(std::span<const BufferArenaRef> vbo_arenas,
-                                      BufferArenaRef ebo_arena,
-                                      VertexLayoutRef layout)
+    PipelineRef ResourceManager::register_pipeline(
+        const PipelineDescriptor& descriptor)
     {
-        return members_->vao_cache.get_vao(vbo_arenas, ebo_arena, layout);
+        // Checked here rather than per draw: the pipeline is the one place
+        // that names a shader and a vertex layout together, so this is where
+        // a mismatch between them can be reported against both.
+        const auto required = get_shader(descriptor.shader).required_attributes;
+        const auto provided = get_layout(descriptor.layout).semantics();
+        if ((provided & required) != required)
+        {
+            TUNGSTEN_THROW("ResourceManager: the pipeline's vertex layout does"
+                " not provide every vertex attribute its shader reads.");
+        }
+        return members_->pipeline_registry.register_pipeline(descriptor);
+    }
+
+    const PipelineDescriptor&
+    ResourceManager::get_pipeline(PipelineRef ref) const
+    {
+        return members_->pipeline_registry.get_pipeline(ref);
     }
 
     void ResourceManager::begin_frame(uint64_t frame)

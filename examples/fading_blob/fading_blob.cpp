@@ -23,6 +23,7 @@
 #include <cstring>
 #include <iostream>
 #include <Tungsten/Tungsten.hpp>
+#include <Tungsten/Gl/IOglWrapper.hpp>
 #include "Resources.hpp"
 #include "SceneFader.hpp"
 
@@ -47,12 +48,21 @@ namespace
         explicit FadingBlob(SdlApplication& app)
             : EventLoop(app),
               renderer_(resources_),
-              fader_(app.window_size()),
+              fader_(resources_, app.window_size()),
               window_size_(app.window_size())
         {
             register_blob_family();
             const auto shader = resources_.register_shader_variant({BLOB_FAMILY, 0});
-            const auto material = make_material(shader, {1, 1, 1, 1});
+
+            // No culling: this example never enabled it, and a flat quad has
+            // no back face worth rejecting.
+            PipelineDescriptor descriptor;
+            descriptor.shader = shader;
+            descriptor.layout = blob_layout();
+            descriptor.raster.cull_enabled = false;
+            const auto pipeline = resources_.register_pipeline(descriptor);
+
+            const auto material = make_material(pipeline, {1, 1, 1, 1});
             const auto mesh = make_square_mesh();
 
             // The orbit is the hub's rotation and nothing else: the blob is a
@@ -96,7 +106,6 @@ namespace
         void on_draw() override
         {
             const auto viewport = application().viewport();
-            set_viewport(viewport);
             // The window size is only known in pixels here;
             // SDL_EVENT_WINDOW_RESIZED reports screen coordinates, which
             // differ on high-DPI displays.
@@ -108,19 +117,21 @@ namespace
             }
             camera_.get<CameraComponent>().aspect = viewport.aspect_ratio();
 
-            // Binds the accumulation buffer and darkens last frame's contents
-            // into it. That framebuffer stays bound for the pipeline below.
-            fader_.draw_previous_scene(FADE_STEP);
-
-            // Deliberately no clear: the faded copy underneath is the trail.
             resources_.begin_frame(frame_);
+
+            // Darkens last frame's contents into the accumulation buffer.
+            fader_.draw_previous_scene(renderer_, FADE_STEP);
+
+            // The accumulation pass loads rather than clears: the faded copy
+            // underneath is the trail.
             scene_.resolve_transforms();
             auto& snapshots = snapshots_;
             builder_.build(scene_, camera_.id(), snapshots.back());
             snapshots.swap();
-            renderer_.render(snapshots.front());
+            renderer_.render(snapshots.front(),
+                             fader_.accumulation_pass(viewport));
 
-            fader_.render_scene();
+            fader_.render_scene(renderer_, viewport);
 
             // Single-threaded: the frame just drawn is complete (§11).
             resources_.collect_garbage(frame_);
@@ -140,15 +151,27 @@ namespace
             resources_.register_shader_family(BLOB_FAMILY, std::move(family));
         }
 
-        MaterialRef make_material(ShaderProgramRef shader,
+        MaterialRef make_material(PipelineRef pipeline,
                                   const Xyz::Vector4F& color)
         {
             const float values[4] = {color[0], color[1], color[2], color[3]};
             const auto bytes = as_bytes(std::span(values));
             Material material;
-            material.shader = shader;
+            material.pipeline = pipeline;
             material.parameter_data = {bytes.begin(), bytes.end()};
             return resources_.create_material(std::move(material));
+        }
+
+        // POSITION defaults to three components; the blob is flat, so it
+        // carries two and the shader supplies z. Named by both the mesh and
+        // the pipeline, which have to agree on the packing.
+        VertexLayoutRef blob_layout()
+        {
+            return resources_.register_layout(
+                VertexLayoutBuilder()
+                    .add_attribute(AttributeSemantic::POSITION)
+                    .set_component_count(2)
+                    .build());
         }
 
         MeshRef make_square_mesh()
@@ -166,13 +189,7 @@ namespace
                 0, 2, 3
             };
 
-            // POSITION defaults to three components; the blob is flat, so it
-            // carries two and the shader supplies z.
-            const auto layout = resources_.register_layout(
-                VertexLayoutBuilder()
-                    .add_attribute(AttributeSemantic::POSITION)
-                    .set_component_count(2)
-                    .build());
+            const auto layout = blob_layout();
             vbo_arena_ = resources_.create_arena(
                 BufferUsage::STATIC_DRAW, 2 * sizeof(float), VERTEX_COUNT);
             ebo_arena_ = resources_.create_arena(
@@ -190,8 +207,6 @@ namespace
             resources_.upload(indices, indexes, sizeof(indexes));
 
             Mesh mesh;
-            const BufferArenaRef vbos[] = {vbo_arena_};
-            mesh.vao = resources_.get_vao(vbos, ebo_arena_, layout);
             mesh.streams = {vertices};
             mesh.layout = layout;
             mesh.ebo = indices;

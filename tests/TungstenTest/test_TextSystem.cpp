@@ -178,8 +178,9 @@ TEST_CASE("TextSystem: a text component is published as a renderable")
     // Bounds are set, so text takes part in frustum culling.
     REQUIRE(bool(renderable->local_bounds));
 
-    // Text always blends, so it belongs in the transparent pass.
-    REQUIRE(resources.get_material(renderable->material).transparent);
+    // Text always blends, so it belongs in the transparent queue.
+    REQUIRE(resources.get_material(renderable->material).queue
+            == RenderQueue::TRANSPARENT);
 
     // Five glyphs: 4 vertices and 6 indices each.
     const Mesh& mesh = resources.get_mesh(renderable->mesh);
@@ -277,9 +278,11 @@ TEST_CASE("TextSystem: items sharing a style share one material")
     REQUIRE(d.get<RenderableComponent>().material != material);
 
     // Every text mesh sub-allocates from the same two arenas with the same
-    // layout, so they all share one VAO.
-    const auto vao = resources.get_mesh(a.get<RenderableComponent>().mesh).vao;
-    REQUIRE(resources.get_mesh(d.get<RenderableComponent>().mesh).vao == vao);
+    // layout, so they all share one geometry binding.
+    const auto binding
+        = resources.get_mesh(a.get<RenderableComponent>().mesh).binding;
+    REQUIRE(resources.get_mesh(d.get<RenderableComponent>().mesh).binding
+            == binding);
 }
 
 TEST_CASE("TextSystem: empty text holds no GPU memory")

@@ -8,21 +8,36 @@
 #pragma once
 #include <cstdint>
 #include <vector>
-#include "Tungsten/Gl/GlTypes.hpp"
+#include "Tungsten/Gpu/GpuTypes.hpp"
 #include "SharedBuffer.hpp"
 #include "VertexAttribute.hpp"
 
 namespace Tungsten
 {
     /**
-     * A drawable: one or more vertex streams plus an index buffer, described by a
-     * VertexLayout and drawn with a fixed primitive topology.
+     * An opaque, backend-owned name for the buffer-and-attribute binding a
+     * mesh draws through. On OpenGL it is a VAO id owned by the
+     * ResourceManager's cache; a Metal or Vulkan backend would put its own
+     * equivalent here, or nothing at all.
      *
-     * `vao` is the id of a VAO owned and cached by ResourceManager (shared by
-     * every mesh with the same arena/layout combination), not a handle this
-     * Mesh owns. The element binding and buffer bindings are baked into that VAO;
-     * the per-draw base offsets (each slice's `offset`) are not, so meshes
-     * differing only by offset reuse one VAO.
+     * NONE means "not bound yet" — a mesh created before its stream arenas
+     * are known has no binding until they are.
+     */
+    enum class GeometryBinding : uint32_t
+    {
+        NONE = 0
+    };
+
+    /**
+     * A drawable: one or more vertex streams plus an index buffer, described by
+     * a VertexLayout. What topology those vertices assemble into is not here —
+     * it is pipeline state, because that is where Metal and Vulkan put it.
+     *
+     * `binding` is computed by ResourceManager::create_mesh and shared by every
+     * mesh with the same arena/layout combination; it is not a handle this Mesh
+     * owns. The element and buffer bindings are baked into it, the per-draw base
+     * offsets (each slice's `offset`) are not, so meshes differing only by
+     * offset reuse one binding.
      *
      * Each stream, like `ebo`, is a plain SharedBuffer: its `offset` is the base
      * vertex draws use, its `count` the vertex count, and its byte pitch the
@@ -31,13 +46,12 @@ namespace Tungsten
      * `layout` refers to the interned VertexLayout describing the streams'
      * attributes; resolve it through ResourceManager::get_layout.
      *
-     * index_type / primitive use the existing GL-layer enums (ElementIndexType,
-     * TopologyType) so the renderer can pass them straight to draw_elements
-     * without conversion.
+     * index_type is the neutral ElementIndexType; it describes the index data
+     * in the buffer, so it belongs to the geometry rather than to a pipeline.
      */
     struct Mesh
     {
-        uint32_t vao = 0;
+        GeometryBinding binding = GeometryBinding::NONE;
         std::vector<SharedBuffer> streams;
         VertexLayoutRef layout;
         /**
@@ -47,6 +61,5 @@ namespace Tungsten
         AttributeSemanticMask semantics = 0;
         SharedBuffer ebo;
         ElementIndexType index_type = ElementIndexType::UINT16;
-        TopologyType primitive = TopologyType::TRIANGLES;
     };
 } // Tungsten

@@ -7,6 +7,8 @@
 //****************************************************************************
 #include "Tungsten/Gl/GlFramebuffer.hpp"
 
+#include <iterator>
+
 #include <vector>
 
 #include "GlTypeConversion.hpp"
@@ -51,6 +53,49 @@ namespace Tungsten
         get_ogl_wrapper().framebuffer_texture_2d(to_ogl_framebuffer_target(target),
                                to_ogl_framebuffer_attachment(attachment),
                                to_ogl_texture_target_2d(tex_target), texture, level);
+        THROW_IF_GL_ERROR();
+    }
+
+    void invalidate_framebuffer(
+        FramebufferTarget target,
+        std::span<const FrameBufferAttachment> attachments,
+        bool is_default_framebuffer)
+    {
+        if (attachments.empty())
+            return;
+
+        GLenum names[4] = {};
+        size_t count = 0;
+        for (const auto attachment : attachments)
+        {
+            if (count == std::size(names))
+                break;
+            // The default framebuffer's attachments have their own names in
+            // GLES 3.0; GL_COLOR_ATTACHMENT0 is not valid for it.
+            if (is_default_framebuffer)
+            {
+                switch (attachment)
+                {
+                case FrameBufferAttachment::COLOR0:
+                    names[count++] = GL_COLOR;
+                    break;
+                case FrameBufferAttachment::DEPTH:
+                    names[count++] = GL_DEPTH;
+                    break;
+                case FrameBufferAttachment::STENCIL:
+                    names[count++] = GL_STENCIL;
+                    break;
+                }
+            }
+            else
+            {
+                names[count++] = to_ogl_framebuffer_attachment(attachment);
+            }
+        }
+
+        get_ogl_wrapper().invalidate_framebuffer(
+            to_ogl_framebuffer_target(target),
+            static_cast<GLsizei>(count), names);
         THROW_IF_GL_ERROR();
     }
 

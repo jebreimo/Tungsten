@@ -9,13 +9,17 @@
 #include <cstdint>
 #include <memory>
 #include <span>
-#include "Tungsten/Gl/GlTypes.hpp"
+#include "Tungsten/Gpu/GpuTypes.hpp"
 #include "ResourceRefs.hpp"
+#include "PipelineDescriptor.hpp"
 #include "ShaderFamily.hpp"
 #include "SharedBuffer.hpp"
 
 namespace Tungsten
 {
+    // Defined in Mesh.hpp, which this header deliberately does not include.
+    enum class GeometryBinding : uint32_t;
+
     /**
      * The single owner of GPU resources, and the only place that knows a
      * resource's logical ref ({index, generation}).
@@ -165,6 +169,27 @@ namespace Tungsten
          */
         void destroy_texture(TextureRef ref);
 
+        /**
+         * Creates a render target that draws into @a color, adding a depth
+         * texture of the same size when @a with_depth.
+         *
+         * The colour texture is not owned by the target; it stays in the
+         * texture pool so later passes can sample it. The depth texture is
+         * created here and named by the target, and is destroyed with it.
+         */
+        RenderTargetRef create_render_target(TextureRef color,
+                                             bool with_depth = false);
+
+        [[nodiscard]]
+        RenderTarget& get_render_target(RenderTargetRef ref);
+
+        /**
+         * Retires the target's framebuffer and its depth texture through the
+         * deletion queue. The colour texture is left alone: the caller created
+         * it and may still be sampling it.
+         */
+        void destroy_render_target(RenderTargetRef ref);
+
         void register_shader_family(ShaderFamilyId id, ShaderFamily family);
 
         /**
@@ -177,14 +202,17 @@ namespace Tungsten
         ShaderProgram& get_shader(ShaderProgramRef ref);
 
         /**
-         * Returns a VAO that binds the given vertex-buffer arenas and element
-         * arena with the given layout, creating and caching it on first use.
-         * The id is non-owning; the VAO belongs to the VaoCache.
+         * Returns the ref for a pipeline equal to @a descriptor, interning it
+         * on first use.
+         *
+         * Validates once, here, that the descriptor's vertex layout provides
+         * every attribute semantic its shader reads — so a mismatch is caught
+         * where the two are named together, not on each draw.
          */
+        PipelineRef register_pipeline(const PipelineDescriptor& descriptor);
+
         [[nodiscard]]
-        uint32_t get_vao(std::span<const BufferArenaRef> vbo_arenas,
-                         BufferArenaRef ebo_arena,
-                         VertexLayoutRef layout);
+        const PipelineDescriptor& get_pipeline(PipelineRef ref) const;
 
         /**
          * Calls once per frame with the id of the frame about to be built /
@@ -206,6 +234,15 @@ namespace Tungsten
          * create_mesh.
          */
         void validate_mesh_layout(const Mesh& mesh, const VertexLayout& layout);
+
+        /**
+         * Returns the geometry binding for the mesh's stream and element
+         * arenas under its layout, creating and caching it on first use.
+         * NONE when the mesh has no layout or none of its streams name an
+         * arena yet, which is legal: a caller may fill the slices afterwards.
+         */
+        [[nodiscard]]
+        GeometryBinding get_geometry_binding(const Mesh& mesh);
 
         /**
          * Throws if a texture's content disagrees with the sampler slot its

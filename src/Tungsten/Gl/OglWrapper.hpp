@@ -155,6 +155,12 @@ namespace Tungsten
             return glCreateShader(type);
         }
 
+        void color_mask(GLboolean red, GLboolean green,
+                        GLboolean blue, GLboolean alpha) override
+        {
+            glColorMask(red, green, blue, alpha);
+        }
+
         void cull_face(GLenum mode) override
         {
             glCullFace(mode);
@@ -195,6 +201,11 @@ namespace Tungsten
             glDeleteVertexArrays(n, arrays);
         }
 
+        void depth_func(GLenum func) override
+        {
+            glDepthFunc(func);
+        }
+
         void depth_mask(GLboolean flag) override
         {
             glDepthMask(flag);
@@ -203,6 +214,11 @@ namespace Tungsten
         void disable(GLenum cap) override
         {
             glDisable(cap);
+        }
+
+        void front_face(GLenum mode) override
+        {
+            glFrontFace(mode);
         }
 
         void disable_vertex_attrib_array(GLuint index) override
@@ -545,6 +561,24 @@ namespace Tungsten
                                    const void* pointer) override
         {
             glVertexAttribPointer(index, size, type, normalized, stride, pointer);
+        }
+
+        void scissor(GLint x, GLint y,
+                     GLsizei width, GLsizei height) override
+        {
+            glScissor(x, y, width, height);
+        }
+
+        void invalidate_framebuffer(GLenum target, GLsizei count,
+                                    const GLenum* attachments) override
+        {
+            // Core in GLES 3.0 and desktop GL 4.3, but macOS caps out at a
+            // 4.1 core context, where GLEW leaves the pointer null. Discarding
+            // an attachment is only ever a hint — a tiler saves bandwidth, and
+            // everything else is free to ignore it — so skipping it where it
+            // does not exist costs nothing.
+            if (glInvalidateFramebuffer)
+                glInvalidateFramebuffer(target, count, attachments);
         }
 
         void viewport(GLint x, GLint y, GLsizei width, GLsizei height) override

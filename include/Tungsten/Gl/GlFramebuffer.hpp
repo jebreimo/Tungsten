@@ -8,7 +8,7 @@
 #pragma once
 #include <span>
 #include "GlHandle.hpp"
-#include "GlTypes.hpp"
+#include "../Gpu/GpuTypes.hpp"
 
 namespace Tungsten
 {
@@ -32,6 +32,18 @@ namespace Tungsten
                                 TextureTarget2D tex_target,
                                 uint32_t texture,
                                 int32_t level = 0);
+
+    /**
+     * Tells the GL that the given attachments' contents are no longer needed,
+     * so a tiled renderer can skip writing them back (or loading them).
+     *
+     * The default framebuffer names its attachments differently from one of
+     * our own, which is what @a is_default_framebuffer selects.
+     */
+    void invalidate_framebuffer(
+        FramebufferTarget target,
+        std::span<const FrameBufferAttachment> attachments,
+        bool is_default_framebuffer);
 
     [[nodiscard]]
     FramebufferStatus check_framebuffer_status(FramebufferTarget target);

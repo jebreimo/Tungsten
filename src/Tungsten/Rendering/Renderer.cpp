@@ -14,11 +14,15 @@
 
 #include "Tungsten/Gl/GlBuffer.hpp"
 #include "Tungsten/Gl/GlRendering.hpp"
+#include "Tungsten/Gl/GlFramebuffer.hpp"
+#include "Tungsten/Gl/GlRendering.hpp"
 #include "Tungsten/Gl/GlStateManagement.hpp"
+#include "GlPipelineBinder.hpp"
 #include "Tungsten/Gl/GlTexture.hpp"
 #include "Tungsten/Resources/GlStateCache.hpp"
 #include "Tungsten/Resources/Material.hpp"
 #include "Tungsten/Resources/Mesh.hpp"
+#include "Tungsten/Resources/RenderTarget.hpp"
 #include "Tungsten/Resources/ResourceManager.hpp"
 #include "Tungsten/Resources/ResourceRefs.hpp"
 #include "Tungsten/Resources/ShaderProgram.hpp"
@@ -65,9 +69,24 @@ namespace Tungsten
     {
         explicit Members(ResourceManager& resources);
 
-        void render(const RenderSnapshot& snapshot);
+        void render(const RenderSnapshot& snapshot,
+                    const RenderPassDescriptor& pass);
 
-        void render_transparent_items(size_t start_index);
+        /**
+         * Binds the pass's target, sets the viewport and scissor, and applies
+         * the attachments' load actions.
+         */
+        void begin_pass(const RenderPassDescriptor& pass);
+
+        /** Applies the attachments' store actions. */
+        void end_pass(const RenderPassDescriptor& pass);
+
+        /**
+         * Discards whichever attachments are marked DONT_CARE — on entry by
+         * their load action, on exit by their store action.
+         */
+        void discard_attachments(const RenderPassDescriptor& pass,
+                                 bool entering);
 
         /**
          * Uploads the per-frame block: camera matrices, camera position and
@@ -103,6 +122,11 @@ namespace Tungsten
 
         ResourceManager& resources;
         GlStateCache state;
+        /**
+         * Fixed-function state, diffed per pipeline. Beside GlStateCache
+         * rather than inside it — see GlPipelineBinder.
+         */
+        GlPipelineBinder pipelines;
         BufferHandle per_frame_ubo;
         BufferHandle per_draw_ubo;
         /**
@@ -129,11 +153,6 @@ namespace Tungsten
          */
         size_t per_draw_stride = 0;
         MaterialRef current_material;
-        /**
-         * The required_attributes of current_material's shader, cached so the
-         * per-draw check needs no lookup. Cleared with the material.
-         */
-        AttributeSemanticMask current_required_attributes = 0;
         /**
          * The sampler bound to units the current material leaves unfilled.
          * Re-resolved at the start of each frame.
@@ -171,57 +190,114 @@ namespace Tungsten
         // mip_filter is what keeps this lone level-0 image complete.
     }
 
-    void Renderer::Members::render(const RenderSnapshot& snapshot)
+    void Renderer::Members::render(const RenderSnapshot& snapshot,
+                                   const RenderPassDescriptor& pass)
     {
+        begin_pass(pass);
         bind_per_frame(snapshot);
         // Forget the previous frame's material: its slot may have been
         // destroyed and reused between frames.
         current_material = {};
-        current_required_attributes = 0;
 
         // Create a GL sampler on first use, this allows the constructor
         // to run before a context is current.
         default_sampler_id = resources.get_sampler_id({});
 
-        // Both passes are sorted up front so every item's per-draw block can
+        // Forget the previous frame's pipeline too. The context is shared
+        // with the older examples and with other event loops, so nothing
+        // survives a frame boundary; starting empty also makes the first draw
+        // of every frame state its whole pipeline, which is deterministic.
+        pipelines.invalidate();
+
+        // Both lists are sorted up front so every item's per-draw block can
         // go up in one upload; an item's index in sorted is its slot in the
         // per-draw buffer.
         sorted.clear();
         append_sorted(snapshot.opaque_items);
-        const size_t opaque_count = sorted.size();
         append_sorted(snapshot.transparent_items);
         upload_per_draw_blocks();
 
-        set_depth_test_enabled(true);
-        // Stated rather than assumed, like the blend state beside it: the
-        // context is shared with the legacy Fonts and the older
-        // examples, and an opaque pass that silently stopped writing depth
-        // would be very hard to place.
-        set_depth_mask_enabled(true);
-        set_blend_enabled(false);
-
-        for (size_t i = 0; i < opaque_count; ++i)
+        // One loop over both lists. The opaque run comes first because it was
+        // appended first, and each item's depth, blend and raster state now
+        // travels on its own pipeline rather than being toggled per pass.
+        for (size_t i = 0; i < sorted.size(); ++i)
             draw_item(*sorted[i], i);
 
-        if (opaque_count != sorted.size())
-            render_transparent_items(opaque_count);
+        end_pass(pass);
     }
 
-    void Renderer::Members::render_transparent_items(size_t start_index)
+    void Renderer::Members::begin_pass(const RenderPassDescriptor& pass)
     {
-        set_blend_enabled(true);
-        set_blend_function(BlendFunction::SRC_ALPHA,
-                           BlendFunction::ONE_MINUS_SRC_ALPHA);
-        // The depth *test* stays on, so opaque geometry still occludes
-        // these; only the write is masked. Blended surfaces are sorted
-        // back-to-front precisely so they need not occlude each other.
-        // Letting them write depth would mean the first one drawn punches
-        // a hole in everything coplanar behind it.
-        set_depth_mask_enabled(false);
-        for (size_t i = start_index; i < sorted.size(); ++i)
-            draw_item(*sorted[i], i);
-        set_depth_mask_enabled(true);
-        set_blend_enabled(false);
+        const uint32_t framebuffer =
+            pass.target ? resources.get_render_target(pass.target)
+                              .framebuffer.id()
+                        : 0;
+        bind_framebuffer(FramebufferTarget::FRAMEBUFFER, framebuffer);
+
+        set_viewport(pass.viewport);
+        if (pass.scissor)
+        {
+            set_scissor_enabled(true);
+            set_scissor(pass.scissor->x, pass.scissor->y,
+                        pass.scissor->width, pass.scissor->height);
+        }
+        else
+        {
+            set_scissor_enabled(false);
+        }
+
+        // A clear writes through the depth mask, so it has to be open for the
+        // depth clear to land. The first draw's pipeline sets it again.
+        ClearBits bits = {};
+        if (pass.color.load == LoadAction::CLEAR)
+        {
+            const auto& c = pass.color.clear_color;
+            set_clear_color(c[0], c[1], c[2], c[3]);
+            bits = bits | ClearBits::COLOR;
+        }
+        if (pass.depth && pass.depth->load == LoadAction::CLEAR)
+        {
+            set_clear_depth(pass.depth->clear_depth);
+            set_depth_mask_enabled(true);
+            pipelines.invalidate();
+            bits = bits | ClearBits::DEPTH;
+        }
+        if (bits != ClearBits{})
+            clear(bits);
+
+        // DONT_CARE means the old contents are not needed. On a tiler that
+        // saves loading the tile; on a desktop GL it is a no-op.
+        discard_attachments(pass, true);
+    }
+
+    void Renderer::Members::end_pass(const RenderPassDescriptor& pass)
+    {
+        discard_attachments(pass, false);
+    }
+
+    void Renderer::Members::discard_attachments(
+        const RenderPassDescriptor& pass, bool entering)
+    {
+        FrameBufferAttachment attachments[2];
+        size_t count = 0;
+
+        const auto discarded = [entering](LoadAction load, StoreAction store)
+        {
+            return entering ? load == LoadAction::DONT_CARE
+                            : store == StoreAction::DONT_CARE;
+        };
+
+        if (discarded(pass.color.load, pass.color.store))
+            attachments[count++] = FrameBufferAttachment::COLOR0;
+        if (pass.depth && discarded(pass.depth->load, pass.depth->store))
+            attachments[count++] = FrameBufferAttachment::DEPTH;
+
+        if (count == 0)
+            return;
+
+        invalidate_framebuffer(FramebufferTarget::FRAMEBUFFER,
+                               std::span(attachments, count),
+                               !pass.target);
     }
 
     void Renderer::Members::bind_per_frame(const RenderSnapshot& snapshot)
@@ -293,18 +369,29 @@ namespace Tungsten
 
     void Renderer::Members::draw_item(const RenderItem& item, size_t slot)
     {
+        // Pipeline first, then material: the pipeline owns the program, and
+        // the material's textures and parameter buffer hang off it.
+        const PipelineDescriptor& pipeline
+            = resources.get_pipeline(item.pipeline());
+        pipelines.bind(pipeline);
+
         if (item.material() != current_material)
             bind_material(item.material());
 
         const Mesh& mesh = resources.get_mesh(item.mesh());
 
-        if ((mesh.semantics & current_required_attributes)
-            != current_required_attributes)
+        // A ref compare, because layouts are interned. Stricter than the old
+        // semantic-mask test and cheaper: the mask only asked whether the
+        // attributes the shader reads are present, so a mesh with the right
+        // semantics packed differently was accepted and drew garbage. That a
+        // layout supplies what the shader reads is checked once, at
+        // register_pipeline.
+        if (mesh.layout != pipeline.layout)
         {
-            TUNGSTEN_THROW("Renderer: the mesh does not provide every vertex"
-                " attribute its material's shader reads.");
+            TUNGSTEN_THROW("Renderer: the mesh's vertex layout is not the one"
+                " its pipeline was registered with.");
         }
-        state.bind_vao(mesh.vao);
+        state.bind_vao(static_cast<uint32_t>(mesh.binding));
 
         // The block was uploaded with all the others; point binding 2 at this
         // item's slice of that buffer rather than rewriting it.
@@ -318,7 +405,7 @@ namespace Tungsten
             // The slice's offset is in index units, which is what
             // draw_elements takes; the indices are absolute (rebased at
             // upload, §3), so no base vertex is involved.
-            draw_elements(mesh.primitive, mesh.index_type,
+            draw_elements(pipeline.primitive, mesh.index_type,
                           static_cast<int32_t>(mesh.ebo.offset),
                           static_cast<int32_t>(mesh.ebo.count));
         }
@@ -326,7 +413,7 @@ namespace Tungsten
         {
             // Non-indexed: draw the first stream's range; its offset is the
             // base vertex.
-            draw_array(mesh.primitive,
+            draw_array(pipeline.primitive,
                        static_cast<int32_t>(mesh.streams[0].offset),
                        static_cast<int32_t>(mesh.streams[0].count));
         }
@@ -335,7 +422,8 @@ namespace Tungsten
     void Renderer::Members::bind_material(MaterialRef ref)
     {
         const Material& material = resources.get_material(ref);
-        const ShaderProgram& shader = resources.get_shader(material.shader);
+        const ShaderProgram& shader = resources.get_shader(
+            resources.get_pipeline(material.pipeline).shader);
 
         state.use_program(shader.gl_handle.id());
 
@@ -390,7 +478,6 @@ namespace Tungsten
             state.bind_sampler(i, default_sampler_id);
         }
 
-        current_required_attributes = shader.required_attributes;
         current_material = ref;
     }
 
@@ -401,8 +488,9 @@ namespace Tungsten
 
     Renderer::~Renderer() = default;
 
-    void Renderer::render(const RenderSnapshot& snapshot)
+    void Renderer::render(const RenderSnapshot& snapshot,
+                          const RenderPassDescriptor& pass)
     {
-        members_->render(snapshot);
+        members_->render(snapshot, pass);
     }
 } // Tungsten

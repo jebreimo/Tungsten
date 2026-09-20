@@ -8,7 +8,7 @@
 #pragma once
 #include <Xyz/Vector.hpp>
 #include <Yimage/Image.hpp>
-#include "Gl/GlTypes.hpp"
+#include "Gpu/GpuTypes.hpp"
 
 namespace Tungsten
 {

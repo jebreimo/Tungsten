@@ -65,40 +65,45 @@ namespace Tungsten
         }
 
         // Packs the draw order into one integer, ascending (§8). Opaque:
-        // layer, shader, material, mesh, then depth — batching state changes
+        // layer, pipeline, material, mesh, then depth — batching state changes
         // first. Transparent: layer, then *reversed* depth — back-to-front
-        // for correct blending — then shader and material.
-        uint64_t compute_sort_key(uint32_t layer, uint32_t shader_index,
+        // for correct blending — then pipeline and material.
+        //
+        // The pipeline index takes the slot the shader index used to hold:
+        // items sharing a pipeline share a program by construction, so the
+        // shader carries no batching information the pipeline does not.
+        uint64_t compute_sort_key(uint32_t layer, uint32_t pipeline_index,
                                   uint32_t material_index, uint32_t mesh_index,
                                   float normalized_depth, bool transparent)
         {
             // The indices are batching hints, not identities: truncating them
             // can only cost a missed batch, never a wrong draw.
             const auto layer8 = static_cast<uint64_t>(layer & 0xFF);
-            const auto shader12 = static_cast<uint64_t>(shader_index & 0xFFF);
+            const auto pipeline12 =
+                static_cast<uint64_t>(pipeline_index & 0xFFF);
             const auto material16 =
                 static_cast<uint64_t>(material_index & 0xFFFF);
             const auto mesh12 = static_cast<uint64_t>(mesh_index & 0xFFF);
 
             if (transparent)
             {
-                // layer(8) | reversed depth(24) | shader(12) | material(16) |
-                // spare(4). Reversing the depth makes an ascending sort draw
-                // back-to-front.
+                // layer(8) | reversed depth(24) | pipeline(12) |
+                // material(16) | spare(4). Reversing the depth makes an
+                // ascending sort draw back-to-front.
                 const auto depth24 = static_cast<uint64_t>(
                     normalized_depth * float{0xFFFFFF});
                 return layer8 << 56
                        | (0xFFFFFF - depth24) << 32
-                       | shader12 << 20
+                       | pipeline12 << 20
                        | material16 << 4;
             }
 
-            // layer(8) | shader(12) | material(16) | mesh(12) | depth(16):
+            // layer(8) | pipeline(12) | material(16) | mesh(12) | depth(16):
             // state-change batching first, front-to-back within equal state.
             const auto depth16 = static_cast<uint64_t>(
                 normalized_depth * float{0xFFFF});
             return layer8 << 56
-                   | shader12 << 44
+                   | pipeline12 << 44
                    | material16 << 28
                    | mesh12 << 16
                    | depth16;
@@ -315,15 +320,17 @@ namespace Tungsten
             item.set_normal_matrix(compute_normal_matrix(world));
             item.set_mesh(renderable.mesh);
             item.set_material(renderable.material);
+            item.set_pipeline(material.pipeline);
+            const bool transparent = material.queue == RenderQueue::TRANSPARENT;
             item.set_sort_key(compute_sort_key(renderable.render_layer,
-                                               material.shader.index,
+                                               material.pipeline.index,
                                                renderable.material.index,
                                                renderable.mesh.index,
                                                depth,
-                                               material.transparent));
+                                               transparent));
 
-            auto& items = material.transparent ? out.transparent_items
-                                               : out.opaque_items;
+            auto& items = transparent ? out.transparent_items
+                                      : out.opaque_items;
             items.push_back(item);
         }
     }

@@ -14,6 +14,7 @@
 #include <iostream>
 #include <thread>
 #include <Tungsten/Tungsten.hpp>
+#include <Tungsten/Gl/IOglWrapper.hpp>
 
 namespace
 {
@@ -139,9 +140,10 @@ namespace
         void on_draw() override
         {
             const auto viewport = application().viewport();
-            set_viewport(viewport);
-            set_clear_color(0.4f, 0.6f, 0.8f, 1.0f);
-            clear(ClearBits::COLOR_DEPTH);
+            const RenderPassDescriptor pass{
+                .viewport = viewport,
+                .color = {.clear_color = {0.4f, 0.6f, 0.8f, 1.0f}}
+            };
 
             // One world unit per pixel: the orthographic half-height is half
             // the viewport's, so the visible volume is exactly the window in
@@ -172,7 +174,7 @@ namespace
             auto& snapshots = snapshots_;
             builder_.build(scene_, camera_.id(), snapshots.back());
             snapshots.swap();
-            renderer_.render(snapshots.front());
+            renderer_.render(snapshots.front(), pass);
 
             // Single-threaded: the frame just drawn is complete.
             resources_.collect_garbage(frame_);

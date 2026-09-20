@@ -8,7 +8,7 @@
 #include "ShaderLibrary.hpp"
 #include <string>
 #include "Tungsten/Gl/GlProgram.hpp"
-#include "Tungsten/Gl/GlTypes.hpp"
+#include "Tungsten/Gpu/GpuTypes.hpp"
 #include "Tungsten/Gl/GlUniform.hpp"
 #include "Tungsten/Resources/GlStateCache.hpp"
 #include "Tungsten/Resources/ShaderPreprocessor.hpp"

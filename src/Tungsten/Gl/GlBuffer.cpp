@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <vector>
 
+#include "GlQueries.hpp"
 #include "GlTypeConversion.hpp"
 #include "Tungsten/Gl/IOglWrapper.hpp"
 #include "Tungsten/Gl/GlStateManagement.hpp"

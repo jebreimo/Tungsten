@@ -9,7 +9,7 @@
 #include <span>
 
 #include "GlHandle.hpp"
-#include "GlTypes.hpp"
+#include "../Gpu/GpuTypes.hpp"
 #include "GlSampler.hpp"
 
 namespace Tungsten

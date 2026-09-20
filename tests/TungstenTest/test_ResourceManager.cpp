@@ -18,6 +18,7 @@
 #include "Tungsten/Gl/GlTexture.hpp"
 #include "Tungsten/Resources/GlStateCache.hpp"
 #include "Tungsten/Resources/Material.hpp"
+#include "Tungsten/Resources/PipelineDescriptor.hpp"
 #include "Tungsten/Resources/Mesh.hpp"
 #include "Tungsten/Resources/ShaderProgram.hpp"
 #include "Tungsten/Resources/Texture.hpp"
@@ -196,6 +197,19 @@ namespace
              VertexAttributeDataType::FLOAT, components, false, 0});
         return layout;
     }
+
+    // The geometry binding is no longer reachable directly: it is derived by
+    // create_mesh. Going through a mesh is how an application observes it.
+    GeometryBinding binding_of(ResourceManager& manager,
+                               BufferArenaRef vbo, BufferArenaRef ebo,
+                               VertexLayoutRef layout)
+    {
+        Mesh mesh;
+        mesh.layout = layout;
+        mesh.streams = {SharedBuffer{vbo, 0, 1}};
+        mesh.ebo = SharedBuffer{ebo, 0, 1};
+        return manager.get_mesh(manager.create_mesh(std::move(mesh))).binding;
+    }
 }
 
 TEST_CASE("ResourceManager: allocations share one GL buffer")
@@ -281,7 +295,7 @@ TEST_CASE("ResourceManager: a destroyed arena's ref is stale")
     REQUIRE_THROWS_AS(manager.allocate(arena, 4), TungstenException);
 }
 
-TEST_CASE("ResourceManager: get_vao caches per arenas and layout")
+TEST_CASE("ResourceManager: meshes share a binding per arenas and layout")
 {
     FakeGlSession session;
     ResourceManager manager;
@@ -289,14 +303,13 @@ TEST_CASE("ResourceManager: get_vao caches per arenas and layout")
     auto vbo = manager.create_arena(BufferUsage::STATIC_DRAW, 12, 16);
     auto ebo = manager.create_arena(BufferUsage::STATIC_DRAW, 2, 16);
     auto layout = manager.register_layout(make_layout());
-    std::array vbos{vbo};
 
-    const auto vao = manager.get_vao(vbos, ebo, layout);
-    REQUIRE(manager.get_vao(vbos, ebo, layout) == vao);
+    const auto binding = binding_of(manager, vbo, ebo, layout);
+    REQUIRE(binding_of(manager, vbo, ebo, layout) == binding);
     REQUIRE(session.gl->live_vertex_arrays == 1);
 
     auto other_layout = manager.register_layout(make_layout(2));
-    REQUIRE(manager.get_vao(vbos, ebo, other_layout) != vao);
+    REQUIRE(binding_of(manager, vbo, ebo, other_layout) != binding);
     REQUIRE(session.gl->live_vertex_arrays == 2);
 }
 
@@ -307,13 +320,12 @@ TEST_CASE("ResourceManager: a mesh drawn with array draws needs no ebo arena")
 
     auto vbo = manager.create_arena(BufferUsage::STATIC_DRAW, 12, 16);
     auto layout = manager.register_layout(make_layout());
-    std::array vbos{vbo};
 
     // A null ebo ref is how a non-indexed mesh is spelled; the renderer has an
-    // array-draw path for exactly this, so baking its VAO must not throw.
-    const auto vao = manager.get_vao(vbos, BufferArenaRef{}, layout);
-    REQUIRE(vao != 0);
-    REQUIRE(manager.get_vao(vbos, BufferArenaRef{}, layout) == vao);
+    // array-draw path for exactly this, so baking its binding must not throw.
+    const auto binding = binding_of(manager, vbo, BufferArenaRef{}, layout);
+    REQUIRE(binding != GeometryBinding::NONE);
+    REQUIRE(binding_of(manager, vbo, BufferArenaRef{}, layout) == binding);
     REQUIRE(session.gl->live_vertex_arrays == 1);
 }
 
@@ -325,18 +337,17 @@ TEST_CASE("ResourceManager: baking a VAO announces the GL state change")
     auto vbo = manager.create_arena(BufferUsage::STATIC_DRAW, 12, 16);
     auto ebo = manager.create_arena(BufferUsage::STATIC_DRAW, 2, 16);
     auto layout = manager.register_layout(make_layout());
-    std::array vbos{vbo};
 
     // Baking binds a VAO and leaves zero bound, so any GlStateCache watching
     // this context has to be told; otherwise its next bind_vao is elided
     // against a VAO that is no longer current.
     const auto before = gl_state_epoch();
-    const auto vao = manager.get_vao(vbos, ebo, layout);
+    const auto binding = binding_of(manager, vbo, ebo, layout);
     REQUIRE(gl_state_epoch() != before);
 
     // A cache hit binds nothing, so it needs no announcement.
     const auto after_bake = gl_state_epoch();
-    REQUIRE(manager.get_vao(vbos, ebo, layout) == vao);
+    REQUIRE(binding_of(manager, vbo, ebo, layout) == binding);
     REQUIRE(gl_state_epoch() == after_bake);
 }
 
@@ -461,13 +472,12 @@ TEST_CASE("ResourceManager: growth rebuilds the shared VAO in place")
     auto vbo = manager.create_arena(BufferUsage::STATIC_DRAW, 12, 4);
     auto ebo = manager.create_arena(BufferUsage::STATIC_DRAW, 2, 16);
     auto layout = manager.register_layout(make_layout());
-    std::array vbos{vbo};
 
-    const auto vao = manager.get_vao(vbos, ebo, layout);
+    const auto binding = binding_of(manager, vbo, ebo, layout);
     manager.allocate(vbo, 8); // exceeds the capacity: grows the arena
 
-    // The VAO id is unchanged; only its baked-in buffer binding moved.
-    REQUIRE(manager.get_vao(vbos, ebo, layout) == vao);
+    // The binding is unchanged; only its baked-in buffer binding moved.
+    REQUIRE(binding_of(manager, vbo, ebo, layout) == binding);
     REQUIRE(session.gl->live_vertex_arrays == 1);
 }
 
@@ -480,8 +490,7 @@ TEST_CASE("ResourceManager: destroying an arena evicts its VAOs")
     auto vbo = manager.create_arena(BufferUsage::STATIC_DRAW, 12, 16);
     auto ebo = manager.create_arena(BufferUsage::STATIC_DRAW, 2, 16);
     auto layout = manager.register_layout(make_layout());
-    std::array vbos{vbo};
-    std::ignore = manager.get_vao(vbos, ebo, layout);
+    std::ignore = binding_of(manager, vbo, ebo, layout);
 
     manager.destroy_arena(vbo);
     // Both the VAO and the arena's buffer drain through the deletion queue.
@@ -502,8 +511,6 @@ TEST_CASE("ResourceManager: destroying a mesh returns its slices")
     auto layout = manager.register_layout(make_layout());
 
     Mesh mesh;
-    std::array vbos{vbo};
-    mesh.vao = manager.get_vao(vbos, ebo, layout);
     mesh.streams = {manager.allocate(vbo, 8)};
     mesh.layout = layout;
     mesh.ebo = manager.allocate(ebo, 12);
@@ -826,7 +833,7 @@ namespace
 {
     // A family whose two slots want different things, which is what makes a
     // mismatch detectable at all.
-    ShaderProgramRef register_two_slot_family(ResourceManager& manager)
+    PipelineRef register_two_slot_family(ResourceManager& manager)
     {
         ShaderFamily family;
         family.vertex_source = "#version 300 es\nvoid main() {}\n";
@@ -836,7 +843,11 @@ namespace
             {"u_normal_map", TextureContent::DATA}
         };
         manager.register_shader_family(1, std::move(family));
-        return manager.register_shader_variant({1, 0});
+
+        PipelineDescriptor pipeline;
+        pipeline.shader = manager.register_shader_variant({1, 0});
+        pipeline.layout = manager.register_layout(make_layout());
+        return manager.register_pipeline(pipeline);
     }
 
     TextureRef make_texture(ResourceManager& manager, TextureContent content)
@@ -855,10 +866,10 @@ TEST_CASE("ResourceManager: a texture in a slot that wants the other kind throws
 {
     FakeGlSession session;
     ResourceManager manager;
-    const auto shader = register_two_slot_family(manager);
+    const auto pipeline = register_two_slot_family(manager);
 
     Material material;
-    material.shader = shader;
+    material.pipeline = pipeline;
     // Slot 1 is the normal map, so a colour texture there would be sRGB-decoded
     // into something that is no longer a unit vector.
     material.textures = {make_texture(manager, TextureContent::COLOR),
@@ -872,10 +883,10 @@ TEST_CASE("ResourceManager: matching textures and empty slots are accepted")
 {
     FakeGlSession session;
     ResourceManager manager;
-    const auto shader = register_two_slot_family(manager);
+    const auto pipeline = register_two_slot_family(manager);
 
     Material material;
-    material.shader = shader;
+    material.pipeline = pipeline;
     // A null ref is the renderer's white fallback, which reads the same in
     // either encoding, so it fits any slot.
     material.textures = {{}, make_texture(manager, TextureContent::DATA)};

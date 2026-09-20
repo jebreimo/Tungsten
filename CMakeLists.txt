@@ -98,10 +98,12 @@ add_library(Tungsten STATIC
     include/Tungsten/Gl/GlUniform.hpp
     include/Tungsten/Gl/GlVertexArray.hpp
     include/Tungsten/Gl/IOglWrapper.hpp
+    include/Tungsten/Gpu/GpuTypes.hpp
     include/Tungsten/Rendering/DoubleBuffer.hpp
     include/Tungsten/Rendering/Font.hpp
     include/Tungsten/Rendering/FontManager.hpp
     include/Tungsten/Rendering/RenderItem.hpp
+    include/Tungsten/Rendering/RenderPassDescriptor.hpp
     include/Tungsten/Rendering/RenderSnapshot.hpp
     include/Tungsten/Rendering/Renderer.hpp
     include/Tungsten/Rendering/SnapshotBuilder.hpp
@@ -113,6 +115,8 @@ add_library(Tungsten STATIC
     include/Tungsten/Resources/LightData.hpp
     include/Tungsten/Resources/Material.hpp
     include/Tungsten/Resources/Mesh.hpp
+    include/Tungsten/Resources/PipelineDescriptor.hpp
+    include/Tungsten/Resources/RenderTarget.hpp
     include/Tungsten/Resources/ResourceManager.hpp
     include/Tungsten/Resources/ResourceRef.hpp
     include/Tungsten/Resources/ResourceRefs.hpp
@@ -152,6 +156,8 @@ add_library(Tungsten STATIC
     src/Tungsten/Gl/GlBuffer.cpp
     src/Tungsten/Gl/GlFramebuffer.cpp
     src/Tungsten/Gl/GlProgram.cpp
+    src/Tungsten/Gl/GlQueries.cpp
+    src/Tungsten/Gl/GlQueries.hpp
     src/Tungsten/Gl/GlRendering.cpp
     src/Tungsten/Gl/GlSampler.cpp
     src/Tungsten/Gl/GlShader.cpp
@@ -171,6 +177,8 @@ add_library(Tungsten STATIC
     src/Tungsten/Rendering/FontUtilities.hpp
     src/Tungsten/Rendering/Fonts/Monaco32.hpp
     src/Tungsten/Rendering/Fonts/Monaco64.hpp
+    src/Tungsten/Rendering/GlPipelineBinder.cpp
+    src/Tungsten/Rendering/GlPipelineBinder.hpp
     src/Tungsten/Rendering/RenderItem.cpp
     src/Tungsten/Rendering/Renderer.cpp
     src/Tungsten/Rendering/SnapshotBuilder.cpp
@@ -188,6 +196,8 @@ add_library(Tungsten STATIC
     src/Tungsten/Resources/LayoutRegistry.cpp
     src/Tungsten/Resources/LayoutRegistry.hpp
     src/Tungsten/Resources/LightData.cpp
+    src/Tungsten/Resources/PipelineRegistry.cpp
+    src/Tungsten/Resources/PipelineRegistry.hpp
     src/Tungsten/Resources/ResourceManager.cpp
     src/Tungsten/Resources/SamplerRegistry.cpp
     src/Tungsten/Resources/SamplerRegistry.hpp

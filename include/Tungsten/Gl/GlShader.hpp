@@ -8,7 +8,7 @@
 #pragma once
 #include <string>
 #include "GlHandle.hpp"
-#include "GlTypes.hpp"
+#include "../Gpu/GpuTypes.hpp"
 
 namespace Tungsten
 {

@@ -120,7 +120,7 @@ namespace Bridge {
         -cull()
         -extract_renderables(scene: Scene, out: RenderSnapshot)
         -extract_lights(scene: Scene, out: RenderSnapshot)
-        -compute_sort_key(layer, shader, material, mesh, depth, transparent): uint64
+        -compute_sort_key(layer, pipeline, material, mesh, depth, transparent): uint64
         -compute_normal_matrix(world: mat4): mat3
     }
 
@@ -144,6 +144,7 @@ namespace Bridge {
         +normal_matrix: mat3
         +mesh: MeshRef
         +material: MaterialRef
+        +pipeline: PipelineRef
         +sort_key: uint64_t
     }
 
@@ -179,7 +180,11 @@ namespace ResourceSide {
         +register_shader_family(id: ShaderFamilyId, family: ShaderFamily)
         +register_shader_variant(key: ShaderVariantKey): ShaderProgramRef
         +get_shader(ref: ShaderProgramRef): ShaderProgram
-        +get_vao(vbo_arenas: BufferArenaRef[], ebo_arena: BufferArenaRef, layout: VertexLayoutRef): uint32
+        +register_pipeline(descriptor: PipelineDescriptor): PipelineRef
+        +get_pipeline(ref: PipelineRef): PipelineDescriptor
+        +create_render_target(color: TextureRef, with_depth: bool): RenderTargetRef
+        +get_render_target(ref: RenderTargetRef): RenderTarget
+        +destroy_render_target(ref: RenderTargetRef)
         +begin_frame(frame: uint64_t)
         +collect_garbage(completed_frame: uint64_t)
         -arenas: GenerationalPool
@@ -187,7 +192,9 @@ namespace ResourceSide {
         -materials: GenerationalPool
         -shaders: GenerationalPool
         -textures: GenerationalPool
+        -render_targets: GenerationalPool
         -layout_registry: LayoutRegistry
+        -pipeline_registry: PipelineRegistry
         -vao_cache: VaoCache
         -shader_library: ShaderLibrary
         -deletions: DeletionQueue
@@ -284,12 +291,11 @@ namespace ResourceSide {
     }
 
     class Mesh {
-        +vao: uint32_t
+        +binding: GeometryBinding
         +streams: vector~SharedBuffer~
         +layout: VertexLayoutRef
         +ebo: SharedBuffer
         +index_type: IndexType
-        +primitive: PrimitiveType
     }
 
     class SharedBuffer {
@@ -319,11 +325,28 @@ namespace ResourceSide {
     }
 
     class Material {
-        +shader: ShaderProgramRef
+        +pipeline: PipelineRef
         +parameter_data: vector~uint8_t~
         +ubo: BufferHandle
         +textures: vector~TextureRef~
-        +transparent: bool
+        +queue: RenderQueue
+    }
+
+    class PipelineDescriptor {
+        +shader: ShaderProgramRef
+        +layout: VertexLayoutRef
+        +primitive: TopologyType
+        +queue: RenderQueue
+        +depth: DepthState
+        +blend: BlendState
+        +raster: RasterState
+    }
+
+    class RenderTarget {
+        +framebuffer: FramebufferHandle
+        +color: TextureRef
+        +depth: TextureRef
+        +size: Size2I
     }
 
     class ShaderProgram {

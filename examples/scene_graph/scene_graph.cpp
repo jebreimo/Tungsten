@@ -24,6 +24,7 @@
 #include <iostream>
 #include <Argos/Argos.hpp>
 #include <Tungsten/Tungsten.hpp>
+#include <Tungsten/Gl/IOglWrapper.hpp>
 #include <Xyz/Mesh/BuildMesh.hpp>
 
 namespace
@@ -66,14 +67,18 @@ namespace
             const auto shader = resources_.register_shader_variant(
                 {BLINN_PHONG_FAMILY, 0});
 
+            const auto layout = cube_layout();
+            const auto opaque = make_pipeline(shader, layout, false);
+            const auto blended = make_pipeline(shader, layout, true);
+
             const auto gold = make_material(
-                shader, false,
+                opaque,
                 make_blinn_phong_material_params(StandardColorMaterial::GOLD));
             const auto slate = make_material(
-                shader, false,
+                opaque,
                 make_blinn_phong_material_params(StandardColorMaterial::SLATE));
             const auto glass = make_material(
-                shader, true,
+                blended,
                 make_blinn_phong_material_params(StandardColorMaterial::COPPER,
                                                  0.4f));
 
@@ -166,11 +171,13 @@ namespace
 
         void on_draw() override
         {
-            set_face_culling_enabled(true);
-            set_clear_color({0.12f, 0.13f, 0.16f, 1.0f});
-            clear(ClearBits::COLOR_DEPTH);
             const auto viewport = application().viewport();
-            set_viewport(viewport);
+            // Where to draw and what to do with the surface around the draw.
+            // Culling is no longer set here: it travels on each pipeline.
+            const RenderPassDescriptor pass{
+                .viewport = viewport,
+                .color = {.clear_color = {0.12f, 0.13f, 0.16f, 1.0f}}
+            };
             camera_.get<CameraComponent>().aspect = viewport.aspect_ratio();
 
             resources_.begin_frame(frame_);
@@ -184,7 +191,7 @@ namespace
                 Tungsten::srgb_to_linear(Xyz::Vector3F{0.35f, 0.35f, 0.38f});
             snapshots.swap();
 
-            renderer_.render(snapshots.front());
+            renderer_.render(snapshots.front(), pass);
 
             // Single-threaded: the frame just drawn is complete (§11).
             resources_.collect_garbage(frame_);
@@ -194,14 +201,51 @@ namespace
         }
 
     private:
-        MaterialRef make_material(ShaderProgramRef shader, bool transparent,
+        // Appearance that is fixed before the draw — the program, the vertex
+        // input, and the depth/blend/raster state — is registered once as a
+        // pipeline. A transparent one blends and leaves depth writes off, so
+        // blended surfaces do not occlude each other.
+        PipelineRef make_pipeline(ShaderProgramRef shader,
+                                  VertexLayoutRef layout, bool transparent)
+        {
+            PipelineDescriptor pipeline;
+            pipeline.shader = shader;
+            pipeline.layout = layout;
+            pipeline.raster.cull_enabled = true;
+            if (transparent)
+            {
+                pipeline.queue = RenderQueue::TRANSPARENT;
+                pipeline.depth.write = false;
+                pipeline.blend = {
+                    .enabled = true,
+                    .src_color = BlendFunction::SRC_ALPHA,
+                    .dst_color = BlendFunction::ONE_MINUS_SRC_ALPHA,
+                    .src_alpha = BlendFunction::SRC_ALPHA,
+                    .dst_alpha = BlendFunction::ONE_MINUS_SRC_ALPHA
+                };
+            }
+            return resources_.register_pipeline(pipeline);
+        }
+
+        MaterialRef make_material(PipelineRef pipeline,
                                   std::vector<std::byte> params)
         {
             Material material;
-            material.shader = shader;
+            material.pipeline = pipeline;
             material.parameter_data = std::move(params);
-            material.transparent = transparent;
             return resources_.create_material(std::move(material));
+        }
+
+        // The one vertex packing this example uses. Both the mesh and the
+        // pipeline name it: a pipeline pins how attributes are packed, so the
+        // two have to agree.
+        VertexLayoutRef cube_layout()
+        {
+            return resources_.register_layout(VertexLayoutBuilder()
+                .add_attribute(AttributeSemantic::POSITION)
+                .add_attribute(AttributeSemantic::NORMAL)
+                .add_attribute(AttributeSemantic::TEX_COORD_0)
+                .build());
         }
 
         MeshRef make_cube_mesh()
@@ -210,11 +254,7 @@ namespace
 
             constexpr size_t STRIDE = 8; // 3 coords + 3 normals + 2 tex coords
 
-            const auto layout = resources_.register_layout(VertexLayoutBuilder()
-                .add_attribute(AttributeSemantic::POSITION)
-                .add_attribute(AttributeSemantic::NORMAL)
-                .add_attribute(AttributeSemantic::TEX_COORD_0)
-                .build());
+            const auto layout = cube_layout();
             vbo_arena_ = resources_.create_arena(
                 BufferUsage::STATIC_DRAW, STRIDE * sizeof(float),
                 uint32_t(vertexes.size() / STRIDE));
@@ -237,13 +277,10 @@ namespace
                               indexes.size() * sizeof(uint16_t));
 
             Mesh mesh;
-            const BufferArenaRef vbos[] = {vbo_arena_};
-            mesh.vao = resources_.get_vao(vbos, ebo_arena_, layout);
             mesh.streams = {vertices};
             mesh.layout = layout;
             mesh.ebo = indices;
             mesh.index_type = ElementIndexType::UINT16;
-            mesh.primitive = TopologyType::TRIANGLES;
             return resources_.create_mesh(std::move(mesh));
         }
 

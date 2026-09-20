@@ -6,7 +6,20 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include <cstdint>
 #include <Xyz/Vector.hpp>
+#include "../Detail/GenericBitmaskOperators.hpp"
+
+/**
+ * @file
+ * The graphics vocabulary shared by every layer above the backend.
+ *
+ * Nothing here names an OpenGL type or constant: these are the neutral
+ * descriptions of formats, buffers, samplers and fixed-function state that the
+ * resource, scene-graph and rendering layers speak. Translating them into GL
+ * enums is the backend's job and happens in one place,
+ * src/Tungsten/Gl/GlTypeConversion.hpp.
+ */
 
 namespace Tungsten
 {
@@ -17,12 +30,19 @@ namespace Tungsten
     {
         R,
         RGB,
-        RGBA
+        RGBA,
+        /**
+         * A depth buffer. Only meaningful as a render target's depth
+         * attachment; there is nothing to upload into one.
+         */
+        DEPTH
     };
 
     enum class TextureValueType
     {
         UINT8,
+        /** 32-bit unsigned, used for depth attachments. */
+        UINT32,
         FLOAT
     };
 
@@ -123,6 +143,11 @@ namespace Tungsten
         SWIZZLE_A,
     };
 
+    /**
+     * Note when porting: TRIANGLE_FAN and LINE_LOOP have no Metal equivalent.
+     * Neither is used by the scene-graph path — both reach the GL only through
+     * the draw_polygon_* convenience wrappers in Gl/GlRendering.hpp.
+     */
     enum class TopologyType
     {
         POINTS,
@@ -224,4 +249,62 @@ namespace Tungsten
         BACK,
         FRONT_AND_BACK
     };
+
+    /**
+     * How a fragment's depth is compared against the depth buffer.
+     *
+     * Distinct from SamplerCompareFunction, which has a NONE member meaning
+     * "this sampler does no comparison at all". A depth test that is not
+     * wanted is turned off with DepthState::test, not spelled here.
+     */
+    enum class CompareFunction
+    {
+        NEVER,
+        LESS,
+        EQUAL,
+        LEQUAL,
+        GREATER,
+        NOTEQUAL,
+        GEQUAL,
+        ALWAYS
+    };
+
+    /**
+     * How a blend's source and destination terms are combined, once each has
+     * been scaled by its BlendFunction. All five are core in GLES 3.0.
+     */
+    enum class BlendEquation
+    {
+        ADD,
+        SUBTRACT,
+        REVERSE_SUBTRACT,
+        MIN,
+        MAX
+    };
+
+    /**
+     * Which winding a front face has. The scene's meshes are wound
+     * counter-clockwise, which is also the GL default.
+     */
+    enum class FrontFace
+    {
+        COUNTER_CLOCKWISE,
+        CLOCKWISE
+    };
+
+    /**
+     * Which colour channels a draw is allowed to write.
+     */
+    enum class ColorWriteMask : uint8_t
+    {
+        NONE = 0,
+        RED = 1,
+        GREEN = 2,
+        BLUE = 4,
+        ALPHA = 8,
+        RGB = RED | GREEN | BLUE,
+        ALL = RGB | ALPHA
+    };
+
+    TUNGSTEN_ENABLE_BITMASK_OPERATORS(ColorWriteMask);
 }

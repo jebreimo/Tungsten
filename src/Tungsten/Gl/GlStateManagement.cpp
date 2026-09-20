@@ -9,6 +9,7 @@
 
 #include <GL/glew.h>
 #include "Tungsten/Gl/IOglWrapper.hpp"
+#include "GlQueries.hpp"
 #include "GlTypeConversion.hpp"
 #include "../ExceptionHelpers.hpp"
 
@@ -34,6 +35,25 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
+    void set_blend_function_separate(BlendFunction src_color,
+                                     BlendFunction dst_color,
+                                     BlendFunction src_alpha,
+                                     BlendFunction dst_alpha)
+    {
+        get_ogl_wrapper().blend_func_separate(to_ogl_blend_function(src_color),
+                                              to_ogl_blend_function(dst_color),
+                                              to_ogl_blend_function(src_alpha),
+                                              to_ogl_blend_function(dst_alpha));
+        THROW_IF_GL_ERROR();
+    }
+
+    void set_blend_equation(BlendEquation color, BlendEquation alpha)
+    {
+        get_ogl_wrapper().blend_equation_separate(to_ogl_blend_equation(color),
+                                                  to_ogl_blend_equation(alpha));
+        THROW_IF_GL_ERROR();
+    }
+
     bool is_depth_test_enabled()
     {
         return is_enabled(GL_DEPTH_TEST);
@@ -42,6 +62,12 @@ namespace Tungsten
     void set_depth_test_enabled(bool enabled)
     {
         set_enabled(GL_DEPTH_TEST, enabled);
+    }
+
+    void set_depth_function(CompareFunction func)
+    {
+        get_ogl_wrapper().depth_func(to_ogl_compare_function(func));
+        THROW_IF_GL_ERROR();
     }
 
     bool is_depth_mask_enabled()
@@ -71,6 +97,25 @@ namespace Tungsten
         THROW_IF_GL_ERROR();
     }
 
+    void set_front_face(FrontFace front_face)
+    {
+        get_ogl_wrapper().front_face(to_ogl_front_face(front_face));
+        THROW_IF_GL_ERROR();
+    }
+
+    void set_color_write_mask(ColorWriteMask mask)
+    {
+        const auto on = [&](ColorWriteMask bit)
+        {
+            return (mask & bit) != ColorWriteMask::NONE ? GL_TRUE : GL_FALSE;
+        };
+        get_ogl_wrapper().color_mask(on(ColorWriteMask::RED),
+                                     on(ColorWriteMask::GREEN),
+                                     on(ColorWriteMask::BLUE),
+                                     on(ColorWriteMask::ALPHA));
+        THROW_IF_GL_ERROR();
+    }
+
     bool is_multisampling_enabled()
     {
         return is_enabled(GL_MULTISAMPLE);
@@ -79,6 +124,22 @@ namespace Tungsten
     void set_multisampling_enabled(bool enabled)
     {
         set_enabled(GL_MULTISAMPLE, enabled);
+    }
+
+    bool is_scissor_enabled()
+    {
+        return is_enabled(GL_SCISSOR_TEST);
+    }
+
+    void set_scissor_enabled(bool enabled)
+    {
+        set_enabled(GL_SCISSOR_TEST, enabled);
+    }
+
+    void set_scissor(int x, int y, int width, int height)
+    {
+        get_ogl_wrapper().scissor(x, y, width, height);
+        THROW_IF_GL_ERROR();
     }
 
     void set_viewport(int x, int y, int width, int height)
@@ -91,76 +152,6 @@ namespace Tungsten
     {
         set_viewport(int(viewport.origin.x()), int(viewport.origin.y()),
                      int(viewport.size.x()), int(viewport.size.y()));
-    }
-
-    bool get_boolean_value(unsigned parameter_name)
-    {
-        GLboolean value;
-        get_ogl_wrapper().get_boolean(parameter_name, &value);
-        THROW_IF_GL_ERROR();
-        return value;
-    }
-
-    float get_float_value(unsigned parameter_name)
-    {
-        float value;
-        get_ogl_wrapper().get_float(parameter_name, &value);
-        THROW_IF_GL_ERROR();
-        return value;
-    }
-
-    int32_t get_int32_value(unsigned parameter_name)
-    {
-        // Zero-initialized because the dummy and Emscripten backends may
-        // leave the output untouched; returning an indeterminate value from a
-        // query that "succeeded" is worse than returning zero.
-        int32_t value = 0;
-        get_ogl_wrapper().get_integer(parameter_name, &value);
-        THROW_IF_GL_ERROR();
-        return value;
-    }
-
-    int64_t get_int64_value(unsigned parameter_name)
-    {
-        int64_t value = 0;
-        get_ogl_wrapper().get_integer64(parameter_name, &value);
-        THROW_IF_GL_ERROR();
-        return value;
-    }
-
-    std::string get_string_value(unsigned parameter_name)
-    {
-        const auto str = reinterpret_cast<const char*>(get_ogl_wrapper().
-            get_string(parameter_name));
-        THROW_IF_GL_ERROR();
-        return str ? str : "";
-    }
-
-    bool is_enabled(unsigned capability)
-    {
-        const auto result = get_ogl_wrapper().is_enabled(capability) != 0;
-        THROW_IF_GL_ERROR();
-        return result;
-    }
-
-    void set_enabled(unsigned capability, bool enabled)
-    {
-        if (enabled)
-            enable(capability);
-        else
-            disable(capability);
-    }
-
-    void enable(unsigned capability)
-    {
-        get_ogl_wrapper().enable(capability);
-        THROW_IF_GL_ERROR();
-    }
-
-    void disable(unsigned capability)
-    {
-        get_ogl_wrapper().disable(capability);
-        THROW_IF_GL_ERROR();
     }
 
     BlendRestorer::BlendRestorer()

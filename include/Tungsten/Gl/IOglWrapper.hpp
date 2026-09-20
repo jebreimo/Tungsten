@@ -92,6 +92,9 @@ namespace Tungsten
 
         virtual GLuint create_shader(GLenum type) = 0;
 
+        virtual void color_mask(GLboolean red, GLboolean green,
+                                GLboolean blue, GLboolean alpha) = 0;
+
         virtual void cull_face(GLenum mode) = 0;
 
         virtual void delete_buffers(GLsizei n, const GLuint* buffers) = 0;
@@ -108,9 +111,13 @@ namespace Tungsten
 
         virtual void delete_vertex_arrays(GLsizei n, const GLuint* arrays) = 0;
 
+        virtual void depth_func(GLenum func) = 0;
+
         virtual void depth_mask(GLboolean flag) = 0;
 
         virtual void disable(GLenum cap) = 0;
+
+        virtual void front_face(GLenum mode) = 0;
 
         virtual void disable_vertex_attrib_array(GLuint index) = 0;
 
@@ -266,6 +273,12 @@ namespace Tungsten
         virtual void vertex_attrib_pointer(GLuint index, GLint size, GLenum type,
                                            GLboolean normalized, GLsizei stride,
                                            const void* pointer) = 0;
+
+        virtual void scissor(GLint x, GLint y,
+                             GLsizei width, GLsizei height) = 0;
+
+        virtual void invalidate_framebuffer(GLenum target, GLsizei count,
+                                            const GLenum* attachments) = 0;
 
         virtual void viewport(GLint x, GLint y, GLsizei width, GLsizei height) = 0;
     };

@@ -7,7 +7,7 @@
 //****************************************************************************
 #pragma once
 #include <cstdint>
-#include "Tungsten/Gl/GlTypes.hpp"
+#include "Tungsten/Gpu/GpuTypes.hpp"
 
 namespace Tungsten
 {

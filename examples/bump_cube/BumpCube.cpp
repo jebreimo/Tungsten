@@ -24,6 +24,7 @@
 #include <iostream>
 #include <vector>
 #include <Tungsten/Tungsten.hpp>
+#include <Tungsten/Gl/IOglWrapper.hpp>
 #include <Xyz/Mesh/BuildMesh.hpp>
 
 namespace
@@ -122,10 +123,19 @@ namespace
 
             const auto mesh = make_cube_mesh();
 
+            // Both cubes draw through one pipeline: they differ only in their
+            // material parameters and textures, which is material state, not
+            // pipeline state.
+            PipelineDescriptor descriptor;
+            descriptor.shader = shader;
+            descriptor.layout = cube_layout();
+            descriptor.raster.cull_enabled = true;
+            const auto pipeline = resources_.register_pipeline(descriptor);
+
             // Same colour material for both, so every visible difference comes
             // from the normal map.
-            const auto bumped = make_material(shader, 1.0f, true);
-            const auto plain = make_material(shader, 0.0f, false);
+            const auto bumped = make_material(pipeline, 1.0f, true);
+            const auto plain = make_material(pipeline, 0.0f, false);
 
             hub_ = scene_.add_node();
             add_cube(mesh, bumped, -HALF_GAP);
@@ -166,12 +176,11 @@ namespace
 
         void on_draw() override
         {
-            set_depth_test_enabled(true);
-            set_face_culling_enabled(true);
-            set_clear_color({0.14f, 0.15f, 0.18f, 1.0f});
-            clear(ClearBits::COLOR_DEPTH);
             const auto viewport = application().viewport();
-            set_viewport(viewport);
+            const RenderPassDescriptor pass{
+                .viewport = viewport,
+                .color = {.clear_color = {0.14f, 0.15f, 0.18f, 1.0f}}
+            };
             camera_.get<CameraComponent>().aspect = viewport.aspect_ratio();
 
             resources_.begin_frame(frame_);
@@ -184,7 +193,7 @@ namespace
                 srgb_to_linear(Xyz::Vector3F{0.30f, 0.30f, 0.33f});
             snapshots_.swap();
 
-            renderer_.render(snapshots_.front());
+            renderer_.render(snapshots_.front(), pass);
 
             set_ogl_tracing_enabled(false);
 
@@ -201,11 +210,11 @@ namespace
          *      textures to consecutive units, so the normal map can only reach
          *      unit 2 behind two others — hence the white filler.
          */
-        MaterialRef make_material(ShaderProgramRef shader, float strength,
+        MaterialRef make_material(PipelineRef pipeline, float strength,
                                   bool with_map)
         {
             Material material;
-            material.shader = shader;
+            material.pipeline = pipeline;
             material.parameter_data = make_blinn_phong_material_params(
                 StandardColorMaterial::COPPER, 1.0f, strength);
             // The renderer binds textures to consecutive units, so the normal
@@ -240,18 +249,25 @@ namespace
             return normal_map_;
         }
 
+        // Named by both the mesh and the pipeline: a pipeline pins how the
+        // attributes are packed, so the two have to agree.
+        VertexLayoutRef cube_layout()
+        {
+            return resources_.register_layout(
+                VertexLayoutBuilder()
+                    .add_attribute(AttributeSemantic::POSITION)
+                    .add_attribute(AttributeSemantic::NORMAL)
+                    .add_attribute(AttributeSemantic::TEX_COORD_0)
+                    .build());
+        }
+
         MeshRef make_cube_mesh()
         {
             auto [indexes, vertexes] = ::make_cube_mesh();
 
             constexpr size_t STRIDE = 8; // 3 coords + 3 normals + 2 tex coords
 
-            const auto layout = resources_.register_layout(
-                VertexLayoutBuilder()
-                    .add_attribute(AttributeSemantic::POSITION)
-                    .add_attribute(AttributeSemantic::NORMAL)
-                    .add_attribute(AttributeSemantic::TEX_COORD_0)
-                    .build());
+            const auto layout = cube_layout();
             vbo_arena_ = resources_.create_arena(
                 BufferUsage::STATIC_DRAW, STRIDE * sizeof(float),
                 uint32_t(vertexes.size() / STRIDE));
@@ -275,13 +291,10 @@ namespace
                               indexes.size() * sizeof(uint16_t));
 
             Mesh mesh;
-            const BufferArenaRef vbos[] = {vbo_arena_};
-            mesh.vao = resources_.get_vao(vbos, ebo_arena_, layout);
             mesh.streams = {vertices};
             mesh.layout = layout;
             mesh.ebo = indices;
             mesh.index_type = ElementIndexType::UINT16;
-            mesh.primitive = TopologyType::TRIANGLES;
             return resources_.create_mesh(std::move(mesh));
         }
 

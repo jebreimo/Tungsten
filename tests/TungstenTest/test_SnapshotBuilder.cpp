@@ -189,7 +189,9 @@ TEST_CASE("SnapshotBuilder: transparent materials go to the transparent list")
 {
     Bench bench;
     Material material;
-    material.transparent = true;
+    // Set directly rather than folded from a pipeline: this bench has no GL
+    // context, so it registers no shader and therefore no pipeline.
+    material.queue = RenderQueue::TRANSPARENT;
     const auto transparent_material = bench.resources.create_material(
         std::move(material));
 
@@ -219,7 +221,9 @@ TEST_CASE("SnapshotBuilder: transparent sort keys order back-to-front")
 {
     Bench bench;
     Material material;
-    material.transparent = true;
+    // Set directly rather than folded from a pipeline: this bench has no GL
+    // context, so it registers no shader and therefore no pipeline.
+    material.queue = RenderQueue::TRANSPARENT;
     const auto transparent_material = bench.resources.create_material(
         std::move(material));
     const auto near = bench.add_renderable(0, 0, -5);

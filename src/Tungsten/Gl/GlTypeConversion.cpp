@@ -121,6 +121,8 @@ namespace Tungsten
             return GL_RGB;
         case TextureFormat::RGBA:
             return GL_RGBA;
+        case TextureFormat::DEPTH:
+            return GL_DEPTH_COMPONENT;
         default:
             TUNGSTEN_THROW(
                 "Unsupported texture format: " + std::to_string(static_cast<int>(format)));
@@ -133,6 +135,11 @@ namespace Tungsten
         // been given here — notably GL_LUMINANCE, which is how single-channel
         // textures reach WebGL. sRGB has no unsized spelling, so those are the
         // only formats named explicitly.
+        // Depth needs a sized internal format: the unsized spelling is not a
+        // colour-renderable or depth-renderable format in GLES 3.0.
+        if (format.format == TextureFormat::DEPTH)
+            return GL_DEPTH_COMPONENT24;
+
         if (format.color_space == ColorSpace::LINEAR)
             return static_cast<GLint>(to_ogl_texture_format(format.format));
 
@@ -160,6 +167,8 @@ namespace Tungsten
         {
         case TextureValueType::UINT8:
             return GL_UNSIGNED_BYTE;
+        case TextureValueType::UINT32:
+            return GL_UNSIGNED_INT;
         case TextureValueType::FLOAT:
             return GL_FLOAT;
         default:
@@ -367,6 +376,51 @@ namespace Tungsten
         default:
             TUNGSTEN_THROW("Unsupported cull mode: "
                 + std::to_string(static_cast<int>(mode)));
+        }
+    }
+
+    GLenum to_ogl_compare_function(CompareFunction func)
+    {
+        switch (func)
+        {
+        case CompareFunction::NEVER: return GL_NEVER;
+        case CompareFunction::LESS: return GL_LESS;
+        case CompareFunction::EQUAL: return GL_EQUAL;
+        case CompareFunction::LEQUAL: return GL_LEQUAL;
+        case CompareFunction::GREATER: return GL_GREATER;
+        case CompareFunction::NOTEQUAL: return GL_NOTEQUAL;
+        case CompareFunction::GEQUAL: return GL_GEQUAL;
+        case CompareFunction::ALWAYS: return GL_ALWAYS;
+        default:
+            TUNGSTEN_THROW("Unsupported compare function: "
+                + std::to_string(static_cast<int>(func)));
+        }
+    }
+
+    GLenum to_ogl_blend_equation(BlendEquation equation)
+    {
+        switch (equation)
+        {
+        case BlendEquation::ADD: return GL_FUNC_ADD;
+        case BlendEquation::SUBTRACT: return GL_FUNC_SUBTRACT;
+        case BlendEquation::REVERSE_SUBTRACT: return GL_FUNC_REVERSE_SUBTRACT;
+        case BlendEquation::MIN: return GL_MIN;
+        case BlendEquation::MAX: return GL_MAX;
+        default:
+            TUNGSTEN_THROW("Unsupported blend equation: "
+                + std::to_string(static_cast<int>(equation)));
+        }
+    }
+
+    GLenum to_ogl_front_face(FrontFace front_face)
+    {
+        switch (front_face)
+        {
+        case FrontFace::COUNTER_CLOCKWISE: return GL_CCW;
+        case FrontFace::CLOCKWISE: return GL_CW;
+        default:
+            TUNGSTEN_THROW("Unsupported front face winding: "
+                + std::to_string(static_cast<int>(front_face)));
         }
     }
 

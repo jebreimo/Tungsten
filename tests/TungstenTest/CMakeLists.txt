@@ -21,6 +21,7 @@ add_executable(TungstenTest
     test_FontUtilities.cpp
     test_GenerationalPool.cpp
     test_GlStateCache.cpp
+    test_PipelineRegistry.cpp
     test_Renderer.cpp
     test_ResourceManager.cpp
     test_SdlApplication.cpp

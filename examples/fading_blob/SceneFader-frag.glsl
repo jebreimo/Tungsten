@@ -14,12 +14,20 @@ precision highp float;
 
 in vec2 v_tex_position;
 uniform sampler2D u_texture;
-uniform vec3 u_color_delta;
+
+// binding 1 — per-material. The ShaderLibrary binds this block by name after
+// linking, so a hand-written shader joins in simply by calling it
+// MaterialBlock. rgb is the per-frame colour step; w is unused.
+layout (std140) uniform MaterialBlock
+{
+    vec4 u_color_delta;
+};
+
 out vec4 fragColor;
 
 void main()
 {
     vec4 tex_color = texture(u_texture, v_tex_position);
-    vec3 result = max(tex_color.rgb + u_color_delta, vec3(0.0));
+    vec3 result = max(tex_color.rgb + u_color_delta.rgb, vec3(0.0));
     fragColor = vec4(result, 1.0);
 }

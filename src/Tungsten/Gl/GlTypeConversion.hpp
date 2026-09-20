@@ -7,7 +7,7 @@
 //****************************************************************************
 #pragma once
 #include <GL/glew.h>
-#include "Tungsten/Gl/GlTypes.hpp"
+#include "Tungsten/Gpu/GpuTypes.hpp"
 
 namespace Tungsten
 {
@@ -52,6 +52,12 @@ namespace Tungsten
     GLenum to_ogl_blend_function(BlendFunction blend_function);
 
     GLenum to_ogl_cull_mode(FaceCullingMode mode);
+
+    GLenum to_ogl_compare_function(CompareFunction func);
+
+    GLenum to_ogl_blend_equation(BlendEquation equation);
+
+    GLenum to_ogl_front_face(FrontFace front_face);
 
     GLint to_ogl_texture_compare_func(SamplerCompareFunction func);
 

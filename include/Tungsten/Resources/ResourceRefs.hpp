@@ -24,4 +24,8 @@ namespace Tungsten
     using VertexLayoutRef = ResourceRef<VertexLayout>;
     struct SamplerDescriptor;
     using SamplerRef = ResourceRef<SamplerDescriptor>;
+    struct PipelineDescriptor;
+    using PipelineRef = ResourceRef<PipelineDescriptor>;
+    struct RenderTarget;
+    using RenderTargetRef = ResourceRef<RenderTarget>;
 }

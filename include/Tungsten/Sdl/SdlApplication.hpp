@@ -13,7 +13,7 @@
 #include "EventLoop.hpp"
 #include "SdlSession.hpp"
 #include "../Viewport.hpp"
-#include "../Gl/GlTypes.hpp"
+#include "../Gpu/GpuTypes.hpp"
 #include "WindowParameters.hpp"
 
 namespace argos

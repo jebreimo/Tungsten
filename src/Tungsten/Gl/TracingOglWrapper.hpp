@@ -197,6 +197,13 @@ namespace Tungsten
             return wrapper->create_shader(type);
         }
 
+        void color_mask(GLboolean red, GLboolean green,
+                        GLboolean blue, GLboolean alpha) override
+        {
+            log("glColorMask({}, {}, {}, {})", red, green, blue, alpha);
+            wrapper->color_mask(red, green, blue, alpha);
+        }
+
         void cull_face(GLenum mode) override
         {
             log("glCullFace({})", mode);
@@ -245,6 +252,12 @@ namespace Tungsten
             wrapper->delete_vertex_arrays(n, arrays);
         }
 
+        void depth_func(GLenum func) override
+        {
+            log("glDepthFunc({})", func);
+            wrapper->depth_func(func);
+        }
+
         void depth_mask(GLboolean flag) override
         {
             log("glDepthMask({})", flag);
@@ -255,6 +268,12 @@ namespace Tungsten
         {
             log("glDisable({})", cap);
             wrapper->disable(cap);
+        }
+
+        void front_face(GLenum mode) override
+        {
+            log("glFrontFace({})", mode);
+            wrapper->front_face(mode);
         }
 
         void disable_vertex_attrib_array(GLuint index) override
@@ -681,6 +700,20 @@ namespace Tungsten
             log("glVertexAttribPointer({}, {}, {}, {}, {}, {})", index, size, type, normalized,
                 stride, static_cast<const void*>(pointer));
             wrapper->vertex_attrib_pointer(index, size, type, normalized, stride, pointer);
+        }
+
+        void scissor(GLint x, GLint y,
+                     GLsizei width, GLsizei height) override
+        {
+            log("glScissor({}, {}, {}, {})", x, y, width, height);
+            wrapper->scissor(x, y, width, height);
+        }
+
+        void invalidate_framebuffer(GLenum target, GLsizei count,
+                                    const GLenum* attachments) override
+        {
+            log("glInvalidateFramebuffer({}, {})", target, count);
+            wrapper->invalidate_framebuffer(target, count, attachments);
         }
 
         void viewport(GLint x, GLint y, GLsizei width, GLsizei height) override

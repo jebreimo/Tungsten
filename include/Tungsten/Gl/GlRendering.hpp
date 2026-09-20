@@ -7,7 +7,7 @@
 //****************************************************************************
 #pragma once
 #include <Xyz/Vector.hpp>
-#include "GlTypes.hpp"
+#include "../Gpu/GpuTypes.hpp"
 #include "../Detail/GenericBitmaskOperators.hpp"
 
 namespace Tungsten

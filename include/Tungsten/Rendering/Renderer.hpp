@@ -7,6 +7,7 @@
 //****************************************************************************
 #pragma once
 #include <memory>
+#include "RenderPassDescriptor.hpp"
 #include "RenderSnapshot.hpp"
 
 namespace Tungsten
@@ -27,8 +28,9 @@ namespace Tungsten
      * Draw order: the items' sort keys are precomputed by the SnapshotBuilder
      * and the renderer only sorts — ascending, and by *pointer* into the
      * snapshot, which therefore stays read-only. The opaque list draws first
-     * (front-to-back, batching state changes), then the transparent list with
-     * blending enabled (back-to-front).
+     * (front-to-back, batching state changes), then the transparent list
+     * (back-to-front). Both draw in one loop: each item's depth, blend and
+     * raster state travels on its pipeline rather than being toggled per pass.
      */
     class Renderer
     {
@@ -49,7 +51,15 @@ namespace Tungsten
         Renderer(const Renderer&) = delete;
         Renderer& operator=(const Renderer&) = delete;
 
-        void render(const RenderSnapshot& snapshot);
+        /**
+         * Draws @a snapshot into the pass's target.
+         *
+         * The pass says where to draw and what to do with the surface around
+         * the draw — clearing it, the viewport, an optional scissor — so an
+         * application never touches global GL state to set those up.
+         */
+        void render(const RenderSnapshot& snapshot,
+                    const RenderPassDescriptor& pass);
 
     private:
         struct Members;

@@ -59,6 +59,16 @@ namespace Tungsten
         material_ = material;
     }
 
+    PipelineRef RenderItem::pipeline() const
+    {
+        return pipeline_;
+    }
+
+    void RenderItem::set_pipeline(PipelineRef pipeline)
+    {
+        pipeline_ = pipeline;
+    }
+
     uint64_t RenderItem::sort_key() const
     {
         return sort_key_;

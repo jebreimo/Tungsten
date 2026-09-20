@@ -8,6 +8,7 @@
 #include <iostream>
 #include <Argos/Argos.hpp>
 #include <Tungsten/Tungsten.hpp>
+#include <Tungsten/Gl/IOglWrapper.hpp>
 #include <Yconvert/Convert.hpp>
 #include <Ystring/Ystring.hpp>
 
@@ -61,8 +62,9 @@ namespace
             const auto shader = resources_.register_shader_variant(
                 {.family = Tungsten::BLINN_PHONG_FAMILY});
 
+            const auto pipeline = make_pipeline(shader, cube_layout());
             const auto gold = make_material(
-                shader, false,
+                pipeline,
                 Tungsten::make_blinn_phong_material_params(
                     Tungsten::StandardColorMaterial::GOLD,
                     1.0f));
@@ -105,12 +107,13 @@ namespace
 
         void on_draw() override
         {
-            Tungsten::set_depth_test_enabled(true);
-            Tungsten::set_face_culling_enabled(true);
-            Tungsten::set_clear_color({0.2f, 0.3f, 0.3f, 1.0f});
-            Tungsten::clear(Tungsten::ClearBits::COLOR_DEPTH);
             const auto viewport = application().viewport();
-            Tungsten::set_viewport(viewport);
+            // Depth and culling are no longer set here: they travel on the
+            // pipeline each material names.
+            const Tungsten::RenderPassDescriptor pass{
+                .viewport = viewport,
+                .color = {.clear_color = {0.2f, 0.3f, 0.3f, 1.0f}}
+            };
             camera_.get<Tungsten::CameraComponent>().aspect = viewport.aspect_ratio();
 
             resources_.begin_frame(frame_);
@@ -126,7 +129,7 @@ namespace
                 Tungsten::srgb_to_linear(Xyz::Vector3F{0.35f, 0.35f, 0.38f});
             snapshots.swap();
 
-            renderer_.render(snapshots.front());
+            renderer_.render(snapshots.front(), pass);
 
             Tungsten::set_ogl_tracing_enabled(false);
 
@@ -136,16 +139,38 @@ namespace
         }
 
     private:
-        Tungsten::MaterialRef make_material(Tungsten::ShaderProgramRef shader,
-                                            bool transparent,
+        // Everything fixed before the draw call — the program, the vertex
+        // input and the fixed-function state — registered once as a pipeline.
+        Tungsten::PipelineRef make_pipeline(Tungsten::ShaderProgramRef shader,
+                                            Tungsten::VertexLayoutRef layout)
+        {
+            Tungsten::PipelineDescriptor pipeline;
+            pipeline.shader = shader;
+            pipeline.layout = layout;
+            pipeline.raster.cull_enabled = true;
+            return resources_.register_pipeline(pipeline);
+        }
+
+        Tungsten::MaterialRef make_material(Tungsten::PipelineRef pipeline,
                                             std::vector<std::byte> params)
         {
             Tungsten::Material material;
-            material.shader = shader;
+            material.pipeline = pipeline;
             material.parameter_data = std::move(params);
-            material.transparent = transparent;
             material.textures = {make_texture(get_image())};
             return resources_.create_material(std::move(material));
+        }
+
+        // Named by both the mesh and the pipeline: a pipeline pins how the
+        // attributes are packed, so the two have to agree.
+        Tungsten::VertexLayoutRef cube_layout()
+        {
+            return resources_.register_layout(
+                Tungsten::VertexLayoutBuilder()
+                    .add_attribute(Tungsten::AttributeSemantic::POSITION)
+                    .add_attribute(Tungsten::AttributeSemantic::NORMAL)
+                    .add_attribute(Tungsten::AttributeSemantic::TEX_COORD_0)
+                    .build());
         }
 
         Tungsten::MeshRef make_cube_mesh()
@@ -154,12 +179,7 @@ namespace
 
             constexpr size_t STRIDE = 8; // 3 coords + 3 normals + 2 tex coords
 
-            const auto layout = resources_.register_layout(
-                Tungsten::VertexLayoutBuilder()
-                    .add_attribute(Tungsten::AttributeSemantic::POSITION)
-                    .add_attribute(Tungsten::AttributeSemantic::NORMAL)
-                    .add_attribute(Tungsten::AttributeSemantic::TEX_COORD_0)
-                    .build());
+            const auto layout = cube_layout();
             vbo_arena_ = resources_.create_arena(
                 Tungsten::BufferUsage::STATIC_DRAW, STRIDE * sizeof(float),
                 uint32_t(vertexes.size() / STRIDE));
@@ -182,13 +202,10 @@ namespace
                               indexes.size() * sizeof(uint16_t));
 
             Tungsten::Mesh mesh;
-            const Tungsten::BufferArenaRef vbos[] = {vbo_arena_};
-            mesh.vao = resources_.get_vao(vbos, ebo_arena_, layout);
             mesh.streams = {vertices};
             mesh.layout = layout;
             mesh.ebo = indices;
             mesh.index_type = Tungsten::ElementIndexType::UINT16;
-            mesh.primitive = Tungsten::TopologyType::TRIANGLES;
             return resources_.create_mesh(std::move(mesh));
         }
 

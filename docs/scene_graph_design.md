@@ -102,6 +102,16 @@ Two repo rules reinforced in the design:
 - **No raw GL ids on owned resources.** The diagram uses Tungsten's existing RAII handle
   types — `BufferHandle`, `ProgramHandle`, `TextureHandle`, `VertexArrayHandle` (from
   `include/Tungsten/Gl/GlHandle.hpp`) — not `GLuint`.
+- **No raw GL ids across the facade either.** `ResourceManager` hands out generational refs
+  and opaque ids (`GeometryBinding`), never GL object names: a name has no meaning to a
+  caller and none at all to another backend.
+
+The rebasing row deserves a note for a future port. It is a **WebGL2 workaround that Metal and
+Vulkan would undo** — both have a base-vertex draw argument — and it is not free: it is why
+`TextSystem` needs 32-bit indices for meshes of well under a hundred vertices. It is also not
+currently a seam: the rebasing happens in *caller* code, so there is nothing for a
+base-vertex backend to swap out. Moving the convention behind something like
+`ResourceManager::upload_indices` would make it one.
 
 ## 4. UBO binding convention
 
@@ -161,12 +171,18 @@ a sampler samples through whatever another subsystem last bound there.
 `Scene` owns a `DoubleBuffer<RenderSnapshot>`. Each frame, single-threaded:
 
 ```
+resources.begin_frame(frame)
 update scene (animation, etc.)
 scene.resolve_transforms()
 SnapshotBuilder::build(scene, camera_node, snapshots.back())
 snapshots.swap()
-Renderer::render(snapshots.front())
+Renderer::render(snapshots.front(), pass)
+resources.collect_garbage(frame)
 ```
+
+`pass` is a `RenderPassDescriptor` (§17): the target, the viewport, and each
+attachment's load and store actions. It is what replaced the application-level
+`clear()` / `set_viewport()` calls, which had no equivalent outside OpenGL.
 
 The swap is a pointer/index flip — no locks, no fences in the single-threaded case. The two
 snapshots reuse their backing `std::vector` storage across frames rather than reallocating.
@@ -203,8 +219,10 @@ in vertex units, a slice's `offset` *is* the base vertex and its `count` *is* th
 vertex count; the same holds for the `ebo` slice's first index and index count. A
 stride field would only duplicate the arena's `stride()`, the single authority on a
 stream's byte pitch (§13) — which is why neither `Mesh` nor `VertexLayout` carries
-one. So `Mesh` is `{ vao, streams, layout, semantics, ebo, index_type, primitive }`,
-where `semantics` is the layout's semantic set folded once at creation (§12).
+one. So `Mesh` is `{ binding, streams, layout, semantics, ebo, index_type }`,
+where `semantics` is the layout's semantic set folded once at creation (§12). `primitive`
+moved onto the pipeline (§17), and `binding` is an opaque `GeometryBinding` rather than a raw
+VAO id.
 
 Resolving `arena` → `BufferArena` → `BufferHandle` goes through
 `ResourceManager::get_arena`, at VAO build time and at allocate / upload / free time
@@ -254,8 +272,9 @@ generational scheme in §6.
 
 **The VAO cache lives in `ResourceManager`, not in `Mesh`.** A VAO is shared by
 every mesh with the same `(vbo arenas, ebo arena, layout)` triple, so no single
-`Mesh` can own it: `get_vao` returns a non-owning id (`uint32`) and a `Mesh` stores
-that. The cache is keyed on arena *refs* rather than live buffer ids, so growth
+`Mesh` can own it. `create_mesh` derives it and stores it on the mesh as an opaque
+`GeometryBinding`; `get_vao` is not part of the facade, because a raw GL object name has no
+meaning to a caller and none to another backend. The cache is keyed on arena *refs* rather than live buffer ids, so growth
 leaves entries valid; §13 covers the keying, the rebuild and eviction.
 
 See `src/Tungsten/Resources/ResourceManager.{hpp,cpp}`.
@@ -297,6 +316,11 @@ wholesale:
 
 - All GL access continues through `IOglWrapper`, and resources use the existing RAII handle
   types, so the design stays within the repo's established conventions.
+- The headers are split by what they *mean*, not by what they are named: `Gpu/GpuTypes.hpp`
+  holds the API-neutral vocabulary every layer speaks (formats, buffer usages, blend factors,
+  compare functions), while `Gl/` holds the OpenGL backend — `IOglWrapper`, the RAII handles,
+  the state functions and the one `GlTypeConversion` translation table. The umbrella
+  `Tungsten.hpp` exports no `Gl/` header, so nothing reaches an application by accident.
 
 ## 10. Resource manager decomposition
 
@@ -308,11 +332,13 @@ collaborators it owns:
 - `LayoutRegistry` — VertexLayout interning (§12).
 - `VaoCache` — the shared-VAO cache and its baking (§13).
 - `ShaderLibrary` — shader families and variant compilation (§14).
+- `PipelineRegistry` — PipelineDescriptor interning (§17).
 
 The facade owns these, wires them together (the pools and caches retire into the one
 `DeletionQueue`; `VaoCache` resolves refs through the arena pool and `LayoutRegistry`), and
 exposes them behind **forwarding methods** — `create_mesh` / `get_mesh` / `destroy_mesh`,
-`get_arena`, `register_shader_variant`, `get_vao`, `begin_frame`, `collect_garbage`, and so on.
+`get_arena`, `register_shader_variant`, `register_pipeline` / `get_pipeline`, `begin_frame`,
+`collect_garbage`, and so on.
 The public surface therefore looks as it did before, but each method is a one-liner delegating
 to a collaborator; the substance lives in independently testable pieces. `SnapshotBuilder` and
 `Renderer` still talk to one object.
@@ -389,8 +415,16 @@ can draw perfectly well — position/normal/uv interleaved in one stream and the
 the uv in a stream of its own are different layouts and the same shader input. So
 `ShaderFamily::required_attributes` and `ShaderProgram::required_attributes` are an
 `AttributeSemanticMask`, one bit per `AttributeSemantic`, and `VertexLayout::semantics()`
-projects a layout down to that set. `ResourceManager::create_mesh` folds it onto the mesh once,
-so the check in §13 stays a mask test rather than a lookup.
+projects a layout down to that set. `ResourceManager::create_mesh` folds it onto the mesh once.
+
+**A *pipeline*, unlike a shader, does pin packing** (§17). `PipelineDescriptor` carries a
+`VertexLayoutRef` — the declared vertex input, which is what `MTLVertexDescriptor` and
+`VkPipelineVertexInputStateCreateInfo` describe — and `register_pipeline` checks the mask
+above once, there, where a shader and a layout are named together. `Renderer::draw_item` then
+compares `mesh.layout` against `pipeline.layout`: one ref compare, cheaper than the per-draw
+mask test it replaced and stricter, since a mesh with the right semantics packed differently
+used to be accepted and drew garbage. The claim in this section is unchanged — a shader still
+constrains semantics rather than packing — the pipeline is simply where packing gets pinned.
 
 ### 12.1 Sampler interning — the `SamplerRegistry`
 
@@ -437,11 +471,14 @@ declares `layout(location = N) in …` to match, and the renderer never remaps.
 Two checks guard the convention, neither of which relocates anything. `create_mesh` validates
 a mesh against the arenas it will be read from: every attribute must name a stream the mesh
 has and must end within that stream's arena stride, so an attribute overrunning its vertex is
-caught where the layout and the arenas are both known. Then `Renderer::draw_item` tests the
-mesh's `semantics` against its shader's `required_attributes` (§12) — a mask test, both sides
-folded ahead of time — so a mesh missing something its shader reads throws instead of drawing
-from an attribute that was never enabled. Only presence is checked: GL defaults the components
-an attribute does not supply, so a missing semantic is the error that actually bites.
+caught where the layout and the arenas are both known. Then `Renderer::draw_item` compares the mesh's
+`layout` against its pipeline's (§12), so a mesh drawn through a pipeline it was not packed
+for throws instead of reading from attributes that were never enabled. The semantic-mask
+check that used to live here now runs once, at `register_pipeline`.
+
+**The VAO cache is keyed on the layout, not on the pipeline**, and must stay that way. Two
+pipelines that differ only in blend or cull state read vertices identically, so keying on the
+pipeline would multiply the cache by every state permutation for no benefit.
 
 **`build_vao(key)` bakes, per the resolved layout:**
 
@@ -497,12 +534,18 @@ normal-mapping, alpha-clip, …).
 
 The `defines` bitmask, not a string set, is what makes the key cheap to compare and hash; the
 family's ordered feature list is the single place that maps a bit to its `#define` spelling.
-`Material` selects appearance by holding the resolved `ShaderProgramRef`; the
-`SnapshotBuilder` (or material-authoring code) is what turns "this material has a normal map
-and is skinned" into a `ShaderVariantKey` and resolves it here.
+`Material` selects appearance by holding a `PipelineRef` (§17), which carries the resolved
+`ShaderProgramRef` along with the state the draw needs; the `SnapshotBuilder` (or
+material-authoring code) is what turns "this material has a normal map and is skinned" into a
+`ShaderVariantKey` and resolves it here.
+
+The GLSL sources, the `#version` rewriting and the link-time reflection below are all
+OpenGL-specific, and deliberately confined to `ShaderLibrary`. Note that the goal of an
+API-neutral shader interface is stated, not yet achieved: `ShaderFamily` is a public struct
+with `std::string vertex_source`, and every example fills it in.
 
 **No second identity system.** Neither `ShaderProgram` nor `Material` carries a separate
-numeric `id` for batching: the sort key packs the `ShaderProgramRef` / `MaterialRef` *index*,
+numeric `id` for batching: the sort key packs the `PipelineRef` / `MaterialRef` *index*,
 which is unambiguous within one snapshot because snapshots are rebuilt from live refs every
 frame (§5) — a slot reused across frames can never alias inside a single frame's draw list.
 For skipping redundant binds, `GlStateCache` keys on the GL object names themselves (program
@@ -579,7 +622,62 @@ text, one material per colour.
 node dies but knows nothing about the GPU memory behind it, so `TextSystem` keeps a slot table
 that each live component claims during the sweep; entries left unclaimed are released.
 
-**Co-planar text relies on the transparent pass not writing depth** (§8's draw order). Text is
-always transparent, and blended surfaces must leave the depth *mask* off — the test stays on,
-so opaque geometry still occludes them — or the first one drawn punches a hole in everything
-co-planar behind it, which silently defeats `render_layer`.
+**Co-planar text relies on its pipeline not writing depth** (§17). There is no longer a
+"transparent pass" to inherit this from: `TextSystem` registers one pipeline with
+`depth.write = false` and every text material names it. The depth *test* stays on, so opaque
+geometry still occludes text; without the mask off, the first glyph drawn punches a hole in
+everything co-planar behind it, which silently defeats `render_layer`. That pipeline also sets
+`raster.cull_enabled = false`, because a glyph quad's winding is not guaranteed and text must
+not vanish because the application enabled culling for its own geometry.
+
+## 17. Pipeline state objects
+
+The renderer used to run exactly two hard-coded passes — opaque, then transparent with
+blending on and the depth mask off — chosen by a single `bool Material::transparent`. Depth
+compare function was never set, face culling was set only by application code, and blend
+equation, colour write mask, front-face winding and scissor did not exist in the API at all.
+That is precisely the information a Metal `MTLRenderPipelineState` or a Vulkan `VkPipeline`
+requires, so none of it could have been supplied to one.
+
+**`PipelineDescriptor` is that information, as an immutable interned value.** It carries the
+shader variant, the declared vertex layout (§12), the primitive topology, the `RenderQueue`,
+and `DepthState` / `BlendState` / `RasterState`. `Material` names a `PipelineRef` and nothing
+else about how it draws; `RenderItem` carries the same ref, so an item is a self-contained
+description of one draw rather than a pointer into mutable state.
+
+**`PipelineRegistry` is a plain interning vector**, like `LayoutRegistry` and
+`SamplerRegistry` — no free-list, no generations, no deletion path, a fixed
+`PIPELINE_GENERATION`. That is safe rather than merely convenient because `ResourceManager`
+exposes no `destroy_shader`: a compiled variant outlives every pipeline naming it. The cost is
+that re-registering a shader family, which invalidates the *variant cache* without disturbing
+programs already handed out, requires re-registering pipelines too — hot reload is not a
+matter of re-resolving materials.
+
+**`RenderQueue` is an explicit field, not derived from `blend.enabled`.** They answer different
+questions: additive particles blend but are order-independent, and alpha-tested foliage does
+not blend yet may still want sorting. `create_material` folds the queue onto the `Material`,
+the way `Mesh::semantics` is folded from its layout (§12), so `SnapshotBuilder`'s per-renderable
+loop never resolves a pipeline — and so a material stays constructible before its pipeline
+exists, which the context-free tests rely on.
+
+**The sort key packs the pipeline index where the shader index used to go** (§14). Items
+sharing a pipeline share a program by construction, so nothing is lost and no new bits were
+needed.
+
+**`GlPipelineBinder` sits beside `GlStateCache`, not inside it.** `GlStateCache` elides
+redundant *binds* keyed on GL object names and disappears entirely in a command-buffer API;
+the binder covers fixed-function state and collapses the other way, into the single
+`setRenderPipelineState:` / `vkCmdBindPipeline` the descriptor exists to become. Keeping them
+separate means a port deletes one and collapses the other rather than untangling a class that
+did both. The binder invalidates on the global GL state epoch *and* once per frame, so the
+first draw of every frame states its whole pipeline — the context is shared with other event
+loops and with applications calling the `Gl/` functions directly, and a deterministic first
+draw is also what makes the renderer's behaviour testable.
+
+**Non-goals, so they are not re-litigated.** There is no `IRenderDevice` / `ICommandEncoder`
+vtable: the seam is the shape of the types, not a virtual interface, and OpenGL remains the
+only backend. `IOglWrapper` is a test and Emscripten seam — a 1:1 mirror of the GL entry
+points — and is not that abstraction. The feature set stays inside what WebGL2 can do: fixed
+UBO bindings 0/1/2 plus texture units, no push constants, no descriptor sets, no indirect draw,
+no compute. Viewport and scissor are *not* pipeline state; they belong to the render pass,
+which is where Metal and Vulkan put them.

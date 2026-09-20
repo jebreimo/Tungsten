@@ -31,10 +31,28 @@ using namespace Tungsten;
 
 namespace
 {
+    // The fixed-function state a draw runs with. Mirrored from the GL calls
+    // and snapshotted at each draw, so a test can say what a draw was
+    // configured with without pinning the order the calls arrived in — the
+    // binder is free to reorder or elide them.
+    struct DrawState
+    {
+        bool depth_test = false;
+        bool depth_write = false;
+        bool blend = false;
+        bool cull = false;
+        GLenum depth_func = 0;
+        GLenum blend_src = 0;
+        GLenum blend_dst = 0;
+        GLenum cull_mode = 0;
+
+        bool operator==(const DrawState&) const = default;
+    };
+
     // Fabricates GL ids and records the calls the renderer's behavior is
     // specified by: draws (with their index offsets, to observe ordering),
     // program binds, buffer uploads (by size, to tell the three UBOs apart),
-    // uniform-block bindings, and blend / depth-write toggles.
+    // uniform-block bindings, and the fixed-function state of each draw.
     class FakeOglWrapper : public DummyOglWrapper
     {
     public:
@@ -185,6 +203,7 @@ namespace
         {
             events.push_back("draw@" + std::to_string(
                 reinterpret_cast<intptr_t>(indices)));
+            draw_states.push_back(current);
             ++draw_calls;
             last_draw_count = count;
         }
@@ -192,26 +211,102 @@ namespace
         void draw_arrays(GLenum, GLint first, GLsizei) override
         {
             events.push_back("draw_arrays@" + std::to_string(first));
+            draw_states.push_back(current);
             ++draw_calls;
+        }
+
+        void clear(GLbitfield mask) override
+        {
+            clear_masks.push_back(mask);
+        }
+
+        void clear_color(GLclampf red, GLclampf green,
+                         GLclampf blue, GLclampf alpha) override
+        {
+            last_clear_color = {red, green, blue, alpha};
+        }
+
+        void viewport(GLint x, GLint y, GLsizei width, GLsizei height) override
+        {
+            viewports.emplace_back(x, y, width, height);
+        }
+
+        void bind_framebuffer(GLenum, GLuint framebuffer) override
+        {
+            framebuffer_binds.push_back(framebuffer);
         }
 
         void depth_mask(GLboolean flag) override
         {
             events.emplace_back(flag ? "depth_write_on" : "depth_write_off");
+            current.depth_write = flag != 0;
+            ++state_calls;
+        }
+
+        void depth_func(GLenum func) override
+        {
+            current.depth_func = func;
+            ++state_calls;
+        }
+
+        void blend_func_separate(GLenum src_rgb, GLenum dst_rgb,
+                                 GLenum, GLenum) override
+        {
+            current.blend_src = src_rgb;
+            current.blend_dst = dst_rgb;
+            ++state_calls;
+        }
+
+        void cull_face(GLenum mode) override
+        {
+            current.cull_mode = mode;
+            ++state_calls;
         }
 
         void enable(GLenum cap) override
         {
             if (cap == 0x0BE2) // GL_BLEND
+            {
                 events.emplace_back("blend_on");
+                current.blend = true;
+            }
+            else if (cap == 0x0B71) // GL_DEPTH_TEST
+            {
+                current.depth_test = true;
+            }
+            else if (cap == 0x0B44) // GL_CULL_FACE
+            {
+                current.cull = true;
+            }
+            ++state_calls;
         }
 
         void disable(GLenum cap) override
         {
             if (cap == 0x0BE2) // GL_BLEND
+            {
                 events.emplace_back("blend_off");
+                current.blend = false;
+            }
+            else if (cap == 0x0B71) // GL_DEPTH_TEST
+            {
+                current.depth_test = false;
+            }
+            else if (cap == 0x0B44) // GL_CULL_FACE
+            {
+                current.cull = false;
+            }
+            ++state_calls;
         }
 
+        DrawState current;
+        std::vector<DrawState> draw_states;
+        std::vector<GLbitfield> clear_masks;
+        std::array<GLclampf, 4> last_clear_color{};
+        std::vector<std::tuple<GLint, GLint, GLsizei, GLsizei>> viewports;
+        std::vector<GLuint> framebuffer_binds;
+        /** Every fixed-function call, to observe redundant-toggle elision. */
+        int state_calls = 0;
         std::vector<std::pair<GLuint, GLuint>> block_bindings;
         std::vector<std::pair<GLint, GLint>> int_uniforms;
         std::vector<std::pair<int, GLuint>> texture_binds;
@@ -291,8 +386,10 @@ namespace
             resources.register_shader_family(1, family);
             shader = resources.register_shader_variant({1, 0});
 
+            pipeline = make_pipeline(shader);
+
             Material material_value;
-            material_value.shader = shader;
+            material_value.pipeline = pipeline;
             material_value.parameter_data.resize(MATERIAL_BLOB_SIZE);
             material = resources.create_material(std::move(material_value));
 
@@ -307,8 +404,6 @@ namespace
         MeshRef make_mesh(uint32_t vertex_count, uint32_t index_count)
         {
             Mesh mesh;
-            const BufferArenaRef vbos[] = {vbo_arena};
-            mesh.vao = resources.get_vao(vbos, ebo_arena, layout);
             mesh.streams = {resources.allocate(vbo_arena, vertex_count)};
             mesh.layout = layout;
             mesh.ebo = resources.allocate(ebo_arena, index_count);
@@ -340,17 +435,49 @@ namespace
             gl.sampler_binds.clear();
             gl.material_ubo_binds.clear();
             gl.per_draw_binds.clear();
-            renderer.render(snapshot);
+            gl.draw_states.clear();
+            gl.state_calls = 0;
+            gl.clear_masks.clear();
+            gl.viewports.clear();
+            gl.framebuffer_binds.clear();
+            renderer.render(snapshot, pass);
         }
 
         ResourceManager resources;
         Scene scene;
         NodeHandle camera_node;
         RenderSnapshot snapshot;
+        // Draws to the window, clearing colour and depth: the default a
+        // single-pass application would write.
+        RenderPassDescriptor pass{.viewport = {{0, 0}, {640, 480}}};
+        // Registers a pipeline over the bench's layout. `transparent` gives
+        // the blended, no-depth-write state the back-to-front pass wants.
+        PipelineRef make_pipeline(ShaderProgramRef program,
+                                  bool transparent = false)
+        {
+            PipelineDescriptor descriptor;
+            descriptor.shader = program;
+            descriptor.layout = layout;
+            if (transparent)
+            {
+                descriptor.queue = RenderQueue::TRANSPARENT;
+                descriptor.depth.write = false;
+                descriptor.blend = {
+                    .enabled = true,
+                    .src_color = BlendFunction::SRC_ALPHA,
+                    .dst_color = BlendFunction::ONE_MINUS_SRC_ALPHA,
+                    .src_alpha = BlendFunction::SRC_ALPHA,
+                    .dst_alpha = BlendFunction::ONE_MINUS_SRC_ALPHA
+                };
+            }
+            return resources.register_pipeline(descriptor);
+        }
+
         VertexLayoutRef layout;
         BufferArenaRef vbo_arena;
         BufferArenaRef ebo_arena;
         ShaderProgramRef shader;
+        PipelineRef pipeline;
         MaterialRef material;
     };
 }
@@ -398,7 +525,8 @@ TEST_CASE("Renderer: unfilled sampler units get the white texture")
     bench.resources.register_shader_family(2, family);
 
     Material material_value;
-    material_value.shader = bench.resources.register_shader_variant({2, 0});
+    material_value.pipeline = bench.make_pipeline(
+        bench.resources.register_shader_variant({2, 0}));
     // The fake reports every conventional block as present, so a material for
     // it has to carry its blob — as it would for any shader that reads one.
     material_value.parameter_data.resize(MATERIAL_BLOB_SIZE);
@@ -447,7 +575,8 @@ TEST_CASE("Renderer: a texture is drawn with the sampler it names")
         std::move(texture_value));
 
     Material material_value;
-    material_value.shader = bench.resources.register_shader_variant({3, 0});
+    material_value.pipeline = bench.make_pipeline(
+        bench.resources.register_shader_variant({3, 0}));
     material_value.parameter_data.resize(MATERIAL_BLOB_SIZE);
     material_value.textures = {texture};
     const auto material = bench.resources.create_material(
@@ -474,7 +603,7 @@ TEST_CASE("Renderer: a material with no parameters for a shader that reads"
     // parameter_data left empty. Drawing it would show whatever the previous
     // material uploaded, or an empty UBO on the first draw of the frame.
     Material bare;
-    bare.shader = bench.shader;
+    bare.pipeline = bench.pipeline;
     const auto material = bench.resources.create_material(std::move(bare));
     bench.add_renderable(bench.make_mesh(4, 6), material, -10);
 
@@ -542,7 +671,7 @@ TEST_CASE("Renderer: re-binds the material when it changes between items")
     const FakeGlSession session;
     Bench bench;
     Material second_value;
-    second_value.shader = bench.shader;
+    second_value.pipeline = bench.pipeline;
     second_value.parameter_data.resize(MATERIAL_BLOB_SIZE);
     const auto second = bench.resources.create_material(
         std::move(second_value));
@@ -590,8 +719,7 @@ TEST_CASE("Renderer: transparent items draw after opaque, with blending")
     const FakeGlSession session;
     Bench bench;
     Material transparent_value;
-    transparent_value.shader = bench.shader;
-    transparent_value.transparent = true;
+    transparent_value.pipeline = bench.make_pipeline(bench.shader, true);
     transparent_value.parameter_data.resize(MATERIAL_BLOB_SIZE);
     const auto transparent = bench.resources.create_material(
         std::move(transparent_value));
@@ -601,27 +729,25 @@ TEST_CASE("Renderer: transparent items draw after opaque, with blending")
     bench.add_renderable(mesh, bench.material, -20);
 
     bench.build_and_render(*session.gl);
-    const auto& events = session.gl->events;
-    // Expect: opaque draw, blend on, transparent draw, blend off. (The
-    // constructor and per-frame setup emit no draw or blend events, and the
-    // initial set_blend_enabled(false) is the leading blend_off.)
-    std::vector<std::string> relevant;
-    for (const auto& event : events)
-    {
-        if (event.starts_with("draw") || event.starts_with("blend"))
-            relevant.push_back(event.starts_with("draw") ? "draw" : event);
-    }
-    REQUIRE(relevant == std::vector<std::string>{
-        "blend_off", "draw", "blend_on", "draw", "blend_off"});
+
+    // Two draws: the opaque one first, unblended, then the transparent one
+    // with SRC_ALPHA / ONE_MINUS_SRC_ALPHA. Asserted as the state each draw
+    // ran with, not as a sequence of toggles — which toggles the binder emits
+    // to get there is its business.
+    const auto& draws = session.gl->draw_states;
+    REQUIRE(draws.size() == 2);
+    REQUIRE_FALSE(draws[0].blend);
+    REQUIRE(draws[1].blend);
+    REQUIRE(draws[1].blend_src == GLenum(0x0302));  // GL_SRC_ALPHA
+    REQUIRE(draws[1].blend_dst == GLenum(0x0303));  // GL_ONE_MINUS_SRC_ALPHA
 }
 
-TEST_CASE("Renderer: the transparent pass does not write depth")
+TEST_CASE("Renderer: a transparent pipeline draws without writing depth")
 {
     const FakeGlSession session;
     Bench bench;
     Material transparent_value;
-    transparent_value.shader = bench.shader;
-    transparent_value.transparent = true;
+    transparent_value.pipeline = bench.make_pipeline(bench.shader, true);
     transparent_value.parameter_data.resize(MATERIAL_BLOB_SIZE);
     const auto transparent = bench.resources.create_material(
         std::move(transparent_value));
@@ -632,23 +758,66 @@ TEST_CASE("Renderer: the transparent pass does not write depth")
 
     bench.build_and_render(*session.gl);
 
-    std::vector<std::string> relevant;
-    for (const auto& event : session.gl->events)
-    {
-        if (event.starts_with("draw"))
-            relevant.emplace_back("draw");
-        else if (event.starts_with("blend") || event.starts_with("depth"))
-            relevant.push_back(event);
-    }
-    // The mask is stated up front for the opaque pass, dropped around the
-    // blended one, and restored — so blended surfaces are still tested against
-    // opaque depth but never occlude each other.
-    REQUIRE(relevant == std::vector<std::string>{
-        "depth_write_on", "blend_off",
-        "draw",
-        "blend_on", "depth_write_off",
-        "draw",
-        "depth_write_on", "blend_off"});
+    // The blended draw keeps the depth *test* but drops the write, so it is
+    // still occluded by opaque geometry and never occludes anything coplanar
+    // behind it. This is what TextSystem's pipeline relies on.
+    const auto& draws = session.gl->draw_states;
+    REQUIRE(draws.size() == 2);
+    REQUIRE(draws[0].depth_test);
+    REQUIRE(draws[0].depth_write);
+    REQUIRE(draws[1].depth_test);
+    REQUIRE_FALSE(draws[1].depth_write);
+}
+
+TEST_CASE("Renderer: items sharing a pipeline emit no redundant state calls")
+{
+    const FakeGlSession session;
+    Bench bench;
+    const auto mesh = bench.make_mesh(4, 6);
+    bench.add_renderable(mesh, bench.material, -10);
+    bench.build_and_render(*session.gl);
+    const int after_one = session.gl->state_calls;
+
+    // A second item on the same pipeline must cost nothing in state: the
+    // binder only issues what differs from the pipeline bound before it.
+    const FakeGlSession second_session;
+    Bench second;
+    const auto second_mesh = second.make_mesh(4, 6);
+    second.add_renderable(second_mesh, second.material, -10);
+    second.add_renderable(second_mesh, second.material, -20);
+    second.build_and_render(*second_session.gl);
+
+    REQUIRE(second_session.gl->draw_states.size() == 2);
+    REQUIRE(second_session.gl->state_calls == after_one);
+}
+
+TEST_CASE("Renderer: differing pipelines each get the state they asked for")
+{
+    const FakeGlSession session;
+    Bench bench;
+
+    // Two pipelines differing only in raster state, both opaque, so they sort
+    // into one run and the binder has to switch between them mid-pass.
+    PipelineDescriptor unculled;
+    unculled.shader = bench.shader;
+    unculled.layout = bench.layout;
+    unculled.raster.cull_enabled = false;
+
+    Material unculled_material;
+    unculled_material.pipeline = bench.resources.register_pipeline(unculled);
+    unculled_material.parameter_data.resize(MATERIAL_BLOB_SIZE);
+    const auto material = bench.resources.create_material(
+        std::move(unculled_material));
+
+    const auto mesh = bench.make_mesh(4, 6);
+    bench.add_renderable(mesh, bench.material, -10);
+    bench.add_renderable(mesh, material, -20);
+
+    bench.build_and_render(*session.gl);
+
+    const auto& draws = session.gl->draw_states;
+    REQUIRE(draws.size() == 2);
+    REQUIRE(draws[0].cull != draws[1].cull);
 }
 
 TEST_CASE("Renderer: an all-opaque frame keeps depth writes on throughout")
@@ -664,41 +833,14 @@ TEST_CASE("Renderer: an all-opaque frame keeps depth writes on throughout")
         REQUIRE(event != "depth_write_off");
 }
 
-TEST_CASE("Renderer: a mesh missing an attribute its shader reads throws")
-{
-    const FakeGlSession session;
-    Bench bench;
-
-    // The bench's layout provides POSITION only; ask its shader for a normal
-    // as well by recompiling the family with a wider requirement.
-    ShaderFamily family;
-    family.vertex_source = "#version 300 es\nvoid main() {}\n";
-    family.fragment_source = "#version 300 es\nvoid main() {}\n";
-    family.required_attributes = semantic_bit(AttributeSemantic::POSITION)
-                                 | semantic_bit(AttributeSemantic::NORMAL);
-    bench.resources.register_shader_family(1, family);
-    const auto shader = bench.resources.register_shader_variant({1, 0});
-
-    Material material_value;
-    material_value.shader = shader;
-    material_value.parameter_data.resize(MATERIAL_BLOB_SIZE);
-    const auto material =
-        bench.resources.create_material(std::move(material_value));
-
-    bench.add_renderable(bench.make_mesh(4, 6), material, -10);
-
-    REQUIRE_THROWS_WITH(
-        bench.build_and_render(*session.gl),
-        Catch::Matchers::ContainsSubstring(
-            "does not provide every vertex attribute"));
-}
-
 TEST_CASE("Renderer: a mesh providing more than its shader reads is fine")
 {
     const FakeGlSession session;
     Bench bench;
     // bench.layout is POSITION only and the family requires nothing, so a
-    // superset draws: only the semantics a shader reads have to be present.
+    // superset draws. The complementary case — a layout missing something the
+    // shader reads — is now rejected at register_pipeline, so it lives in
+    // test_PipelineRegistry.cpp rather than here.
     bench.add_renderable(bench.make_mesh(4, 6), bench.material, -10);
     REQUIRE_NOTHROW(bench.build_and_render(*session.gl));
 }
@@ -708,9 +850,6 @@ TEST_CASE("Renderer: a mesh without an index buffer uses an array draw")
     const FakeGlSession session;
     Bench bench;
     Mesh mesh_value;
-    const BufferArenaRef vbos[] = {bench.vbo_arena};
-    mesh_value.vao = bench.resources.get_vao(vbos, bench.ebo_arena,
-                                             bench.layout);
     mesh_value.streams = {bench.resources.allocate(bench.vbo_arena, 8)};
     mesh_value.layout = bench.layout;
     // ebo left null: not an indexed mesh.
@@ -720,4 +859,53 @@ TEST_CASE("Renderer: a mesh without an index buffer uses an array draw")
     bench.build_and_render(*session.gl);
     REQUIRE(session.gl->draw_calls == 1);
     REQUIRE(session.gl->events.back().starts_with("draw_arrays@"));
+}
+
+TEST_CASE("Renderer: a CLEAR pass clears colour and depth")
+{
+    const FakeGlSession session;
+    Bench bench;
+    bench.pass.color.clear_color = {0.25f, 0.5f, 0.75f, 1.0f};
+    bench.add_renderable(bench.make_mesh(4, 6), bench.material, -10);
+
+    bench.build_and_render(*session.gl);
+
+    constexpr GLbitfield COLOR_BUFFER_BIT = 0x00004000;
+    constexpr GLbitfield DEPTH_BUFFER_BIT = 0x00000100;
+    REQUIRE(session.gl->clear_masks.size() == 1);
+    REQUIRE((session.gl->clear_masks[0] & COLOR_BUFFER_BIT) != 0);
+    REQUIRE((session.gl->clear_masks[0] & DEPTH_BUFFER_BIT) != 0);
+    REQUIRE(session.gl->last_clear_color[2] == 0.75f);
+}
+
+TEST_CASE("Renderer: a LOAD pass clears nothing")
+{
+    const FakeGlSession session;
+    Bench bench;
+    // What is already in the target is the point — an accumulation buffer, or
+    // anything drawn by an earlier pass.
+    bench.pass.color.load = LoadAction::LOAD;
+    bench.pass.depth->load = LoadAction::LOAD;
+    bench.add_renderable(bench.make_mesh(4, 6), bench.material, -10);
+
+    bench.build_and_render(*session.gl);
+
+    REQUIRE(session.gl->clear_masks.empty());
+}
+
+TEST_CASE("Renderer: the pass issues its viewport and binds its target")
+{
+    const FakeGlSession session;
+    Bench bench;
+    bench.pass.viewport = {{10, 20}, {320, 240}};
+    bench.add_renderable(bench.make_mesh(4, 6), bench.material, -10);
+
+    bench.build_and_render(*session.gl);
+
+    REQUIRE(session.gl->viewports.size() == 1);
+    REQUIRE(session.gl->viewports[0]
+            == std::tuple<GLint, GLint, GLsizei, GLsizei>{10, 20, 320, 240});
+    // A null target is the window's framebuffer.
+    REQUIRE_FALSE(session.gl->framebuffer_binds.empty());
+    REQUIRE(session.gl->framebuffer_binds[0] == 0u);
 }

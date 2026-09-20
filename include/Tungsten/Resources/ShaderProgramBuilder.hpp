@@ -9,7 +9,7 @@
 #include <filesystem>
 #include <string>
 #include "../Gl/GlProgram.hpp"
-#include "../Gl/GlTypes.hpp"
+#include "../Gpu/GpuTypes.hpp"
 
 namespace Tungsten
 {

@@ -128,6 +128,11 @@ namespace Tungsten
             return 0;
         }
 
+        void color_mask(GLboolean red, GLboolean green,
+                        GLboolean blue, GLboolean alpha) override
+        {
+        }
+
         void cull_face(GLenum mode) override
         {
         }
@@ -160,11 +165,19 @@ namespace Tungsten
         {
         }
 
+        void depth_func(GLenum func) override
+        {
+        }
+
         void depth_mask(GLboolean flag) override
         {
         }
 
         void disable(GLenum cap) override
+        {
+        }
+
+        void front_face(GLenum mode) override
         {
         }
 
@@ -448,6 +461,16 @@ namespace Tungsten
 
         void vertex_attrib_pointer(GLuint index, GLint size, GLenum type, GLboolean normalized,
                                    GLsizei stride, const void* pointer) override
+        {
+        }
+
+        void scissor(GLint x, GLint y,
+                     GLsizei width, GLsizei height) override
+        {
+        }
+
+        void invalidate_framebuffer(GLenum target, GLsizei count,
+                                    const GLenum* attachments) override
         {
         }
 

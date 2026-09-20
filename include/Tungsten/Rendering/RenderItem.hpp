@@ -34,6 +34,15 @@ namespace Tungsten
 
         void set_material(MaterialRef material);
 
+        /**
+         * The pipeline this item draws through. Carried on the item, rather
+         * than looked up from the material at draw time, so a RenderItem is a
+         * self-contained description of one draw.
+         */
+        [[nodiscard]] PipelineRef pipeline() const;
+
+        void set_pipeline(PipelineRef pipeline);
+
         [[nodiscard]] uint64_t sort_key() const;
 
         void set_sort_key(uint64_t sort_key);
@@ -54,6 +63,7 @@ namespace Tungsten
         std::array<float, RENDER_ITEM_DATA_SIZE> data_ = {};
         MeshRef mesh_ = {};
         MaterialRef material_ = {};
+        PipelineRef pipeline_ = {};
         uint64_t sort_key_ = 0;
     };
 } // Tungsten

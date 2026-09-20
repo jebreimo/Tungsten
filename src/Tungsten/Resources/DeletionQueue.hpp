@@ -10,6 +10,7 @@
 #include <variant>
 #include <vector>
 #include "Tungsten/Gl/GlBuffer.hpp"
+#include "Tungsten/Gl/GlFramebuffer.hpp"
 #include "Tungsten/Gl/GlProgram.hpp"
 #include "Tungsten/Gl/GlTexture.hpp"
 #include "Tungsten/Gl/GlVertexArray.hpp"
@@ -33,7 +34,8 @@ namespace Tungsten
     {
     public:
         using RetiredHandle = std::variant<BufferHandle, ProgramHandle,
-                                           TextureHandle, VertexArrayHandle>;
+                                           TextureHandle, VertexArrayHandle,
+                                           FramebufferHandle>;
 
         /**
          * Records the id of the frame about to be built / submitted. Everything

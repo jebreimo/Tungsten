@@ -12,6 +12,7 @@
 
 #include "Tungsten/Gl/IOglWrapper.hpp"
 #include "Tungsten/Gl/GlStateManagement.hpp"
+#include "Gl/GlQueries.hpp"
 #include "ExceptionHelpers.hpp"
 
 namespace Tungsten
