@@ -50,7 +50,7 @@ namespace
             .tex_coords = std::optional(Builder2F(vertexes, 8, 6))
         };
 
-        Xyz::OrientedCuboid<float> cuboid{{{-1, -1, -1}, {0, 0, 0}}, {2, 2, 2}};
+        constexpr Xyz::OrientedCuboid<float> cuboid{{{-1, -1, -1}, {0, 0, 0}}, {2, 2, 2}};
         Xyz::build_mesh(builder, cuboid);
         return {std::move(indexes), std::move(vertexes)};
     }

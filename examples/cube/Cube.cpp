@@ -35,12 +35,11 @@ namespace
             return Xyz::RectangleF{{float(i) / 6, 0}, {1.f / 6, 1}};
         };
 
-        constexpr Xyz::OrientedCuboid<float> cuboid{
-            .placement = {
-                .origin = {-1, -1, 1}
-            },
-            .size = {2, 2, 2}
-        };
+        auto cuboid = Xyz::make_centered_oriented_cuboid<float>(
+            {0, 0, 0},
+            {2, 2, 2},
+            {-Xyz::to_radians(-90.f), -Xyz::to_radians(-90.f), 0}
+        );
         Xyz::build_mesh(builder, cuboid, std::function(get_tex_rect));
         return {std::move(indexes), std::move(vertexes)};
     }
@@ -87,7 +86,7 @@ namespace
             // A directional light shines along its node's -z axis; tilt the
             // node so the light comes in from the upper right.
             light_node.set_local_transform({
-                .rotation = Tungsten::euler_rotation(-0.6f, 0.4f, 0.0f)
+                .rotation = Tungsten::euler_rotation(0.1f, 0.6f, 0.0f)
             });
             light_node.add(Tungsten::LightComponent{
                 .type = Tungsten::LightType::DIRECTIONAL,
