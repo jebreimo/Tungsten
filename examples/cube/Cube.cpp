@@ -81,7 +81,8 @@ namespace
             });
             camera_.add(Tungsten::CameraComponent{
                 .near_plane = 0.5f,
-                .far_plane = 50.0f
+                .far_plane = 50.0f,
+                .aspect = app.viewport().aspect_ratio()
             });
 
             auto light_node = scene_.add_node();
