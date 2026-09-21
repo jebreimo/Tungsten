@@ -122,7 +122,7 @@ namespace
             block_bindings.emplace_back(block_index, binding);
         }
 
-        void use_program(GLuint program) override
+        void use_program([[maybe_unused]] GLuint program) override
         {
             ++program_binds;
         }
