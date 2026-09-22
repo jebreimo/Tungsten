@@ -35,10 +35,10 @@ namespace Tungsten
             alive_.push_back(0);
         }
 
-        locals_[index] = {};
+        locals_[index] = Xyz::Matrix4F::identity();
         // A node read before the first resolve should look like an unmoved
         // node, not like uninitialized memory.
-        worlds_[index] = locals_[index].make_matrix();
+        worlds_[index] = locals_[index];
         first_children_[index] = {};
         alive_[index] = 1;
 
@@ -141,14 +141,14 @@ namespace Tungsten
         return {this, first_children_[validate(id)]};
     }
 
-    const Transform& Scene::local_transform(NodeId id) const
+    const Xyz::Matrix4F& Scene::local_matrix(NodeId id) const
     {
         return locals_[validate(id)];
     }
 
-    void Scene::set_local_transform(NodeId id, const Transform& transform)
+    void Scene::set_local_transform(NodeId id, const Xyz::Matrix4F& matrix)
     {
-        locals_[validate(id)] = transform;
+        locals_[validate(id)] = matrix;
     }
 
     const Xyz::Matrix4F& Scene::world_matrix(NodeId id) const
@@ -165,9 +165,8 @@ namespace Tungsten
         {
             const NodeId parent = parents_[index];
             worlds_[index] = parent
-                             ? worlds_[parent.index]
-                               * locals_[index].make_matrix()
-                             : locals_[index].make_matrix();
+                             ? worlds_[parent.index] * locals_[index]
+                             : locals_[index];
         }
     }
 

@@ -24,7 +24,7 @@ The arrays:
 | --- | --- |
 | `generations` | revokes ids to a slot's previous occupant (§6) |
 | `parents`, `firstChildren`, `nextSiblings` | the topology, as links rather than child vectors |
-| `locals` | each node's `Transform` |
+| `locals` | each node's local transform, as a matrix (§2.1) |
 | `worlds` | each node's resolved world matrix |
 | `order` | every live node, parents before children |
 
@@ -43,7 +43,8 @@ need no special case. `children()` returns a range that walks the chain and allo
 nothing.
 
 **`Transform` is a plain value** — translation, rotation (a quaternion), scale, with
-`make_matrix()` computed on demand. It carries no cache and no dirty flag.
+`make_matrix()` computed on demand. It carries no cache and no dirty flag. It is *not*,
+however, what `Scene` stores (§2.1).
 
 **Resolution is one linear pass, not a lazy recompute.**
 
@@ -51,8 +52,8 @@ nothing.
 for (const uint32_t index : order_)
 {
     const NodeId parent = parents_[index];
-    worlds_[index] = parent ? worlds_[parent.index] * locals_[index].make_matrix()
-                            : locals_[index].make_matrix();
+    worlds_[index] = parent ? worlds_[parent.index] * locals_[index]
+                            : locals_[index];
 }
 ```
 
@@ -69,6 +70,39 @@ arrays.
 **World matrices are only current after a resolve.** `world_matrix(id)` returns what the last
 `resolve_transforms()` computed; it does not recompute on access. A node reads as unmoved
 until the first resolve.
+
+### 2.1 `locals_` stores matrices, not `Transform`s
+
+`Scene::locals_` is `vector<Xyz::Matrix4F>`, and `local_matrix(id)` returns one. There is no
+`Transform` array and no way to read a node's translation/rotation/scale back out — only the
+matrix they multiplied out to.
+
+**Why not keep `Transform` as the stored type.** A glTF node may carry a raw `matrix` instead
+of TRS, and the two are not always interconvertible: a matrix with shear has no exact TRS
+decomposition. Storing `Transform` would force every matrix-authored node through a lossy
+decomposition on import. Storing the matrix is exact for both cases, and a TRS node is just
+one that happened to be *set* via a `Transform` — nothing downstream can tell the difference,
+which is correct, since glTF itself treats `matrix` and TRS as two serializations of the same
+node data, never both at once.
+
+**`set_local_transform` is overloaded on `Xyz::Matrix4F` and `Transform`.** The matrix overload
+is the primitive `Scene` actually stores through; the `Transform` overload is
+`set_local_transform(id, transform.make_matrix())` — one line, for callers that think in TRS
+(which is most gameplay and procedural-animation code, since a quaternion composes and slerps
+in a way a matrix does not). A glTF importer calls the matrix overload for a `matrix` node and
+the `Transform` overload for a TRS node; it never has to decompose or recompose either way.
+
+**This also drops a `make_matrix()` call from the hot path.** `resolve_transforms()` used to
+expand every node's TRS into a matrix on *every* pass; now that expansion happens once, in
+`set_local_transform`, and the per-frame pass is a matrix multiply over `locals_` and
+`worlds_` — cheaper, since a transform changes far less often than it is resolved.
+
+**The cost is that `Transform` is now write-only.** Nothing reads a node's rotation back out
+of the scene as a quaternion; a caller that needs to do incremental TRS edits (nudge the
+rotation each frame, say) has to keep its own `Transform` alongside the node and call
+`set_local_transform` with the updated value, rather than reading it back via
+`local_matrix()`. No code in the repo relied on reading it back, so this cost nothing to
+adopt.
 
 **Components are typed arrays, not a polymorphic list.** `Scene` holds one
 `ComponentStore<T>` per kind — `items` and a parallel `owners` of `NodeId` — for

@@ -170,10 +170,31 @@ namespace Tungsten
         [[nodiscard]]
         ChildRange children(NodeId id) const;
 
+        /**
+         * Returns the node's local transform as the matrix it was set with —
+         * already T*R*S expanded if it came from a Transform. Not
+         * decomposable back into translation/rotation/scale.
+         */
         [[nodiscard]]
-        const Transform& local_transform(NodeId id) const;
+        const Xyz::Matrix4F& local_matrix(NodeId id) const;
 
-        void set_local_transform(NodeId id, const Transform& transform);
+        /**
+         * Sets the node's local transform to an arbitrary matrix — the
+         * primitive form, and what a raw glTF-style matrix node maps onto
+         * directly. Prefer the Transform overload when the caller thinks in
+         * translation/rotation/scale; both end up stored the same way.
+         */
+        void set_local_transform(NodeId id, const Xyz::Matrix4F& matrix);
+
+        /**
+         * Sets the node's local transform from a Transform, i.e.
+         * transform.make_matrix(). The ergonomic spelling for callers that
+         * think in TRS rather than a raw matrix.
+         */
+        void set_local_transform(NodeId id, const Transform& transform)
+        {
+            set_local_transform(id, transform.make_matrix());
+        }
 
         /**
          * Returns the node's world transform as of the last resolve_transforms().
@@ -384,7 +405,11 @@ namespace Tungsten
         std::vector<NodeId> parents_;
         std::vector<NodeId> first_children_;
         std::vector<NodeId> next_siblings_;
-        std::vector<Transform> locals_;
+        // Each node's local transform, stored pre-expanded to a matrix
+        // rather than kept as a Transform — that is what makes a raw
+        // glTF-style matrix node (skew/shear and all) exactly representable,
+        // and it means resolve_transforms() never expands TRS itself.
+        std::vector<Xyz::Matrix4F> locals_;
         std::vector<Xyz::Matrix4F> worlds_;
         std::vector<uint8_t> alive_;
         std::vector<uint32_t> free_list_;

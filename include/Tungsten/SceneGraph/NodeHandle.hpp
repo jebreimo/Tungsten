@@ -45,9 +45,14 @@ namespace Tungsten
         bool operator==(const NodeHandle&) const = default;
 
         [[nodiscard]]
-        const Transform& local_transform() const
+        const Xyz::Matrix4F& local_matrix() const
         {
-            return scene_->local_transform(id_);
+            return scene_->local_matrix(id_);
+        }
+
+        void set_local_transform(const Xyz::Matrix4F& matrix) const
+        {
+            scene_->set_local_transform(id_, matrix);
         }
 
         void set_local_transform(const Transform& transform) const

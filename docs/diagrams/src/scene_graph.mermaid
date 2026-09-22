@@ -5,7 +5,7 @@ namespace SceneSide {
         -parents: vector~NodeId~
         -first_children: vector~NodeId~
         -next_siblings: vector~NodeId~
-        -locals: vector~Transform~
+        -locals: vector~mat4~
         -worlds: vector~mat4~
         -order: vector~uint32_t~
         -renderables: ComponentStore~RenderableComponent~
@@ -17,7 +17,9 @@ namespace SceneSide {
         +remove(id: NodeId)
         +reparent(id: NodeId, new_parent: NodeId)
         +children(id: NodeId): ChildRange
+        +set_local_transform(id: NodeId, m: mat4)
         +set_local_transform(id: NodeId, t: Transform)
+        +local_matrix(id: NodeId): mat4
         +world_matrix(id: NodeId): mat4
         +add_component~T~(id: NodeId, c: T): T
         +get_component~T~(id: NodeId): T
@@ -34,7 +36,9 @@ namespace SceneSide {
     class NodeHandle {
         -scene: Scene*
         -id: NodeId
+        +set_local_transform(m: mat4)
         +set_local_transform(t: Transform)
+        +local_matrix(): mat4
         +world_matrix(): mat4
         +parent(): NodeHandle
         +children(): ChildRange
@@ -401,7 +405,7 @@ namespace RenderSide {
 }
 
 Scene "1" *-- "1" DoubleBuffer~T~
-Scene "1" *-- "0..*" Transform : locals array
+Scene ..> Transform : set_local_transform(id, t) expands to mat4
 Scene "1" *-- "3" ComponentStore~T~ : one per kind
 ComponentStore~T~ "1" *-- "0..*" RenderableComponent : items (or lights, cameras)
 ComponentStore~T~ --> NodeId : owners
