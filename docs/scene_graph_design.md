@@ -202,7 +202,7 @@ a sampler samples through whatever another subsystem last bound there.
 
 ## 5. Double-buffering
 
-`Scene` owns a `DoubleBuffer<RenderSnapshot>`. Each frame, single-threaded:
+The application owns a `DoubleBuffer<RenderSnapshot>` alongside its `Scene`. Each frame, single-threaded:
 
 ```
 resources.begin_frame(frame)
