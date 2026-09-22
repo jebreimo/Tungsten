@@ -355,6 +355,20 @@ wholesale:
   compare functions), while `Gl/` holds the OpenGL backend — `IOglWrapper`, the RAII handles,
   the state functions and the one `GlTypeConversion` translation table. The umbrella
   `Tungsten.hpp` exports no `Gl/` header, so nothing reaches an application by accident.
+- `Import/` sits above `SceneGraph/`: it reads asset files and builds scenes out of them, so
+  it may include from `Resources/` and `SceneGraph/`, and nothing in the library may include
+  from it. `Import/GltfImport.hpp` is currently its only header. The third-party parser
+  (fastgltf) is confined to the .cpp and linked privately, which is also what lets the whole
+  folder drop out of the Emscripten build — fastgltf has no Emscripten port, so
+  `Tungsten.hpp` guards its include with `__EMSCRIPTEN__`.
+
+  §2.1 is written for this layer's benefit: a glTF `matrix` node goes straight into
+  `set_local_transform`'s `Xyz::Matrix4F` overload and a TRS node into the `Transform` one, so
+  neither is ever decomposed. Watch the three places where glTF and Xyz disagree — glTF
+  matrices are column-major and Xyz's are row-major, glTF quaternions are `[x, y, z, w]` and
+  Xyz's are `(w, x, y, z)`, and glTF colour factors are linear while `ColorMaterial` is
+  authored in sRGB. `src/Tungsten/Import/GltfConversion.hpp` isolates all three so they can be
+  tested without a file or a GL context.
 
 ## 10. Resource manager decomposition
 

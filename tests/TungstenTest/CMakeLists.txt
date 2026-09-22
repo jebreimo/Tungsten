@@ -20,6 +20,7 @@ add_executable(TungstenTest
     test_ColorSpace.cpp
     test_FontUtilities.cpp
     test_GenerationalPool.cpp
+    test_GltfConversion.cpp
     test_GlStateCache.cpp
     test_PipelineRegistry.cpp
     test_Renderer.cpp

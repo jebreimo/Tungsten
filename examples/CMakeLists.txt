@@ -7,6 +7,11 @@
 # ===========================================================================
 add_subdirectory(bump_cube)
 add_subdirectory(cube)
+# The glTF importer is not part of the Emscripten build, so neither is its
+# viewer.
+if (NOT EMSCRIPTEN)
+    add_subdirectory(gltf_viewer)
+endif ()
 add_subdirectory(neo_table)
 add_subdirectory(scene_graph)
 add_subdirectory(show_text)

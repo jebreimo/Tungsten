@@ -10,6 +10,10 @@
 #include "Color.hpp"
 #include "DeviceInfo.hpp"
 #include "Gpu/GpuTypes.hpp"
+// Not available in the Emscripten build: the importer needs fastgltf.
+#ifndef __EMSCRIPTEN__
+    #include "Import/GltfImport.hpp"
+#endif
 #include "Rendering/DoubleBuffer.hpp"
 #include "Rendering/FontManager.hpp"
 #include "Rendering/RenderPassDescriptor.hpp"
