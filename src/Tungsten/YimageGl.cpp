@@ -15,6 +15,15 @@
 
 namespace Tungsten
 {
+    namespace
+    {
+        constexpr Yimage::PixelType supported_types[] = {
+            Yimage::PixelType::MONO_8,
+            Yimage::PixelType::RGB_8,
+            Yimage::PixelType::RGBA_8
+        };
+    }
+
     TextureSourceFormat get_ogl_pixel_type(Yimage::PixelType type)
     {
         switch (type)
@@ -44,16 +53,12 @@ namespace Tungsten
 
     Yimage::Image read_image(const std::string& file_name)
     {
-        auto image = Yimage::read_image(file_name);
-        flip_vertically(image.mutable_view());
-        return image;
+        return Yimage::read_image(file_name, supported_types);
     }
 
     Yimage::Image read_image(const void* buffer, size_t size)
     {
-        auto image = Yimage::read_image(buffer, size);
-        flip_vertically(image.mutable_view());
-        return image;
+        return Yimage::read_image(buffer, size, supported_types);
     }
 
     Xyz::Vector2I get_size(const Yimage::Image& image)
@@ -65,7 +70,11 @@ namespace Tungsten
     Xyz::Vector4F to_vector(Yimage::Rgba8 rgba)
     {
         constexpr float D = 255.0f;
-        return {float(rgba.r) / D, float(rgba.g) / D,
-                float(rgba.b) / D, float(rgba.a) / D};
+        return {
+            static_cast<float>(rgba.r) / D,
+            static_cast<float>(rgba.g) / D,
+            static_cast<float>(rgba.b) / D,
+            static_cast<float>(rgba.a) / D
+        };
     }
 }

@@ -62,7 +62,7 @@ FetchContent_Declare(yconvert
 
 FetchContent_Declare(yimage
     GIT_REPOSITORY "https://github.com/jebreimo/Yimage.git"
-    GIT_TAG v0.2.4)
+    GIT_TAG v0.2.5)
 
 FetchContent_MakeAvailable(argos cppembed xyz yconvert yimage)
 

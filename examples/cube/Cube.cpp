@@ -33,7 +33,7 @@ namespace
 
         auto get_tex_rect = [](int i)
         {
-            return Xyz::RectangleF{{float(i) / 6, 0}, {1.f / 6, 1}};
+            return Xyz::RectangleF{{float(i) / 6, 1}, {1.f / 6, -1}};
         };
 
         auto cuboid = Xyz::make_centered_oriented_cuboid<float>(
