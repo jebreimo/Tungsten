@@ -8,11 +8,13 @@
 #pragma once
 #include <array>
 #include <cstdint>
+#include <span>
 #include <vector>
 #include <Xyz/BBox.hpp>
 #include <Xyz/Matrix.hpp>
 #include <Xyz/Quaternion.hpp>
 #include <Xyz/Vector.hpp>
+#include "Tungsten/Gpu/GpuTypes.hpp"
 #include "Tungsten/Resources/ColorMaterials.hpp"
 
 /**
@@ -88,6 +90,14 @@ namespace Tungsten::Detail
      * to be the same length.
      */
     std::vector<float> interleave(const PrimitiveData& data);
+
+    /**
+     * The line segments along the edges of the triangles that @a indices
+     * assemble into under @a topology, which must be one of the triangle
+     * topologies. An edge shared by several triangles is listed once.
+     */
+    std::vector<uint32_t> make_line_indices(std::span<const uint32_t> indices,
+                                            TopologyType topology);
 
     /**
      * Folds a glTF metallic-roughness image into the single greyscale

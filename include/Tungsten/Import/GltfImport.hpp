@@ -26,6 +26,27 @@ namespace Tungsten
          * default scene, or its first scene if it names no default.
          */
         std::optional<size_t> scene_index;
+
+        /**
+         * Whether to also build a line-segment version of every imported
+         * primitive, returned in GltfImport::wireframes.
+         */
+        bool create_wireframes = false;
+    };
+
+    /**
+     * The wireframe alternative to one imported renderable: assign the mesh
+     * and the material to the node's RenderableComponent to draw the edges of
+     * its triangles instead of their surface.
+     *
+     * The mesh shares its vertices with the renderable's own mesh, so
+     * destroying both of them frees those vertices twice.
+     */
+    struct GltfWireframe
+    {
+        NodeId node;
+        MeshRef mesh;
+        MaterialRef material;
     };
 
     /**
@@ -43,6 +64,10 @@ namespace Tungsten
 
         /** The number of primitives that became renderables. */
         uint32_t primitive_count = 0;
+
+        /** One entry per imported renderable if
+         *  GltfImportOptions::create_wireframes was set, otherwise empty. */
+        std::vector<GltfWireframe> wireframes;
 
         /** One line per primitive or feature that was skipped. Worth showing
          *  to the user: an otherwise successful import can still be missing

@@ -176,6 +176,27 @@ TEST_CASE("GltfConversion: interleave packs position, normal and texcoord")
     REQUIRE(vertices == expected);
 }
 
+TEST_CASE("GltfConversion: make_line_indices lists a shared edge once")
+{
+    // Two triangles of a square, sharing the diagonal 0-2.
+    const std::vector<uint32_t> indices = {0, 1, 2, 0, 2, 3};
+
+    const auto lines = make_line_indices(indices, TopologyType::TRIANGLES);
+
+    REQUIRE(lines == std::vector<uint32_t>{0, 1, 0, 2, 0, 3, 1, 2, 2, 3});
+}
+
+TEST_CASE("GltfConversion: make_line_indices unrolls strips and fans")
+{
+    const std::vector<uint32_t> indices = {0, 1, 2, 3};
+
+    // A strip's triangles are 0-1-2 and 1-2-3; a fan's are 0-1-2 and 0-2-3.
+    REQUIRE(make_line_indices(indices, TopologyType::TRIANGLE_STRIP)
+            == std::vector<uint32_t>{0, 1, 0, 2, 1, 2, 1, 3, 2, 3});
+    REQUIRE(make_line_indices(indices, TopologyType::TRIANGLE_FAN)
+            == std::vector<uint32_t>{0, 1, 0, 2, 0, 3, 1, 2, 2, 3});
+}
+
 TEST_CASE("GltfConversion: make_specular_mask folds both channels into grey")
 {
     // glTF packs roughness in green and metalness in blue. The red channel is

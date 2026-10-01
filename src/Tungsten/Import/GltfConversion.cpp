@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <Xyz/Mesh/MeshUtilities.hpp>
 #include "Tungsten/Color.hpp"
 
 namespace Tungsten::Detail
@@ -145,6 +146,26 @@ namespace Tungsten::Detail
             v[7] = data.tex_coords[i][1];
         }
         return result;
+    }
+
+    std::vector<uint32_t> make_line_indices(std::span<const uint32_t> indices,
+                                            TopologyType topology)
+    {
+        if (topology == TopologyType::TRIANGLES)
+            return Xyz::mesh_to_line_indexes(indices);
+
+        // Strips and fans are unrolled into separate triangles first. Their
+        // winding is not kept: an edge has none.
+        const auto is_fan = topology == TopologyType::TRIANGLE_FAN;
+        std::vector<uint32_t> triangles;
+        triangles.reserve(3 * indices.size());
+        for (size_t i = 0; i + 2 < indices.size(); ++i)
+        {
+            triangles.push_back(indices[is_fan ? 0 : i]);
+            triangles.push_back(indices[i + 1]);
+            triangles.push_back(indices[i + 2]);
+        }
+        return Xyz::mesh_to_line_indexes(std::span<const uint32_t>(triangles));
     }
 
     std::vector<uint8_t> make_specular_mask(const uint8_t* pixels,

@@ -224,11 +224,13 @@ namespace Tungsten
             Importer(const fastgltf::Asset& asset,
                      std::filesystem::path directory,
                      ResourceManager& resources,
-                     Scene& scene)
+                     Scene& scene,
+                     const GltfImportOptions& options)
                 : asset_(asset),
                   directory_(std::move(directory)),
                   resources_(resources),
-                  scene_(scene)
+                  scene_(scene),
+                  create_wireframes_(options.create_wireframes)
             {
                 // One layout for the whole file. The Blinn-Phong family
                 // requires all three of these, so a primitive that lacks
@@ -315,11 +317,21 @@ namespace Tungsten
                     // have neither in common. The renderable itself waits for
                     // create_meshes, which needs to know the whole file's size
                     // before it can allocate anything.
-                    pending_.push_back({
+                    PendingPrimitive pending{
                         .node = scene_.create_node(node),
-                        .data = std::move(*data),
                         .material = get_material(primitive, *topology)
-                    });
+                    };
+                    if (create_wireframes_)
+                    {
+                        // The same material through a line pipeline, so the
+                        // wireframe keeps the surface's colors and lighting.
+                        pending.line_indices = Detail::make_line_indices(
+                            data->indices, *topology);
+                        pending.line_material = get_material(
+                            primitive, TopologyType::LINES);
+                    }
+                    pending.data = std::move(*data);
+                    pending_.push_back(std::move(pending));
                     ++result_.primitive_count;
                 }
             }
@@ -398,6 +410,8 @@ namespace Tungsten
                 {
                     vertex_sizes.push_back(uint32_t(primitive.data.positions.size()));
                     index_sizes.push_back(uint32_t(primitive.data.indices.size()));
+                    if (!primitive.line_indices.empty())
+                        index_sizes.push_back(uint32_t(primitive.line_indices.size()));
                 }
 
                 vbo_arena_ = resources_.create_arena(
@@ -411,40 +425,62 @@ namespace Tungsten
                 for (auto& primitive : pending_)
                 {
                     const auto bounds = Detail::make_bounds(primitive.data.positions);
+                    const auto vertices = upload_vertices(primitive.data);
                     scene_.add_component(primitive.node, RenderableComponent{
-                        .mesh = create_mesh(primitive.data),
+                        .mesh = create_mesh(vertices, primitive.data.indices),
                         .material = primitive.material,
                         .local_bounds = bounds
                     });
                     local_bounds_.emplace_back(primitive.node, bounds);
+
+                    // A primitive whose triangles are all degenerate has no
+                    // edges, and a mesh cannot be empty.
+                    if (!primitive.line_indices.empty())
+                    {
+                        result_.wireframes.push_back({
+                            .node = primitive.node,
+                            .mesh = create_mesh(vertices, primitive.line_indices),
+                            .material = primitive.line_material
+                        });
+                    }
                 }
                 pending_.clear();
             }
 
-            MeshRef create_mesh(const PrimitiveData& data)
+            SharedBuffer upload_vertices(const PrimitiveData& data)
             {
                 const auto vertex_data = Detail::interleave(data);
                 const auto vertices = resources_.allocate(
                     vbo_arena_, uint32_t(data.positions.size()));
-                const auto indices = resources_.allocate(
-                    ebo_arena_, uint32_t(data.indices.size()));
+                resources_.upload(vertices, vertex_data.data(),
+                                  vertex_data.size() * sizeof(float));
+                return vertices;
+            }
+
+            /**
+             * Creates a mesh that draws @a vertices through @a indices, which
+             * are relative to the first of those vertices.
+             */
+            MeshRef create_mesh(const SharedBuffer& vertices,
+                                const std::vector<uint32_t>& indices)
+            {
+                const auto ebo = resources_.allocate(
+                    ebo_arena_, uint32_t(indices.size()));
 
                 // Rebase to absolute indices: there is no baseVertex draw
                 // argument, and every primitive in the file shares one arena,
                 // so these offsets leave 16-bit indices behind immediately.
-                auto index_data = data.indices;
+                auto index_data = indices;
                 for (auto& index : index_data)
                     index += vertices.offset;
 
-                resources_.upload(vertices, vertex_data.data(),
-                                  vertex_data.size() * sizeof(float));
-                resources_.upload(indices, index_data.data(),
+                resources_.upload(ebo, index_data.data(),
                                   index_data.size() * sizeof(uint32_t));
 
                 Mesh mesh;
                 mesh.streams = {vertices};
                 mesh.layout = layout_;
-                mesh.ebo = indices;
+                mesh.ebo = ebo;
                 mesh.index_type = ElementIndexType::UINT32;
                 return resources_.create_mesh(std::move(mesh));
             }
@@ -705,8 +741,10 @@ namespace Tungsten
             struct PendingPrimitive
             {
                 NodeId node;
-                PrimitiveData data;
                 MaterialRef material;
+                PrimitiveData data;
+                std::vector<uint32_t> line_indices;
+                MaterialRef line_material;
             };
 
             static constexpr size_t NO_MATERIAL = size_t(-1);
@@ -727,6 +765,7 @@ namespace Tungsten
             std::map<TextureKey, TextureRef> textures_;
             std::vector<PendingPrimitive> pending_;
             std::vector<std::pair<NodeId, Xyz::BBox3F>> local_bounds_;
+            bool create_wireframes_ = false;
             bool warned_about_alpha_mask_ = false;
         };
     }
@@ -773,7 +812,8 @@ namespace Tungsten
                            + std::to_string(scene_index) + ".");
         }
 
-        Importer importer(asset.get(), file_name.parent_path(), resources, scene);
+        Importer importer(asset.get(), file_name.parent_path(), resources, scene,
+                          options);
         auto result = importer.run(scene_index, parent);
 
         if (result.primitive_count == 0)

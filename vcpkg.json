@@ -7,6 +7,13 @@
     "fastgltf",
     "freetype",
     "glew",
+    {
+      "name": "imgui",
+      "features": [
+        "opengl3-binding",
+        "sdl3-binding"
+      ]
+    },
     "libjpeg-turbo",
     "sdl3",
     "tiff"
