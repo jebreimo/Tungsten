@@ -14,7 +14,6 @@
 #include <vector>
 #include <Xyz/Rectangle.hpp>
 #include "Tungsten/Color.hpp"
-#include "Tungsten/Gl/GlTexture.hpp"
 #include "Tungsten/Rendering/TextStyle.hpp"
 #include "Tungsten/Resources/BuiltinShaders.hpp"
 #include "Tungsten/Resources/Material.hpp"
