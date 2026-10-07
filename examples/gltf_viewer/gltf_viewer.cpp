@@ -98,7 +98,7 @@ namespace
     class GltfViewer : public EventLoop
     {
     public:
-        GltfViewer(SdlApplication& app, std::string file_name)
+        GltfViewer(SdlApplication& app, const std::filesystem::path& file_name)
             : EventLoop(app),
               imgui_(app.window(), app.gl_context()),
               renderer_(resources_)
@@ -187,6 +187,7 @@ namespace
             // shows in this frame.
             imgui_.begin_frame();
             draw_controls();
+            draw_frame_rate();
 
             resources_.begin_frame(frame_);
 
@@ -246,6 +247,27 @@ namespace
             // ### is the id, which must not change with it.
             if (ImGui::Button(wireframe_ ? "Triangles###mode" : "Lines###mode"))
                 toggle_wireframe();
+            ImGui::End();
+        }
+
+        /**
+         * Shows the frame rate in the window's lower right corner.
+         */
+        void draw_frame_rate()
+        {
+            const auto& io = ImGui::GetIO();
+            ImGui::SetNextWindowPos({io.DisplaySize.x - UI_MARGIN,
+                                     io.DisplaySize.y - UI_MARGIN},
+                                    ImGuiCond_Always, {1.0f, 1.0f});
+            // NoInputs: it is only a readout, so clicks on it go to the scene.
+            ImGui::Begin("Frame rate", nullptr,
+                         ImGuiWindowFlags_NoDecoration
+                         | ImGuiWindowFlags_NoMove
+                         | ImGuiWindowFlags_AlwaysAutoResize
+                         | ImGuiWindowFlags_NoBackground
+                         | ImGuiWindowFlags_NoInputs);
+            // ImGui's own figure, an average over its last 120 frames.
+            ImGui::Text("%.0f FPS", io.Framerate);
             ImGui::End();
         }
 
