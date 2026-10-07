@@ -6,7 +6,9 @@
 # License text is included with the source distribution.
 # ===========================================================================
 add_subdirectory(bump_cube)
+add_subdirectory(coordsys)
 add_subdirectory(cube)
+add_subdirectory(fading_blob)
 # The glTF importer is not part of the Emscripten build, so neither is its
 # viewer.
 if (NOT EMSCRIPTEN)
@@ -15,5 +17,4 @@ endif ()
 add_subdirectory(neo_table)
 add_subdirectory(scene_graph)
 add_subdirectory(show_text)
-add_subdirectory(fading_blob)
 add_subdirectory(touch_events)
