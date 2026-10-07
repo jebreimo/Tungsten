@@ -274,6 +274,7 @@ int main(int argc, char** argv)
         app.parse_command_line_options(argc, argv);
         Tungsten::set_ogl_tracing_enabled(true);
         app.run<Cube>();
+        return 0;
     }
     catch (const std::exception& e)
     {
