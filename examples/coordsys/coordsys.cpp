@@ -6,12 +6,15 @@
 // License text is included with the source distribution.
 //****************************************************************************
 
-// An infinite grid on the world's xz plane, drawn with the "pristine grid"
-// shader from Ben Golus' article The Best Darn Grid Shader (Yet).
+// An infinite grid on the world's xz plane, with the x axis in red and the z
+// axis in blue, drawn with the "pristine grid" shader from Ben Golus' article
+// The Best Darn Grid Shader (Yet). A green line going up from the origin is
+// the y axis.
 //
 // The grid is a single square that the vertex shader keeps centred below the
 // camera, and which is big enough to reach past the far plane in every
-// direction. All the work is in grid-frag.glsl.
+// direction. All the work is in grid-frag.glsl. The y axis is another square,
+// which axis-vert.glsl makes long and thin and turns towards the camera.
 //
 // Controls: drag with the left mouse button to orbit, with the right button
 // to move across the grid, and use the wheel to zoom.
@@ -29,12 +32,15 @@ namespace
     using namespace Tungsten;
 
     constexpr ShaderFamilyId GRID_FAMILY = FIRST_USER_SHADER_FAMILY;
+    constexpr ShaderFamilyId AXIS_FAMILY = FIRST_USER_SHADER_FAMILY + 1;
 
     constexpr float NEAR_PLANE = 0.1f;
     constexpr float FAR_PLANE = 1000.0f;
 
     // The width of the grid lines as a fraction of a cell.
     constexpr float LINE_WIDTH = 0.02f;
+    // The width of the lines along the axes.
+    constexpr float AXIS_WIDTH = 0.05f;
     // The number of cells per world unit.
     constexpr float GRID_SCALE = 1.0f;
 
@@ -52,7 +58,7 @@ namespace
             : EventLoop(app),
               renderer_(resources_)
         {
-            register_grid_family();
+            register_shader_families();
             const auto shader = resources_.register_shader_variant({GRID_FAMILY, 0});
 
             // No culling: the grid is as visible from below as from above.
@@ -64,10 +70,19 @@ namespace
 
             // No local bounds: the square follows the camera, so it must
             // never be culled.
+            const auto square = make_square_mesh();
             grid_ = scene_.add_node();
             grid_.add(RenderableComponent{
-                .mesh = make_square_mesh(),
+                .mesh = square,
                 .material = make_material(pipeline)
+            });
+
+            // The same square and still no bounds, as the shader is what
+            // gives the line its shape.
+            y_axis_ = scene_.add_node();
+            y_axis_.add(RenderableComponent{
+                .mesh = square,
+                .material = make_axis_material()
             });
 
             camera_ = scene_.add_node();
@@ -127,35 +142,82 @@ namespace
         }
 
     private:
-        void register_grid_family()
+        void register_shader_families()
         {
-            ShaderFamily family;
-            family.vertex_source = GRID_VERTEX;
-            family.fragment_source = GRID_FRAGMENT;
-            family.required_attributes =
+            ShaderFamily grid;
+            grid.vertex_source = GRID_VERTEX;
+            grid.fragment_source = GRID_FRAGMENT;
+            grid.required_attributes =
                 semantic_bit(AttributeSemantic::POSITION);
-            resources_.register_shader_family(GRID_FAMILY, std::move(family));
+            resources_.register_shader_family(GRID_FAMILY, std::move(grid));
+
+            ShaderFamily axis;
+            axis.vertex_source = AXIS_VERTEX;
+            axis.fragment_source = AXIS_FRAGMENT;
+            axis.required_attributes =
+                semantic_bit(AttributeSemantic::POSITION);
+            resources_.register_shader_family(AXIS_FAMILY, std::move(axis));
         }
 
         MaterialRef make_material(PipelineRef pipeline)
         {
-            // The shader's MaterialBlock: three vec4s. Colours in a uniform
+            // The shader's MaterialBlock: six vec4s. Colours in a uniform
             // block are linear; these are picked by eye, hence sRGB.
             const auto lines = srgb_to_linear(
                 Xyz::Vector4F{0.85f, 0.85f, 0.85f, 1.0f});
             const auto base = srgb_to_linear(
                 Xyz::Vector4F{0.16f, 0.17f, 0.19f, 1.0f});
+            const auto x_axis = srgb_to_linear(
+                Xyz::Vector4F{0.90f, 0.22f, 0.25f, 1.0f});
+            const auto z_axis = srgb_to_linear(
+                Xyz::Vector4F{0.25f, 0.45f, 0.95f, 1.0f});
             // The square has to cover everything in front of the far plane
             // wherever the camera looks, and the corners of the far plane are
             // further away than FAR_PLANE.
-            const float values[12] = {
+            const float values[24] = {
                 lines[0], lines[1], lines[2], lines[3],
                 base[0], base[1], base[2], base[3],
-                LINE_WIDTH, LINE_WIDTH, GRID_SCALE, 2 * FAR_PLANE
+                x_axis[0], x_axis[1], x_axis[2], x_axis[3],
+                z_axis[0], z_axis[1], z_axis[2], z_axis[3],
+                LINE_WIDTH, LINE_WIDTH, GRID_SCALE, 2 * FAR_PLANE,
+                AXIS_WIDTH, 0, 0, 0
             };
             const auto bytes = std::as_bytes(std::span(values));
             Material material;
             material.pipeline = pipeline;
+            material.parameter_data = {bytes.begin(), bytes.end()};
+            return resources_.create_material(std::move(material));
+        }
+
+        MaterialRef make_axis_material()
+        {
+            // The line's edges are anti-aliased with alpha, so it is blended
+            // and drawn after the grid. It doesn't write depth as its quad is
+            // wider than the line.
+            PipelineDescriptor descriptor;
+            descriptor.shader =
+                resources_.register_shader_variant({AXIS_FAMILY, 0});
+            descriptor.layout = grid_layout();
+            descriptor.queue = RenderQueue::TRANSPARENT;
+            descriptor.depth.write = false;
+            descriptor.blend.enabled = true;
+            descriptor.blend.src_color = BlendFunction::SRC_ALPHA;
+            descriptor.blend.dst_color = BlendFunction::ONE_MINUS_SRC_ALPHA;
+            descriptor.blend.src_alpha = BlendFunction::ONE;
+            descriptor.blend.dst_alpha = BlendFunction::ONE_MINUS_SRC_ALPHA;
+            descriptor.raster.cull_enabled = false;
+
+            // The shader's MaterialBlock: two vec4s. The line is as long as
+            // the grid is wide, which is past the far plane.
+            const auto color = srgb_to_linear(
+                Xyz::Vector4F{0.35f, 0.80f, 0.30f, 1.0f});
+            const float values[8] = {
+                color[0], color[1], color[2], color[3],
+                AXIS_WIDTH, GRID_SCALE, 2 * FAR_PLANE, 0
+            };
+            const auto bytes = std::as_bytes(std::span(values));
+            Material material;
+            material.pipeline = resources_.register_pipeline(descriptor);
             material.parameter_data = {bytes.begin(), bytes.end()};
             return resources_.create_material(std::move(material));
         }
@@ -252,6 +314,7 @@ namespace
         BufferArenaRef vbo_arena_;
         BufferArenaRef ebo_arena_;
         NodeHandle grid_;
+        NodeHandle y_axis_;
         NodeHandle camera_;
         Xyz::Vector3F target_ = {0, 0, 0};
         float yaw_ = 0.5f;

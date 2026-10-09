@@ -8,5 +8,8 @@
 #pragma once
 #include <string>
 
+extern const std::string AXIS_VERTEX;
+extern const std::string AXIS_FRAGMENT;
+
 extern const std::string GRID_VERTEX;
 extern const std::string GRID_FRAGMENT;

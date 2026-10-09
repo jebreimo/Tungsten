@@ -7,5 +7,8 @@
 //****************************************************************************
 #include <string>
 
+extern const std::string AXIS_VERTEX(#embed_text "axis-vert.glsl");
+extern const std::string AXIS_FRAGMENT(#embed_text "axis-frag.glsl");
+
 extern const std::string GRID_VERTEX(#embed_text "grid-vert.glsl");
 extern const std::string GRID_FRAGMENT(#embed_text "grid-frag.glsl");
