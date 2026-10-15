@@ -59,28 +59,20 @@ namespace
               renderer_(resources_)
         {
             register_shader_families();
-            const auto shader = resources_.register_shader_variant({GRID_FAMILY, 0});
 
-            // No culling: the grid is as visible from below as from above.
-            PipelineDescriptor descriptor;
-            descriptor.shader = shader;
-            descriptor.layout = grid_layout();
-            descriptor.raster.cull_enabled = false;
-            const auto pipeline = resources_.register_pipeline(descriptor);
+            hub_ = scene_.add_node();
 
             // No local bounds: the square follows the camera, so it must
             // never be culled.
             const auto square = make_square_mesh();
-            grid_ = scene_.add_node();
-            grid_.add(RenderableComponent{
+            hub_.add_child().add(RenderableComponent{
                 .mesh = square,
-                .material = make_material(pipeline)
+                .material = make_grid_material()
             });
 
             // The same square and still no bounds, as the shader is what
             // gives the line its shape.
-            y_axis_ = scene_.add_node();
-            y_axis_.add(RenderableComponent{
+            hub_.add_child().add(RenderableComponent{
                 .mesh = square,
                 .material = make_axis_material()
             });
@@ -159,8 +151,15 @@ namespace
             resources_.register_shader_family(AXIS_FAMILY, std::move(axis));
         }
 
-        MaterialRef make_material(PipelineRef pipeline)
+        MaterialRef make_grid_material()
         {
+            // No culling: the grid is as visible from below as from above.
+            PipelineDescriptor descriptor;
+            descriptor.shader = resources_.register_shader_variant({GRID_FAMILY, 0});
+            descriptor.layout = grid_layout();
+            descriptor.raster.cull_enabled = false;
+            const auto pipeline = resources_.register_pipeline(descriptor);
+
             // The shader's MaterialBlock: six vec4s. Colours in a uniform
             // block are linear; these are picked by eye, hence sRGB.
             const auto lines = srgb_to_linear(
@@ -229,9 +228,9 @@ namespace
         {
             return resources_.register_layout(
                 VertexLayoutBuilder()
-                    .add_attribute(AttributeSemantic::POSITION)
-                    .set_component_count(2)
-                    .build());
+                .add_attribute(AttributeSemantic::POSITION)
+                .set_component_count(2)
+                .build());
         }
 
         MeshRef make_square_mesh()
@@ -313,8 +312,7 @@ namespace
         Renderer renderer_;
         BufferArenaRef vbo_arena_;
         BufferArenaRef ebo_arena_;
-        NodeHandle grid_;
-        NodeHandle y_axis_;
+        NodeHandle hub_;
         NodeHandle camera_;
         Xyz::Vector3F target_ = {0, 0, 0};
         float yaw_ = 0.5f;
