@@ -164,27 +164,25 @@ namespace Tungsten
                                        Scene& scene,
                                        BufferArenaRef vbo_arena,
                                        BufferArenaRef ebo_arena)
-        : vbo_arena_(vbo_arena),
-          ebo_arena_(ebo_arena)
+        : resources_(resources)
     {
         hub_ = scene.add_node();
 
-        if (!vbo_arena_)
+        if (!vbo_arena)
         {
-            vbo_arena_ = resources.create_arena(
+            vbo_arena_ = vbo_arena = resources.create_arena(
                 BufferUsage::STATIC_DRAW, 2 * sizeof(float), VERTEX_COUNT);
         }
-        if (!ebo_arena_)
+        if (!ebo_arena)
         {
-            ebo_arena_ = resources.create_arena(
+            ebo_arena_ = ebo_arena = resources.create_arena(
                 BufferUsage::STATIC_DRAW, sizeof(uint16_t), INDEX_COUNT);
         }
         register_shader_families(resources);
-        const auto mesh = make_square_mesh(resources, vbo_arena, ebo_arena);
 
         // No local bounds: the square follows the camera, so it must
         // never be culled.
-        const auto square = make_square_mesh(resources, vbo_arena_, ebo_arena_);
+        const auto square = make_square_mesh(resources, vbo_arena, ebo_arena);
         hub_.add_child().add(RenderableComponent{
             .mesh = square,
             .material = make_grid_material(resources)
@@ -196,5 +194,35 @@ namespace Tungsten
             .mesh = square,
             .material = make_axis_material(resources)
         });
+    }
+
+    CoordinateSystem::~CoordinateSystem()
+    {
+        std::vector<MaterialRef> materials;
+        std::vector<MeshRef> meshes;
+        for (const auto& child : hub_.children())
+        {
+            meshes.push_back(child.get<RenderableComponent>().mesh);
+            materials.push_back(child.get<RenderableComponent>().material);
+        }
+        hub_.remove();
+        std::ranges::sort(meshes);
+        meshes.erase(std::ranges::unique(meshes).begin(), meshes.end());
+        std::ranges::sort(materials);
+        materials.erase(std::ranges::unique(materials).begin(), materials.end());
+        for (const auto& mesh : meshes)
+            resources_.destroy_mesh(mesh);
+        for (const auto& material : materials)
+            resources_.destroy_material(material);
+
+        if (vbo_arena_)
+            resources_.destroy_arena(vbo_arena_);
+        if (ebo_arena_)
+            resources_.destroy_arena(ebo_arena_);
+    }
+
+    NodeHandle CoordinateSystem::hub() const
+    {
+        return hub_;
     }
 } // Tungsten

@@ -11,6 +11,8 @@ set(CMAKE_CXX_STANDARD 23)
 
 add_executable(coordsys
     coordsys.cpp
+    CoordinateSystem.cpp
+    CoordinateSystem.hpp
     Resources.hpp
 )
 

@@ -26,9 +26,13 @@ namespace Tungsten
                          BufferArenaRef vbo_arena = {},
                          BufferArenaRef ebo_arena = {});
 
+        ~CoordinateSystem();
+
+        [[nodiscard]] NodeHandle hub() const;
     private:
-        BufferArenaRef vbo_arena_;
-        BufferArenaRef ebo_arena_;
+        ResourceManager& resources_;
+        BufferArenaRef vbo_arena_ = {};
+        BufferArenaRef ebo_arena_ = {};
         NodeHandle hub_;
     };
 } // Tungsten

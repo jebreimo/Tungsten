@@ -22,8 +22,8 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
-#include <span>
 
+#include "CoordinateSystem.hpp"
 #include "Tungsten/Tungsten.hpp"
 #include "Resources.hpp"
 
@@ -31,18 +31,8 @@ namespace
 {
     using namespace Tungsten;
 
-    constexpr ShaderFamilyId GRID_FAMILY = FIRST_USER_SHADER_FAMILY;
-    constexpr ShaderFamilyId AXIS_FAMILY = FIRST_USER_SHADER_FAMILY + 1;
-
     constexpr float NEAR_PLANE = 0.1f;
     constexpr float FAR_PLANE = 1000.0f;
-
-    // The width of the grid lines as a fraction of a cell.
-    constexpr float LINE_WIDTH = 0.02f;
-    // The width of the lines along the axes.
-    constexpr float AXIS_WIDTH = 0.05f;
-    // The number of cells per world unit.
-    constexpr float GRID_SCALE = 1.0f;
 
     constexpr float ORBIT_SPEED = 0.005f;
     constexpr float PAN_SPEED = 0.002f;
@@ -56,27 +46,9 @@ namespace
     public:
         explicit Coordsys(SdlApplication& app)
             : EventLoop(app),
-              renderer_(resources_)
+              renderer_(resources_),
+              coordinate_system_{resources_, scene_}
         {
-            register_shader_families();
-
-            hub_ = scene_.add_node();
-
-            // No local bounds: the square follows the camera, so it must
-            // never be culled.
-            const auto square = make_square_mesh();
-            hub_.add_child().add(RenderableComponent{
-                .mesh = square,
-                .material = make_grid_material()
-            });
-
-            // The same square and still no bounds, as the shader is what
-            // gives the line its shape.
-            hub_.add_child().add(RenderableComponent{
-                .mesh = square,
-                .material = make_axis_material()
-            });
-
             camera_ = scene_.add_node();
             camera_.add(CameraComponent{
                 .near_plane = NEAR_PLANE,
@@ -134,143 +106,6 @@ namespace
         }
 
     private:
-        void register_shader_families()
-        {
-            ShaderFamily grid;
-            grid.vertex_source = GRID_VERTEX;
-            grid.fragment_source = GRID_FRAGMENT;
-            grid.required_attributes =
-                semantic_bit(AttributeSemantic::POSITION);
-            resources_.register_shader_family(GRID_FAMILY, std::move(grid));
-
-            ShaderFamily axis;
-            axis.vertex_source = AXIS_VERTEX;
-            axis.fragment_source = AXIS_FRAGMENT;
-            axis.required_attributes =
-                semantic_bit(AttributeSemantic::POSITION);
-            resources_.register_shader_family(AXIS_FAMILY, std::move(axis));
-        }
-
-        MaterialRef make_grid_material()
-        {
-            // No culling: the grid is as visible from below as from above.
-            PipelineDescriptor descriptor;
-            descriptor.shader = resources_.register_shader_variant({GRID_FAMILY, 0});
-            descriptor.layout = grid_layout();
-            descriptor.raster.cull_enabled = false;
-            const auto pipeline = resources_.register_pipeline(descriptor);
-
-            // The shader's MaterialBlock: six vec4s. Colours in a uniform
-            // block are linear; these are picked by eye, hence sRGB.
-            const auto lines = srgb_to_linear(
-                Xyz::Vector4F{0.85f, 0.85f, 0.85f, 1.0f});
-            const auto base = srgb_to_linear(
-                Xyz::Vector4F{0.16f, 0.17f, 0.19f, 1.0f});
-            const auto x_axis = srgb_to_linear(
-                Xyz::Vector4F{0.90f, 0.22f, 0.25f, 1.0f});
-            const auto z_axis = srgb_to_linear(
-                Xyz::Vector4F{0.25f, 0.45f, 0.95f, 1.0f});
-            // The square has to cover everything in front of the far plane
-            // wherever the camera looks, and the corners of the far plane are
-            // further away than FAR_PLANE.
-            const float values[24] = {
-                lines[0], lines[1], lines[2], lines[3],
-                base[0], base[1], base[2], base[3],
-                x_axis[0], x_axis[1], x_axis[2], x_axis[3],
-                z_axis[0], z_axis[1], z_axis[2], z_axis[3],
-                LINE_WIDTH, LINE_WIDTH, GRID_SCALE, 2 * FAR_PLANE,
-                AXIS_WIDTH, 0, 0, 0
-            };
-            const auto bytes = std::as_bytes(std::span(values));
-            Material material;
-            material.pipeline = pipeline;
-            material.parameter_data = {bytes.begin(), bytes.end()};
-            return resources_.create_material(std::move(material));
-        }
-
-        MaterialRef make_axis_material()
-        {
-            // The line's edges are anti-aliased with alpha, so it is blended
-            // and drawn after the grid. It doesn't write depth as its quad is
-            // wider than the line.
-            PipelineDescriptor descriptor;
-            descriptor.shader =
-                resources_.register_shader_variant({AXIS_FAMILY, 0});
-            descriptor.layout = grid_layout();
-            descriptor.queue = RenderQueue::TRANSPARENT;
-            descriptor.depth.write = false;
-            descriptor.blend.enabled = true;
-            descriptor.blend.src_color = BlendFunction::SRC_ALPHA;
-            descriptor.blend.dst_color = BlendFunction::ONE_MINUS_SRC_ALPHA;
-            descriptor.blend.src_alpha = BlendFunction::ONE;
-            descriptor.blend.dst_alpha = BlendFunction::ONE_MINUS_SRC_ALPHA;
-            descriptor.raster.cull_enabled = false;
-
-            // The shader's MaterialBlock: two vec4s. The line is as long as
-            // the grid is wide, which is past the far plane.
-            const auto color = srgb_to_linear(
-                Xyz::Vector4F{0.35f, 0.80f, 0.30f, 1.0f});
-            const float values[8] = {
-                color[0], color[1], color[2], color[3],
-                AXIS_WIDTH, GRID_SCALE, 2 * FAR_PLANE, 0
-            };
-            const auto bytes = std::as_bytes(std::span(values));
-            Material material;
-            material.pipeline = resources_.register_pipeline(descriptor);
-            material.parameter_data = {bytes.begin(), bytes.end()};
-            return resources_.create_material(std::move(material));
-        }
-
-        // The corners are two-dimensional as the shader places them in the
-        // xz plane. Named by both the mesh and the pipeline, which have to
-        // agree on the packing.
-        VertexLayoutRef grid_layout()
-        {
-            return resources_.register_layout(
-                VertexLayoutBuilder()
-                .add_attribute(AttributeSemantic::POSITION)
-                .set_component_count(2)
-                .build());
-        }
-
-        MeshRef make_square_mesh()
-        {
-            constexpr uint32_t VERTEX_COUNT = 4;
-            constexpr uint32_t INDEX_COUNT = 6;
-            constexpr float vertexes[2 * VERTEX_COUNT] = {
-                -1, -1,
-                1, -1,
-                1, 1,
-                -1, 1
-            };
-            uint16_t indexes[INDEX_COUNT] = {
-                0, 1, 2,
-                0, 2, 3
-            };
-
-            vbo_arena_ = resources_.create_arena(
-                BufferUsage::STATIC_DRAW, 2 * sizeof(float), VERTEX_COUNT);
-            ebo_arena_ = resources_.create_arena(
-                BufferUsage::STATIC_DRAW, sizeof(uint16_t), INDEX_COUNT);
-
-            const auto vertices = resources_.allocate(vbo_arena_, VERTEX_COUNT);
-            const auto indices = resources_.allocate(ebo_arena_, INDEX_COUNT);
-
-            // Rebase to absolute indices: the portable path has no
-            // baseVertex draw argument.
-            for (auto& index : indexes)
-                index = uint16_t(index + vertices.offset);
-
-            resources_.upload(vertices, vertexes, sizeof(vertexes));
-            resources_.upload(indices, indexes, sizeof(indexes));
-
-            Mesh mesh;
-            mesh.streams = {vertices};
-            mesh.layout = grid_layout();
-            mesh.ebo = indices;
-            return resources_.create_mesh(std::move(mesh));
-        }
-
         void orbit(float dx, float dy)
         {
             yaw_ -= dx * ORBIT_SPEED;
@@ -309,10 +144,8 @@ namespace
         Scene scene_;
         DoubleBuffer<RenderSnapshot> snapshots_;
         SnapshotBuilder builder_{resources_};
+        CoordinateSystem coordinate_system_;
         Renderer renderer_;
-        BufferArenaRef vbo_arena_;
-        BufferArenaRef ebo_arena_;
-        NodeHandle hub_;
         NodeHandle camera_;
         Xyz::Vector3F target_ = {0, 0, 0};
         float yaw_ = 0.5f;
