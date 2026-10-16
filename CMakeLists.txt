@@ -83,9 +83,9 @@ find_package(GLEW REQUIRED)
 find_package(SDL3 REQUIRED)
 
 add_library(Tungsten STATIC
+    include/Tungsten/Color.hpp
     include/Tungsten/Detail/BuddyAllocator.hpp
     include/Tungsten/Detail/GenericBitmaskOperators.hpp
-    include/Tungsten/Color.hpp
     include/Tungsten/DeviceInfo.hpp
     include/Tungsten/Environment.hpp
     include/Tungsten/Gl/DummyOglWrapper.hpp
@@ -136,6 +136,8 @@ add_library(Tungsten STATIC
     include/Tungsten/Resources/VertexLayout.hpp
     include/Tungsten/Resources/VertexLayoutBuilder.hpp
     include/Tungsten/SceneGraph/CameraComponent.hpp
+    include/Tungsten/SceneGraph/ChildIterator.hpp
+    include/Tungsten/SceneGraph/ChildRange.hpp
     include/Tungsten/SceneGraph/LightComponent.hpp
     include/Tungsten/SceneGraph/NodeHandle.hpp
     include/Tungsten/SceneGraph/NodeId.hpp
@@ -217,6 +219,7 @@ add_library(Tungsten STATIC
     src/Tungsten/Resources/VertexArray.cpp
     src/Tungsten/Resources/VertexLayoutBuilder.cpp
     src/Tungsten/SceneGraph/CameraComponent.cpp
+    src/Tungsten/SceneGraph/ChildIterator.cpp
     src/Tungsten/SceneGraph/Scene.cpp
     src/Tungsten/Sdl/CommandLine.cpp
     src/Tungsten/Sdl/CommandLine.hpp

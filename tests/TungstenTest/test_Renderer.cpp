@@ -594,8 +594,7 @@ TEST_CASE("Renderer: a texture is drawn with the sampler it names")
             != bench.resources.get_sampler_id(bench.resources.default_sampler()));
 }
 
-TEST_CASE("Renderer: a material with no parameters for a shader that reads"
-          " them is rejected")
+TEST_CASE("Renderer: a material with no parameters for a shader")
 {
     const FakeGlSession session;
     Bench bench;

@@ -6,6 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include <compare>
 #include <cstdint>
 
 namespace Tungsten
@@ -39,4 +40,12 @@ namespace Tungsten
             return generation != 0;
         }
     };
+
+    template <typename T>
+    std::strong_ordering operator<=>(const ResourceRef<T>& a, const ResourceRef<T>& b)
+    {
+        return a.generation == b.generation
+                   ? a.index <=> b.index
+                   : a.generation <=> b.generation;
+    }
 }

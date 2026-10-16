@@ -201,8 +201,7 @@ TEST_CASE("Scene: moving an ancestor moves its whole subtree")
             == Xyz::Vector3F{12, 0, 0});
 }
 
-TEST_CASE("Scene: the resolve order puts parents before children whatever"
-          " order the nodes were created in")
+TEST_CASE("Scene: the resolve order puts parents before children")
 {
     Scene scene;
     // Created leaf-first, so the slot order is the reverse of the depth
@@ -265,8 +264,8 @@ TEST_CASE("Scene: children are iterated in the order they were added")
     const auto third = parent.add_child().id();
 
     std::vector<NodeId> seen;
-    for (const NodeId child : parent.children())
-        seen.push_back(child);
+    for (const auto child : parent.children())
+        seen.push_back(child.id());
 
     REQUIRE(seen == std::vector{first, second, third});
 }

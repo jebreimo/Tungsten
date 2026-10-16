@@ -14,6 +14,7 @@
 #include <Xyz/Matrix.hpp>
 #include "Tungsten/TungstenException.hpp"
 #include "CameraComponent.hpp"
+#include "ChildRange.hpp"
 #include "LightComponent.hpp"
 #include "NodeId.hpp"
 #include "RenderableComponent.hpp"
@@ -60,73 +61,6 @@ namespace Tungsten
     {
     public:
         /**
-         * Iterates a node's children through the sibling chain. Yields NodeIds
-         * and allocates nothing.
-         */
-        class ChildIterator
-        {
-        public:
-            ChildIterator() = default;
-
-            ChildIterator(const Scene* scene, NodeId id)
-                : scene_(scene), id_(id)
-            {}
-
-            NodeId operator*() const
-            {
-                return id_;
-            }
-
-            ChildIterator& operator++()
-            {
-                id_ = scene_->next_sibling(id_);
-                return *this;
-            }
-
-            bool operator==(const ChildIterator& other) const
-            {
-                return id_ == other.id_;
-            }
-
-        private:
-            const Scene* scene_ = nullptr;
-            NodeId id_;
-        };
-
-        /**
-         * A range of a node's children, iterable with a range-based for loop.
-         */
-        class ChildRange
-        {
-        public:
-            ChildRange(const Scene* scene, NodeId first)
-                : scene_(scene), first_(first)
-            {}
-
-            [[nodiscard]]
-            ChildIterator begin() const
-            {
-                return {scene_, first_};
-            }
-
-            [[nodiscard]]
-            ChildIterator end() const
-            {
-                return {scene_, NodeId{}};
-            }
-
-            [[nodiscard]]
-            bool empty() const
-            {
-                return !first_;
-            }
-
-        private:
-            const Scene* scene_;
-            NodeId first_;
-        };
-
-        /**
          * Creates a node and returns its id. A null parent makes it a root;
          * otherwise it is appended after the parent's existing children.
          * Throws if parent is non-null and does not name a live node.
@@ -168,7 +102,7 @@ namespace Tungsten
         NodeId next_sibling(NodeId id) const;
 
         [[nodiscard]]
-        ChildRange children(NodeId id) const;
+        ChildRange children(NodeId id);
 
         /**
          * Returns the node's local transform as the matrix it was set with —

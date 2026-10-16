@@ -342,6 +342,11 @@ namespace Tungsten
             BufferUsage::STATIC_DRAW);
     }
 
+    const Material& ResourceManager::get_material(MaterialRef ref) const
+    {
+        return members_->materials.get(ref);
+    }
+
     Material& ResourceManager::get_material(MaterialRef ref)
     {
         return members_->materials.get(ref);

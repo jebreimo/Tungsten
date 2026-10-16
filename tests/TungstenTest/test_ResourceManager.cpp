@@ -229,8 +229,7 @@ TEST_CASE("ResourceManager: allocations share one GL buffer")
     REQUIRE(session.gl->live_buffers == 1);
 }
 
-TEST_CASE("ResourceManager: a non-power-of-two arena is backed for its whole"
-          " rounded-up capacity")
+TEST_CASE("ResourceManager: a non-power-of-two arena")
 {
     FakeGlSession session;
     ResourceManager manager;
@@ -698,8 +697,7 @@ TEST_CASE("ResourceManager: re-registering a family recompiles its variants")
     REQUIRE(manager.get_shader(first).variant_key == ShaderVariantKey{1, 0});
 }
 
-TEST_CASE("ResourceManager: compiling a variant with samplers announces the"
-          " GL state change")
+TEST_CASE("ResourceManager: compiling a variant with samplers")
 {
     FakeGlSession session;
     ResourceManager manager;

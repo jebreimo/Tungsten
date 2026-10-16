@@ -136,7 +136,7 @@ namespace Tungsten
         return next_siblings_[validate(id)];
     }
 
-    Scene::ChildRange Scene::children(NodeId id) const
+    ChildRange Scene::children(NodeId id)
     {
         return {this, first_children_[validate(id)]};
     }

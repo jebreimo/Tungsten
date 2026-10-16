@@ -11,7 +11,6 @@
 #include <span>
 #include "Tungsten/Gpu/GpuTypes.hpp"
 #include "ResourceRefs.hpp"
-#include "PipelineDescriptor.hpp"
 #include "ShaderFamily.hpp"
 #include "SharedBuffer.hpp"
 
@@ -130,6 +129,9 @@ namespace Tungsten
          * UBO of its own, so drawing it later only binds that buffer.
          */
         MaterialRef create_material(Material material);
+
+        [[nodiscard]]
+        const Material& get_material(MaterialRef ref) const;
 
         [[nodiscard]]
         Material& get_material(MaterialRef ref);

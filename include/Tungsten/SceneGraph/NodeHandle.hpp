@@ -73,7 +73,7 @@ namespace Tungsten
         }
 
         [[nodiscard]]
-        Scene::ChildRange children() const
+        ChildRange children() const
         {
             return scene_->children(id_);
         }
