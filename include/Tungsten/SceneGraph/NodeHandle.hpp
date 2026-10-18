@@ -50,12 +50,12 @@ namespace Tungsten
             return scene_->local_matrix(id_);
         }
 
-        void set_local_transform(const Xyz::Matrix4F& matrix) const
+        void set_local_transform(const Xyz::Matrix4F& matrix)
         {
             scene_->set_local_transform(id_, matrix);
         }
 
-        void set_local_transform(const Transform& transform) const
+        void set_local_transform(const Transform& transform)
         {
             scene_->set_local_transform(id_, transform);
         }
@@ -80,19 +80,19 @@ namespace Tungsten
 
         // Creates a child of this node and returns a handle to it.
         [[nodiscard]]
-        NodeHandle add_child() const
+        NodeHandle add_child()
         {
             return scene_->add_node(id_);
         }
 
-        void reparent(NodeHandle new_parent) const
+        void reparent(NodeHandle new_parent)
         {
             scene_->reparent(id_, new_parent.id_);
         }
 
         // Destroys this node and its subtree. Every handle to any of them,
         // including this one, stops resolving.
-        void remove() const
+        void remove()
         {
             scene_->remove(id_);
         }
@@ -101,7 +101,7 @@ namespace Tungsten
         // next add of the same kind, so reach for it through get<T>() each
         // time rather than caching it.
         template <ComponentType T>
-        T& add(T component) const
+        T& add(T component)
         {
             return scene_->add_component(id_, std::move(component));
         }
@@ -121,7 +121,7 @@ namespace Tungsten
         }
 
         template <ComponentType T>
-        void remove_component() const
+        void remove_component()
         {
             scene_->remove_component<T>(id_);
         }

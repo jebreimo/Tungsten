@@ -11,9 +11,9 @@ set(CMAKE_CXX_STANDARD 23)
 
 add_executable(coordsys
     coordsys.cpp
-    CoordinateSystem.cpp
-    CoordinateSystem.hpp
-    Resources.hpp
+    EmbeddedResources.hpp
+    InfiniteGrid.cpp
+    InfiniteGrid.hpp
 )
 
 target_link_libraries(coordsys
@@ -23,5 +23,5 @@ target_link_libraries(coordsys
 
 target_embed_cpp_data(coordsys
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/Resources.cpp.in
+        ${CMAKE_CURRENT_SOURCE_DIR}/EmbeddedResources.cpp.in
 )

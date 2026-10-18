@@ -18,21 +18,39 @@ namespace Tungsten
     constexpr float NEAR_PLANE = 0.1f;
     constexpr float FAR_PLANE = 1000.0f;
 
-    class CoordinateSystem
+    class InfiniteGridResources
     {
     public:
-        CoordinateSystem(ResourceManager& resource_manager,
-                         Scene& scene,
-                         BufferArenaRef vbo_arena = {},
-                         BufferArenaRef ebo_arena = {});
+        InfiniteGridResources(ResourceManager& resource_manager,
+                              BufferArenaRef vbo_arena = {},
+                              BufferArenaRef ebo_arena = {});
 
-        ~CoordinateSystem();
+        ~InfiniteGridResources();
 
-        [[nodiscard]] NodeHandle hub() const;
+        [[nodiscard]] MeshRef square_mesh() const
+        {
+            return square_mesh_;
+        }
+
+        [[nodiscard]] MaterialRef grid_material() const
+        {
+            return grid_material_;
+        }
+
+        [[nodiscard]] MaterialRef axis_material() const
+        {
+            return axis_material_;
+        }
+
     private:
         ResourceManager& resources_;
         BufferArenaRef vbo_arena_ = {};
         BufferArenaRef ebo_arena_ = {};
-        NodeHandle hub_;
+        MeshRef square_mesh_ = {};
+        MaterialRef grid_material_ = {};
+        MaterialRef axis_material_ = {};
     };
+
+    NodeHandle
+    make_infinite_grid_node(Scene& scene, const InfiniteGridResources& resources);
 } // Tungsten

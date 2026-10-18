@@ -49,7 +49,7 @@ namespace Tungsten
             if (nodes_.full())
                 nodes_.front().remove();
 
-            const auto node = scene_->add_node();
+            auto node = scene_->add_node();
             node.add(TextComponent{.text = std::move(text), .style = style_});
             nodes_.push_back(node);
         }
@@ -57,14 +57,14 @@ namespace Tungsten
         // Stacks the lines upwards from the bottom-left corner, newest first.
         // Must run after TextSystem::update(), which is what fills in the
         // bounds this reads, and before Scene::resolve_transforms().
-        void layout(const Viewport& viewport) const
+        void layout(const Viewport& viewport)
         {
             const float left = -viewport.size[0] / 2.0f;
             float y = -viewport.size[1] / 2.0f;
 
             for (size_t i = nodes_.size(); i-- > 0;)
             {
-                const NodeHandle& node = nodes_[i];
+                NodeHandle& node = nodes_[i];
                 node.set_local_transform(at(left, y));
                 const auto& bounds = node.get<TextComponent>().built.bounds();
                 y += bounds.max[1] - bounds.min[1] + LINE_GAP;

@@ -16,8 +16,8 @@ FetchContent_Declare(ystring2
 FetchContent_MakeAvailable(ystring2)
 
 add_executable(cube
-    Resources.hpp.in
     Cube.cpp
+    EmbeddedResources.hpp
 )
 
 target_link_libraries(cube
@@ -30,5 +30,5 @@ target_link_libraries(cube
 
 target_embed_cpp_data(cube
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/Resources.hpp.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/EmbeddedResources.cpp.in
 )

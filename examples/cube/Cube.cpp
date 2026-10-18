@@ -12,7 +12,7 @@
 #include <Yconvert/Convert.hpp>
 #include <Ystring/Ystring.hpp>
 
-#include "Resources.hpp"
+#include "EmbeddedResources.hpp"
 
 namespace
 {
@@ -47,7 +47,7 @@ namespace
 
     Yimage::Image get_image()
     {
-        return Tungsten::read_image(NUMBERS_PNG, std::size(NUMBERS_PNG) - 1);
+        return Tungsten::read_image(NUMBERS_PNG, NUMBERS_PNG_SIZE);
     }
 
     class Cube : public Tungsten::EventLoop

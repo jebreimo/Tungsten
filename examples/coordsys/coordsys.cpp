@@ -23,9 +23,9 @@
 #include <cmath>
 #include <iostream>
 
-#include "CoordinateSystem.hpp"
+#include "InfiniteGrid.hpp"
 #include "Tungsten/Tungsten.hpp"
-#include "Resources.hpp"
+#include "EmbeddedResources.hpp"
 
 namespace
 {
@@ -46,9 +46,10 @@ namespace
     public:
         explicit Coordsys(SdlApplication& app)
             : EventLoop(app),
-              renderer_(resources_),
-              coordinate_system_{resources_, scene_}
+              infinite_grid_resources_{resources_},
+              renderer_(resources_)
         {
+            make_infinite_grid_node(scene_, infinite_grid_resources_);
             camera_ = scene_.add_node();
             camera_.add(CameraComponent{
                 .near_plane = NEAR_PLANE,
@@ -141,10 +142,10 @@ namespace
         }
 
         ResourceManager resources_;
+        InfiniteGridResources infinite_grid_resources_;
         Scene scene_;
         DoubleBuffer<RenderSnapshot> snapshots_;
         SnapshotBuilder builder_{resources_};
-        CoordinateSystem coordinate_system_;
         Renderer renderer_;
         NodeHandle camera_;
         Xyz::Vector3F target_ = {0, 0, 0};

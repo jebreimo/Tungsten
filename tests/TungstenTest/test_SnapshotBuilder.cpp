@@ -316,7 +316,7 @@ TEST_CASE("SnapshotBuilder: a removed node's renderable stops being drawn")
 {
     Bench bench;
     bench.add_renderable(0, 0, -5);
-    const auto doomed = bench.add_renderable(1, 0, -5);
+    auto doomed = bench.add_renderable(1, 0, -5);
 
     bench.build();
     REQUIRE(bench.snapshot.opaque_items.size() == 2);

@@ -5,9 +5,9 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "CoordinateSystem.hpp"
+#include "InfiniteGrid.hpp"
 
-#include "Resources.hpp"
+#include "EmbeddedResources.hpp"
 #include "Tungsten/Color.hpp"
 #include "Tungsten/Resources/Material.hpp"
 #include "Tungsten/Resources/Mesh.hpp"
@@ -21,7 +21,7 @@ namespace Tungsten
         constexpr uint32_t INDEX_COUNT = 6;
 
         // The width of the grid lines as a fraction of a cell.
-        constexpr float LINE_WIDTH = 0.02f;
+        constexpr float LINE_WIDTH = 0.01f;
         // The width of the lines along the axes.
         constexpr float AXIS_WIDTH = 0.05f;
         // The number of cells per world unit.
@@ -160,60 +160,34 @@ namespace Tungsten
         }
     }
 
-    CoordinateSystem::CoordinateSystem(ResourceManager& resources,
-                                       Scene& scene,
-                                       BufferArenaRef vbo_arena,
-                                       BufferArenaRef ebo_arena)
+    InfiniteGridResources::InfiniteGridResources(ResourceManager& resources,
+                                                 BufferArenaRef vbo_arena,
+                                                 BufferArenaRef ebo_arena)
         : resources_(resources)
     {
-        hub_ = scene.add_node();
+        register_shader_families(resources);
 
         if (!vbo_arena)
         {
             vbo_arena_ = vbo_arena = resources.create_arena(
-                BufferUsage::STATIC_DRAW, 2 * sizeof(float), VERTEX_COUNT);
+                             BufferUsage::STATIC_DRAW, 2 * sizeof(float), VERTEX_COUNT);
         }
         if (!ebo_arena)
         {
             ebo_arena_ = ebo_arena = resources.create_arena(
-                BufferUsage::STATIC_DRAW, sizeof(uint16_t), INDEX_COUNT);
+                             BufferUsage::STATIC_DRAW, sizeof(uint16_t), INDEX_COUNT);
         }
-        register_shader_families(resources);
 
-        // No local bounds: the square follows the camera, so it must
-        // never be culled.
-        const auto square = make_square_mesh(resources, vbo_arena, ebo_arena);
-        hub_.add_child().add(RenderableComponent{
-            .mesh = square,
-            .material = make_grid_material(resources)
-        });
-
-        // The same square and still no bounds, as the shader is what
-        // gives the line its shape.
-        hub_.add_child().add(RenderableComponent{
-            .mesh = square,
-            .material = make_axis_material(resources)
-        });
+        square_mesh_ = make_square_mesh(resources, vbo_arena, ebo_arena);
+        grid_material_ = make_grid_material(resources);
+        axis_material_ = make_axis_material(resources);
     }
 
-    CoordinateSystem::~CoordinateSystem()
+    InfiniteGridResources::~InfiniteGridResources()
     {
-        std::vector<MaterialRef> materials;
-        std::vector<MeshRef> meshes;
-        for (const auto& child : hub_.children())
-        {
-            meshes.push_back(child.get<RenderableComponent>().mesh);
-            materials.push_back(child.get<RenderableComponent>().material);
-        }
-        hub_.remove();
-        std::ranges::sort(meshes);
-        meshes.erase(std::ranges::unique(meshes).begin(), meshes.end());
-        std::ranges::sort(materials);
-        materials.erase(std::ranges::unique(materials).begin(), materials.end());
-        for (const auto& mesh : meshes)
-            resources_.destroy_mesh(mesh);
-        for (const auto& material : materials)
-            resources_.destroy_material(material);
+        resources_.destroy_mesh(square_mesh_);
+        resources_.destroy_material(axis_material_);
+        resources_.destroy_material(grid_material_);
 
         if (vbo_arena_)
             resources_.destroy_arena(vbo_arena_);
@@ -221,8 +195,21 @@ namespace Tungsten
             resources_.destroy_arena(ebo_arena_);
     }
 
-    NodeHandle CoordinateSystem::hub() const
+    NodeHandle
+    make_infinite_grid_node(Scene& scene, const InfiniteGridResources& resources)
     {
-        return hub_;
+        auto hub = scene.add_node();
+
+        hub.add_child().add(RenderableComponent{
+            .mesh = resources.square_mesh(),
+            .material = resources.grid_material()
+        });
+
+        hub.add_child().add(RenderableComponent{
+            .mesh = resources.square_mesh(),
+            .material = resources.axis_material()
+        });
+
+        return hub;
     }
 } // Tungsten

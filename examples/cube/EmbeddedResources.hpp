@@ -1,10 +1,12 @@
 //****************************************************************************
-// Copyright © 2025 Jan Erik Breimo. All rights reserved.
-// Created by Jan Erik Breimo on 2025-12-22.
+// Copyright © 2026 Jan Erik Breimo. All rights reserved.
+// Created by Jan Erik Breimo on 2026-10-17.
 //
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include <cstddef>
 
-const char NUMBERS_PNG[] = #embed "numbers.png";
+extern const char NUMBERS_PNG[];
+extern const size_t NUMBERS_PNG_SIZE;
