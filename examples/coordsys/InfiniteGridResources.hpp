@@ -50,7 +50,4 @@ namespace Tungsten
         MaterialRef grid_material_ = {};
         MaterialRef axis_material_ = {};
     };
-
-    NodeHandle
-    make_infinite_grid_node(Scene& scene, const InfiniteGridResources& resources);
 } // Tungsten

@@ -5,7 +5,7 @@
 // This file is distributed under the Zero-Clause BSD License.
 // License text is included with the source distribution.
 //****************************************************************************
-#include "InfiniteGrid.hpp"
+#include "InfiniteGridResources.hpp"
 
 #include "EmbeddedResources.hpp"
 #include "Tungsten/Color.hpp"
@@ -193,23 +193,5 @@ namespace Tungsten
             resources_.destroy_arena(vbo_arena_);
         if (ebo_arena_)
             resources_.destroy_arena(ebo_arena_);
-    }
-
-    NodeHandle
-    make_infinite_grid_node(Scene& scene, const InfiniteGridResources& resources)
-    {
-        auto hub = scene.add_node();
-
-        hub.add_child().add(RenderableComponent{
-            .mesh = resources.square_mesh(),
-            .material = resources.grid_material()
-        });
-
-        hub.add_child().add(RenderableComponent{
-            .mesh = resources.square_mesh(),
-            .material = resources.axis_material()
-        });
-
-        return hub;
     }
 } // Tungsten

@@ -41,6 +41,24 @@ namespace
     constexpr float MAX_DISTANCE = 500.0f;
     constexpr float MAX_PITCH = 1.55f;
 
+    NodeHandle
+    make_infinite_grid_node(Scene& scene, const InfiniteGridResources& resources)
+    {
+        auto hub = scene.add_node();
+
+        hub.add_child().add(RenderableComponent{
+            .mesh = resources.square_mesh(),
+            .material = resources.grid_material()
+        });
+
+        hub.add_child().add(RenderableComponent{
+            .mesh = resources.square_mesh(),
+            .material = resources.axis_material()
+        });
+
+        return hub;
+    }
+
     class Coordsys : public EventLoop
     {
     public:

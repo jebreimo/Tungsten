@@ -12,8 +12,8 @@ set(CMAKE_CXX_STANDARD 23)
 add_executable(coordsys
     coordsys.cpp
     EmbeddedResources.hpp
-    InfiniteGrid.cpp
-    InfiniteGrid.hpp
+    InfiniteGridResources.cpp
+    InfiniteGridResources.hpp
 )
 
 target_link_libraries(coordsys
