@@ -103,8 +103,11 @@ ColorMaterial get_material()
 // TANGENT vertex attribute, so a normal-mapped mesh needs no vertex data the
 // unmapped ones lack. The trade is quality: the basis is per-fragment and
 // derived from the interpolated surface, which is fine for gentle bump detail
-// but faceted on low-poly meshes and wrong across mirrored UVs. Vertex
-// tangents (and a family that requires them) are the answer if that matters.
+// but faceted on low-poly curved meshes, and it cannot match normal maps baked
+// against a specific tangent space (e.g. MikkTSpace). Mirrored UVs are handled,
+// since the bitangent's sign follows the actual texture gradient; only the
+// pixel quads straddling a mirror seam go wrong. Vertex tangents (and a family
+// that requires them) are the answer if that matters.
 //
 // Everything needing derivatives — the four differences and the implicit-LOD
 // fetch — is done up front, before the divergent test below: derivatives are

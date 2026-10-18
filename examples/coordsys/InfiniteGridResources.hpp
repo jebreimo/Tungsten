@@ -21,9 +21,9 @@ namespace Tungsten
     class InfiniteGridResources
     {
     public:
-        InfiniteGridResources(ResourceManager& resource_manager,
-                              BufferArenaRef vbo_arena = {},
-                              BufferArenaRef ebo_arena = {});
+        explicit InfiniteGridResources(ResourceManager& resource_manager,
+                                       BufferArenaRef vbo_arena = {},
+                                       BufferArenaRef ebo_arena = {});
 
         ~InfiniteGridResources();
 
