@@ -119,15 +119,31 @@ namespace Tungsten
             return resources.create_mesh(std::move(mesh));
         }
 
-        MaterialRef make_grid_material(ResourceManager& resources,
-                                       const InfiniteGridStyle& style)
+        // The grid and the y axis are blended with straight alpha, and don't
+        // write depth, as most of what they cover is transparent.
+        PipelineDescriptor make_blended_descriptor(ResourceManager& resources,
+                                                   ShaderFamilyId family)
         {
             // No culling: the grid is as visible from below as from above.
             PipelineDescriptor descriptor;
-            descriptor.shader = resources.register_shader_variant(
-                {INFINITE_GRID_FAMILY, 0});
+            descriptor.shader = resources.register_shader_variant({family, 0});
             descriptor.layout = grid_layout(resources);
+            descriptor.queue = RenderQueue::TRANSPARENT;
+            descriptor.depth.write = false;
+            descriptor.blend.enabled = true;
+            descriptor.blend.src_color = BlendFunction::SRC_ALPHA;
+            descriptor.blend.dst_color = BlendFunction::ONE_MINUS_SRC_ALPHA;
+            descriptor.blend.src_alpha = BlendFunction::ONE;
+            descriptor.blend.dst_alpha = BlendFunction::ONE_MINUS_SRC_ALPHA;
             descriptor.raster.cull_enabled = false;
+            return descriptor;
+        }
+
+        MaterialRef make_grid_material(ResourceManager& resources,
+                                       const InfiniteGridStyle& style)
+        {
+            const auto descriptor =
+                make_blended_descriptor(resources, INFINITE_GRID_FAMILY);
 
             // Colours in a uniform block are linear.
             const GridBlock block = {
@@ -148,21 +164,11 @@ namespace Tungsten
         MaterialRef make_axis_material(ResourceManager& resources,
                                        const InfiniteGridStyle& style)
         {
-            // The line's edges are anti-aliased with alpha, so it is blended
-            // and drawn after the grid. It doesn't write depth as its quad is
-            // wider than the line.
-            PipelineDescriptor descriptor;
-            descriptor.shader = resources.register_shader_variant(
-                {GRID_AXIS_FAMILY, 0});
-            descriptor.layout = grid_layout(resources);
-            descriptor.queue = RenderQueue::TRANSPARENT;
-            descriptor.depth.write = false;
-            descriptor.blend.enabled = true;
-            descriptor.blend.src_color = BlendFunction::SRC_ALPHA;
-            descriptor.blend.dst_color = BlendFunction::ONE_MINUS_SRC_ALPHA;
-            descriptor.blend.src_alpha = BlendFunction::ONE;
-            descriptor.blend.dst_alpha = BlendFunction::ONE_MINUS_SRC_ALPHA;
-            descriptor.raster.cull_enabled = false;
+            // The line has to be drawn after the grid, which it does as both
+            // nodes are at the origin and the transparent queue then orders
+            // them by pipeline, and the grid's pipeline is registered first.
+            const auto descriptor =
+                make_blended_descriptor(resources, GRID_AXIS_FAMILY);
 
             const AxisBlock block = {
                 .color = srgb_to_linear(style.y_axis_color),

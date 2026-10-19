@@ -70,6 +70,13 @@ vec2 pristine_grid(vec2 uv, vec2 line_width)
     return mix(grid, 1.0 - grid, invert_line);
 }
 
+// Blends a premultiplied colour on top of another, with the given coverage.
+vec4 over(vec4 below, vec4 color, float coverage)
+{
+    vec4 above = vec4(color.rgb, 1.0) * (color.a * coverage);
+    return above + below * (1.0 - above.a);
+}
+
 void main()
 {
     // The axes are the grid lines through the origin, so they are drawn by
@@ -82,8 +89,14 @@ void main()
 
     // The colours are linear, as in every uniform block, which is the space
     // coverage has to be blended in. The result is encoded on the way out.
-    // The lines of one direction are blended on top of the other's.
-    vec4 color = mix(u_base_color, x_lines, grid.x * x_lines.a);
-    color = mix(color, z_lines, grid.y * z_lines.a);
-    frag_color = vec4(linear_to_srgb(color.rgb), color.a);
+    // The lines of one direction are blended on top of the other's, and both
+    // on top of the base colour, which may be transparent. Blending is done
+    // premultiplied, as the alpha of the result is no longer one.
+    vec4 color = over(vec4(0.0), u_base_color, 1.0);
+    color = over(color, x_lines, grid.x);
+    color = over(color, z_lines, grid.y);
+    if (color.a == 0.0)
+        discard;
+
+    frag_color = vec4(linear_to_srgb(color.rgb / color.a), color.a);
 }

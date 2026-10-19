@@ -18,11 +18,14 @@ namespace Tungsten
     /**
      * The appearance of an InfiniteGrid. Colours are sRGB, the numbers a
      * colour picker shows; widths are fractions of a grid cell.
+     *
+     * The base colour fills the space between the lines, and is transparent
+     * by default. Give it an alpha of one to make the grid an opaque floor.
      */
     struct InfiniteGridStyle
     {
         Xyz::Vector4F line_color = {0.85f, 0.85f, 0.85f, 1.0f};
-        Xyz::Vector4F base_color = {0.16f, 0.17f, 0.19f, 1.0f};
+        Xyz::Vector4F base_color = {0.16f, 0.17f, 0.19f, 0.0f};
         Xyz::Vector4F x_axis_color = {0.90f, 0.22f, 0.25f, 1.0f};
         Xyz::Vector4F y_axis_color = {0.35f, 0.80f, 0.30f, 1.0f};
         Xyz::Vector4F z_axis_color = {0.25f, 0.45f, 0.95f, 1.0f};
