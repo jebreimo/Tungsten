@@ -98,7 +98,7 @@ namespace
 
     void require_close(const Xyz::Vector3F& actual, const Xyz::Vector3F& expected)
     {
-        for (size_t i = 0; i < 3; ++i)
+        for (unsigned i = 0; i < 3; ++i)
             REQUIRE_THAT(actual[i], WithinAbs(expected[i], 1e-6));
     }
 }
