@@ -25,11 +25,9 @@ layout (std140) uniform MaterialBlock
     vec4 u_base_color;
     vec4 u_x_axis_color;
     vec4 u_z_axis_color;
-    // x, y = line widths as fractions of a cell, z = cells per world unit,
-    // w = half the side of the square the grid is drawn on.
+    // x = the width of the lines and y = the width of the axes, both as
+    // fractions of a cell, z = cells per world unit.
     vec4 u_grid;
-    // x = the width of the axis lines as a fraction of a cell.
-    vec4 u_axis;
 };
 
 out vec4 frag_color;
@@ -78,7 +76,7 @@ void main()
     // giving the lines nearest to it their own colours and width. on_axis.x
     // is the line where uv.x is constant, i.e. the z axis.
     vec2 on_axis = vec2(lessThan(abs(v_uv - v_origin), vec2(0.5)));
-    vec2 grid = pristine_grid(v_uv, mix(u_grid.xy, u_axis.xx, on_axis));
+    vec2 grid = pristine_grid(v_uv, mix(u_grid.xx, u_grid.yy, on_axis));
     vec4 x_lines = mix(u_line_color, u_z_axis_color, on_axis.x);
     vec4 z_lines = mix(u_line_color, u_x_axis_color, on_axis.y);
 

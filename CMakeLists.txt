@@ -106,6 +106,7 @@ add_library(Tungsten STATIC
     include/Tungsten/Rendering/DoubleBuffer.hpp
     include/Tungsten/Rendering/Font.hpp
     include/Tungsten/Rendering/FontManager.hpp
+    include/Tungsten/Rendering/InfiniteGrid.hpp
     include/Tungsten/Rendering/RenderItem.hpp
     include/Tungsten/Rendering/RenderPassDescriptor.hpp
     include/Tungsten/Rendering/RenderSnapshot.hpp
@@ -185,6 +186,7 @@ add_library(Tungsten STATIC
     src/Tungsten/Rendering/Fonts/Monaco64.hpp
     src/Tungsten/Rendering/GlPipelineBinder.cpp
     src/Tungsten/Rendering/GlPipelineBinder.hpp
+    src/Tungsten/Rendering/InfiniteGrid.cpp
     src/Tungsten/Rendering/RenderItem.cpp
     src/Tungsten/Rendering/Renderer.cpp
     src/Tungsten/Rendering/SnapshotBuilder.cpp

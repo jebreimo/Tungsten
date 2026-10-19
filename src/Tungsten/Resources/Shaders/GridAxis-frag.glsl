@@ -21,8 +21,7 @@ in float v_distance;
 layout (std140) uniform MaterialBlock
 {
     vec4 u_color;
-    // x = the line's width as a fraction of a cell, y = cells per world unit,
-    // z = the line's length.
+    // x = the line's width as a fraction of a cell, y = cells per world unit.
     vec4 u_axis;
 };
 

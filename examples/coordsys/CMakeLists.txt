@@ -11,17 +11,9 @@ set(CMAKE_CXX_STANDARD 23)
 
 add_executable(coordsys
     coordsys.cpp
-    EmbeddedResources.hpp
-    InfiniteGridResources.cpp
-    InfiniteGridResources.hpp
 )
 
 target_link_libraries(coordsys
     PRIVATE
         Tungsten::Tungsten
-)
-
-target_embed_cpp_data(coordsys
-    FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/EmbeddedResources.cpp.in
 )

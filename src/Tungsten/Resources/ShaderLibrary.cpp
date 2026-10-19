@@ -122,6 +122,7 @@ namespace Tungsten
         // Available to every family, builtin or not, so a user's shader can
         // encode its output with the same curve the builtin ones use.
         preprocessor.add_include("Tungsten/ColorSpace.glsl", COLOR_SPACE_GLSL);
+        preprocessor.add_include("Tungsten/ViewExtent.glsl", VIEW_EXTENT_GLSL);
         for (size_t i = 0; i < family.features.size() && i < 32; ++i)
         {
             if (key.defines & (uint32_t{1} << i))

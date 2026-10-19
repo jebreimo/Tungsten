@@ -14,4 +14,9 @@ namespace Tungsten
     extern const std::string BLINN_PHONG_FRAGMENT(#embed_text "BlinnPhong-frag.glsl");
     extern const std::string TEXT_VERTEX(#embed_text "Text-vert.glsl");
     extern const std::string TEXT_FRAGMENT(#embed_text "Text-frag.glsl");
+    extern const std::string VIEW_EXTENT_GLSL(#embed_text "ViewExtent.glsl");
+    extern const std::string INFINITE_GRID_VERTEX(#embed_text "InfiniteGrid-vert.glsl");
+    extern const std::string INFINITE_GRID_FRAGMENT(#embed_text "InfiniteGrid-frag.glsl");
+    extern const std::string GRID_AXIS_VERTEX(#embed_text "GridAxis-vert.glsl");
+    extern const std::string GRID_AXIS_FRAGMENT(#embed_text "GridAxis-frag.glsl");
 }

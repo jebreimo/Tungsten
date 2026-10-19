@@ -12,6 +12,8 @@ precision highp int;
 precision highp float;
 #endif
 
+#include "Tungsten/ViewExtent.glsl"
+
 // A corner of the unit square, -1 to 1: x is the side of the line the corner
 // is on, and y is mapped to how far up the axis it is.
 layout (location = 0) in vec2 a_position;
@@ -28,8 +30,7 @@ layout (std140) uniform PerFrame
 layout (std140) uniform MaterialBlock
 {
     vec4 u_color;
-    // x = the line's width as a fraction of a cell, y = cells per world unit,
-    // z = the line's length.
+    // x = the line's width as a fraction of a cell, y = cells per world unit.
     vec4 u_axis;
 };
 
@@ -52,7 +53,9 @@ void main()
                 ? normalize(vec3(to_camera.y, 0.0, -to_camera.x))
                 : vec3(1.0, 0.0, 0.0);
 
-    vec3 center = vec3(0.0, (a_position.y * 0.5 + 0.5) * u_axis.z, 0.0);
+    // The line goes from the origin to past the far plane.
+    float line_length = max(u_camera_pos.y, 0.0) + view_extent(u_projection);
+    vec3 center = vec3(0.0, (a_position.y * 0.5 + 0.5) * line_length, 0.0);
     float depth = abs((u_view * vec4(center, 1.0)).z);
     float half_width = 0.5 * u_axis.x / u_axis.y + MARGIN * depth;
 

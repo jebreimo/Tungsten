@@ -6,15 +6,8 @@
 // License text is included with the source distribution.
 //****************************************************************************
 
-// An infinite grid on the world's xz plane, with the x axis in red and the z
-// axis in blue, drawn with the "pristine grid" shader from Ben Golus' article
-// The Best Darn Grid Shader (Yet). A green line going up from the origin is
-// the y axis.
-//
-// The grid is a single square that the vertex shader keeps centred below the
-// camera, and which is big enough to reach past the far plane in every
-// direction. All the work is in grid-frag.glsl. The y axis is another square,
-// which axis-vert.glsl makes long and thin and turns towards the camera.
+// Tungsten's InfiniteGrid: an infinite grid on the world's xz plane, with the
+// x axis in red, the z axis in blue and the y axis in green.
 //
 // Controls: drag with the left mouse button to orbit, with the right button
 // to move across the grid, and use the wheel to zoom.
@@ -23,9 +16,7 @@
 #include <cmath>
 #include <iostream>
 
-#include "InfiniteGrid.hpp"
 #include "Tungsten/Tungsten.hpp"
-#include "EmbeddedResources.hpp"
 
 namespace
 {
@@ -41,33 +32,15 @@ namespace
     constexpr float MAX_DISTANCE = 500.0f;
     constexpr float MAX_PITCH = 1.55f;
 
-    NodeHandle
-    make_infinite_grid_node(Scene& scene, const InfiniteGridResources& resources)
-    {
-        auto hub = scene.add_node();
-
-        hub.add_child().add(RenderableComponent{
-            .mesh = resources.square_mesh(),
-            .material = resources.grid_material()
-        });
-
-        hub.add_child().add(RenderableComponent{
-            .mesh = resources.square_mesh(),
-            .material = resources.axis_material()
-        });
-
-        return hub;
-    }
-
     class Coordsys : public EventLoop
     {
     public:
         explicit Coordsys(SdlApplication& app)
             : EventLoop(app),
-              infinite_grid_resources_{resources_},
+              grid_{resources_},
               renderer_(resources_)
         {
-            make_infinite_grid_node(scene_, infinite_grid_resources_);
+            grid_.add_to(scene_);
             camera_ = scene_.add_node();
             camera_.add(CameraComponent{
                 .near_plane = NEAR_PLANE,
@@ -160,7 +133,7 @@ namespace
         }
 
         ResourceManager resources_;
-        InfiniteGridResources infinite_grid_resources_;
+        InfiniteGrid grid_;
         Scene scene_;
         DoubleBuffer<RenderSnapshot> snapshots_;
         SnapshotBuilder builder_{resources_};

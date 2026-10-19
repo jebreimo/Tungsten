@@ -12,6 +12,8 @@ precision highp int;
 precision highp float;
 #endif
 
+#include "Tungsten/ViewExtent.glsl"
+
 // A corner of the unit square, -1 to 1. It is not a position in the scene:
 // the square is stretched over the world's xz plane below.
 layout (location = 0) in vec2 a_position;
@@ -31,11 +33,9 @@ layout (std140) uniform MaterialBlock
     vec4 u_base_color;
     vec4 u_x_axis_color;
     vec4 u_z_axis_color;
-    // x, y = line widths as fractions of a cell, z = cells per world unit,
-    // w = half the side of the square the grid is drawn on.
+    // x = the width of the lines and y = the width of the axes, both as
+    // fractions of a cell, z = cells per world unit.
     vec4 u_grid;
-    // x = the width of the axis lines as a fraction of a cell.
-    vec4 u_axis;
 };
 
 out vec2 v_uv;
@@ -47,7 +47,7 @@ void main()
     // The grid is infinite because the square follows the camera: it is
     // always centred below it and reaches past the far plane. There is no
     // PerDraw block as the node's transform is deliberately ignored.
-    vec2 offset = a_position * u_grid.w;
+    vec2 offset = a_position * view_extent(u_projection);
     vec2 camera = u_camera_pos.xz;
 
     // The grid coordinate is the world position relative to the cell the

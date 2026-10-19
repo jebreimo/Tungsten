@@ -32,6 +32,18 @@ namespace Tungsten
     inline constexpr ShaderFamilyId TEXT_FAMILY = 2;
 
     /**
+     * The builtin shader family of InfiniteGrid's ground plane. Like
+     * TEXT_FAMILY it is registered by its owner, InfiniteGrid's constructor.
+     */
+    inline constexpr ShaderFamilyId INFINITE_GRID_FAMILY = 3;
+
+    /**
+     * The builtin shader family of InfiniteGrid's y axis, a camera-facing
+     * line. Registered by InfiniteGrid's constructor.
+     */
+    inline constexpr ShaderFamilyId GRID_AXIS_FAMILY = 4;
+
+    /**
      * The first shader family id that applications may use for their own families.
      */
     inline constexpr ShaderFamilyId FIRST_USER_SHADER_FAMILY = 1000;

@@ -16,6 +16,7 @@
 #endif
 #include "Rendering/DoubleBuffer.hpp"
 #include "Rendering/FontManager.hpp"
+#include "Rendering/InfiniteGrid.hpp"
 #include "Rendering/RenderPassDescriptor.hpp"
 #include "Rendering/Renderer.hpp"
 #include "Rendering/SnapshotBuilder.hpp"
