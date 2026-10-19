@@ -101,9 +101,12 @@ namespace
         GltfViewer(SdlApplication& app, const std::filesystem::path& file_name)
             : EventLoop(app),
               imgui_(app.window(), app.gl_context()),
+              grid_(resources_),
               renderer_(resources_)
         {
             register_builtin_shader_families(resources_);
+
+            grid_.add_to(scene_);
 
             auto import = import_gltf(file_name, resources_, scene_, {},
                                       {.create_wireframes = true});
@@ -226,8 +229,13 @@ namespace
             const auto distance = FRAMING_MARGIN * radius_ / std::sin(half_angle);
             camera.near_plane = std::max(distance - radius_, distance * 1e-3f);
             camera.far_plane = distance + 2 * radius_;
+            constexpr auto pitch = 0.4f;
+            const auto position = distance * Xyz::Vector3F{0, sin(pitch), cos(pitch)};
             camera_.set_local_transform(
-                Transform{.translation = {0, 0, distance}});
+                Transform{
+                    .translation = position,
+                    .rotation = look_at_rotation(position, {0, 0, 0})
+            });
         }
 
         /**
@@ -307,6 +315,7 @@ namespace
 
         ImGuiSession imgui_;
         ResourceManager resources_;
+        InfiniteGrid grid_;
         Scene scene_;
         DoubleBuffer<RenderSnapshot> snapshots_;
         SnapshotBuilder builder_{resources_};
