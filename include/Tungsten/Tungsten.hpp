@@ -28,6 +28,7 @@
 #include "Resources/Mesh.hpp"
 #include "Resources/PipelineDescriptor.hpp"
 #include "Resources/RenderTarget.hpp"
+#include "Resources/ResourceBundle.hpp"
 #include "Resources/ResourceManager.hpp"
 #include "Resources/ShaderPreprocessor.hpp"
 #include "Resources/ShaderProgramBuilder.hpp"

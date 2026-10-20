@@ -122,6 +122,7 @@ add_library(Tungsten STATIC
     include/Tungsten/Resources/Mesh.hpp
     include/Tungsten/Resources/PipelineDescriptor.hpp
     include/Tungsten/Resources/RenderTarget.hpp
+    include/Tungsten/Resources/ResourceBundle.hpp
     include/Tungsten/Resources/ResourceManager.hpp
     include/Tungsten/Resources/ResourceRef.hpp
     include/Tungsten/Resources/ResourceRefs.hpp

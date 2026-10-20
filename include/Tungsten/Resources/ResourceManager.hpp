@@ -18,6 +18,7 @@ namespace Tungsten
 {
     // Defined in Mesh.hpp, which this header deliberately does not include.
     enum class GeometryBinding : uint32_t;
+    struct ResourceBundle;
 
     /**
      * The single owner of GPU resources, and the only place that knows a
@@ -191,6 +192,17 @@ namespace Tungsten
          * it and may still be sampling it.
          */
         void destroy_render_target(RenderTargetRef ref);
+
+        /**
+         * Destroys everything the bundle lists and leaves it empty.
+         *
+         * The bundle's meshes are destroyed without freeing their slices;
+         * its slices are freed once each instead, and its arenas destroyed
+         * last. Every ref in the bundle must still be live, and nothing
+         * outside it may still draw from its arenas. GL objects are retired
+         * through the deletion queue as usual.
+         */
+        void destroy_bundle(ResourceBundle& bundle);
 
         void register_shader_family(ShaderFamilyId id, ShaderFamily family);
 

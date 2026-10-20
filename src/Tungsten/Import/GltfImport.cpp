@@ -80,6 +80,17 @@ namespace Tungsten
         }
 
         /**
+         * Undoes a failed import: removes its nodes from the scene and its
+         * resources from the manager.
+         */
+        void discard(GltfImport& import, Scene& scene, ResourceManager& resources)
+        {
+            if (import.root)
+                scene.remove(import.root);
+            resources.destroy_bundle(import.resources);
+        }
+
+        /**
          * What a texture is for, which decides both how its pixels are
          * interpreted and whether they need converting first: a glTF image is
          * not always usable as it stands. See make_specular_mask.
@@ -248,12 +259,20 @@ namespace Tungsten
 
             GltfImport run(size_t scene_index, NodeId parent)
             {
-                result_.root = scene_.create_node(parent);
+                try
+                {
+                    result_.root = scene_.create_node(parent);
 
-                for (const auto node_index : asset_.scenes[scene_index].nodeIndices)
-                    import_node(node_index, result_.root);
+                    for (const auto node_index : asset_.scenes[scene_index].nodeIndices)
+                        import_node(node_index, result_.root);
 
-                create_meshes();
+                    create_meshes();
+                }
+                catch (...)
+                {
+                    discard(result_, scene_, resources_);
+                    throw;
+                }
 
                 // World matrices are what the bounds have to be measured in,
                 // and they are only valid after a resolve.
@@ -418,9 +437,13 @@ namespace Tungsten
                     BufferUsage::STATIC_DRAW,
                     GLTF_VERTEX_STRIDE * sizeof(float),
                     required_capacity(vertex_sizes));
+                // The file's own arenas, so its slices are freed with them
+                // and need not be listed in the bundle.
+                result_.resources.arenas.push_back(vbo_arena_);
                 ebo_arena_ = resources_.create_arena(
                     BufferUsage::STATIC_DRAW, sizeof(uint32_t),
                     required_capacity(index_sizes));
+                result_.resources.arenas.push_back(ebo_arena_);
 
                 for (auto& primitive : pending_)
                 {
@@ -482,7 +505,9 @@ namespace Tungsten
                 mesh.layout = layout_;
                 mesh.ebo = ebo;
                 mesh.index_type = ElementIndexType::UINT32;
-                return resources_.create_mesh(std::move(mesh));
+                const auto ref = resources_.create_mesh(std::move(mesh));
+                result_.resources.meshes.push_back(ref);
+                return ref;
             }
 
             MaterialRef get_material(const fastgltf::Primitive& primitive,
@@ -525,6 +550,7 @@ namespace Tungsten
                     material.textures = get_textures(source);
                 }
                 const auto ref = resources_.create_material(std::move(material));
+                result_.resources.materials.push_back(ref);
                 materials_.emplace(key, ref);
                 return ref;
             }
@@ -620,6 +646,8 @@ namespace Tungsten
                              " without it.");
                     }
                 }
+                if (ref)
+                    result_.resources.textures.push_back(ref);
                 textures_.emplace(key, ref);
                 return ref;
             }
@@ -818,7 +846,7 @@ namespace Tungsten
 
         if (result.primitive_count == 0)
         {
-            scene.remove(result.root);
+            discard(result, scene, resources);
             TUNGSTEN_THROW("" + file_name.string() + ": the scene contains"
                            " nothing that can be displayed. Only triangle"
                            " geometry is supported."
@@ -826,7 +854,7 @@ namespace Tungsten
         }
         if (!result.bounds)
         {
-            scene.remove(result.root);
+            discard(result, scene, resources);
             TUNGSTEN_THROW("" + file_name.string() + ": the scene's geometry"
                            " has no extent, so there is nothing to look at."
                            + describe(result.warnings));

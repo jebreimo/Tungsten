@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <Xyz/BBox.hpp>
+#include "../Resources/ResourceBundle.hpp"
 #include "../Resources/ResourceManager.hpp"
 #include "../SceneGraph/Scene.hpp"
 
@@ -39,8 +40,9 @@ namespace Tungsten
      * and the material to the node's RenderableComponent to draw the edges of
      * its triangles instead of their surface.
      *
-     * The mesh shares its vertices with the renderable's own mesh, so
-     * destroying both of them frees those vertices twice.
+     * The mesh shares its vertices with the renderable's own mesh. Both are
+     * in GltfImport::resources, which owns those vertices, so unload them by
+     * destroying the bundle rather than with destroy_mesh.
      */
     struct GltfWireframe
     {
@@ -73,13 +75,19 @@ namespace Tungsten
          *  to the user: an otherwise successful import can still be missing
          *  parts of the file. */
         std::vector<std::string> warnings;
+
+        /** Every mesh, material, texture, slice and arena the import created,
+         *  wireframes included. Remove the subtree under `root` and pass this
+         *  to ResourceManager::destroy_bundle to unload the file. */
+        ResourceBundle resources;
     };
 
     /**
      * @brief Builds a node hierarchy for a glTF file's scene under @a parent.
      *
      * Creates the meshes, materials and textures the scene needs in
-     * @a resources. Reads both glTF and GLB files. Everything is set up to be
+     * @a resources and lists them in GltfImport::resources. Reads both glTF
+     * and GLB files. Everything is set up to be
      * drawn by the builtin Blinn-Phong shader family, so
      * register_builtin_shader_families must have been called on @a resources
      * first, and the file's metallic-roughness materials are approximated
@@ -90,7 +98,8 @@ namespace Tungsten
      * throws only if nothing drawable is left.
      *
      * @throw TungstenException if the file cannot be read or parsed, or if the
-     *      scene contains nothing that can be displayed.
+     *      scene contains nothing that can be displayed. Neither the scene
+     *      nor @a resources keeps anything from a failed import.
      */
     GltfImport import_gltf(const std::filesystem::path& file_name,
                            ResourceManager& resources,

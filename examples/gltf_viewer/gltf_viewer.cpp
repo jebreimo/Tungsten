@@ -21,6 +21,10 @@
 // The controls are drawn with Dear ImGui, on top of the scene. So far there is
 // one: a button that switches between drawing the model's surfaces and the
 // edges of its triangles.
+//
+// Dropping another glTF or GLB file on the window replaces the model. This is
+// the usage reference for unloading: the old model's nodes are removed from
+// the scene, and the ResourceBundle its import returned is destroyed.
 
 #include <cmath>
 #include <iostream>
@@ -108,26 +112,10 @@ namespace
 
             grid_.add_to(scene_);
 
-            auto import = import_gltf(file_name, resources_, scene_, {},
-                                      {.create_wireframes = true});
-            for (const auto& warning : import.warnings)
-                std::cerr << "Warning: " << warning << '\n';
-            alternates_ = std::move(import.wireframes);
-
-            // The pivot turns; the model hangs under it shifted so that its
-            // centre sits on the pivot. That is what makes it spin in place
-            // rather than orbit.
-            const auto centre = (import.bounds.min + import.bounds.max) / 2.0f;
-            radius_ = Xyz::get_length(import.bounds.max - import.bounds.min) / 2;
-
             pivot_ = scene_.add_node();
-            NodeHandle model(&scene_, import.root);
-            model.reparent(pivot_);
-            model.set_local_transform(Transform{.translation = -centre});
-
             camera_ = scene_.add_node();
             camera_.add(CameraComponent{.aspect = app.viewport().aspect_ratio()});
-            place_camera();
+            load_model(file_name);
 
             // A key and a dimmer fill from the opposite side, so that the
             // model stays readable through a full turn. Their intensities sum
@@ -142,6 +130,21 @@ namespace
         bool on_event(const SDL_Event& event) override
         {
             ImGui_ImplSDL3_ProcessEvent(&event);
+
+            if (event.type == SDL_EVENT_DROP_FILE)
+            {
+                // A file that cannot be shown is reported, not fatal: the
+                // current model stays.
+                try
+                {
+                    load_model(event.drop.data);
+                }
+                catch (const std::exception& e)
+                {
+                    std::cerr << "Error: " << e.what() << '\n';
+                }
+                return true;
+            }
 
             // Claim only what the controls are using, so that Escape still
             // quits and a click beside the button is still the scene's.
@@ -211,6 +214,57 @@ namespace
         }
 
     private:
+        /**
+         * Shows the model in @a file_name in place of the current one, and
+         * reframes the camera for it. The new file is imported before the
+         * old model is unloaded, so a file that fails to import leaves the
+         * current model on screen.
+         */
+        void load_model(const std::filesystem::path& file_name)
+        {
+            auto import = import_gltf(file_name, resources_, scene_,
+                                      pivot_.id(), {.create_wireframes = true});
+            for (const auto& warning : import.warnings)
+                std::cerr << "Warning: " << warning << '\n';
+
+            unload_model();
+
+            // The pivot turns; the model hangs under it shifted so that its
+            // centre sits on the pivot. That is what makes it spin in place
+            // rather than orbit.
+            const auto centre = (import.bounds.min + import.bounds.max) / 2.0f;
+            radius_ = Xyz::get_length(import.bounds.max - import.bounds.min) / 2;
+            NodeHandle(&scene_, import.root).set_local_transform(
+                Transform{.translation = -centre});
+
+            model_root_ = import.root;
+            model_resources_ = std::move(import.resources);
+            alternates_ = std::move(import.wireframes);
+
+            // An import draws triangles; keep showing lines if that was the
+            // mode the previous model was in.
+            if (std::exchange(wireframe_, false))
+                toggle_wireframe();
+
+            place_camera();
+        }
+
+        /**
+         * Removes the current model's nodes, then destroys everything its
+         * import created. In that order: until the nodes are gone, their
+         * renderables still name the bundle's meshes and materials.
+         */
+        void unload_model()
+        {
+            if (!model_root_)
+                return;
+
+            scene_.remove(model_root_);
+            resources_.destroy_bundle(model_resources_);
+            model_root_ = {};
+            alternates_.clear();
+        }
+
         /**
          * Backs the camera off far enough that a sphere of radius_ at the
          * origin fits the viewport, and sets the depth range to straddle it.
@@ -322,6 +376,10 @@ namespace
         Renderer renderer_;
         NodeHandle pivot_;
         NodeHandle camera_;
+        // The current model's root node and everything its import created,
+        // which together are what unload_model removes.
+        NodeId model_root_;
+        ResourceBundle model_resources_;
         // The mesh and material each imported renderable is not currently
         // drawn with: the line ones to begin with, and after every toggle
         // whichever pair was swapped out.

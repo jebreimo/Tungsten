@@ -19,6 +19,7 @@
 #include "Tungsten/Resources/GlStateCache.hpp"
 #include "Tungsten/Resources/Material.hpp"
 #include "Tungsten/Resources/PipelineDescriptor.hpp"
+#include "Tungsten/Resources/ResourceBundle.hpp"
 #include "Tungsten/Resources/Mesh.hpp"
 #include "Tungsten/Resources/ShaderProgram.hpp"
 #include "Tungsten/Resources/Texture.hpp"
@@ -890,4 +891,92 @@ TEST_CASE("ResourceManager: matching textures and empty slots are accepted")
     material.textures = {{}, make_texture(manager, TextureContent::DATA)};
 
     REQUIRE_NOTHROW(manager.create_material(std::move(material)));
+}
+
+TEST_CASE("ResourceManager: destroying a bundle destroys what it lists")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+    manager.begin_frame(5);
+
+    ResourceBundle bundle;
+    const auto vbo = manager.create_arena(BufferUsage::STATIC_DRAW, 12, 16);
+    const auto ebo = manager.create_arena(BufferUsage::STATIC_DRAW, 4, 16);
+    bundle.arenas = {vbo, ebo};
+
+    Mesh mesh;
+    mesh.streams = {manager.allocate(vbo, 4)};
+    mesh.layout = manager.register_layout(make_layout());
+    mesh.ebo = manager.allocate(ebo, 6);
+    bundle.meshes.push_back(manager.create_mesh(std::move(mesh)));
+
+    using B = std::byte;
+    Material material;
+    material.parameter_data = {B{1}, B{2}, B{3}, B{4}};
+    bundle.materials.push_back(manager.create_material(std::move(material)));
+
+    Texture texture;
+    texture.gl_handle = generate_texture();
+    bundle.textures.push_back(manager.create_texture(std::move(texture)));
+
+    const auto copy = bundle;
+    manager.destroy_bundle(bundle);
+
+    REQUIRE(bundle.empty());
+    REQUIRE_THROWS_AS(manager.get_mesh(copy.meshes[0]), TungstenException);
+    REQUIRE_THROWS_AS(manager.get_material(copy.materials[0]),
+                      TungstenException);
+    REQUIRE_THROWS_AS(manager.get_texture(copy.textures[0]), TungstenException);
+    REQUIRE_THROWS_AS(manager.get_arena(vbo), TungstenException);
+    REQUIRE_THROWS_AS(manager.get_arena(ebo), TungstenException);
+
+    // Everything with a GL object waits for the frame to complete.
+    REQUIRE(session.gl->live_buffers == 3);
+    REQUIRE(session.gl->live_vertex_arrays == 1);
+    REQUIRE(session.gl->live_textures == 1);
+    manager.collect_garbage(5);
+    REQUIRE(session.gl->live_buffers == 0);
+    REQUIRE(session.gl->live_vertex_arrays == 0);
+    REQUIRE(session.gl->live_textures == 0);
+}
+
+TEST_CASE("ResourceManager: a bundle frees a slice its meshes share once")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+
+    // Arenas outside the bundle, so its slices have to be freed one by one.
+    const auto vbo = manager.create_arena(BufferUsage::STATIC_DRAW, 12, 16);
+    const auto ebo = manager.create_arena(BufferUsage::STATIC_DRAW, 4, 32);
+    const auto layout = manager.register_layout(make_layout());
+
+    ResourceBundle bundle;
+    const auto vertices = manager.allocate(vbo, 8);
+    bundle.slices.push_back(vertices);
+    for (const auto count : {6u, 10u})
+    {
+        Mesh mesh;
+        mesh.streams = {vertices};
+        mesh.layout = layout;
+        mesh.ebo = manager.allocate(ebo, count);
+        bundle.slices.push_back(mesh.ebo);
+        bundle.meshes.push_back(manager.create_mesh(std::move(mesh)));
+    }
+
+    manager.destroy_bundle(bundle);
+
+    // Freed exactly once: freeing it again would trip the allocator. The
+    // ranges are available again and the arenas are untouched.
+    REQUIRE(manager.allocate(vbo, 8).offset == vertices.offset);
+    REQUIRE(manager.allocate(ebo, 32).offset == 0);
+}
+
+TEST_CASE("ResourceManager: destroying an empty bundle does nothing")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+
+    ResourceBundle bundle;
+    REQUIRE_NOTHROW(manager.destroy_bundle(bundle));
+    REQUIRE(bundle.empty());
 }

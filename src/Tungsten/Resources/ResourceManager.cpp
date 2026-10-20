@@ -14,6 +14,7 @@
 
 #include "Tungsten/Resources/Material.hpp"
 #include "Tungsten/Resources/Mesh.hpp"
+#include "Tungsten/Resources/ResourceBundle.hpp"
 #include "Tungsten/Resources/ResourceRefs.hpp"
 #include "Tungsten/Resources/SharedBuffer.hpp"
 #include "Tungsten/Gl/GlStateEpoch.hpp"
@@ -461,6 +462,36 @@ namespace Tungsten
             if (target.depth)
                 destroy_texture(target.depth);
         });
+    }
+
+    void ResourceManager::destroy_bundle(ResourceBundle& bundle)
+    {
+        for (const auto ref : bundle.materials)
+            destroy_material(ref);
+
+        // The slices belong to the bundle, not to the meshes, which may share
+        // them, so the meshes go without freeing anything.
+        for (const auto ref : bundle.meshes)
+            members_->meshes.erase(ref, [](Mesh&&) {});
+
+        for (const auto ref : bundle.render_targets)
+            destroy_render_target(ref);
+
+        for (const auto ref : bundle.textures)
+            destroy_texture(ref);
+
+        // A slice in an arena that is about to go needs no freeing.
+        for (const auto& slice : bundle.slices)
+        {
+            if (std::ranges::find(bundle.arenas, slice.arena)
+                == bundle.arenas.end())
+                free(slice);
+        }
+
+        for (const auto ref : bundle.arenas)
+            destroy_arena(ref);
+
+        bundle = {};
     }
 
     void ResourceManager::register_shader_family(ShaderFamilyId id,

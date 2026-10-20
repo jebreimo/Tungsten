@@ -65,7 +65,7 @@ struct ResourceBundle
     std::vector<BufferArenaRef> arenas;   // if the load got arenas of its own
 };
 
-void ResourceManager::destroy(ResourceBundle& bundle);
+void ResourceManager::destroy_bundle(ResourceBundle& bundle);
 ```
 
 - **Every loader returns one.** `GltfImport` gains a `ResourceBundle resources;` member,
@@ -74,8 +74,11 @@ void ResourceManager::destroy(ResourceBundle& bundle);
   layer naturally — a long-lived "common" bundle plus short-lived per-level bundles.
 - **The bundle owns slices, not the meshes.** Meshes become views onto slices the bundle
   owns, so each slice is freed exactly once however many meshes share it. This removes
-  the wireframe double free. It needs a way to destroy a mesh without freeing its slices
-  — a `destroy_mesh` variant, or a flag on the mesh saying whether it owns them.
+  the wireframe double free. `destroy_bundle` erases the bundle's meshes without freeing
+  their slices, so `destroy_mesh` itself is unchanged.
+- **A slice in one of the bundle's own arenas need not be listed.** The arena goes with
+  the bundle, and every slice in it with the arena. `import_gltf` relies on this: it
+  lists its two arenas and no slices.
 
 ### 4.1 Destruction order
 
@@ -140,17 +143,18 @@ steps: remove its nodes, then destroy its bundle. To make that hard to get wrong
   detectable rather than undefined. `SnapshotBuilder` can log or assert when a component's
   ref fails to resolve, so a dangling component shows up immediately instead of being
   skipped silently.
-- **Optional pre-destroy check.** A debug-only scan in `destroy(bundle)` of the scene's flat
+- **Optional pre-destroy check.** A debug-only scan in `destroy_bundle` of the scene's flat
   `RenderableComponent` array for refs into the bundle about to be destroyed.
 
 ## 8. Next steps
 
-1. Add `ResourceBundle` and `ResourceManager::destroy(ResourceBundle&)`, with a mesh
-   destroy path that leaves slices to the bundle.
-2. Return a bundle from `import_gltf`; make the wireframe meshes views onto the bundle's
-   slices.
-3. Add an unload path to `examples/gltf_viewer` (for example, loading a second file
-   replaces the first) as the usage reference.
+1. ~~Add `ResourceBundle` and `ResourceManager::destroy_bundle`, with a mesh destroy
+   path that leaves slices to the bundle.~~ Done.
+2. ~~Return a bundle from `import_gltf`; make the wireframe meshes views onto the
+   bundle's slices.~~ Done: `GltfImport::resources`. A failed import now also destroys
+   what it had created.
+3. ~~Add an unload path to `examples/gltf_viewer` as the usage reference.~~ Done:
+   dropping a file on the window replaces the model.
 4. Debug-build dangling-ref reporting in `SnapshotBuilder`.
 5. Mark-and-sweep for interned resources and the path-keyed asset cache: only when a real
    need shows up.
