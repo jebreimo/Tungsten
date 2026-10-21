@@ -7,6 +7,7 @@
 //****************************************************************************
 #pragma once
 
+#include "Animation/AnimationClip.hpp"
 #include "Color.hpp"
 #include "DeviceInfo.hpp"
 #include "Gpu/GpuTypes.hpp"

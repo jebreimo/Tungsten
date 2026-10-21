@@ -15,6 +15,7 @@ FetchContent_Declare(catch
 FetchContent_MakeAvailable(catch)
 
 add_executable(TungstenTest
+    test_AnimationClip.cpp
     test_BuddyAllocator.cpp
     test_ColorMaterials.cpp
     test_ColorSpace.cpp
