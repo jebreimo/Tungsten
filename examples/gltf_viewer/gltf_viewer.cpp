@@ -18,9 +18,10 @@
 // Tungsten/Import/GltfImport.hpp for how the file's metallic-roughness
 // materials are approximated to reach it.
 //
-// The controls are drawn with Dear ImGui, on top of the scene. So far there is
-// one: a button that switches between drawing the model's surfaces and the
-// edges of its triangles.
+// The controls are drawn with Dear ImGui, on top of the scene: a button that
+// switches between drawing the model's surfaces and the edges of its
+// triangles, and, for a file with animations, a list to pick the one that
+// plays. The first animation starts playing as soon as the file is loaded.
 //
 // Dropping another glTF or GLB file on the window replaces the model. This is
 // the usage reference for unloading: the old model's nodes are removed from
@@ -28,6 +29,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -53,6 +55,12 @@ namespace
 
     // The distance from the controls to the window's edges.
     constexpr float UI_MARGIN = 10.0f;
+
+    // Wide enough for a typical animation name.
+    constexpr float ANIMATION_LIST_WIDTH = 160.0f;
+
+    // The animation list's entry for playing none of them.
+    constexpr int NO_ANIMATION = -1;
 
     /**
      * Owns the ImGui context and its SDL and OpenGL backends. Needs a current
@@ -167,9 +175,15 @@ namespace
 
         void on_update() override
         {
-            const auto t = float(SDL_GetTicks() - start_ticks_) / 1000.0f;
+            const auto ticks = SDL_GetTicks();
+            const auto t = float(ticks - start_ticks_) / 1000.0f;
             pivot_.set_local_transform(
                 Transform{.rotation = euler_rotation(0, ROTATION_SPEED * t, 0)});
+
+            // Before on_draw resolves the transforms, so the pose shows in
+            // the same frame.
+            player_.update(scene_, float(ticks - update_ticks_) / 1000.0f);
+            update_ticks_ = ticks;
         }
 
         void on_draw() override
@@ -240,6 +254,9 @@ namespace
             model_root_ = import.root;
             model_resources_ = std::move(import.resources);
             alternates_ = std::move(import.wireframes);
+            animations_ = std::move(import.animations);
+            targets_ = std::move(import.targets);
+            play_animation(animations_.empty() ? NO_ANIMATION : 0);
 
             // An import draws triangles; keep showing lines if that was the
             // mode the previous model was in.
@@ -259,6 +276,9 @@ namespace
             if (!model_root_)
                 return;
 
+            player_ = {};
+            animations_.clear();
+            targets_ = {};
             scene_.remove(model_root_);
             resources_.destroy_bundle(model_resources_);
             model_root_ = {};
@@ -309,7 +329,52 @@ namespace
             // ### is the id, which must not change with it.
             if (ImGui::Button(wireframe_ ? "Triangles###mode" : "Lines###mode"))
                 toggle_wireframe();
+            if (!animations_.empty())
+                draw_animation_list();
             ImGui::End();
+        }
+
+        /**
+         * Builds the list that picks which of the model's animations plays.
+         */
+        void draw_animation_list()
+        {
+            const auto name_of = [&](int index)
+            {
+                return index == NO_ANIMATION
+                           ? "No animation"
+                           : animations_[size_t(index)]->name.c_str();
+            };
+
+            ImGui::SetNextItemWidth(ANIMATION_LIST_WIDTH);
+            if (!ImGui::BeginCombo("##animation", name_of(animation_index_)))
+                return;
+
+            for (int i = NO_ANIMATION; i < int(animations_.size()); ++i)
+            {
+                // The name need not be unique, so the index is the id.
+                ImGui::PushID(i);
+                const auto selected = i == animation_index_;
+                if (ImGui::Selectable(name_of(i), selected) && !selected)
+                    play_animation(i);
+                ImGui::PopID();
+            }
+            ImGui::EndCombo();
+        }
+
+        /**
+         * Starts animations_[index] from the beginning, or stops animating if
+         * index is NO_ANIMATION. The previous animation's nodes are put back
+         * in their rest pose first: the next one need not animate them all.
+         */
+        void play_animation(int index)
+        {
+            player_.restore_rest_pose(scene_);
+            if (index == NO_ANIMATION)
+                player_ = {};
+            else
+                player_ = {animations_[size_t(index)], targets_};
+            animation_index_ = index;
         }
 
         /**
@@ -384,10 +449,17 @@ namespace
         // drawn with: the line ones to begin with, and after every toggle
         // whichever pair was swapped out.
         std::vector<GltfWireframe> alternates_;
+        // The current model's animations, the nodes they animate, and the
+        // one that is playing.
+        std::vector<std::shared_ptr<const AnimationClip>> animations_;
+        AnimationTargets targets_;
+        AnimationPlayer player_;
+        int animation_index_ = NO_ANIMATION;
         bool wireframe_ = false;
         float radius_ = 1.0f;
         uint64_t frame_ = 0;
         uint64_t start_ticks_ = SDL_GetTicks();
+        uint64_t update_ticks_ = start_ticks_;
     };
 }
 

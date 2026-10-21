@@ -7,10 +7,12 @@
 //****************************************************************************
 #pragma once
 #include <filesystem>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
 #include <Xyz/BBox.hpp>
+#include "../Animation/AnimationPlayer.hpp"
 #include "../Resources/ResourceBundle.hpp"
 #include "../Resources/ResourceManager.hpp"
 #include "../SceneGraph/Scene.hpp"
@@ -71,6 +73,16 @@ namespace Tungsten
          *  GltfImportOptions::create_wireframes was set, otherwise empty. */
         std::vector<GltfWireframe> wireframes;
 
+        /** The file's animations, in file order, minus any that had nothing
+         *  left to play once the unsupported channels were skipped. Play one
+         *  with an AnimationPlayer made from it and `targets`. */
+        std::vector<std::shared_ptr<const AnimationClip>> animations;
+
+        /** The node each of the file's nodes became, and its transform as
+         *  the file gives it, indexed like the file's nodes. Nodes outside
+         *  the imported scene are null. */
+        AnimationTargets targets;
+
         /** One line per primitive or feature that was skipped. Worth showing
          *  to the user: an otherwise successful import can still be missing
          *  parts of the file. */
@@ -95,7 +107,10 @@ namespace Tungsten
      *
      * Skips what it cannot draw — non-triangle primitives, positionless
      * primitives — recording a line in GltfImport::warnings for each, and
-     * throws only if nothing drawable is left.
+     * throws only if nothing drawable is left. Animations are imported as
+     * clips that animate the nodes' translation, rotation and scale;
+     * morph-target weights are skipped with a warning, as are channels
+     * aimed at a node given as a matrix, which glTF does not allow.
      *
      * @throw TungstenException if the file cannot be read or parsed, or if the
      *      scene contains nothing that can be displayed. Neither the scene

@@ -10,6 +10,7 @@
 #include <bit>
 #include <map>
 #include <string>
+#include <utility>
 #include <variant>
 #include <fastgltf/core.hpp>
 #include <fastgltf/tools.hpp>
@@ -38,6 +39,11 @@ struct fastgltf::ElementTraits<Xyz::Vector3F>
 template <>
 struct fastgltf::ElementTraits<Xyz::Vector2F>
     : fastgltf::ElementTraitsBase<Xyz::Vector2F, fastgltf::AccessorType::Vec2, float>
+{};
+
+template <>
+struct fastgltf::ElementTraits<Xyz::Vector4F>
+    : fastgltf::ElementTraitsBase<Xyz::Vector4F, fastgltf::AccessorType::Vec4, float>
 {};
 
 namespace Tungsten
@@ -144,6 +150,19 @@ namespace Tungsten
             return Detail::to_matrix(values);
         }
 
+        Transform to_transform(const fastgltf::TRS& trs)
+        {
+            const auto& t = trs.translation;
+            const auto& r = trs.rotation;
+            const auto& s = trs.scale;
+            return {
+                .translation = {float(t[0]), float(t[1]), float(t[2])},
+                .rotation = Detail::to_quaternion({float(r[0]), float(r[1]),
+                                                   float(r[2]), float(r[3])}),
+                .scale = {float(s[0]), float(s[1]), float(s[2])}
+            };
+        }
+
         /**
          * The node's local transform. glTF stores either TRS components or a
          * matrix, never both, and Scene can store either exactly — so neither
@@ -152,18 +171,21 @@ namespace Tungsten
         Xyz::Matrix4F get_local_matrix(const fastgltf::Node& node)
         {
             if (const auto* trs = std::get_if<fastgltf::TRS>(&node.transform))
-            {
-                const auto& t = trs->translation;
-                const auto& r = trs->rotation;
-                const auto& s = trs->scale;
-                return Transform{
-                    .translation = {float(t[0]), float(t[1]), float(t[2])},
-                    .rotation = Detail::to_quaternion({float(r[0]), float(r[1]),
-                                                       float(r[2]), float(r[3])}),
-                    .scale = {float(s[0]), float(s[1]), float(s[2])}
-                }.make_matrix();
-            }
+                return to_transform(*trs).make_matrix();
             return to_matrix(std::get<fastgltf::math::fmat4x4>(node.transform));
+        }
+
+        Interpolation to_interpolation(fastgltf::AnimationInterpolation value)
+        {
+            switch (value)
+            {
+            case fastgltf::AnimationInterpolation::Step:
+                return Interpolation::STEP;
+            case fastgltf::AnimationInterpolation::CubicSpline:
+                return Interpolation::CUBIC_SPLINE;
+            default:
+                return Interpolation::LINEAR;
+            }
         }
 
         /**
@@ -266,11 +288,14 @@ namespace Tungsten
                 try
                 {
                     result_.root = scene_.create_node(parent);
+                    result_.targets.nodes.resize(asset_.nodes.size());
+                    result_.targets.rest_transforms.resize(asset_.nodes.size());
 
                     for (const auto node_index : asset_.scenes[scene_index].nodeIndices)
                         import_node(node_index, result_.root);
 
                     create_meshes();
+                    import_animations();
                 }
                 catch (...)
                 {
@@ -298,6 +323,9 @@ namespace Tungsten
                 const auto& node = asset_.nodes[node_index];
                 const auto id = scene_.create_node(parent);
                 scene_.set_local_transform(id, get_local_matrix(node));
+                result_.targets.nodes[node_index] = id;
+                if (const auto* trs = std::get_if<fastgltf::TRS>(&node.transform))
+                    result_.targets.rest_transforms[node_index] = to_transform(*trs);
 
                 if (node.skinIndex.has_value())
                 {
@@ -357,6 +385,121 @@ namespace Tungsten
                     pending_.push_back(std::move(pending));
                     ++result_.primitive_count;
                 }
+            }
+
+            /**
+             * Turns the file's animations into clips. An animation with a
+             * channel that cannot be read is skipped as a whole: playing the
+             * rest of it would show a motion the file does not describe.
+             */
+            void import_animations()
+            {
+                for (size_t i = 0; i < asset_.animations.size(); ++i)
+                {
+                    const auto name = name_of(asset_.animations[i].name, i);
+                    try
+                    {
+                        auto channels = read_channels(asset_.animations[i], name);
+                        if (channels.empty())
+                            continue;
+                        result_.animations.push_back(
+                            std::make_shared<const AnimationClip>(
+                                make_animation_clip(name, std::move(channels))));
+                    }
+                    catch (const std::exception& e)
+                    {
+                        warn("skipped animation '" + name + "': " + e.what());
+                    }
+                }
+            }
+
+            std::vector<AnimationChannel>
+            read_channels(const fastgltf::Animation& animation,
+                          const std::string& name)
+            {
+                std::vector<AnimationChannel> channels;
+                bool warned_about_weights = false;
+                for (const auto& channel : animation.channels)
+                {
+                    // A channel without a node targets something an
+                    // extension defines.
+                    if (!channel.nodeIndex.has_value())
+                        continue;
+                    // Animations belong to the file, not to a scene, so this
+                    // can be a node of a scene that was not imported.
+                    const auto node_index = *channel.nodeIndex;
+                    if (!result_.targets.nodes[node_index])
+                        continue;
+
+                    if (channel.path == fastgltf::AnimationPath::Weights)
+                    {
+                        if (!std::exchange(warned_about_weights, true))
+                        {
+                            warn("animation '" + name + "' animates morph"
+                                 " target weights, which are not supported;"
+                                 " those channels are skipped.");
+                        }
+                        continue;
+                    }
+
+                    const auto& node = asset_.nodes[node_index];
+                    if (!std::holds_alternative<fastgltf::TRS>(node.transform))
+                    {
+                        warn("animation '" + name + "' animates node '"
+                             + name_of(node.name, node_index) + "', which is"
+                             " given as a matrix; that channel is skipped.");
+                        continue;
+                    }
+
+                    const auto& sampler = animation.samplers[channel.samplerIndex];
+                    const auto interpolation = to_interpolation(sampler.interpolation);
+                    auto times = read_accessor<float>(sampler.inputAccessor);
+                    AnimationChannel result{.target = uint32_t(node_index)};
+                    switch (channel.path)
+                    {
+                    case fastgltf::AnimationPath::Translation:
+                        result.path = AnimationPath::TRANSLATION;
+                        result.track = Detail::make_vector3_track(
+                            interpolation, std::move(times),
+                            read_accessor<Xyz::Vector3F>(sampler.outputAccessor));
+                        break;
+                    case fastgltf::AnimationPath::Rotation:
+                        result.path = AnimationPath::ROTATION;
+                        result.track = Detail::make_rotation_track(
+                            interpolation, std::move(times),
+                            read_accessor<Xyz::Vector4F>(sampler.outputAccessor));
+                        break;
+                    case fastgltf::AnimationPath::Scale:
+                        result.path = AnimationPath::SCALE;
+                        result.track = Detail::make_vector3_track(
+                            interpolation, std::move(times),
+                            read_accessor<Xyz::Vector3F>(sampler.outputAccessor));
+                        break;
+                    default:
+                        continue;
+                    }
+                    channels.push_back(std::move(result));
+                }
+                return channels;
+            }
+
+            /**
+             * Every element of an accessor, widened to T. Throws if the
+             * accessor's type is not T's, which copyFromAccessor does not
+             * check.
+             */
+            template <typename T>
+            std::vector<T> read_accessor(size_t index)
+            {
+                const auto& accessor = asset_.accessors[index];
+                if (accessor.type != fastgltf::ElementTraits<T>::type)
+                {
+                    TUNGSTEN_THROW("accessor " + std::to_string(index)
+                                   + " has the wrong type.");
+                }
+                std::vector<T> result(accessor.count);
+                fastgltf::copyFromAccessor<T>(asset_, accessor, result.data());
+                return result;
             }
 
             std::optional<PrimitiveData>

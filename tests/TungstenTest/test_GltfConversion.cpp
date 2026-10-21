@@ -11,6 +11,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include "Tungsten/Color.hpp"
 #include "Tungsten/SceneGraph/Transform.hpp"
+#include "Tungsten/TungstenException.hpp"
 
 using namespace Tungsten;
 using namespace Tungsten::Detail;
@@ -245,4 +246,61 @@ TEST_CASE("GltfConversion: make_bounds is empty for no points")
     REQUIRE(bounds.min[0] == -1);
     REQUIRE(bounds.min[1] == -4);
     REQUIRE(bounds.max[2] == 5);
+}
+
+TEST_CASE("GltfConversion: linear outputs become the track's values")
+{
+    const auto track = make_vector3_track(Interpolation::LINEAR, {0, 1},
+                                          {{1, 2, 3}, {4, 5, 6}});
+
+    REQUIRE(track.times == std::vector<float>{0, 1});
+    REQUIRE(track.values[1] == Xyz::Vector3F(4, 5, 6));
+    REQUIRE(track.in_tangents.empty());
+    REQUIRE(track.out_tangents.empty());
+}
+
+TEST_CASE("GltfConversion: cubic outputs are split into tangents and values")
+{
+    // glTF order per keyframe: in-tangent, value, out-tangent.
+    const auto track = make_vector3_track(
+        Interpolation::CUBIC_SPLINE, {0, 1},
+        {{1, 0, 0}, {2, 0, 0}, {3, 0, 0}, {4, 0, 0}, {5, 0, 0}, {6, 0, 0}});
+
+    REQUIRE(track.in_tangents[0][0] == 1);
+    REQUIRE(track.values[0][0] == 2);
+    REQUIRE(track.out_tangents[0][0] == 3);
+    REQUIRE(track.in_tangents[1][0] == 4);
+    REQUIRE(track.values[1][0] == 5);
+    REQUIRE(track.out_tangents[1][0] == 6);
+}
+
+TEST_CASE("GltfConversion: the output count must match the interpolation")
+{
+    REQUIRE_THROWS_AS(make_vector3_track(Interpolation::LINEAR, {0, 1},
+                                         {{0, 0, 0}}),
+                      TungstenException);
+    REQUIRE_THROWS_AS(make_vector3_track(Interpolation::CUBIC_SPLINE, {0, 1},
+                                         {{0, 0, 0}, {0, 0, 0}}),
+                      TungstenException);
+}
+
+TEST_CASE("GltfConversion: rotation outputs are reordered and normalized")
+{
+    // [x, y, z, w], twice the length of a unit quaternion.
+    const auto track = make_rotation_track(Interpolation::STEP, {0},
+                                           {{0, 0, 1.2f, 1.6f}});
+
+    const auto& q = track.values[0];
+    REQUIRE(q.w == Approx(0.8f));
+    REQUIRE(q.v[2] == Approx(0.6f));
+}
+
+TEST_CASE("GltfConversion: rotation tangents are not normalized")
+{
+    const auto track = make_rotation_track(
+        Interpolation::CUBIC_SPLINE, {0},
+        {{0, 0, 0, 2}, {0, 0, 0, 1}, {0, 0, 0, 3}});
+
+    REQUIRE(track.in_tangents[0].w == 2);
+    REQUIRE(track.out_tangents[0].w == 3);
 }

@@ -34,6 +34,47 @@ namespace Tungsten::Detail
 
         constexpr float MIN_SHININESS = 1.0f;
         constexpr float MAX_SHININESS = 256.0f;
+
+        /**
+         * Distributes a sampler's outputs over a track's arrays, converting
+         * each with @a convert.
+         */
+        template <typename T, typename U, typename Convert>
+        AnimationTrack<T> make_track(Interpolation interpolation,
+                                     std::vector<float> times,
+                                     const std::vector<U>& outputs,
+                                     Convert convert)
+        {
+            const auto is_cubic = interpolation == Interpolation::CUBIC_SPLINE;
+            const auto per_key = is_cubic ? size_t(3) : size_t(1);
+            if (outputs.size() != times.size() * per_key)
+            {
+                TUNGSTEN_THROW("the sampler has "
+                               + std::to_string(outputs.size()) + " outputs for "
+                               + std::to_string(times.size()) + " keyframes.");
+            }
+
+            AnimationTrack<T> track{.interpolation = interpolation};
+            const auto count = times.size();
+            track.times = std::move(times);
+            track.values.reserve(count);
+            if (!is_cubic)
+            {
+                for (const auto& output : outputs)
+                    track.values.push_back(convert(output));
+                return track;
+            }
+
+            track.in_tangents.reserve(count);
+            track.out_tangents.reserve(count);
+            for (size_t i = 0; i < count; ++i)
+            {
+                track.in_tangents.push_back(convert(outputs[3 * i]));
+                track.values.push_back(convert(outputs[3 * i + 1]));
+                track.out_tangents.push_back(convert(outputs[3 * i + 2]));
+            }
+            return track;
+        }
     }
 
     Xyz::Matrix4F to_matrix(const std::array<float, 16>& m)
@@ -185,5 +226,33 @@ namespace Tungsten::Detail
         for (const auto& position : positions)
             bounds += position;
         return bounds;
+    }
+
+    Vector3Track make_vector3_track(Interpolation interpolation,
+                                    std::vector<float> times,
+                                    const std::vector<Xyz::Vector3F>& outputs)
+    {
+        return make_track<Xyz::Vector3F>(interpolation, std::move(times),
+                                         outputs,
+                                         [](const auto& v) { return v; });
+    }
+
+    RotationTrack make_rotation_track(Interpolation interpolation,
+                                      std::vector<float> times,
+                                      const std::vector<Xyz::Vector4F>& outputs)
+    {
+        auto track = make_track<Xyz::QuaternionF>(
+            interpolation, std::move(times), outputs,
+            [](const Xyz::Vector4F& v)
+            {
+                return to_quaternion({v[0], v[1], v[2], v[3]});
+            });
+        // Only the values: a tangent is a rate of change, not a rotation.
+        for (auto& value : track.values)
+        {
+            if (Xyz::get_length_squared(value) > 0)
+                value = Xyz::normalize(value);
+        }
+        return track;
     }
 } // Tungsten::Detail

@@ -84,6 +84,7 @@ find_package(SDL3 REQUIRED)
 
 add_library(Tungsten STATIC
     include/Tungsten/Animation/AnimationClip.hpp
+    include/Tungsten/Animation/AnimationPlayer.hpp
     include/Tungsten/Color.hpp
     include/Tungsten/Detail/BuddyAllocator.hpp
     include/Tungsten/Detail/GenericBitmaskOperators.hpp
@@ -159,6 +160,7 @@ add_library(Tungsten STATIC
     include/Tungsten/Viewport.hpp
     include/Tungsten/YimageGl.hpp
     src/Tungsten/Animation/AnimationClip.cpp
+    src/Tungsten/Animation/AnimationPlayer.cpp
     src/Tungsten/Detail/BuddyAllocator.cpp
     src/Tungsten/DeviceInfo.cpp
     src/Tungsten/ExceptionHelpers.cpp

@@ -16,12 +16,14 @@ FetchContent_MakeAvailable(catch)
 
 add_executable(TungstenTest
     test_AnimationClip.cpp
+    test_AnimationPlayer.cpp
     test_BuddyAllocator.cpp
     test_ColorMaterials.cpp
     test_ColorSpace.cpp
     test_FontUtilities.cpp
     test_GenerationalPool.cpp
     test_GltfConversion.cpp
+    test_GltfImport.cpp
     test_GlStateCache.cpp
     test_PipelineRegistry.cpp
     test_Renderer.cpp

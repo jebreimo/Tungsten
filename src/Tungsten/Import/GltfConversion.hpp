@@ -14,6 +14,7 @@
 #include <Xyz/Matrix.hpp>
 #include <Xyz/Quaternion.hpp>
 #include <Xyz/Vector.hpp>
+#include "Tungsten/Animation/AnimationClip.hpp"
 #include "Tungsten/Gpu/GpuTypes.hpp"
 #include "Tungsten/Resources/ColorMaterials.hpp"
 
@@ -127,4 +128,30 @@ namespace Tungsten::Detail
      * it.
      */
     Xyz::BBox3F make_bounds(const std::vector<Xyz::Vector3F>& positions);
+
+    /**
+     * Builds a translation or scale track from a glTF animation sampler's
+     * input and output.
+     *
+     * For CUBIC_SPLINE, glTF stores three outputs per keyframe — in-tangent,
+     * value, out-tangent — which this splits into the track's three arrays.
+     *
+     * @throw TungstenException if the output count does not match the input
+     *      count and the interpolation.
+     */
+    Vector3Track make_vector3_track(Interpolation interpolation,
+                                    std::vector<float> times,
+                                    const std::vector<Xyz::Vector3F>& outputs);
+
+    /**
+     * Builds a rotation track from a glTF animation sampler's input and
+     * output, as make_vector3_track does.
+     *
+     * The outputs are quaternions in glTF's [x, y, z, w] order. The values
+     * are normalized: they may have been stored as 8- or 16-bit integers,
+     * and widening those rarely gives a unit quaternion back.
+     */
+    RotationTrack make_rotation_track(Interpolation interpolation,
+                                      std::vector<float> times,
+                                      const std::vector<Xyz::Vector4F>& outputs);
 } // Tungsten::Detail

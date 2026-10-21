@@ -23,7 +23,7 @@ It is one of several `jebreimo` libraries and depends on sibling projects
   - `Resources/` — GPU resources, shaders and vertex formats: the
     ResourceManager and everything it hands out refs to.
   - `SceneGraph/` — the mutable scene graph, its nodes and components.
-  - `Animation/` — keyframe animation clips and their sampling.
+  - `Animation/` — keyframe animation clips, their sampling and playback.
   - `Rendering/` — snapshot extraction, the renderer, and the text/font
     pipeline.
   - `Sdl/` (application scaffold), `Detail/` (internal helpers).
