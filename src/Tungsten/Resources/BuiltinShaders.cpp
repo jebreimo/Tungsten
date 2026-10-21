@@ -28,6 +28,12 @@ namespace Tungsten
             semantic_bit(AttributeSemantic::POSITION)
             | semantic_bit(AttributeSemantic::NORMAL)
             | semantic_bit(AttributeSemantic::TEX_COORD_0);
+        // In the order of the BLINN_PHONG_* feature bits.
+        blinn_phong.features = {"SKINNED"};
+        blinn_phong.feature_attributes = {
+            semantic_bit(AttributeSemantic::BONE_INDICES)
+            | semantic_bit(AttributeSemantic::BONE_WEIGHTS)
+        };
         resources.register_shader_family(BLINN_PHONG_FAMILY,
                                          std::move(blinn_phong));
     }

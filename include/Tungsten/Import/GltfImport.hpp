@@ -112,6 +112,11 @@ namespace Tungsten
      * morph-target weights are skipped with a warning, as are channels
      * aimed at a node given as a matrix, which glTF does not allow.
      *
+     * Skinned meshes are drawn deformed by their joints, with up to four
+     * joints per vertex. A skin with more than MAX_SKIN_JOINTS joints, or
+     * with joints outside the imported scene, is skipped with a warning,
+     * and its meshes are drawn rigid, in their bind pose.
+     *
      * @throw TungstenException if the file cannot be read or parsed, or if the
      *      scene contains nothing that can be displayed. Neither the scene
      *      nor @a resources keeps anything from a failed import.

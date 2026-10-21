@@ -58,5 +58,11 @@ namespace Tungsten
          * The semantics every variant of this family reads.
          */
         AttributeSemanticMask required_attributes = 0;
+        /**
+         * The semantics each feature reads on top of required_attributes,
+         * parallel to features. May be shorter than features: the missing
+         * entries add nothing.
+         */
+        std::vector<AttributeSemanticMask> feature_attributes;
     };
 } // Tungsten

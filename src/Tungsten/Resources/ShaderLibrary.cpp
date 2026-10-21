@@ -26,17 +26,19 @@ namespace Tungsten
         // source, so the convention is applied here, once per compiled
         // variant. A family that lacks one of the blocks (e.g. an unlit
         // shader without MaterialBlock) is simply skipped for that block.
-        // Returns whether the program declares MaterialBlock, which the
+        // Records in the program whether it declares MaterialBlock, which the
         // renderer needs to know to tell "this shader has no per-material
-        // parameters" from "this material forgot to supply them".
-        bool apply_ubo_bindings(uint32_t program_id)
+        // parameters" from "this material forgot to supply them", and
+        // likewise SkinBlock.
+        void apply_ubo_bindings(ShaderProgram& program)
         {
             static constexpr std::pair<const char*, uint32_t> bindings[] = {
                 {"PerFrame", PER_FRAME_UBO_BINDING},
                 {"MaterialBlock", PER_MATERIAL_UBO_BINDING},
                 {"PerDraw", PER_DRAW_UBO_BINDING},
+                {"SkinBlock", SKIN_UBO_BINDING},
             };
-            bool has_material_block = false;
+            const auto program_id = program.gl_handle.id();
             for (const auto& [name, binding] : bindings)
             {
                 const auto index = get_uniform_block_index(program_id, name);
@@ -44,9 +46,10 @@ namespace Tungsten
                     continue;
                 set_uniform_block_binding(program_id, index, binding);
                 if (binding == PER_MATERIAL_UBO_BINDING)
-                    has_material_block = true;
+                    program.has_material_block = true;
+                else if (binding == SKIN_UBO_BINDING)
+                    program.has_skin_block = true;
             }
-            return has_material_block;
         }
 
         // Points each of the family's sampler uniforms at its texture unit:
@@ -123,10 +126,14 @@ namespace Tungsten
         // encode its output with the same curve the builtin ones use.
         preprocessor.add_include("Tungsten/ColorSpace.glsl", COLOR_SPACE_GLSL);
         preprocessor.add_include("Tungsten/ViewExtent.glsl", VIEW_EXTENT_GLSL);
+        auto required_attributes = family.required_attributes;
         for (size_t i = 0; i < family.features.size() && i < 32; ++i)
         {
-            if (key.defines & (uint32_t{1} << i))
-                preprocessor.add_define(family.features[i]);
+            if (!(key.defines & (uint32_t{1} << i)))
+                continue;
+            preprocessor.add_define(family.features[i]);
+            if (i < family.feature_attributes.size())
+                required_attributes |= family.feature_attributes[i];
         }
 
         ShaderProgramBuilder builder;
@@ -139,10 +146,10 @@ namespace Tungsten
 
         ShaderProgram program;
         program.gl_handle = builder.build();
-        program.has_material_block = apply_ubo_bindings(program.gl_handle.id());
+        apply_ubo_bindings(program);
         apply_sampler_bindings(program.gl_handle.id(), family.samplers);
         program.variant_key = key;
-        program.required_attributes = family.required_attributes;
+        program.required_attributes = required_attributes;
         program.sampler_count = static_cast<uint32_t>(family.samplers.size());
 
         ShaderProgramRef ref = insert_shader_(std::move(program));

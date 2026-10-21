@@ -133,11 +133,16 @@ namespace Tungsten::Detail
             // corners can share a face normal without affecting a neighbour.
             const auto old_positions = std::move(data.positions);
             const auto old_tex_coords = std::move(data.tex_coords);
+            const auto old_joints = std::move(data.joints);
+            const auto old_weights = std::move(data.weights);
             const auto old_indices = std::move(data.indices);
             const auto has_tex_coords = !old_tex_coords.empty();
+            const auto has_joints = !old_joints.empty();
 
             data.positions.clear();
             data.tex_coords.clear();
+            data.joints.clear();
+            data.weights.clear();
             data.indices.clear();
             data.positions.reserve(old_indices.size());
             data.normals.reserve(old_indices.size());
@@ -163,6 +168,11 @@ namespace Tungsten::Detail
                     data.normals.push_back(normal);
                     if (has_tex_coords)
                         data.tex_coords.push_back(old_tex_coords[index]);
+                    if (has_joints)
+                    {
+                        data.joints.push_back(old_joints[index]);
+                        data.weights.push_back(old_weights[index]);
+                    }
                     data.indices.push_back(uint32_t(data.indices.size()));
                 }
             }
@@ -174,10 +184,13 @@ namespace Tungsten::Detail
 
     std::vector<float> interleave(const PrimitiveData& data)
     {
-        std::vector<float> result(data.positions.size() * GLTF_VERTEX_STRIDE);
+        const auto skinned = !data.joints.empty();
+        const auto stride = skinned ? GLTF_SKINNED_VERTEX_STRIDE
+                                    : GLTF_VERTEX_STRIDE;
+        std::vector<float> result(data.positions.size() * stride);
         for (size_t i = 0; i < data.positions.size(); ++i)
         {
-            auto* v = &result[i * GLTF_VERTEX_STRIDE];
+            auto* v = &result[i * stride];
             v[0] = data.positions[i][0];
             v[1] = data.positions[i][1];
             v[2] = data.positions[i][2];
@@ -186,6 +199,13 @@ namespace Tungsten::Detail
             v[5] = data.normals[i][2];
             v[6] = data.tex_coords[i][0];
             v[7] = data.tex_coords[i][1];
+            if (!skinned)
+                continue;
+            for (unsigned j = 0; j < 4; ++j)
+            {
+                v[8 + j] = data.joints[i][j];
+                v[12 + j] = data.weights[i][j];
+            }
         }
         return result;
     }
@@ -254,5 +274,31 @@ namespace Tungsten::Detail
                 value = Xyz::normalize(value);
         }
         return track;
+    }
+
+    void normalize_weights(std::vector<Xyz::Vector4F>& weights)
+    {
+        for (auto& w : weights)
+        {
+            const auto sum = w[0] + w[1] + w[2] + w[3];
+            w = sum > 0 ? w / sum : Xyz::Vector4F{1, 0, 0, 0};
+        }
+    }
+
+    bool are_valid_joint_indices(const std::vector<Xyz::Vector4F>& joints,
+                                 size_t joint_count)
+    {
+        return std::ranges::all_of(joints, [&](const Xyz::Vector4F& j)
+        {
+            for (unsigned i = 0; i < 4; ++i)
+            {
+                if (!(j[i] >= 0) || j[i] >= float(joint_count)
+                    || j[i] != std::floor(j[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
+        });
     }
 } // Tungsten::Detail

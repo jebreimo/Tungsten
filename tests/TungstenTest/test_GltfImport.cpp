@@ -16,6 +16,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include "Tungsten/Gl/DummyOglWrapper.hpp"
 #include "Tungsten/Resources/BuiltinShaders.hpp"
+#include "Tungsten/Resources/Material.hpp"
+#include "Tungsten/Resources/PipelineDescriptor.hpp"
+#include "Tungsten/Resources/ShaderProgram.hpp"
 
 using namespace Tungsten;
 using Catch::Approx;
@@ -177,11 +180,49 @@ namespace
   ]
 })";
 
-    std::filesystem::path write_test_file()
+    // One triangle skinned to a two-joint chain: "root" at the origin and
+    // its child "tip" one unit up. The vertices are bound to root, to tip,
+    // and to both with weights (1, 1) that the importer must normalize.
+    //
+    // The buffer holds: positions (36 bytes), indices (6 + 2 padding),
+    // joints as unsigned bytes (12), weights (48), and the two inverse bind
+    // matrices (128): identity, and a translation by -1 along y.
+    constexpr const char* SKINNED_GLTF = R"({
+  "asset": {"version": "2.0"},
+  "scene": 0,
+  "scenes": [{"nodes": [0, 1]}],
+  "nodes": [
+    {"name": "mesh", "mesh": 0, "skin": 0},
+    {"name": "root", "children": [2]},
+    {"name": "tip", "translation": [0, 1, 0]}
+  ],
+  "skins": [{"joints": [1, 2], "inverseBindMatrices": 4}],
+  "meshes": [{"primitives": [{
+    "attributes": {"POSITION": 0, "JOINTS_0": 2, "WEIGHTS_0": 3},
+    "indices": 1
+  }]}],
+  "buffers": [{"byteLength": 232, "uri": "data:application/octet-stream;base64,AAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAgD8AAAAAAAABAAIAAAAAAAAAAQAAAAABAAAAAIA/AAAAAAAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AAAAAAAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAgL8AAAAAAACAPw=="}],
+  "bufferViews": [
+    {"buffer": 0, "byteOffset": 0, "byteLength": 36},
+    {"buffer": 0, "byteOffset": 36, "byteLength": 6},
+    {"buffer": 0, "byteOffset": 44, "byteLength": 12},
+    {"buffer": 0, "byteOffset": 56, "byteLength": 48},
+    {"buffer": 0, "byteOffset": 104, "byteLength": 128}
+  ],
+  "accessors": [
+    {"bufferView": 0, "componentType": 5126, "count": 3, "type": "VEC3",
+     "min": [0, 0, 0], "max": [1, 1, 0]},
+    {"bufferView": 1, "componentType": 5123, "count": 3, "type": "SCALAR"},
+    {"bufferView": 2, "componentType": 5121, "count": 3, "type": "VEC4"},
+    {"bufferView": 3, "componentType": 5126, "count": 3, "type": "VEC4"},
+    {"bufferView": 4, "componentType": 5126, "count": 2, "type": "MAT4"}
+  ]
+})";
+
+    std::filesystem::path write_test_file(const char* name, const char* gltf)
     {
-        const auto path = std::filesystem::temp_directory_path()
-                          / "tungsten_test_animation.gltf";
-        std::ofstream(path) << TEST_GLTF;
+        const auto path = std::filesystem::temp_directory_path() / name;
+        std::ofstream(path) << gltf;
         return path;
     }
 
@@ -195,10 +236,12 @@ namespace
 
     struct ImportFixture
     {
-        ImportFixture()
+        explicit ImportFixture(const char* gltf = TEST_GLTF)
         {
             register_builtin_shader_families(resources);
-            import = import_gltf(write_test_file(), resources, scene);
+            import = import_gltf(
+                write_test_file("tungsten_test_import.gltf", gltf),
+                resources, scene);
         }
 
         FakeGlSession session;
@@ -278,4 +321,35 @@ TEST_CASE("GltfImport: an imported clip plays on the imported nodes")
     const auto& arm_after = f.scene.local_matrix(nodes[1]);
     REQUIRE(arm_after[0, 0] == Approx(0).margin(1e-6));
     REQUIRE(arm_after[1, 0] == Approx(2));
+}
+
+TEST_CASE("GltfImport: a skinned mesh gets a skin and a skinned shader")
+{
+    ImportFixture f(SKINNED_GLTF);
+    const auto& nodes = f.import.targets.nodes;
+
+    REQUIRE(f.import.warnings.empty());
+    const auto& renderables = f.scene.components<RenderableComponent>();
+    REQUIRE(renderables.items.size() == 1);
+    const auto& renderable = renderables.items[0];
+
+    REQUIRE(renderable.skin);
+    REQUIRE(renderable.skin->joints == std::vector<NodeId>{nodes[1], nodes[2]});
+    // The second inverse bind matrix undoes tip's offset from the origin.
+    REQUIRE(renderable.skin->inverse_bind_matrices[1][1, 3] == -1);
+    // Never culled: the bind pose says little about where it will be.
+    REQUIRE(!renderable.local_bounds);
+
+    const auto& material = f.resources.get_material(renderable.material);
+    const auto& pipeline = f.resources.get_pipeline(material.pipeline);
+    const auto& shader = f.resources.get_shader(pipeline.shader);
+    REQUIRE(shader.variant_key.defines == BLINN_PHONG_SKINNED);
+}
+
+TEST_CASE("GltfImport: the import is framed by the bind pose")
+{
+    ImportFixture f(SKINNED_GLTF);
+
+    REQUIRE(f.import.bounds.min == Xyz::Vector3F(0, 0, 0));
+    REQUIRE(f.import.bounds.max == Xyz::Vector3F(1, 1, 0));
 }

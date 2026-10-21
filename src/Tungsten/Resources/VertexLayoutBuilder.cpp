@@ -85,8 +85,16 @@ namespace Tungsten
             };
         case AttributeSemantic::BONE_INDICES:
         case AttributeSemantic::BONE_WEIGHTS:
+            // Four influences per vertex, as glTF's JOINTS_0 and WEIGHTS_0.
+            // The indices are floats too: GLES 3.00 can read integer
+            // attributes, but only through a separate pointer call, and a
+            // float holds every index a uniform array can be sized for.
+            return {
+                .semantic = semantic,
+                .component_count = 4
+            };
         default:
-            TUNGSTEN_THROW("Bone indices and weights are unsupported");
+            TUNGSTEN_THROW("Unsupported attribute semantic.");
         }
     }
 

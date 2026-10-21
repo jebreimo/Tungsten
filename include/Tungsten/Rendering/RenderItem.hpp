@@ -7,6 +7,7 @@
 //****************************************************************************
 #pragma once
 #include <array>
+#include <cstdint>
 #include <Xyz/Matrix.hpp>
 
 #include "../Resources/ResourceRefs.hpp"
@@ -14,6 +15,9 @@
 namespace Tungsten
 {
     constexpr size_t RENDER_ITEM_DATA_SIZE = (4 + 3) * 4;
+
+    /** The skin palette of an item that is not skinned. */
+    constexpr uint32_t NO_SKIN_PALETTE = UINT32_MAX;
 
     class RenderItem
     {
@@ -48,6 +52,14 @@ namespace Tungsten
         void set_sort_key(uint64_t sort_key);
 
         /**
+         * The index in RenderSnapshot::skin_palettes of the joint matrices
+         * that deform this item, or NO_SKIN_PALETTE.
+         */
+        [[nodiscard]] uint32_t skin_palette() const;
+
+        void set_skin_palette(uint32_t palette);
+
+        /**
          * Returns the item's std140 per-draw block — a column-major mat4 u_model
          * followed by a mat3 u_normal_matrix, whose three columns std140 pads
          * to vec4 each. 16 + 12 floats, ready to upload verbatim to the
@@ -65,5 +77,6 @@ namespace Tungsten
         MaterialRef material_ = {};
         PipelineRef pipeline_ = {};
         uint64_t sort_key_ = 0;
+        uint32_t skin_palette_ = NO_SKIN_PALETTE;
     };
 } // Tungsten

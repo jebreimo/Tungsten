@@ -304,3 +304,75 @@ TEST_CASE("GltfConversion: rotation tangents are not normalized")
     REQUIRE(track.in_tangents[0].w == 2);
     REQUIRE(track.out_tangents[0].w == 3);
 }
+
+namespace
+{
+    PrimitiveData make_skinned_triangle()
+    {
+        PrimitiveData data;
+        data.positions = {{0, 0, 0}, {1, 0, 0}, {0, 1, 0}};
+        data.normals = {{0, 0, 1}, {0, 0, 1}, {0, 0, 1}};
+        data.tex_coords = {{0, 0}, {1, 0}, {0, 1}};
+        data.joints = {{0, 0, 0, 0}, {1, 0, 0, 0}, {2, 3, 0, 0}};
+        data.weights = {{1, 0, 0, 0}, {1, 0, 0, 0}, {0.5f, 0.5f, 0, 0}};
+        data.indices = {0, 1, 2};
+        return data;
+    }
+}
+
+TEST_CASE("GltfConversion: skinned vertices carry joints and weights")
+{
+    const auto data = make_skinned_triangle();
+
+    const auto vertices = interleave(data);
+
+    REQUIRE(vertices.size() == 3 * GLTF_SKINNED_VERTEX_STRIDE);
+    const auto* last = &vertices[2 * GLTF_SKINNED_VERTEX_STRIDE];
+    REQUIRE(last[1] == 1);      // position y
+    REQUIRE(last[8] == 2);      // first joint
+    REQUIRE(last[9] == 3);      // second joint
+    REQUIRE(last[12] == 0.5f);  // first weight
+}
+
+TEST_CASE("GltfConversion: rigid vertices keep the short format")
+{
+    auto data = make_skinned_triangle();
+    data.joints.clear();
+    data.weights.clear();
+
+    REQUIRE(interleave(data).size() == 3 * GLTF_VERTEX_STRIDE);
+}
+
+TEST_CASE("GltfConversion: flat shading keeps each vertex's joints")
+{
+    auto data = make_skinned_triangle();
+    data.normals.clear();
+    // The same corner twice, so the unrolled triangle has to copy its joints.
+    data.indices = {0, 2, 2};
+
+    complete_primitive(data);
+
+    REQUIRE(data.joints.size() == 3);
+    REQUIRE(data.weights.size() == 3);
+    REQUIRE(data.joints[1] == Xyz::Vector4F(2, 3, 0, 0));
+    REQUIRE(data.joints[2] == Xyz::Vector4F(2, 3, 0, 0));
+}
+
+TEST_CASE("GltfConversion: weights are scaled to sum to one")
+{
+    std::vector<Xyz::Vector4F> weights{{1, 1, 2, 0}, {0, 0, 0, 0}};
+
+    normalize_weights(weights);
+
+    REQUIRE(weights[0] == Xyz::Vector4F(0.25f, 0.25f, 0.5f, 0));
+    // No weight at all goes to the first joint.
+    REQUIRE(weights[1] == Xyz::Vector4F(1, 0, 0, 0));
+}
+
+TEST_CASE("GltfConversion: joint indices must fit the skin")
+{
+    REQUIRE(are_valid_joint_indices({{0, 1, 2, 3}}, 4));
+    REQUIRE(!are_valid_joint_indices({{0, 1, 2, 4}}, 4));
+    REQUIRE(!are_valid_joint_indices({{0, 1, 2.5f, 3}}, 4));
+    REQUIRE(!are_valid_joint_indices({{-1, 0, 0, 0}}, 4));
+}

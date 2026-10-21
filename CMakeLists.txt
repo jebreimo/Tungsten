@@ -147,6 +147,7 @@ add_library(Tungsten STATIC
     include/Tungsten/SceneGraph/NodeId.hpp
     include/Tungsten/SceneGraph/RenderableComponent.hpp
     include/Tungsten/SceneGraph/Scene.hpp
+    include/Tungsten/SceneGraph/Skin.hpp
     include/Tungsten/SceneGraph/TextComponent.hpp
     include/Tungsten/SceneGraph/Transform.hpp
     include/Tungsten/Sdl/SdlApplication.hpp

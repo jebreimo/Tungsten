@@ -6,6 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
+#include <cstdint>
 #include <vector>
 #include <Xyz/Matrix.hpp>
 #include <Xyz/Vector.hpp>
@@ -15,6 +16,15 @@
 
 namespace Tungsten
 {
+    /**
+     * One skin's joint matrices: a range of RenderSnapshot::joint_matrices.
+     */
+    struct SkinPalette
+    {
+        uint32_t first_joint = 0;
+        uint32_t joint_count = 0;
+    };
+
     /**
      * The immutable hand-off between the scene graph and the renderer.
      * SnapshotBuilder fills the caller's back buffer; after the
@@ -45,6 +55,12 @@ namespace Tungsten
         Xyz::Vector3F ambient_light;      // u_ambient_light.rgb
         std::vector<LightData> lights;    // u_lights / u_light_count
         float time = 0.0f;                // u_camera_pos.w
+        /** Every skin's joint matrices, in world space: each joint's world
+         *  transform times its inverse bind matrix. */
+        std::vector<Xyz::Matrix4F> joint_matrices;
+        /** The skins in joint_matrices, one per Skin drawn this frame; a
+         *  skinned item names its palette by index. */
+        std::vector<SkinPalette> skin_palettes;
 
         /**
          * Resets the snapshot for reuse, keeping the vectors' backing storage so
@@ -55,6 +71,8 @@ namespace Tungsten
             opaque_items.clear();
             transparent_items.clear();
             lights.clear();
+            joint_matrices.clear();
+            skin_palettes.clear();
             view_matrix = {};
             projection_matrix = {};
             camera_position = {};

@@ -52,5 +52,11 @@ namespace Tungsten
          * material left in the UBO.
          */
         bool has_material_block = false;
+        /**
+         * Records whether the linked program declares SkinBlock, i.e. is a
+         * skinned variant. The renderer binds an item's joint matrices to
+         * it, and refuses an item that has none.
+         */
+        bool has_skin_block = false;
     };
 } // Tungsten

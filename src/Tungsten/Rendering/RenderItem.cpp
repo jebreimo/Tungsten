@@ -78,4 +78,14 @@ namespace Tungsten
     {
         sort_key_ = sort_key;
     }
+
+    uint32_t RenderItem::skin_palette() const
+    {
+        return skin_palette_;
+    }
+
+    void RenderItem::set_skin_palette(uint32_t palette)
+    {
+        skin_palette_ = palette;
+    }
 } // Tungsten

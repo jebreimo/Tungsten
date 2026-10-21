@@ -27,9 +27,13 @@
  */
 namespace Tungsten::Detail
 {
-    /** Floats per vertex in the one interleaved format the importer emits:
-     *  position (3), normal (3), texture coordinate (2). */
+    /** Floats per vertex in the interleaved format the importer emits for a
+     *  rigid mesh: position (3), normal (3), texture coordinate (2). */
     constexpr size_t GLTF_VERTEX_STRIDE = 8;
+
+    /** Floats per vertex in the format for a skinned mesh: the rigid format
+     *  followed by four joint indices and four weights. */
+    constexpr size_t GLTF_SKINNED_VERTEX_STRIDE = 16;
 
     /**
      * Converts a glTF node matrix to an Xyz matrix.
@@ -70,6 +74,10 @@ namespace Tungsten::Detail
         std::vector<Xyz::Vector3F> positions;
         std::vector<Xyz::Vector3F> normals;
         std::vector<Xyz::Vector2F> tex_coords;
+        /** Empty for a rigid mesh. Joint indices, widened to float. */
+        std::vector<Xyz::Vector4F> joints;
+        /** Empty for a rigid mesh; otherwise as long as joints. */
+        std::vector<Xyz::Vector4F> weights;
         std::vector<uint32_t> indices;
     };
 
@@ -80,14 +88,16 @@ namespace Tungsten::Detail
      * Missing normals make the primitive flat-shaded, which is what the glTF
      * specification prescribes: the triangles are separated so that each gets
      * its own geometric normal, which grows the vertex count. Missing texture
-     * coordinates become zeroes.
+     * coordinates become zeroes. Joints and weights, if any, follow the
+     * vertices they belong to.
      */
     void complete_primitive(PrimitiveData& data);
 
     /**
-     * Interleaves a primitive's attributes into the importer's vertex format.
+     * Interleaves a primitive's attributes into the importer's vertex format:
+     * the skinned one if it has joints, otherwise the rigid one.
      *
-     * Expects complete_primitive to have run, i.e. all three attribute arrays
+     * Expects complete_primitive to have run, i.e. all the attribute arrays
      * to be the same length.
      */
     std::vector<float> interleave(const PrimitiveData& data);
@@ -128,6 +138,21 @@ namespace Tungsten::Detail
      * it.
      */
     Xyz::BBox3F make_bounds(const std::vector<Xyz::Vector3F>& positions);
+
+    /**
+     * Scales each vertex's weights to sum to one. glTF requires that they
+     * do, but weights stored as 8- or 16-bit integers rarely sum to exactly
+     * one after widening. A vertex with no weight at all is given entirely
+     * to its first joint, rather than collapsing to the origin.
+     */
+    void normalize_weights(std::vector<Xyz::Vector4F>& weights);
+
+    /**
+     * Returns true if every one of @a joints is a whole number that indexes
+     * a skin of @a joint_count joints.
+     */
+    bool are_valid_joint_indices(const std::vector<Xyz::Vector4F>& joints,
+                                 size_t joint_count);
 
     /**
      * Builds a translation or scale track from a glTF animation sampler's

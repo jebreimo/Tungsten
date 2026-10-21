@@ -9,6 +9,7 @@
 
 #include <bit>
 #include <map>
+#include <optional>
 #include <string>
 #include <utility>
 #include <variant>
@@ -25,6 +26,7 @@
 #include "Tungsten/Resources/Texture.hpp"
 #include "Tungsten/Resources/VertexLayoutBuilder.hpp"
 #include "Tungsten/SceneGraph/RenderableComponent.hpp"
+#include "Tungsten/SceneGraph/Skin.hpp"
 #include "GltfConversion.hpp"
 
 // Lets the accessor tools widen glTF's packed attribute types straight into
@@ -291,6 +293,7 @@ namespace Tungsten
                     result_.targets.nodes.resize(asset_.nodes.size());
                     result_.targets.rest_transforms.resize(asset_.nodes.size());
 
+                    prepare_skins(scene_index);
                     for (const auto node_index : asset_.scenes[scene_index].nodeIndices)
                         import_node(node_index, result_.root);
 
@@ -327,21 +330,129 @@ namespace Tungsten
                 if (const auto* trs = std::get_if<fastgltf::TRS>(&node.transform))
                     result_.targets.rest_transforms[node_index] = to_transform(*trs);
 
-                if (node.skinIndex.has_value())
-                {
-                    warn("node '" + name_of(node.name, node_index)
-                         + "' is skinned; it is drawn in its bind pose because"
-                           " skinning is not supported.");
-                }
-
                 if (node.meshIndex.has_value())
-                    import_mesh(*node.meshIndex, id);
+                {
+                    // A skin prepare_skins rejected leaves the mesh rigid; it
+                    // has already said why.
+                    std::optional<size_t> skin;
+                    if (node.skinIndex.has_value()
+                        && inverse_bind_matrices_.contains(*node.skinIndex))
+                    {
+                        skin = *node.skinIndex;
+                    }
+                    import_mesh(*node.meshIndex, id, skin);
+                }
 
                 for (const auto child : node.children)
                     import_node(child, id);
             }
 
-            void import_mesh(size_t mesh_index, NodeId node)
+            /**
+             * Reads the inverse bind matrices of every skin the imported
+             * scene can be drawn with: one whose joints are all in that
+             * scene, and that has no more of them than the skinned shader
+             * takes. The meshes of any other skin are drawn rigid, in their
+             * bind pose, with a warning.
+             */
+            void prepare_skins(size_t scene_index)
+            {
+                if (asset_.skins.empty())
+                    return;
+
+                std::vector<uint8_t> in_scene(asset_.nodes.size());
+                std::vector<size_t> pending(
+                    asset_.scenes[scene_index].nodeIndices.begin(),
+                    asset_.scenes[scene_index].nodeIndices.end());
+                while (!pending.empty())
+                {
+                    const auto index = pending.back();
+                    pending.pop_back();
+                    in_scene[index] = 1;
+                    for (const auto child : asset_.nodes[index].children)
+                        pending.push_back(child);
+                }
+
+                for (size_t i = 0; i < asset_.skins.size(); ++i)
+                {
+                    const auto& skin = asset_.skins[i];
+                    const auto what = "skin '" + name_of(skin.name, i) + "'";
+                    const auto fallback = "; its meshes are drawn in their bind"
+                                          " pose.";
+                    if (skin.joints.size() > MAX_SKIN_JOINTS)
+                    {
+                        warn(what + " has " + std::to_string(skin.joints.size())
+                             + " joints, more than the "
+                             + std::to_string(MAX_SKIN_JOINTS)
+                             + " supported" + fallback);
+                        continue;
+                    }
+                    const auto outside = std::ranges::any_of(
+                        skin.joints, [&](size_t joint) { return !in_scene[joint]; });
+                    if (outside)
+                    {
+                        warn(what + " has joints outside the imported scene"
+                             + fallback);
+                        continue;
+                    }
+
+                    try
+                    {
+                        inverse_bind_matrices_.emplace(
+                            i, read_inverse_bind_matrices(skin));
+                    }
+                    catch (const std::exception& e)
+                    {
+                        warn(what + " could not be read (" + e.what() + ")"
+                             + fallback);
+                    }
+                }
+            }
+
+            /**
+             * The skin's inverse bind matrices, one per joint. glTF makes
+             * them optional, and identities when they are left out.
+             */
+            std::vector<Xyz::Matrix4F>
+            read_inverse_bind_matrices(const fastgltf::Skin& skin)
+            {
+                std::vector<Xyz::Matrix4F> result;
+                if (!skin.inverseBindMatrices.has_value())
+                {
+                    result.assign(skin.joints.size(), Xyz::Matrix4F::identity());
+                    return result;
+                }
+
+                const auto matrices = read_accessor<fastgltf::math::fmat4x4>(
+                    *skin.inverseBindMatrices);
+                if (matrices.size() < skin.joints.size())
+                    TUNGSTEN_THROW("it has fewer inverse bind matrices than joints");
+                result.reserve(skin.joints.size());
+                for (size_t i = 0; i < skin.joints.size(); ++i)
+                    result.push_back(to_matrix(matrices[i]));
+                return result;
+            }
+
+            /**
+             * The skin the renderables of glTF skin @a index share. Built on
+             * first use, which comes after every node has been created: a
+             * skin can name joints the scene reaches after its mesh.
+             */
+            std::shared_ptr<const Skin> get_skin(size_t index)
+            {
+                if (const auto it = skins_.find(index); it != skins_.end())
+                    return it->second;
+
+                Skin skin;
+                skin.inverse_bind_matrices = inverse_bind_matrices_.at(index);
+                for (const auto joint : asset_.skins[index].joints)
+                    skin.joints.push_back(result_.targets.nodes[joint]);
+                auto result = std::make_shared<const Skin>(std::move(skin));
+                skins_.emplace(index, result);
+                return result;
+            }
+
+            void import_mesh(size_t mesh_index, NodeId node,
+                             std::optional<size_t> skin)
             {
                 const auto& mesh = asset_.meshes[mesh_index];
                 for (size_t i = 0; i < mesh.primitives.size(); ++i)
@@ -359,9 +470,10 @@ namespace Tungsten
                         continue;
                     }
 
-                    auto data = read_primitive(primitive, where);
+                    auto data = read_primitive(primitive, where, skin);
                     if (!data)
                         continue;
+                    const auto skinned = !data->joints.empty();
 
                     // Each primitive becomes its own node: a renderable is one
                     // mesh and one material, and the primitives of a glTF mesh
@@ -370,8 +482,10 @@ namespace Tungsten
                     // before it can allocate anything.
                     PendingPrimitive pending{
                         .node = scene_.create_node(node),
-                        .material = get_material(primitive, *topology)
+                        .material = get_material(primitive, *topology, skinned)
                     };
+                    if (skinned)
+                        pending.skin = skin;
                     if (create_wireframes_)
                     {
                         // The same material through a line pipeline, so the
@@ -379,7 +493,7 @@ namespace Tungsten
                         pending.line_indices = Detail::make_line_indices(
                             data->indices, *topology);
                         pending.line_material = get_material(
-                            primitive, TopologyType::LINES);
+                            primitive, TopologyType::LINES, skinned);
                     }
                     pending.data = std::move(*data);
                     pending_.push_back(std::move(pending));
@@ -504,7 +618,8 @@ namespace Tungsten
 
             std::optional<PrimitiveData>
             read_primitive(const fastgltf::Primitive& primitive,
-                           const std::string& where)
+                           const std::string& where,
+                           std::optional<size_t> skin)
             {
                 const auto* position = primitive.findAttribute("POSITION");
                 if (position == primitive.attributes.end())
@@ -537,6 +652,9 @@ namespace Tungsten
                         asset_, accessor, data.tex_coords.data());
                 }
 
+                if (skin)
+                    read_skinning(primitive, *skin, where, data);
+
                 // GenerateMeshIndices means the parser has already given an
                 // unindexed primitive a trivial index buffer.
                 if (!primitive.indicesAccessor.has_value())
@@ -559,6 +677,66 @@ namespace Tungsten
             }
 
             /**
+             * Adds the primitive's joints and weights to @a data. A primitive
+             * without usable ones stays rigid, and is drawn in its bind pose
+             * with a warning.
+             */
+            void read_skinning(const fastgltf::Primitive& primitive,
+                               size_t skin, const std::string& where,
+                               PrimitiveData& data)
+            {
+                const auto fallback = "; it is drawn in its bind pose.";
+                const auto* joints = primitive.findAttribute("JOINTS_0");
+                const auto* weights = primitive.findAttribute("WEIGHTS_0");
+                if (joints == primitive.attributes.end()
+                    || weights == primitive.attributes.end())
+                {
+                    warn(where + " is skinned, but has no JOINTS_0 or WEIGHTS_0"
+                         + fallback);
+                    return;
+                }
+
+                std::vector<Xyz::Vector4F> joint_data;
+                std::vector<Xyz::Vector4F> weight_data;
+                try
+                {
+                    joint_data = read_accessor<Xyz::Vector4F>(joints->accessorIndex);
+                    weight_data = read_accessor<Xyz::Vector4F>(weights->accessorIndex);
+                }
+                catch (const std::exception& e)
+                {
+                    warn(where + "'s joints or weights could not be read ("
+                         + e.what() + ")" + fallback);
+                    return;
+                }
+
+                if (joint_data.size() != data.positions.size()
+                    || weight_data.size() != data.positions.size())
+                {
+                    warn(where + " has a different number of joints, weights"
+                         " and positions" + fallback);
+                    return;
+                }
+                if (!Detail::are_valid_joint_indices(
+                        joint_data, asset_.skins[skin].joints.size()))
+                {
+                    warn(where + " has joint indices outside its skin"
+                         + fallback);
+                    return;
+                }
+                if (primitive.findAttribute("JOINTS_1") != primitive.attributes.end())
+                {
+                    warn(where + " has more than four joints per vertex; only"
+                         " the first four are used.");
+                }
+
+                // Normalizing also makes up for any influences dropped above.
+                Detail::normalize_weights(weight_data);
+                data.joints = std::move(joint_data);
+                data.weights = std::move(weight_data);
+            }
+
+            /**
              * Uploads every primitive read so far and gives its node a
              * renderable. Deferred to here so that the arenas can be sized
              * once, for the whole file.
@@ -568,25 +746,40 @@ namespace Tungsten
                 if (pending_.empty())
                     return;
 
+                // Rigid and skinned vertices differ in size, and an arena
+                // holds one size of vertex.
                 std::vector<uint32_t> vertex_sizes;
+                std::vector<uint32_t> skinned_vertex_sizes;
                 std::vector<uint32_t> index_sizes;
-                vertex_sizes.reserve(pending_.size());
                 index_sizes.reserve(pending_.size());
                 for (const auto& primitive : pending_)
                 {
-                    vertex_sizes.push_back(uint32_t(primitive.data.positions.size()));
+                    auto& sizes = primitive.skin ? skinned_vertex_sizes
+                                                 : vertex_sizes;
+                    sizes.push_back(uint32_t(primitive.data.positions.size()));
                     index_sizes.push_back(uint32_t(primitive.data.indices.size()));
                     if (!primitive.line_indices.empty())
                         index_sizes.push_back(uint32_t(primitive.line_indices.size()));
                 }
 
-                vbo_arena_ = resources_.create_arena(
-                    BufferUsage::STATIC_DRAW,
-                    GLTF_VERTEX_STRIDE * sizeof(float),
-                    required_capacity(vertex_sizes));
                 // The file's own arenas, so its slices are freed with them
                 // and need not be listed in the bundle.
-                result_.resources.arenas.push_back(vbo_arena_);
+                if (!vertex_sizes.empty())
+                {
+                    vbo_arena_ = resources_.create_arena(
+                        BufferUsage::STATIC_DRAW,
+                        GLTF_VERTEX_STRIDE * sizeof(float),
+                        required_capacity(vertex_sizes));
+                    result_.resources.arenas.push_back(vbo_arena_);
+                }
+                if (!skinned_vertex_sizes.empty())
+                {
+                    skinned_vbo_arena_ = resources_.create_arena(
+                        BufferUsage::STATIC_DRAW,
+                        Detail::GLTF_SKINNED_VERTEX_STRIDE * sizeof(float),
+                        required_capacity(skinned_vertex_sizes));
+                    result_.resources.arenas.push_back(skinned_vbo_arena_);
+                }
                 ebo_arena_ = resources_.create_arena(
                     BufferUsage::STATIC_DRAW, sizeof(uint32_t),
                     required_capacity(index_sizes));
@@ -596,10 +789,18 @@ namespace Tungsten
                 {
                     const auto bounds = Detail::make_bounds(primitive.data.positions);
                     const auto vertices = upload_vertices(primitive.data);
+                    const auto layout = primitive.skin ? skinned_layout_ : layout_;
+                    const auto skin = primitive.skin ? get_skin(*primitive.skin)
+                                                     : nullptr;
                     scene_.add_component(primitive.node, RenderableComponent{
-                        .mesh = create_mesh(vertices, primitive.data.indices),
+                        .mesh = create_mesh(vertices, primitive.data.indices,
+                                            layout),
                         .material = primitive.material,
-                        .local_bounds = bounds
+                        // The bind-pose bounds say little about where the
+                        // joints will take a skinned mesh, so it is never
+                        // culled. They still frame the import as a whole.
+                        .local_bounds = skin ? Xyz::BBox3F() : bounds,
+                        .skin = skin
                     });
                     local_bounds_.emplace_back(primitive.node, bounds);
 
@@ -609,7 +810,8 @@ namespace Tungsten
                     {
                         result_.wireframes.push_back({
                             .node = primitive.node,
-                            .mesh = create_mesh(vertices, primitive.line_indices),
+                            .mesh = create_mesh(vertices, primitive.line_indices,
+                                                layout),
                             .material = primitive.line_material
                         });
                     }
@@ -620,8 +822,10 @@ namespace Tungsten
             SharedBuffer upload_vertices(const PrimitiveData& data)
             {
                 const auto vertex_data = Detail::interleave(data);
+                const auto arena = data.joints.empty() ? vbo_arena_
+                                                       : skinned_vbo_arena_;
                 const auto vertices = resources_.allocate(
-                    vbo_arena_, uint32_t(data.positions.size()));
+                    arena, uint32_t(data.positions.size()));
                 resources_.upload(vertices, vertex_data.data(),
                                   vertex_data.size() * sizeof(float));
                 return vertices;
@@ -632,7 +836,8 @@ namespace Tungsten
              * are relative to the first of those vertices.
              */
             MeshRef create_mesh(const SharedBuffer& vertices,
-                                const std::vector<uint32_t>& indices)
+                                const std::vector<uint32_t>& indices,
+                                VertexLayoutRef layout)
             {
                 const auto ebo = resources_.allocate(
                     ebo_arena_, uint32_t(indices.size()));
@@ -649,7 +854,7 @@ namespace Tungsten
 
                 Mesh mesh;
                 mesh.streams = {vertices};
-                mesh.layout = layout_;
+                mesh.layout = layout;
                 mesh.ebo = ebo;
                 mesh.index_type = ElementIndexType::UINT32;
                 const auto ref = resources_.create_mesh(std::move(mesh));
@@ -658,12 +863,12 @@ namespace Tungsten
             }
 
             MaterialRef get_material(const fastgltf::Primitive& primitive,
-                                     TopologyType topology)
+                                     TopologyType topology, bool skinned)
             {
                 const auto index = primitive.materialIndex.has_value()
                                        ? *primitive.materialIndex
                                        : NO_MATERIAL;
-                const auto pipeline = get_pipeline(index, topology);
+                const auto pipeline = get_pipeline(index, topology, skinned);
                 const MaterialKey key{index, pipeline.index, pipeline.generation};
                 if (const auto it = materials_.find(key); it != materials_.end())
                     return it->second;
@@ -867,11 +1072,21 @@ namespace Tungsten
                 return resources_.register_sampler(descriptor);
             }
 
-            PipelineRef get_pipeline(size_t material_index, TopologyType topology)
+            PipelineRef get_pipeline(size_t material_index, TopologyType topology,
+                                     bool skinned)
             {
                 PipelineDescriptor descriptor;
-                descriptor.shader = shader_;
-                descriptor.layout = layout_;
+                if (skinned)
+                {
+                    prepare_skinned_shader();
+                    descriptor.shader = skinned_shader_;
+                    descriptor.layout = skinned_layout_;
+                }
+                else
+                {
+                    descriptor.shader = shader_;
+                    descriptor.layout = layout_;
+                }
                 descriptor.primitive = topology;
                 descriptor.raster.cull_enabled = true;
 
@@ -903,6 +1118,27 @@ namespace Tungsten
                 return resources_.register_pipeline(descriptor);
             }
 
+            /**
+             * Registers the skinned layout and compiles the skinned shader
+             * variant, on first use: a file without skins needs neither.
+             */
+            void prepare_skinned_shader()
+            {
+                if (skinned_shader_)
+                    return;
+                skinned_layout_ = resources_.register_layout(
+                    VertexLayoutBuilder()
+                        .add_attribute(AttributeSemantic::POSITION)
+                        .add_attribute(AttributeSemantic::NORMAL)
+                        .add_attribute(AttributeSemantic::TEX_COORD_0)
+                        .add_attribute(AttributeSemantic::BONE_INDICES)
+                        .add_attribute(AttributeSemantic::BONE_WEIGHTS)
+                        .build());
+                skinned_shader_ = resources_.register_shader_variant(
+                    {.family = BLINN_PHONG_FAMILY,
+                     .defines = BLINN_PHONG_SKINNED});
+            }
+
             void warn(std::string message)
             {
                 result_.warnings.push_back(std::move(message));
@@ -920,6 +1156,8 @@ namespace Tungsten
                 PrimitiveData data;
                 std::vector<uint32_t> line_indices;
                 MaterialRef line_material;
+                /** The glTF skin, for a primitive that is skinned. */
+                std::optional<size_t> skin;
             };
 
             static constexpr size_t NO_MATERIAL = size_t(-1);
@@ -934,10 +1172,16 @@ namespace Tungsten
             GltfImport result_;
             VertexLayoutRef layout_;
             ShaderProgramRef shader_;
+            VertexLayoutRef skinned_layout_;
+            ShaderProgramRef skinned_shader_;
             BufferArenaRef vbo_arena_;
+            BufferArenaRef skinned_vbo_arena_;
             BufferArenaRef ebo_arena_;
             std::map<MaterialKey, MaterialRef> materials_;
             std::map<TextureKey, TextureRef> textures_;
+            /** Per usable glTF skin, its inverse bind matrices. */
+            std::map<size_t, std::vector<Xyz::Matrix4F>> inverse_bind_matrices_;
+            std::map<size_t, std::shared_ptr<const Skin>> skins_;
             std::vector<PendingPrimitive> pending_;
             std::vector<std::pair<NodeId, Xyz::BBox3F>> local_bounds_;
             bool create_wireframes_ = false;

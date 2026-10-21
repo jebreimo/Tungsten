@@ -157,10 +157,13 @@ type:
   change.
 - **binding 2 — per-draw**: world / normal matrix, bound as a range of one packed buffer
   (or supplied as an instanced attribute).
+- **binding 3 — skin**: a skinned item's joint matrices, bound as a range of one packed
+  buffer. Only skinned shader variants declare it.
 
 GLSL ES 3.00 cannot declare binding points in the shader source, so the `ShaderLibrary`
 assigns them right after linking each variant: it looks up the conventional block names
-(`PerFrame`, `MaterialBlock`, `PerDraw`) and binds whichever of them the program declares.
+(`PerFrame`, `MaterialBlock`, `PerDraw`, `SkinBlock`) and binds whichever of them the
+program declares.
 Hand-written shaders participate by using those block names.
 
 **Binding 0 is the renderer's own buffer.** It owns one, binds it at startup, and afterwards
@@ -182,6 +185,21 @@ material never re-uploads anything. This is the bind `GlStateCache` exists for: 
 groups items by material, so consecutive items sharing one bind nothing. A material either
 has a buffer or it does not — a shader declaring `MaterialBlock` against one that has none is
 rejected outright (`ShaderProgram::has_material_block`).
+
+**Binding 3 is bound by range, a whole block at a time.** The `SnapshotBuilder` computes
+each `Skin`'s joint matrices once per frame — each joint's world matrix times its inverse
+bind matrix, so they are in world space and a skinned item's own `u_model` is identity —
+and every renderable sharing that skin names the same palette. The renderer packs the
+palettes into one buffer like the per-draw blocks. Each one is padded to the full
+`MAX_SKIN_JOINTS` matrices rather than to its own joint count, because WebGL2 rejects a draw
+whose block is not fully backed by its bound range: at 128 joints, 8 KB per skin, which is
+also why the joint count has a hard cap. A skinned variant (`ShaderProgram::has_skin_block`)
+drawing an item without a skin is rejected, as an unbound block would read the previous
+item's palette.
+
+The joint indices are float attributes, not integers. GLES 3.00 reads integer attributes
+only through `glVertexAttribIPointer`, which nothing else in Tungsten needs, and a float
+holds every index the joint array can be sized for exactly.
 
 **Texture units follow the same fixed-convention idea.** A `ShaderFamily` lists its sampler
 uniforms in unit order (`samplers`), and the `ShaderLibrary` points sampler *i* at texture

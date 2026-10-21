@@ -9,6 +9,9 @@
 
 #include "Tungsten/Color.hpp"
 
+#include <algorithm>
+#include <memory>
+#include <vector>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include "Tungsten/SceneGraph/CameraComponent.hpp"
@@ -19,6 +22,7 @@
 #include "Tungsten/SceneGraph/RenderableComponent.hpp"
 #include "Tungsten/Resources/ResourceManager.hpp"
 #include "Tungsten/SceneGraph/Scene.hpp"
+#include "Tungsten/SceneGraph/Skin.hpp"
 
 using namespace Tungsten;
 using Catch::Matchers::WithinAbs;
@@ -70,6 +74,36 @@ namespace
                 .local_bounds = unit_box()
             });
             return node;
+        }
+
+        // Adds a root node with a renderable deformed by skin, placed far
+        // outside the view volume to show that the node's own transform plays
+        // no part.
+        NodeHandle add_skinned(std::shared_ptr<const Skin> skin)
+        {
+            auto node = scene.add_node();
+            node.set_local_transform(translate(500, 0, 0));
+            node.add(RenderableComponent{
+                .mesh = mesh,
+                .material = material,
+                .skin = std::move(skin)
+            });
+            return node;
+        }
+
+        // A skin of two root joints at (1, 0, -5) and (0, 2, -5), with
+        // identity inverse bind matrices.
+        std::shared_ptr<const Skin> make_skin()
+        {
+            auto first = scene.add_node();
+            first.set_local_transform(translate(1, 0, -5));
+            auto second = scene.add_node();
+            second.set_local_transform(translate(0, 2, -5));
+            return std::make_shared<const Skin>(Skin{
+                .joints = {first.id(), second.id()},
+                .inverse_bind_matrices = {Xyz::Matrix4F::identity(),
+                                          Xyz::Matrix4F::identity()}
+            });
         }
 
         void build()
@@ -351,4 +385,106 @@ TEST_CASE("SnapshotBuilder: rebuilding reuses the snapshot")
     // A second build must not accumulate.
     bench.build();
     REQUIRE(bench.snapshot.opaque_items.size() == 1);
+}
+
+TEST_CASE("SnapshotBuilder: a skinned item gets its joints' world matrices")
+{
+    Bench bench;
+    bench.add_skinned(bench.make_skin());
+
+    bench.build();
+    const auto& snapshot = bench.snapshot;
+    REQUIRE(snapshot.opaque_items.size() == 1);
+    const auto& item = snapshot.opaque_items[0];
+    REQUIRE(item.skin_palette() == 0);
+    // The joints place the mesh, so its own world transform is ignored.
+    REQUIRE(item.world_transform() == Xyz::Matrix4F::identity());
+
+    REQUIRE(snapshot.skin_palettes.size() == 1);
+    REQUIRE(snapshot.skin_palettes[0].first_joint == 0);
+    REQUIRE(snapshot.skin_palettes[0].joint_count == 2);
+    REQUIRE(snapshot.joint_matrices.size() == 2);
+    REQUIRE(snapshot.joint_matrices[0][0, 3] == 1);
+    REQUIRE(snapshot.joint_matrices[1][1, 3] == 2);
+}
+
+TEST_CASE("SnapshotBuilder: the inverse bind matrix is applied after the joint")
+{
+    Bench bench;
+    auto joint = bench.scene.add_node();
+    joint.set_local_transform(translate(3, 0, 0));
+    bench.add_skinned(std::make_shared<const Skin>(Skin{
+        .joints = {joint.id()},
+        .inverse_bind_matrices = {translate(-3, 0, 0).make_matrix()}
+    }));
+
+    bench.build();
+
+    // In the bind pose the two cancel out.
+    REQUIRE(bench.snapshot.joint_matrices[0] == Xyz::Matrix4F::identity());
+}
+
+TEST_CASE("SnapshotBuilder: renderables sharing a skin share a palette")
+{
+    Bench bench;
+    const auto shared = bench.make_skin();
+    bench.add_skinned(shared);
+    bench.add_skinned(shared);
+    bench.add_skinned(bench.make_skin());
+
+    bench.build();
+
+    REQUIRE(bench.snapshot.skin_palettes.size() == 2);
+    REQUIRE(bench.snapshot.joint_matrices.size() == 4);
+    std::vector<uint32_t> palettes;
+    for (const auto& item : bench.snapshot.opaque_items)
+        palettes.push_back(item.skin_palette());
+    std::ranges::sort(palettes);
+    REQUIRE(palettes == std::vector<uint32_t>{0, 0, 1});
+}
+
+TEST_CASE("SnapshotBuilder: rigid items have no skin palette")
+{
+    Bench bench;
+    bench.add_renderable(0, 0, -5);
+
+    bench.build();
+
+    REQUIRE(bench.snapshot.opaque_items[0].skin_palette() == NO_SKIN_PALETTE);
+    REQUIRE(bench.snapshot.skin_palettes.empty());
+}
+
+TEST_CASE("SnapshotBuilder: a removed joint does not fail the frame")
+{
+    Bench bench;
+    const auto skin = bench.make_skin();
+    bench.add_skinned(skin);
+    bench.scene.remove(skin->joints[0]);
+
+    bench.build();
+
+    REQUIRE(bench.snapshot.joint_matrices[0] == Xyz::Matrix4F::identity());
+    REQUIRE(bench.snapshot.joint_matrices[1][1, 3] == 2);
+}
+
+TEST_CASE("SnapshotBuilder: invalid skins are rejected")
+{
+    Bench bench;
+
+    SECTION("too many joints")
+    {
+        Skin skin;
+        skin.joints.resize(MAX_SKIN_JOINTS + 1, bench.camera_node.id());
+        skin.inverse_bind_matrices.resize(MAX_SKIN_JOINTS + 1);
+        bench.add_skinned(std::make_shared<const Skin>(std::move(skin)));
+        REQUIRE_THROWS_AS(bench.build(), TungstenException);
+    }
+
+    SECTION("missing inverse bind matrices")
+    {
+        Skin skin;
+        skin.joints = {bench.camera_node.id()};
+        bench.add_skinned(std::make_shared<const Skin>(std::move(skin)));
+        REQUIRE_THROWS_AS(bench.build(), TungstenException);
+    }
 }

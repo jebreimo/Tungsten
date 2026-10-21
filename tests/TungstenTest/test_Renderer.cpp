@@ -21,6 +21,7 @@
 #include "Tungsten/SceneGraph/RenderableComponent.hpp"
 #include "Tungsten/Resources/ResourceManager.hpp"
 #include "Tungsten/SceneGraph/Scene.hpp"
+#include "Tungsten/SceneGraph/Skin.hpp"
 #include "Tungsten/Rendering/SnapshotBuilder.hpp"
 #include "Tungsten/Resources/Texture.hpp"
 #include "Tungsten/Resources/VertexLayout.hpp"
@@ -113,6 +114,10 @@ namespace
                 return 11;
             if (std::strcmp(name, "PerDraw") == 0)
                 return 12;
+            // Opt-in, as it marks the program skinned: only the programs
+            // compiled while it is set declare the block.
+            if (declares_skin_block && std::strcmp(name, "SkinBlock") == 0)
+                return 13;
             return 0xFFFFFFFFu;
         }
 
@@ -187,6 +192,8 @@ namespace
         {
             if (index == PER_DRAW_UBO_BINDING)
                 per_draw_binds.emplace_back(offset, size);
+            else if (index == SKIN_UBO_BINDING)
+                skin_binds.emplace_back(offset, size);
         }
 
         // A realistic alignment, so the tests exercise the padding the
@@ -316,6 +323,8 @@ namespace
         std::vector<size_t> buffer_uploads;
         std::vector<GLuint> material_ubo_binds;
         std::vector<std::pair<GLintptr, GLsizeiptr>> per_draw_binds;
+        std::vector<std::pair<GLintptr, GLsizeiptr>> skin_binds;
+        bool declares_skin_block = false;
         std::vector<std::string> events;
         int program_binds = 0;
         int draw_calls = 0;
@@ -435,6 +444,7 @@ namespace
             gl.sampler_binds.clear();
             gl.material_ubo_binds.clear();
             gl.per_draw_binds.clear();
+            gl.skin_binds.clear();
             gl.draw_states.clear();
             gl.state_calls = 0;
             gl.clear_masks.clear();
@@ -907,4 +917,91 @@ TEST_CASE("Renderer: the pass issues its viewport and binds its target")
     // A null target is the window's framebuffer.
     REQUIRE_FALSE(session.gl->framebuffer_binds.empty());
     REQUIRE(session.gl->framebuffer_binds[0] == 0u);
+}
+
+namespace
+{
+    // A material whose shader declares SkinBlock, over the bench's layout.
+    MaterialRef make_skinned_material(Bench& bench, FakeOglWrapper& gl)
+    {
+        ShaderFamily family;
+        family.vertex_source = "#version 300 es\nvoid main() {}\n";
+        family.fragment_source = "#version 300 es\nvoid main() {}\n";
+        bench.resources.register_shader_family(10, family);
+        gl.declares_skin_block = true;
+        const auto shader = bench.resources.register_shader_variant({10, 0});
+        gl.declares_skin_block = false;
+
+        Material material;
+        material.pipeline = bench.make_pipeline(shader);
+        material.parameter_data.resize(MATERIAL_BLOB_SIZE);
+        return bench.resources.create_material(std::move(material));
+    }
+
+    std::shared_ptr<const Skin> make_skin(Bench& bench)
+    {
+        const auto joint = bench.scene.add_node();
+        return std::make_shared<const Skin>(Skin{
+            .joints = {joint.id()},
+            .inverse_bind_matrices = {Xyz::Matrix4F::identity()}
+        });
+    }
+
+    void add_skinned(Bench& bench, MaterialRef material,
+                     std::shared_ptr<const Skin> skin)
+    {
+        bench.scene.add_node().add(RenderableComponent{
+            .mesh = bench.make_mesh(4, 6),
+            .material = material,
+            .skin = std::move(skin)
+        });
+    }
+
+    // A whole SkinBlock: the size of the range every skinned draw binds.
+    constexpr size_t SKIN_BLOCK_SIZE = MAX_SKIN_JOINTS * 16 * sizeof(float);
+}
+
+TEST_CASE("Renderer: each skinned draw binds its skin's whole palette")
+{
+    const FakeGlSession session;
+    Bench bench;
+    const auto material = make_skinned_material(bench, *session.gl);
+    const auto shared = make_skin(bench);
+    add_skinned(bench, material, shared);
+    add_skinned(bench, material, shared);
+    add_skinned(bench, material, make_skin(bench));
+
+    bench.build_and_render(*session.gl);
+
+    // Two palettes, uploaded together, each padded to a full block.
+    REQUIRE(count_uploads(session.gl->buffer_uploads,
+                          2 * SKIN_BLOCK_SIZE) == 1);
+    const auto& binds = session.gl->skin_binds;
+    REQUIRE(binds.size() == 3);
+    for (const auto& [offset, size] : binds)
+    {
+        REQUIRE(size == GLsizeiptr(SKIN_BLOCK_SIZE));
+        REQUIRE((offset == 0 || offset == GLintptr(SKIN_BLOCK_SIZE)));
+    }
+}
+
+TEST_CASE("Renderer: rigid draws bind no palette")
+{
+    const FakeGlSession session;
+    Bench bench;
+    bench.add_renderable(bench.make_mesh(4, 6), bench.material, -10);
+
+    bench.build_and_render(*session.gl);
+
+    REQUIRE(session.gl->skin_binds.empty());
+}
+
+TEST_CASE("Renderer: a skinned shader refuses an item without a skin")
+{
+    const FakeGlSession session;
+    Bench bench;
+    const auto material = make_skinned_material(bench, *session.gl);
+    bench.add_renderable(bench.make_mesh(4, 6), material, -10);
+
+    REQUIRE_THROWS_AS(bench.build_and_render(*session.gl), TungstenException);
 }

@@ -7,8 +7,10 @@
 //****************************************************************************
 #pragma once
 #include <cstdint>
+#include <memory>
 #include "Xyz/BBox.hpp"
 #include "../Resources/ResourceRefs.hpp"
+#include "Skin.hpp"
 
 namespace Tungsten
 {
@@ -21,6 +23,12 @@ namespace Tungsten
      * Leaving local_bounds empty means "no bounds known": the item is never
      * culled.
      *
+     * A renderable with a skin is drawn deformed by its joints, and its own
+     * node's transform is ignored, as glTF prescribes: the joints' world
+     * transforms place it. Its material's pipeline must use a skinned shader
+     * variant, and its local_bounds should normally be left empty, as the
+     * bind-pose bounds say little about where an animated mesh ends up.
+     *
      * A plain aggregate with no base class and no back-pointer to its node —
      * the scene stores these in one flat array per kind and keeps the owning
      * NodeId alongside.
@@ -32,5 +40,7 @@ namespace Tungsten
         Xyz::BBox3F local_bounds;
         bool visible = true;
         uint32_t render_layer = 0;
+        /** Null for a rigid mesh. */
+        std::shared_ptr<const Skin> skin;
     };
 } // Tungsten

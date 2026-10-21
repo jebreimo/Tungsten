@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <utility>
 #include <vector>
 #include <Xyz/InvertMatrix.hpp>
 #include <Xyz/Matrix.hpp>
@@ -22,6 +23,8 @@
 #include "Tungsten/SceneGraph/RenderableComponent.hpp"
 #include "Tungsten/Resources/ResourceManager.hpp"
 #include "Tungsten/SceneGraph/Scene.hpp"
+#include "Tungsten/SceneGraph/Skin.hpp"
+#include "Tungsten/TungstenException.hpp"
 
 namespace Tungsten
 {
@@ -169,7 +172,17 @@ namespace Tungsten
          */
         void extract_renderables(const Scene& scene, RenderSnapshot& out);
 
+        /**
+         * Returns the index of the skin's palette in out.skin_palettes,
+         * computing its joint matrices on the skin's first use this frame.
+         */
+        uint32_t get_skin_palette(const Scene& scene, const Skin& skin,
+                                  RenderSnapshot& out);
+
         ResourceManager& resources;
+
+        /** The skins whose palettes this build has computed so far. */
+        std::vector<std::pair<const Skin*, uint32_t>> skin_palettes;
 
         // Per-build state, set up by build() and read during extraction.
         std::array<Xyz::Vector4F, 6> frustum_planes;
@@ -214,6 +227,7 @@ namespace Tungsten
         out.projection_matrix = projection;
         out.camera_position = translation_of(camera_world);
 
+        skin_palettes.clear();
         prepare_bounds(scene);
         cull();
         extract_renderables(scene, out);
@@ -316,8 +330,20 @@ namespace Tungsten
             const float depth = std::clamp(-view_z / far_plane, 0.0f, 1.0f);
 
             RenderItem item;
-            item.set_world_transform(world);
-            item.set_normal_matrix(compute_normal_matrix(world));
+            if (renderable.skin)
+            {
+                // The joint matrices are in world space already, and glTF
+                // says the skinned node's own transform plays no part.
+                item.set_world_transform(Xyz::Matrix4F::identity());
+                item.set_normal_matrix(Xyz::Matrix3F::identity());
+                item.set_skin_palette(
+                    get_skin_palette(scene, *renderable.skin, out));
+            }
+            else
+            {
+                item.set_world_transform(world);
+                item.set_normal_matrix(compute_normal_matrix(world));
+            }
             item.set_mesh(renderable.mesh);
             item.set_material(renderable.material);
             item.set_pipeline(material.pipeline);
@@ -333,6 +359,48 @@ namespace Tungsten
                                       : out.opaque_items;
             items.push_back(item);
         }
+    }
+
+    uint32_t SnapshotBuilder::Members::get_skin_palette(const Scene& scene,
+                                                        const Skin& skin,
+                                                        RenderSnapshot& out)
+    {
+        // Linear: a frame draws a handful of skins, each usually shared by
+        // all the primitives of one mesh.
+        for (const auto& [cached, index] : skin_palettes)
+        {
+            if (cached == &skin)
+                return index;
+        }
+
+        if (skin.joints.size() > MAX_SKIN_JOINTS)
+        {
+            TUNGSTEN_THROW("SnapshotBuilder: a skin has more than"
+                           " MAX_SKIN_JOINTS joints.");
+        }
+        if (skin.inverse_bind_matrices.size() != skin.joints.size())
+        {
+            TUNGSTEN_THROW("SnapshotBuilder: a skin has a different number"
+                           " of joints and inverse bind matrices.");
+        }
+
+        const auto index = uint32_t(out.skin_palettes.size());
+        out.skin_palettes.push_back({
+            .first_joint = uint32_t(out.joint_matrices.size()),
+            .joint_count = uint32_t(skin.joints.size())
+        });
+        for (size_t i = 0; i < skin.joints.size(); ++i)
+        {
+            // A joint removed from the scene leaves its vertices where the
+            // mesh's own coordinates put them, rather than failing the frame.
+            const auto joint = skin.joints[i];
+            out.joint_matrices.push_back(
+                scene.is_alive(joint)
+                    ? scene.world_matrix(joint) * skin.inverse_bind_matrices[i]
+                    : Xyz::Matrix4F::identity());
+        }
+        skin_palettes.emplace_back(&skin, index);
+        return index;
     }
 
     SnapshotBuilder::SnapshotBuilder(ResourceManager& resources)

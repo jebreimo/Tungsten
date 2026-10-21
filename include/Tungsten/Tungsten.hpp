@@ -42,6 +42,7 @@
 #include "SceneGraph/NodeHandle.hpp"
 #include "SceneGraph/RenderableComponent.hpp"
 #include "SceneGraph/Scene.hpp"
+#include "SceneGraph/Skin.hpp"
 #include "SceneGraph/TextComponent.hpp"
 #include "Sdl/SdlApplication.hpp"
 #include "TungstenException.hpp"

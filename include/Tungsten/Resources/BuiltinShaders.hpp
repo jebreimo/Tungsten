@@ -20,6 +20,13 @@ namespace Tungsten
     inline constexpr ShaderFamilyId BLINN_PHONG_FAMILY = 1;
 
     /**
+     * The Blinn-Phong feature bit that makes a skinned variant: one that
+     * deforms the mesh by the joint matrices of the item's skin, and reads
+     * BONE_INDICES and BONE_WEIGHTS on top of the usual attributes.
+     */
+    inline constexpr uint32_t BLINN_PHONG_SKINNED = 1u << 0;
+
+    /**
      * The builtin text shader family: unlit, textured quads whose colour comes
      * from the material's parameter block.
      *

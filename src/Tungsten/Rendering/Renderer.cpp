@@ -28,6 +28,7 @@
 #include "Tungsten/Resources/ShaderProgram.hpp"
 #include "Tungsten/Resources/Texture.hpp"
 #include "Tungsten/Resources/VertexAttribute.hpp"
+#include "Tungsten/SceneGraph/Skin.hpp"
 #include "Tungsten/TungstenException.hpp"
 #include "../Resources/UboBindings.hpp"
 
@@ -108,6 +109,12 @@ namespace Tungsten
         void upload_per_draw_blocks();
 
         /**
+         * Packs every skin palette in the snapshot into one buffer, spaced by
+         * skin_stride, and uploads it.
+         */
+        void upload_skin_palettes(const RenderSnapshot& snapshot);
+
+        /**
          * Draws one item, binding its slice of the packed per-draw buffer.
          */
         void draw_item(const RenderItem& item, size_t slot);
@@ -129,6 +136,7 @@ namespace Tungsten
         GlPipelineBinder pipelines;
         BufferHandle per_frame_ubo;
         BufferHandle per_draw_ubo;
+        BufferHandle skin_ubo;
         /**
          * 1×1 white, bound to every sampler unit the material leaves
          * unfilled: a sampler must see a complete texture even when the
@@ -147,11 +155,20 @@ namespace Tungsten
          */
         std::vector<std::byte> staging;
         /**
+         * The packed skin palettes, staged here before their one upload.
+         */
+        std::vector<std::byte> skin_staging;
+        /**
          * Spacing between per-draw blocks: the block size rounded up to
          * GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, which every glBindBufferRange
          * offset has to be a multiple of.
          */
         size_t per_draw_stride = 0;
+        /**
+         * Spacing between skin palettes: a full SkinBlock rounded up to the
+         * same alignment, since every skinned draw binds a whole block.
+         */
+        size_t skin_stride = 0;
         MaterialRef current_material;
         /**
          * The sampler bound to units the current material leaves unfilled.
@@ -165,11 +182,13 @@ namespace Tungsten
     {
         per_frame_ubo = generate_buffer();
         per_draw_ubo = generate_buffer();
+        skin_ubo = generate_buffer();
 
         // Only binding 0 is set once and left alone; its buffer never changes,
         // so there is no repeated bind for the state cache to elide. Binding 1
-        // is re-pointed at each material's own parameter buffer, and binding 2
-        // at each item's slice of the packed per-draw buffer.
+        // is re-pointed at each material's own parameter buffer, binding 2 at
+        // each item's slice of the packed per-draw buffer, and binding 3 at
+        // each skinned item's palette in the packed skin buffer.
         bind_buffer_base(BufferTarget::UNIFORM, PER_FRAME_UBO_BINDING,
                          per_frame_ubo.id());
 
@@ -179,6 +198,8 @@ namespace Tungsten
         const auto alignment = size_t(get_uniform_buffer_offset_alignment());
         constexpr size_t block_size = RENDER_ITEM_DATA_SIZE * sizeof(float);
         per_draw_stride = (block_size + alignment - 1) / alignment * alignment;
+        constexpr size_t skin_block_size = MAX_SKIN_JOINTS * 16 * sizeof(float);
+        skin_stride = (skin_block_size + alignment - 1) / alignment * alignment;
 
         white_texture = generate_texture();
         bind_texture(TextureTarget::TEXTURE_2D, white_texture.id());
@@ -216,6 +237,7 @@ namespace Tungsten
         append_sorted(snapshot.opaque_items);
         append_sorted(snapshot.transparent_items);
         upload_per_draw_blocks();
+        upload_skin_palettes(snapshot);
 
         // One loop over both lists. The opaque run comes first because it was
         // appended first, and each item's depth, blend and raster state now
@@ -367,6 +389,34 @@ namespace Tungsten
                         staging.data(), BufferUsage::DYNAMIC_DRAW);
     }
 
+    void Renderer::Members::upload_skin_palettes(const RenderSnapshot& snapshot)
+    {
+        if (snapshot.skin_palettes.empty())
+            return;
+
+        // The unused tail of each block stays zero: a vertex can only index
+        // joints its skin has.
+        skin_staging.assign(snapshot.skin_palettes.size() * skin_stride,
+                            std::byte{});
+        for (size_t i = 0; i < snapshot.skin_palettes.size(); ++i)
+        {
+            const auto& palette = snapshot.skin_palettes[i];
+            auto* out = reinterpret_cast<float*>(skin_staging.data()
+                                                 + i * skin_stride);
+            for (uint32_t j = 0; j < palette.joint_count; ++j)
+            {
+                copy_column_major(
+                    snapshot.joint_matrices[palette.first_joint + j],
+                    out + j * 16);
+            }
+        }
+
+        bind_buffer(BufferTarget::UNIFORM, skin_ubo.id());
+        set_buffer_data(BufferTarget::UNIFORM,
+                        static_cast<ptrdiff_t>(skin_staging.size()),
+                        skin_staging.data(), BufferUsage::DYNAMIC_DRAW);
+    }
+
     void Renderer::Members::draw_item(const RenderItem& item, size_t slot)
     {
         // Pipeline first, then material: the pipeline owns the program, and
@@ -399,6 +449,22 @@ namespace Tungsten
                           per_draw_ubo.id(),
                           static_cast<ptrdiff_t>(slot * per_draw_stride),
                           RENDER_ITEM_DATA_SIZE * sizeof(float));
+
+        if (resources.get_shader(pipeline.shader).has_skin_block)
+        {
+            // An unbound block would draw against whatever palette the
+            // previous skinned item left there, or fail outright on WebGL2.
+            if (item.skin_palette() == NO_SKIN_PALETTE)
+            {
+                TUNGSTEN_THROW("Renderer: the item has no skin, but its"
+                    " shader declares SkinBlock.");
+            }
+            bind_buffer_range(BufferTarget::UNIFORM, SKIN_UBO_BINDING,
+                              skin_ubo.id(),
+                              static_cast<ptrdiff_t>(item.skin_palette()
+                                                     * skin_stride),
+                              MAX_SKIN_JOINTS * 16 * sizeof(float));
+        }
 
         if (mesh.ebo.arena)
         {
