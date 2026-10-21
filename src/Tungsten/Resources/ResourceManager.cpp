@@ -110,26 +110,17 @@ namespace Tungsten
         if (const auto offset = arena.allocate(count))
             return SharedBuffer{ref, *offset, count};
 
-        BufferHandle displaced;
-        if (arena.empty())
-        {
-            // Nothing to preserve, so the buffer is replaced by one of
-            // exactly the requested size.
-            displaced = arena.reset(count);
-        }
-        else
-        {
-            // Full: grow the arena, then retry. Doubling keeps the amortized
-            // cost of repeated allocations constant; grow() bit_ceils the
-            // value anyway.
-            const auto new_capacity = std::max(
-                static_cast<uint64_t>(arena.capacity()) * 2,
-                static_cast<uint64_t>(count) * 2);
-            if (new_capacity > std::numeric_limits<uint32_t>::max())
-                TUNGSTEN_THROW("ResourceManager: arena capacity overflow.");
+        // Full: grow the arena, then retry. An empty arena is sized to the
+        // request exactly; otherwise doubling keeps the amortized cost of
+        // repeated allocations constant.
+        const auto new_capacity = arena.empty()
+            ? static_cast<uint64_t>(count)
+            : std::max(static_cast<uint64_t>(arena.capacity()) * 2,
+                       static_cast<uint64_t>(count) * 2);
+        if (new_capacity > std::numeric_limits<uint32_t>::max())
+            TUNGSTEN_THROW("ResourceManager: arena capacity overflow.");
 
-            displaced = arena.grow(static_cast<uint32_t>(new_capacity));
-        }
+        BufferHandle displaced = arena.reserve(static_cast<uint32_t>(new_capacity));
 
         // The arena's buffer id changed. Re-point every VAO that baked in
         // this arena's buffer before the next draw.

@@ -16,6 +16,7 @@
 #include "Tungsten/TungstenException.hpp"
 #include "Tungsten/Gl/DummyOglWrapper.hpp"
 #include "Tungsten/Gl/GlTexture.hpp"
+#include "Tungsten/Resources/BufferArena.hpp"
 #include "Tungsten/Resources/GlStateCache.hpp"
 #include "Tungsten/Resources/Material.hpp"
 #include "Tungsten/Resources/PipelineDescriptor.hpp"
@@ -252,6 +253,39 @@ TEST_CASE("ResourceManager: a non-power-of-two arena")
     REQUIRE(manager.allocate(arena, 8).offset == 24);
     REQUIRE(manager.get_arena(arena).capacity() == 64);
     REQUIRE(session.gl->buffer_sizes.back() == 64 * stride);
+}
+
+TEST_CASE("BufferArena: reserve")
+{
+    FakeGlSession session;
+    BufferArena arena(BufferUsage::STATIC_DRAW, 12, 24);
+    const auto first_id = arena.buffer_id();
+
+    SECTION("a capacity not larger than the current one is ignored")
+    {
+        REQUIRE_FALSE(arena.reserve(24));
+        REQUIRE_FALSE(arena.reserve(10));
+        REQUIRE(arena.capacity() == 24);
+        REQUIRE(arena.buffer_id() == first_id);
+    }
+
+    SECTION("an empty arena gets exactly the requested capacity")
+    {
+        const auto displaced = arena.reserve(100);
+        REQUIRE(displaced.id() == first_id);
+        REQUIRE(arena.capacity() == 100);
+        REQUIRE(arena.buffer_id() != first_id);
+    }
+
+    SECTION("a non-empty arena rounds up and keeps its allocations")
+    {
+        REQUIRE(arena.allocate(8) == 0u);
+        const auto displaced = arena.reserve(40);
+        REQUIRE(displaced.id() == first_id);
+        REQUIRE(arena.capacity() == 64);
+        REQUIRE(arena.allocate(32) == 32u);
+        REQUIRE(arena.allocate(8) == 8u);
+    }
 }
 
 TEST_CASE("ResourceManager: a single allocation uses the exact capacity")

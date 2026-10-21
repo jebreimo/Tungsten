@@ -22,15 +22,16 @@ namespace Tungsten
      * (vertices or indices), not bytes. Byte offsets only exist where a GL
      * call needs one, computed via stride().
      *
-     * The GL buffer holds exactly the capacity it was created or reset with,
+     * The GL buffer holds exactly the capacity it was created or reserved with,
      * which may be smaller than the BuddyAllocator's power-of-two range. An
      * allocation the allocator places past the end of the buffer is refused
      * as if the arena were full. Since an empty arena always allocates at
      * offset 0, a single allocation can use the whole buffer with no rounding
-     * waste. Growing rounds the capacity up to a power of two.
+     * waste. Growing a non-empty arena rounds the capacity up to a power of
+     * two.
      *
-     * An arena with capacity 0 has no GL buffer (buffer_id() is 0) until it
-     * is grown or reset for the first time.
+     * An arena with capacity 0 has no GL buffer (buffer_id() is 0) until
+     * reserve() gives it one.
      */
     class BufferArena
     {
@@ -46,26 +47,18 @@ namespace Tungsten
         void free(uint32_t offset);
 
         /**
-         * Grows the backing buffer to hold at least new_capacity units,
-         * preserving every live allocation at its current offset, and returns
-         * the displaced (old) GL buffer for the caller to retire. The buffer id
-         * changes, so VAOs referencing this arena must be rebuilt afterwards.
-         * The returned handle is empty if the arena had no buffer.
-         * new_capacity is rounded up to a power of two. Throws if it is not
-         * larger than the current capacity.
+         * Ensures the arena can hold at least new_capacity units, like
+         * std::vector::reserve; a new_capacity not larger than the current
+         * capacity is ignored. An empty arena gets a buffer of exactly
+         * new_capacity units. A non-empty one is rounded up to a power of
+         * two, and every live allocation keeps its offset and contents.
+         *
+         * Returns the displaced GL buffer for the caller to retire; it is
+         * empty if nothing was displaced. Whenever the capacity changes, so
+         * does buffer_id(), and VAOs referencing this arena must be rebuilt.
          */
         [[nodiscard]]
-        BufferHandle grow(uint32_t new_capacity);
-
-        /**
-         * Replaces the backing buffer of an empty arena with one holding
-         * exactly new_capacity units, and returns the old GL buffer (empty if
-         * there was none) for the caller to retire. Nothing is copied. The
-         * buffer id changes, so VAOs referencing this arena must be rebuilt
-         * afterwards. Throws if the arena is not empty.
-         */
-        [[nodiscard]]
-        BufferHandle reset(uint32_t new_capacity);
+        BufferHandle reserve(uint32_t new_capacity);
 
         /**
          * Moves the GL buffer out, for retiring it when the arena itself is

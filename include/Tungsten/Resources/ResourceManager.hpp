@@ -73,7 +73,7 @@ namespace Tungsten
          * form the SharedBuffer. If the arena is full it is grown here: the
          * displaced GL buffer is retired, the affected VAOs are re-pointed in
          * place, and the allocation is retried. An empty arena that is too
-         * small is instead reset to exactly `count` units.
+         * small is resized to exactly `count` units.
          */
         SharedBuffer allocate(BufferArenaRef ref, uint32_t count);
 
