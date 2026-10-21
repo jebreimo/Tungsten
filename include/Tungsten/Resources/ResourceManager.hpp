@@ -48,8 +48,10 @@ namespace Tungsten
         ResourceManager& operator=(ResourceManager&&) noexcept;
 
         /**
-         * Creates an arena of `capacity` units of `stride` bytes. A capacity
-         * of 0 creates no GL buffer until the first allocation grows it.
+         * Creates an arena of `capacity` units of `stride` bytes. The GL
+         * buffer holds exactly `capacity` units; it is only rounded up to a
+         * power of two when it grows. A capacity of 0 creates no GL buffer
+         * until the first allocation.
          */
         BufferArenaRef create_arena(BufferUsage usage, uint16_t stride,
                                     uint32_t capacity);
@@ -70,7 +72,8 @@ namespace Tungsten
          * arena's bare unit offset is paired with the ref and the count to
          * form the SharedBuffer. If the arena is full it is grown here: the
          * displaced GL buffer is retired, the affected VAOs are re-pointed in
-         * place, and the allocation is retried.
+         * place, and the allocation is retried. An empty arena that is too
+         * small is instead reset to exactly `count` units.
          */
         SharedBuffer allocate(BufferArenaRef ref, uint32_t count);
 

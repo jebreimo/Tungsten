@@ -235,22 +235,59 @@ TEST_CASE("ResourceManager: a non-power-of-two arena")
     FakeGlSession session;
     ResourceManager manager;
 
-    // The BuddyAllocator rounds 24 up to 32 and hands out offsets across that
-    // whole range, so the GL buffer has to hold 32 units. Sizing it from the
-    // requested 24 would put the last two allocations past the end.
+    // The BuddyAllocator rounds 24 up to 32, but the GL buffer holds only
+    // the requested 24 units.
     constexpr uint16_t stride = 24;
     auto arena = manager.create_arena(BufferUsage::STATIC_DRAW, stride, 24);
-    REQUIRE(manager.get_arena(arena).capacity() == 32);
+    REQUIRE(manager.get_arena(arena).capacity() == 24);
     REQUIRE(session.gl->buffer_sizes.size() == 1);
-    REQUIRE(session.gl->buffer_sizes[0] == 32 * stride);
+    REQUIRE(session.gl->buffer_sizes[0] == 24 * stride);
 
-    // Every offset the allocator returns must lie inside that buffer.
-    for (int i = 0; i < 4; ++i)
-    {
-        const auto slice = manager.allocate(arena, 8);
-        REQUIRE((slice.offset + slice.count) * stride
-                <= uint32_t(session.gl->buffer_sizes[0]));
-    }
+    // Three allocations fit; the fourth would land past the end of the
+    // buffer, so the arena grows to a power of two instead.
+    for (int i = 0; i < 3; ++i)
+        REQUIRE(manager.allocate(arena, 8).offset == uint32_t(i * 8));
+    REQUIRE(session.gl->buffer_sizes.size() == 1);
+
+    REQUIRE(manager.allocate(arena, 8).offset == 24);
+    REQUIRE(manager.get_arena(arena).capacity() == 64);
+    REQUIRE(session.gl->buffer_sizes.back() == 64 * stride);
+}
+
+TEST_CASE("ResourceManager: a single allocation uses the exact capacity")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+
+    constexpr uint16_t stride = 12;
+    auto arena = manager.create_arena(BufferUsage::STATIC_DRAW, stride, 1000);
+    REQUIRE(session.gl->buffer_sizes.back() == 1000 * stride);
+
+    const auto slice = manager.allocate(arena, 1000);
+    REQUIRE(slice.offset == 0);
+    REQUIRE(manager.get_arena(arena).capacity() == 1000);
+    REQUIRE(session.gl->buffer_sizes.size() == 1);
+}
+
+TEST_CASE("ResourceManager: an empty arena is reset to the exact size")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+    manager.begin_frame(1);
+
+    constexpr uint16_t stride = 12;
+    auto arena = manager.create_arena(BufferUsage::STATIC_DRAW, stride, 16);
+    manager.free(manager.allocate(arena, 16));
+
+    const auto slice = manager.allocate(arena, 100);
+    REQUIRE(slice.offset == 0);
+    REQUIRE(manager.get_arena(arena).capacity() == 100);
+    REQUIRE(session.gl->buffer_sizes.back() == 100 * stride);
+
+    // The old buffer is retired, not deleted at once.
+    REQUIRE(session.gl->live_buffers == 2);
+    manager.collect_garbage(1);
+    REQUIRE(session.gl->live_buffers == 1);
 }
 
 TEST_CASE("ResourceManager: free returns a range for reuse")
@@ -297,7 +334,7 @@ TEST_CASE("ResourceManager: a zero-capacity arena creates its buffer on demand")
 
     auto a = manager.allocate(arena, 3);
     REQUIRE(a.offset == 0);
-    REQUIRE(manager.get_arena(arena).capacity() == 4);
+    REQUIRE(manager.get_arena(arena).capacity() == 3);
     REQUIRE(manager.get_arena(arena).buffer_id() != 0);
     REQUIRE(session.gl->live_buffers == 1);
 

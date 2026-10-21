@@ -22,8 +22,15 @@ namespace Tungsten
      * (vertices or indices), not bytes. Byte offsets only exist where a GL
      * call needs one, computed via stride().
      *
+     * The GL buffer holds exactly the capacity it was created or reset with,
+     * which may be smaller than the BuddyAllocator's power-of-two range. An
+     * allocation the allocator places past the end of the buffer is refused
+     * as if the arena were full. Since an empty arena always allocates at
+     * offset 0, a single allocation can use the whole buffer with no rounding
+     * waste. Growing rounds the capacity up to a power of two.
+     *
      * An arena with capacity 0 has no GL buffer (buffer_id() is 0) until it
-     * is grown for the first time.
+     * is grown or reset for the first time.
      */
     class BufferArena
     {
@@ -44,10 +51,21 @@ namespace Tungsten
          * the displaced (old) GL buffer for the caller to retire. The buffer id
          * changes, so VAOs referencing this arena must be rebuilt afterwards.
          * The returned handle is empty if the arena had no buffer.
-         * Throws if new_capacity is not larger than the current capacity.
+         * new_capacity is rounded up to a power of two. Throws if it is not
+         * larger than the current capacity.
          */
         [[nodiscard]]
         BufferHandle grow(uint32_t new_capacity);
+
+        /**
+         * Replaces the backing buffer of an empty arena with one holding
+         * exactly new_capacity units, and returns the old GL buffer (empty if
+         * there was none) for the caller to retire. Nothing is copied. The
+         * buffer id changes, so VAOs referencing this arena must be rebuilt
+         * afterwards. Throws if the arena is not empty.
+         */
+        [[nodiscard]]
+        BufferHandle reset(uint32_t new_capacity);
 
         /**
          * Moves the GL buffer out, for retiring it when the arena itself is
@@ -80,7 +98,7 @@ namespace Tungsten
         [[nodiscard]]
         uint32_t capacity() const
         {
-            return static_cast<uint32_t>(allocator_.capacity());
+            return capacity_;
         }
 
         [[nodiscard]]
@@ -92,6 +110,7 @@ namespace Tungsten
         BufferHandle buffer_;
         BufferUsage usage_;
         uint16_t stride_;
+        uint32_t capacity_;
         BuddyAllocator allocator_;
     };
 } // Tungsten

@@ -60,6 +60,10 @@ namespace Tungsten
          */
         uint32_t required_capacity(const std::vector<uint32_t>& sizes)
         {
+            // A lone allocation lands at offset 0 and needs no rounding.
+            if (sizes.size() == 1)
+                return std::max(sizes[0], 1u);
+
             uint32_t total = 0;
             for (const auto size : sizes)
                 total += std::bit_ceil(std::max(size, 1u));
