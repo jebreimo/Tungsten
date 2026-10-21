@@ -47,6 +47,10 @@ namespace Tungsten
         ResourceManager(ResourceManager&&) noexcept;
         ResourceManager& operator=(ResourceManager&&) noexcept;
 
+        /**
+         * Creates an arena of `capacity` units of `stride` bytes. A capacity
+         * of 0 creates no GL buffer until the first allocation grows it.
+         */
         BufferArenaRef create_arena(BufferUsage usage, uint16_t stride,
                                     uint32_t capacity);
 

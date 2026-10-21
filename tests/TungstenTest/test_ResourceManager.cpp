@@ -284,6 +284,38 @@ TEST_CASE("ResourceManager: growth preserves offsets and defers the old buffer")
     REQUIRE(session.gl->live_buffers == 1);
 }
 
+TEST_CASE("ResourceManager: a zero-capacity arena creates its buffer on demand")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+    manager.begin_frame(1);
+
+    auto arena = manager.create_arena(BufferUsage::STATIC_DRAW, 12, 0);
+    REQUIRE(session.gl->live_buffers == 0);
+    REQUIRE(manager.get_arena(arena).capacity() == 0);
+    REQUIRE(manager.get_arena(arena).buffer_id() == 0);
+
+    auto a = manager.allocate(arena, 3);
+    REQUIRE(a.offset == 0);
+    REQUIRE(manager.get_arena(arena).capacity() == 4);
+    REQUIRE(manager.get_arena(arena).buffer_id() != 0);
+    REQUIRE(session.gl->live_buffers == 1);
+
+    manager.destroy_arena(arena);
+    manager.collect_garbage(1);
+    REQUIRE(session.gl->live_buffers == 0);
+}
+
+TEST_CASE("ResourceManager: destroying an unused zero-capacity arena")
+{
+    FakeGlSession session;
+    ResourceManager manager;
+
+    auto arena = manager.create_arena(BufferUsage::STATIC_DRAW, 12, 0);
+    manager.destroy_arena(arena);
+    REQUIRE(session.gl->live_buffers == 0);
+}
+
 TEST_CASE("ResourceManager: a destroyed arena's ref is stale")
 {
     FakeGlSession session;

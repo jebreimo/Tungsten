@@ -14,11 +14,13 @@
 namespace Tungsten
 {
     BuddyAllocator::BuddyAllocator(size_t capacity)
-        : capacity_(std::bit_ceil(capacity)),
+        : capacity_(capacity == 0 ? 0 : std::bit_ceil(capacity)),
           max_level_(int(std::bit_width(capacity_)) - 1),
           free_lists_(max_level_ + 1)
     {
-        free_lists_[max_level_].insert(0);
+        // A zero-capacity allocator has no levels and no free blocks.
+        if (capacity_ != 0)
+            free_lists_[max_level_].insert(0);
     }
 
     std::optional<size_t> BuddyAllocator::allocate(size_t size)

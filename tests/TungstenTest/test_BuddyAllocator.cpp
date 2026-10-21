@@ -19,6 +19,22 @@ TEST_CASE("BuddyAllocator: capacity rounds up to power of two")
     REQUIRE(BuddyAllocator(1024).capacity() == 1024);
 }
 
+TEST_CASE("BuddyAllocator: zero capacity stays zero and allocates nothing")
+{
+    BuddyAllocator a(0);
+    REQUIRE(a.capacity() == 0);
+    REQUIRE_FALSE(a.allocate(1).has_value());
+    REQUIRE_FALSE(a.claim(0, 1));
+    REQUIRE(a.allocated() == 0);
+}
+
+TEST_CASE("BuddyAllocator: resized from zero capacity")
+{
+    auto a = BuddyAllocator(0).resized(5);
+    REQUIRE(a.capacity() == 8);
+    REQUIRE(a.allocate(8) == 0);
+}
+
 TEST_CASE("BuddyAllocator: allocate and free the full capacity")
 {
     BuddyAllocator a(8);

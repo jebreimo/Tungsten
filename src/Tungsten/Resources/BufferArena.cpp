@@ -24,8 +24,12 @@ namespace Tungsten
         // BuddyAllocator rounds up to the next power of two, and it will hand
         // out offsets across that whole range. Sizing from the raw argument
         // would leave every allocation above it pointing past the buffer.
-        buffer_ = generate_buffer(
-            static_cast<ptrdiff_t>(allocator_.capacity() * stride), usage);
+        // A zero-capacity arena creates no buffer until it first grows.
+        if (allocator_.capacity() != 0)
+        {
+            buffer_ = generate_buffer(
+                static_cast<ptrdiff_t>(allocator_.capacity() * stride), usage);
+        }
     }
 
     std::optional<uint32_t> BufferArena::allocate(uint32_t count)
@@ -48,7 +52,10 @@ namespace Tungsten
         if (new_capacity64 > std::numeric_limits<uint32_t>::max())
             TUNGSTEN_THROW("BufferArena: capacity overflow");
 
-        auto newBuffer = clone_buffer(buffer_.id(), static_cast<ptrdiff_t>(new_capacity64 * stride_));
+        const auto new_size = static_cast<ptrdiff_t>(new_capacity64 * stride_);
+        auto newBuffer = buffer_
+                             ? clone_buffer(buffer_.id(), new_size)
+                             : generate_buffer(new_size, usage_);
         allocator_ = allocator_.resized(new_capacity64);
         std::swap(buffer_, newBuffer);
         return newBuffer;

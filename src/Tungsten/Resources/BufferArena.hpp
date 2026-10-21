@@ -21,6 +21,9 @@ namespace Tungsten
      * for growing the buffer when needed. All offsets are in stride units
      * (vertices or indices), not bytes. Byte offsets only exist where a GL
      * call needs one, computed via stride().
+     *
+     * An arena with capacity 0 has no GL buffer (buffer_id() is 0) until it
+     * is grown for the first time.
      */
     class BufferArena
     {
@@ -40,6 +43,7 @@ namespace Tungsten
          * preserving every live allocation at its current offset, and returns
          * the displaced (old) GL buffer for the caller to retire. The buffer id
          * changes, so VAOs referencing this arena must be rebuilt afterwards.
+         * The returned handle is empty if the arena had no buffer.
          * Throws if new_capacity is not larger than the current capacity.
          */
         [[nodiscard]]

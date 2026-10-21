@@ -22,7 +22,8 @@ namespace Tungsten
     // their buddy when possible.
     //
     // The capacity supplied to the constructor is rounded up to the next power
-    // of two. Units are caller-defined (e.g. vertex count, byte count).
+    // of two, except that a capacity of 0 stays 0 (every allocation fails).
+    // Units are caller-defined (e.g. vertex count, byte count).
     class BuddyAllocator
     {
     public:

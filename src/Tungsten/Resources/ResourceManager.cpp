@@ -127,8 +127,10 @@ namespace Tungsten
 
         // The old buffer may still be referenced by in-flight draws
         // (or, with a render thread, by the snapshot being rendered),
-        // so it is retired rather than deleted now.
-        members_->deletions.retire(std::move(displaced));
+        // so it is retired rather than deleted now. A zero-capacity arena
+        // had no buffer to displace.
+        if (displaced)
+            members_->deletions.retire(std::move(displaced));
 
         const auto offset = arena.allocate(count);
         if (!offset)
