@@ -11,6 +11,8 @@ set(CMAKE_CXX_STANDARD 23)
 
 add_executable(bump_cube
     BumpCube.cpp
+    BumpCubeModel.cpp
+    BumpCubeModel.hpp
 )
 
 target_link_libraries(bump_cube

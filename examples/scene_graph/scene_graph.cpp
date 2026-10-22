@@ -25,36 +25,12 @@
 #include <Argos/Argos.hpp>
 #include <Tungsten/Tungsten.hpp>
 #include <Tungsten/Gl/IOglWrapper.hpp>
-#include <Xyz/Mesh/BuildMesh.hpp>
+
+#include "cube_hub_model.hpp"
 
 namespace
 {
     using namespace Tungsten;
-
-    Xyz::BBox3F unit_box()
-    {
-        return {{-1, -1, -1}, {1, 1, 1}};
-    }
-
-    std::pair<std::vector<uint16_t>, std::vector<float>> make_cube_mesh()
-    {
-        std::vector<uint16_t> indexes;
-        std::vector<float> vertexes;
-
-        using Builder2F = Xyz::MeshAttributeBuilder<Xyz::Vector2F, std::vector<float>>;
-        using Builder3F = Xyz::MeshAttributeBuilder<Xyz::Vector3F, std::vector<float>>;
-
-        Xyz::MeshBuilder builder{
-            .indexes = Xyz::MeshIndexBuilder(indexes),
-            .coords = Builder3F(vertexes, 8),
-            .normals = std::optional(Builder3F(vertexes, 8, 3)),
-            .tex_coords = std::optional(Builder2F(vertexes, 8, 6))
-        };
-
-        constexpr Xyz::OrientedCuboid<float> cuboid{{{-1, -1, -1}, {0, 0, 0}}, {2, 2, 2}};
-        Xyz::build_mesh(builder, cuboid);
-        return {std::move(indexes), std::move(vertexes)};
-    }
 
     class SceneGraphLoop : public EventLoop
     {
@@ -64,30 +40,12 @@ namespace
               renderer_(resources_)
         {
             register_builtin_shader_families(resources_);
-            const auto shader = resources_.register_shader_variant(
-                {BLINN_PHONG_FAMILY, 0});
 
-            const auto layout = cube_layout();
-            const auto opaque = make_pipeline(shader, layout, false);
-            const auto blended = make_pipeline(shader, layout, true);
-
-            const auto gold = make_material(
-                opaque,
-                make_blinn_phong_material_params(StandardColorMaterial::GOLD));
-            const auto slate = make_material(
-                opaque,
-                make_blinn_phong_material_params(StandardColorMaterial::SLATE));
-            const auto glass = make_material(
-                blended,
-                make_blinn_phong_material_params(StandardColorMaterial::COPPER,
-                                                 0.4f));
-
-            const auto mesh = make_cube_mesh();
-
-            hub_ = scene_.add_node();
-            add_renderable(hub_, mesh, gold);
-            left_ = add_child_cube(mesh, glass, -2.2f);
-            right_ = add_child_cube(mesh, slate, 2.2f);
+            auto cubes = add_cube_hub_model(resources_, scene_);
+            cubes_ = std::move(cubes.model);
+            hub_ = {&scene_, cubes_.root};
+            left_ = {&scene_, cubes.left};
+            right_ = {&scene_, cubes.right};
 
             camera_ = scene_.add_node();
             Transform camera_transform;
@@ -155,8 +113,8 @@ namespace
             hub.rotation = euler_rotation(0.4f * t, 0.2f * t, 0.0f);
             hub_.set_local_transform(hub);
 
-            spin_child(left_, -2.2f, 1.7f * t);
-            spin_child(right_, 2.2f, -1.3f * t);
+            spin_child(left_, -CHILD_CUBE_OFFSET, 1.7f * t);
+            spin_child(right_, CHILD_CUBE_OFFSET, -1.3f * t);
 
             // Only the point light's position matters — it has no meaningful
             // orientation — so moving it is enough to sweep its highlight
@@ -201,113 +159,12 @@ namespace
         }
 
     private:
-        // Appearance that is fixed before the draw — the program, the vertex
-        // input, and the depth/blend/raster state — is registered once as a
-        // pipeline. A transparent one blends and leaves depth writes off, so
-        // blended surfaces do not occlude each other.
-        PipelineRef make_pipeline(ShaderProgramRef shader,
-                                  VertexLayoutRef layout, bool transparent)
-        {
-            PipelineDescriptor pipeline;
-            pipeline.shader = shader;
-            pipeline.layout = layout;
-            pipeline.raster.cull_enabled = true;
-            if (transparent)
-            {
-                pipeline.queue = RenderQueue::TRANSPARENT;
-                pipeline.depth.write = false;
-                pipeline.blend = {
-                    .enabled = true,
-                    .src_color = BlendFunction::SRC_ALPHA,
-                    .dst_color = BlendFunction::ONE_MINUS_SRC_ALPHA,
-                    .src_alpha = BlendFunction::SRC_ALPHA,
-                    .dst_alpha = BlendFunction::ONE_MINUS_SRC_ALPHA
-                };
-            }
-            return resources_.register_pipeline(pipeline);
-        }
-
-        MaterialRef make_material(PipelineRef pipeline,
-                                  std::vector<std::byte> params)
-        {
-            Material material;
-            material.pipeline = pipeline;
-            material.parameter_data = std::move(params);
-            return resources_.create_material(std::move(material));
-        }
-
-        // The one vertex packing this example uses. Both the mesh and the
-        // pipeline name it: a pipeline pins how attributes are packed, so the
-        // two have to agree.
-        VertexLayoutRef cube_layout()
-        {
-            return resources_.register_layout(VertexLayoutBuilder()
-                .add_attribute(AttributeSemantic::POSITION)
-                .add_attribute(AttributeSemantic::NORMAL)
-                .add_attribute(AttributeSemantic::TEX_COORD_0)
-                .build());
-        }
-
-        MeshRef make_cube_mesh()
-        {
-            auto [indexes, vertexes] = ::make_cube_mesh();
-
-            constexpr size_t STRIDE = 8; // 3 coords + 3 normals + 2 tex coords
-
-            const auto layout = cube_layout();
-            vbo_arena_ = resources_.create_arena(
-                BufferUsage::STATIC_DRAW, STRIDE * sizeof(float),
-                uint32_t(vertexes.size() / STRIDE));
-            ebo_arena_ = resources_.create_arena(
-                BufferUsage::STATIC_DRAW, sizeof(uint16_t), uint32_t(indexes.size()));
-
-            const auto vertices = resources_.allocate(
-                vbo_arena_, uint32_t(vertexes.size() / STRIDE));
-            const auto indices = resources_.allocate(
-                ebo_arena_, uint32_t(indexes.size()));
-
-            // Rebase to absolute indices (§3): the portable path has no
-            // baseVertex draw argument.
-            for (auto& index : indexes)
-                index = uint16_t(index + vertices.offset);
-
-            resources_.upload(vertices, vertexes.data(),
-                              vertexes.size() * sizeof(float));
-            resources_.upload(indices, indexes.data(),
-                              indexes.size() * sizeof(uint16_t));
-
-            Mesh mesh;
-            mesh.streams = {vertices};
-            mesh.layout = layout;
-            mesh.ebo = indices;
-            mesh.index_type = ElementIndexType::UINT16;
-            return resources_.create_mesh(std::move(mesh));
-        }
-
-        static void add_renderable(NodeHandle node, MeshRef mesh,
-                                   MaterialRef material)
-        {
-            node.add(RenderableComponent{
-                .mesh = mesh,
-                .material = material,
-                .local_bounds = unit_box()
-            });
-        }
-
-        NodeHandle add_child_cube(MeshRef mesh, MaterialRef material, float x)
-        {
-            auto child = hub_.add_child();
-            spin_child(child, x, 0);
-            add_renderable(child, mesh, material);
-            return child;
-        }
-
         static void spin_child(NodeHandle child, float x, float angle)
         {
             Transform transform;
             transform.translation = {x, 0, 0};
             transform.rotation = euler_rotation(angle, 0.5f * angle, 0);
-            transform.scale = {0.6f, 0.6f, 0.6f};
+            transform.scale = {CHILD_CUBE_SCALE, CHILD_CUBE_SCALE, CHILD_CUBE_SCALE};
             child.set_local_transform(transform);
         }
 
@@ -316,8 +173,8 @@ namespace
         DoubleBuffer<RenderSnapshot> snapshots_;
         SnapshotBuilder builder_{resources_};
         Renderer renderer_;
-        BufferArenaRef vbo_arena_;
-        BufferArenaRef ebo_arena_;
+        // Owns the cubes' mesh and materials.
+        Model cubes_;
         NodeHandle hub_;
         NodeHandle left_;
         NodeHandle right_;

@@ -20,94 +20,15 @@
 // point: a normal map is barely visible in a still frame and unmistakable
 // once the highlight sweeps across the studs.
 
-#include <cmath>
 #include <iostream>
-#include <vector>
 #include <Tungsten/Tungsten.hpp>
 #include <Tungsten/Gl/IOglWrapper.hpp>
-#include <Xyz/Mesh/BuildMesh.hpp>
+
+#include "BumpCubeModel.hpp"
 
 namespace
 {
     using namespace Tungsten;
-
-    constexpr int NORMAL_MAP_SIZE = 512;
-    // Studs per cube face, and their radius as a fraction of the half-cell.
-    // Below 1 the studs stay clear of the cell borders, which keeps the map's
-    // edges flat and its seams invisible.
-    constexpr int STUDS_PER_EDGE = 4;
-    constexpr float STUD_RADIUS = 0.7f;
-
-    constexpr float HALF_GAP = 1.6f;
-
-    std::pair<std::vector<uint16_t>, std::vector<float>> make_cube_mesh()
-    {
-        std::vector<uint16_t> indexes;
-        std::vector<float> vertexes;
-
-        using Builder2F = Xyz::MeshAttributeBuilder<Xyz::Vector2F, std::vector<float>>;
-        using Builder3F = Xyz::MeshAttributeBuilder<Xyz::Vector3F, std::vector<float>>;
-
-        Xyz::MeshBuilder builder{
-            .indexes = Xyz::MeshIndexBuilder(indexes),
-            .coords = Builder3F(vertexes, 8),
-            .normals = std::optional(Builder3F(vertexes, 8, 3)),
-            .tex_coords = std::optional(Builder2F(vertexes, 8, 6))
-        };
-
-        constexpr Xyz::OrientedCuboid<float> cuboid{
-            .placement = {.origin = {-1, -1, -1}},
-            .size = {2, 2, 2}
-        };
-        // Every face gets the whole unit square, so the stud pattern repeats
-        // once per face. The rectangle is not optional: without it build_mesh
-        // gives every vertex the texture coordinate (0, 0), which leaves the
-        // surface with no texture gradient at all — and a tangent basis built
-        // from derivatives needs that gradient, so the normal map would have
-        // no effect whatsoever.
-        auto unit_square = [](int) { return Xyz::RectangleF{{0, 0}, {1, 1}}; };
-        Xyz::build_mesh(builder, cuboid, std::function(unit_square));
-        return {std::move(indexes), std::move(vertexes)};
-    }
-
-    /**
-     * A grid of hemispherical studs as an RGB tangent-space normal map: the
-     * unit normal mapped from [-1, 1] to [0, 1]. Flat ground comes out as
-     * (128, 128, 255), the colour that leaves the surface normal untouched.
-     */
-    std::vector<uint8_t> make_stud_normal_map()
-    {
-        std::vector<uint8_t> pixels(size_t(NORMAL_MAP_SIZE) * NORMAL_MAP_SIZE * 3);
-        const float cell = float(NORMAL_MAP_SIZE) / float(STUDS_PER_EDGE);
-
-        for (int y = 0; y < NORMAL_MAP_SIZE; ++y)
-        {
-            for (int x = 0; x < NORMAL_MAP_SIZE; ++x)
-            {
-                // Where this texel sits in its own stud's cell, in [-1, 1].
-                const float u = 2 * std::fmod(float(x), cell) / cell - 1;
-                const float v = 2 * std::fmod(float(y), cell) / cell - 1;
-
-                const float a = u / STUD_RADIUS;
-                const float b = v / STUD_RADIUS;
-                const float dist2 = a * a + b * b;
-
-                // On the dome the normal is (a, b, sqrt(1 - a^2 - b^2)), which
-                // is a unit vector by construction — no normalize needed.
-                const auto normal = dist2 < 1.0f
-                                        ? Xyz::Vector3F{a, b, std::sqrt(1 - dist2)}
-                                        : Xyz::Vector3F{0, 0, 1};
-
-                const auto texel = 3 * (size_t(y) * NORMAL_MAP_SIZE + x);
-                for (int c = 0; c < 3; ++c)
-                {
-                    pixels[texel + size_t(c)] =
-                        uint8_t(std::lround(127.5f * (normal[c] + 1)));
-                }
-            }
-        }
-        return pixels;
-    }
 
     class BumpCube : public EventLoop
     {
@@ -118,28 +39,9 @@ namespace
         {
             std::cout << get_device_info() << '\n';
             register_builtin_shader_families(resources_);
-            const auto shader = resources_.register_shader_variant(
-                {.family = BLINN_PHONG_FAMILY});
 
-            const auto mesh = make_cube_mesh();
-
-            // Both cubes draw through one pipeline: they differ only in their
-            // material parameters and textures, which is material state, not
-            // pipeline state.
-            PipelineDescriptor descriptor;
-            descriptor.shader = shader;
-            descriptor.layout = cube_layout();
-            descriptor.raster.cull_enabled = true;
-            const auto pipeline = resources_.register_pipeline(descriptor);
-
-            // Same colour material for both, so every visible difference comes
-            // from the normal map.
-            const auto bumped = make_material(pipeline, 1.0f, true);
-            const auto plain = make_material(pipeline, 0.0f, false);
-
-            hub_ = scene_.add_node();
-            add_cube(mesh, bumped, -HALF_GAP);
-            add_cube(mesh, plain, HALF_GAP);
+            cubes_ = add_bump_cube_model(resources_, scene_);
+            hub_ = {&scene_, cubes_.root};
 
             camera_ = scene_.add_node();
             camera_.set_local_transform({
@@ -203,120 +105,13 @@ namespace
         }
 
     private:
-        /**
-         * @param strength what goes in u_ambient.w: zero means the material has
-         *      no normal map and the shader skips the sampler entirely.
-         * @param with_map whether to attach the map. The renderer binds
-         *      textures to consecutive units, so the normal map can only reach
-         *      unit 2 behind two others — hence the white filler.
-         */
-        MaterialRef make_material(PipelineRef pipeline, float strength,
-                                  bool with_map)
-        {
-            Material material;
-            material.pipeline = pipeline;
-            material.parameter_data = make_blinn_phong_material_params(
-                StandardColorMaterial::COPPER, 1.0f, strength);
-            // The renderer binds textures to consecutive units, so the normal
-            // map can only reach unit 2 behind two others. Null refs get the
-            // renderer's white fallback, which leaves the material's own
-            // colours unmodulated.
-            if (with_map)
-                material.textures = {{}, {}, normal_map()};
-            return resources_.create_material(std::move(material));
-        }
-
-        TextureRef normal_map()
-        {
-            if (!normal_map_)
-            {
-                const auto pixels = make_stud_normal_map();
-                // DATA, not COLOR: these texels are a tangent-space vector
-                // field. Decoding them as sRGB would not dim the bumps, it
-                // would bend every normal the wrong way.
-                normal_map_ = resources_.create_texture({
-                    .size = {NORMAL_MAP_SIZE, NORMAL_MAP_SIZE},
-                    .format = RGB_TEXTURE,
-                    .content = TextureContent::DATA,
-                    .pixels = pixels.data(),
-                    .sampler = resources_.register_sampler({
-                        .mip_filter = SamplerMipFilter::NONE,
-                        .address_mode_u = SamplerAddressMode::CLAMP_TO_EDGE,
-                        .address_mode_v = SamplerAddressMode::CLAMP_TO_EDGE
-                    })
-                });
-            }
-            return normal_map_;
-        }
-
-        // Named by both the mesh and the pipeline: a pipeline pins how the
-        // attributes are packed, so the two have to agree.
-        VertexLayoutRef cube_layout()
-        {
-            return resources_.register_layout(
-                VertexLayoutBuilder()
-                    .add_attribute(AttributeSemantic::POSITION)
-                    .add_attribute(AttributeSemantic::NORMAL)
-                    .add_attribute(AttributeSemantic::TEX_COORD_0)
-                    .build());
-        }
-
-        MeshRef make_cube_mesh()
-        {
-            auto [indexes, vertexes] = ::make_cube_mesh();
-
-            constexpr size_t STRIDE = 8; // 3 coords + 3 normals + 2 tex coords
-
-            const auto layout = cube_layout();
-            vbo_arena_ = resources_.create_arena(
-                BufferUsage::STATIC_DRAW, STRIDE * sizeof(float),
-                uint32_t(vertexes.size() / STRIDE));
-            ebo_arena_ = resources_.create_arena(
-                BufferUsage::STATIC_DRAW, sizeof(uint16_t),
-                uint32_t(indexes.size()));
-
-            const auto vertices = resources_.allocate(
-                vbo_arena_, uint32_t(vertexes.size() / STRIDE));
-            const auto indices = resources_.allocate(
-                ebo_arena_, uint32_t(indexes.size()));
-
-            // Rebase to absolute indices (§3): the portable path has no
-            // baseVertex draw argument.
-            for (auto& index : indexes)
-                index = uint16_t(index + vertices.offset);
-
-            resources_.upload(vertices, vertexes.data(),
-                              vertexes.size() * sizeof(float));
-            resources_.upload(indices, indexes.data(),
-                              indexes.size() * sizeof(uint16_t));
-
-            Mesh mesh;
-            mesh.streams = {vertices};
-            mesh.layout = layout;
-            mesh.ebo = indices;
-            mesh.index_type = ElementIndexType::UINT16;
-            return resources_.create_mesh(std::move(mesh));
-        }
-
-        void add_cube(MeshRef mesh, MaterialRef material, float x)
-        {
-            auto node = hub_.add_child();
-            node.set_local_transform({.translation = {x, 0, 0}});
-            node.add(RenderableComponent{
-                .mesh = mesh,
-                .material = material,
-                .local_bounds = {{-1, -1, -1}, {1, 1, 1}}
-            });
-        }
-
         ResourceManager resources_;
         Scene scene_;
         DoubleBuffer<RenderSnapshot> snapshots_;
         SnapshotBuilder builder_{resources_};
         Renderer renderer_;
-        BufferArenaRef vbo_arena_;
-        BufferArenaRef ebo_arena_;
-        TextureRef normal_map_;
+        // Owns the cubes' mesh, materials and normal map.
+        Model cubes_;
         NodeHandle hub_;
         NodeHandle camera_;
         uint64_t frame_ = 0;

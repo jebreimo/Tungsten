@@ -11,6 +11,8 @@ set(CMAKE_CXX_STANDARD 23)
 
 add_executable(scene_graph
     scene_graph.cpp
+    cube_hub_model.cpp
+    cube_hub_model.hpp
 )
 
 target_link_libraries(scene_graph
