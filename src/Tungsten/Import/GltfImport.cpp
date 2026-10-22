@@ -257,10 +257,10 @@ namespace Tungsten
          * material or an image shared by several primitives from being built
          * more than once.
          */
-        class Importer
+        class GltfImporter
         {
         public:
-            Importer(const fastgltf::Asset& asset,
+            GltfImporter(const fastgltf::Asset& asset,
                      std::filesystem::path directory,
                      ResourceManager& resources,
                      Scene& scene,
@@ -1231,7 +1231,7 @@ namespace Tungsten
                            + std::to_string(scene_index) + ".");
         }
 
-        Importer importer(asset.get(), file_name.parent_path(), resources, scene,
+        GltfImporter importer(asset.get(), file_name.parent_path(), resources, scene,
                           options);
         auto result = importer.run(scene_index, parent);
 
