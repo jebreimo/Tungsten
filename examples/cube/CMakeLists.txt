@@ -17,6 +17,8 @@ FetchContent_MakeAvailable(ystring2)
 
 add_executable(cube
     Cube.cpp
+    CubeModel.cpp
+    CubeModel.hpp
     EmbeddedResources.hpp
 )
 

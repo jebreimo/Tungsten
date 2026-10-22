@@ -24,6 +24,8 @@ It is one of several `jebreimo` libraries and depends on sibling projects
     ResourceManager and everything it hands out refs to.
   - `SceneGraph/` — the mutable scene graph, its nodes and components.
   - `Animation/` — keyframe animation clips, their sampling and playback.
+  - `Model/` — a node subtree with its resources and animations, and the
+    `ModelBuilder` that creates one.
   - `Rendering/` — snapshot extraction, the renderer, and the text/font
     pipeline.
   - `Sdl/` (application scaffold), `Detail/` (internal helpers).

@@ -7,15 +7,10 @@
 //****************************************************************************
 #pragma once
 #include <filesystem>
-#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
-#include <Xyz/BBox.hpp>
-#include "../Animation/AnimationPlayer.hpp"
-#include "../Resources/ResourceBundle.hpp"
-#include "../Resources/ResourceManager.hpp"
-#include "../SceneGraph/Scene.hpp"
+#include "../Model/Model.hpp"
 
 namespace Tungsten
 {
@@ -43,8 +38,8 @@ namespace Tungsten
      * its triangles instead of their surface.
      *
      * The mesh shares its vertices with the renderable's own mesh. Both are
-     * in GltfImport::resources, which owns those vertices, so unload them by
-     * destroying the bundle rather than with destroy_mesh.
+     * in the import's resources, which own those vertices, so unload them
+     * with remove_model rather than with destroy_mesh.
      */
     struct GltfWireframe
     {
@@ -54,18 +49,18 @@ namespace Tungsten
     };
 
     /**
-     * What import_gltf added to the scene.
+     * What import_gltf added to the scene: the Model, and what is particular
+     * to glTF.
+     *
+     * The model's root is a new child of the node the caller passed as the
+     * parent, and its bounds are never empty: import_gltf throws instead.
+     * Its animations are the file's, in file order, minus any that had
+     * nothing left to play once the unsupported channels were skipped. Its
+     * targets are indexed like the file's nodes, with the nodes outside the
+     * imported scene left null. Its resources include the wireframes.
      */
-    struct GltfImport
+    struct GltfImport : Model
     {
-        /** The root of the imported hierarchy, a new child of the node the
-         *  caller passed as the parent. */
-        NodeId root;
-
-        /** The union of every imported renderable's bounds, in the root's
-         *  coordinate system. Never empty: import_gltf throws instead. */
-        Xyz::BBox3F bounds;
-
         /** The number of primitives that became renderables. */
         uint32_t primitive_count = 0;
 
@@ -73,25 +68,10 @@ namespace Tungsten
          *  GltfImportOptions::create_wireframes was set, otherwise empty. */
         std::vector<GltfWireframe> wireframes;
 
-        /** The file's animations, in file order, minus any that had nothing
-         *  left to play once the unsupported channels were skipped. Play one
-         *  with an AnimationPlayer made from it and `targets`. */
-        std::vector<std::shared_ptr<const AnimationClip>> animations;
-
-        /** The node each of the file's nodes became, and its transform as
-         *  the file gives it, indexed like the file's nodes. Nodes outside
-         *  the imported scene are null. */
-        AnimationTargets targets;
-
         /** One line per primitive or feature that was skipped. Worth showing
          *  to the user: an otherwise successful import can still be missing
          *  parts of the file. */
         std::vector<std::string> warnings;
-
-        /** Every mesh, material, texture, slice and arena the import created,
-         *  wireframes included. Remove the subtree under `root` and pass this
-         *  to ResourceManager::destroy_bundle to unload the file. */
-        ResourceBundle resources;
     };
 
     /**

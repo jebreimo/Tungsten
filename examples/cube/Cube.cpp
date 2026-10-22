@@ -12,44 +12,10 @@
 #include <Yconvert/Convert.hpp>
 #include <Ystring/Ystring.hpp>
 
-#include "EmbeddedResources.hpp"
+#include "CubeModel.hpp"
 
 namespace
 {
-    std::pair<std::vector<uint16_t>, std::vector<float>> make_cube_mesh()
-    {
-        std::vector<uint16_t> indexes;
-        std::vector<float> vertexes;
-
-        using Builder2F = Xyz::MeshAttributeBuilder<Xyz::Vector2F, std::vector<float>>;
-        using Builder3F = Xyz::MeshAttributeBuilder<Xyz::Vector3F, std::vector<float>>;
-
-        Xyz::MeshBuilder builder{
-            .indexes = Xyz::MeshIndexBuilder(indexes),
-            .coords = Builder3F(vertexes, 8),
-            .normals = std::optional(Builder3F(vertexes, 8, 3)),
-            .tex_coords = std::optional(Builder2F(vertexes, 8, 6))
-        };
-
-        auto get_tex_rect = [](int i)
-        {
-            return Xyz::RectangleF{{float(i) / 6, 1}, {1.f / 6, -1}};
-        };
-
-        auto cuboid = Xyz::make_centered_oriented_cuboid<float>(
-            {0, 0, 0},
-            {2, 2, 2},
-            {-Xyz::to_radians(-90.f), -Xyz::to_radians(-90.f), 0}
-        );
-        Xyz::build_mesh(builder, cuboid, std::function(get_tex_rect));
-        return {std::move(indexes), std::move(vertexes)};
-    }
-
-    Yimage::Image get_image()
-    {
-        return Tungsten::read_image(NUMBERS_PNG, NUMBERS_PNG_SIZE);
-    }
-
     class Cube : public Tungsten::EventLoop
     {
     public:
@@ -59,20 +25,9 @@ namespace
         {
             std::cout << Tungsten::get_device_info() << '\n';
             Tungsten::register_builtin_shader_families(resources_);
-            const auto shader = resources_.register_shader_variant(
-                {.family = Tungsten::BLINN_PHONG_FAMILY});
 
-            const auto pipeline = make_pipeline(shader, cube_layout());
-            const auto gold = make_material(
-                pipeline,
-                Tungsten::make_blinn_phong_material_params(
-                    Tungsten::StandardColorMaterial::GOLD,
-                    1.0f));
-
-            const auto mesh = make_cube_mesh();
-
-            hub_ = scene_.add_node();
-            add_renderable(hub_, mesh, gold);
+            cube_ = add_cube_model(resources_, scene_);
+            hub_ = {&scene_, cube_.root};
 
             camera_ = scene_.add_node();
             camera_.set_local_transform({
@@ -140,108 +95,6 @@ namespace
         }
 
     private:
-        // Everything fixed before the draw call — the program, the vertex
-        // input and the fixed-function state — registered once as a pipeline.
-        Tungsten::PipelineRef make_pipeline(Tungsten::ShaderProgramRef shader,
-                                            Tungsten::VertexLayoutRef layout)
-        {
-            Tungsten::PipelineDescriptor pipeline;
-            pipeline.shader = shader;
-            pipeline.layout = layout;
-            pipeline.raster.cull_enabled = true;
-            return resources_.register_pipeline(pipeline);
-        }
-
-        Tungsten::MaterialRef make_material(Tungsten::PipelineRef pipeline,
-                                            std::vector<std::byte> params)
-        {
-            Tungsten::Material material;
-            material.pipeline = pipeline;
-            material.parameter_data = std::move(params);
-            material.textures = {make_texture(get_image())};
-            return resources_.create_material(std::move(material));
-        }
-
-        // Named by both the mesh and the pipeline: a pipeline pins how the
-        // attributes are packed, so the two have to agree.
-        Tungsten::VertexLayoutRef cube_layout()
-        {
-            return resources_.register_layout(
-                Tungsten::VertexLayoutBuilder()
-                    .add_attribute(Tungsten::AttributeSemantic::POSITION)
-                    .add_attribute(Tungsten::AttributeSemantic::NORMAL)
-                    .add_attribute(Tungsten::AttributeSemantic::TEX_COORD_0)
-                    .build());
-        }
-
-        Tungsten::MeshRef make_cube_mesh()
-        {
-            auto [indexes, vertexes] = ::make_cube_mesh();
-
-            constexpr size_t STRIDE = 8; // 3 coords + 3 normals + 2 tex coords
-
-            const auto layout = cube_layout();
-            vbo_arena_ = resources_.create_arena(
-                Tungsten::BufferUsage::STATIC_DRAW, STRIDE * sizeof(float),
-                uint32_t(vertexes.size() / STRIDE));
-            ebo_arena_ = resources_.create_arena(
-                Tungsten::BufferUsage::STATIC_DRAW, sizeof(uint16_t), uint32_t(indexes.size()));
-
-            const auto vertices = resources_.allocate(
-                vbo_arena_, uint32_t(vertexes.size() / STRIDE));
-            const auto indices = resources_.allocate(
-                ebo_arena_, uint32_t(indexes.size()));
-
-            // Rebase to absolute indices (§3): the portable path has no
-            // baseVertex draw argument.
-            for (auto& index : indexes)
-                index = uint16_t(index + vertices.offset);
-
-            resources_.upload(vertices, vertexes.data(),
-                              vertexes.size() * sizeof(float));
-            resources_.upload(indices, indexes.data(),
-                              indexes.size() * sizeof(uint16_t));
-
-            Tungsten::Mesh mesh;
-            mesh.streams = {vertices};
-            mesh.layout = layout;
-            mesh.ebo = indices;
-            mesh.index_type = Tungsten::ElementIndexType::UINT16;
-            return resources_.create_mesh(std::move(mesh));
-        }
-
-        Tungsten::TextureRef make_texture(const Yimage::Image& image)
-        {
-            // COLOR: an image file's pixels are sRGB, so the sampler decodes
-            // them and the shader gets linear values to light. How the texture
-            // is sampled is a property of the Texture resource, not state baked
-            // into the GL object: the renderer binds this sampler to the unit
-            // the texture lands on.
-            return resources_.create_texture({
-                .size = {int32_t(image.width()), int32_t(image.height())},
-                .format = Tungsten::get_ogl_pixel_type(image.pixel_type()),
-                .content = Tungsten::TextureContent::COLOR,
-                .pixels = image.data(),
-                .sampler = resources_.register_sampler(
-                    {
-                        .mip_filter = Tungsten::SamplerMipFilter::NONE,
-                        .address_mode_u = Tungsten::SamplerAddressMode::CLAMP_TO_EDGE,
-                        .address_mode_v = Tungsten::SamplerAddressMode::CLAMP_TO_EDGE
-                    })
-            });
-        }
-
-        static void add_renderable(Tungsten::NodeHandle node,
-                                   Tungsten::MeshRef mesh,
-                                   Tungsten::MaterialRef material)
-        {
-            node.add(Tungsten::RenderableComponent{
-                .mesh = mesh,
-                .material = material,
-                .local_bounds = {{-1, -1, -1}, {1, 1, 1}}
-            });
-        }
-
         static Xyz::QuaternionF get_rotation(uint64_t ticks)
         {
             double i;
@@ -257,8 +110,8 @@ namespace
         Tungsten::DoubleBuffer<Tungsten::RenderSnapshot> snapshots_;
         Tungsten::SnapshotBuilder builder_{resources_};
         Tungsten::Renderer renderer_;
-        Tungsten::BufferArenaRef vbo_arena_;
-        Tungsten::BufferArenaRef ebo_arena_;
+        // Owns the cube's mesh, material and texture.
+        Tungsten::Model cube_;
         Tungsten::NodeHandle hub_;
         Tungsten::NodeHandle camera_;
         uint64_t frame_ = 0;

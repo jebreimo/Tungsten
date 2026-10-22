@@ -10,7 +10,6 @@
 #include <cstdint>
 #include <span>
 #include <vector>
-#include <Xyz/BBox.hpp>
 #include <Xyz/Matrix.hpp>
 #include <Xyz/Quaternion.hpp>
 #include <Xyz/Vector.hpp>
@@ -131,13 +130,6 @@ namespace Tungsten::Detail
      */
     std::vector<uint8_t> make_specular_mask(const uint8_t* pixels,
                                             size_t pixel_count, size_t channels);
-
-    /**
-     * The bounding box of a set of points, empty if there are none. Used when
-     * a POSITION accessor does not carry the min and max that glTF requires of
-     * it.
-     */
-    Xyz::BBox3F make_bounds(const std::vector<Xyz::Vector3F>& positions);
 
     /**
      * Scales each vertex's weights to sum to one. glTF requires that they

@@ -373,9 +373,18 @@ wholesale:
   compare functions), while `Gl/` holds the OpenGL backend — `IOglWrapper`, the RAII handles,
   the state functions and the one `GlTypeConversion` translation table. The umbrella
   `Tungsten.hpp` exports no `Gl/` header, so nothing reaches an application by accident.
-- `Import/` sits above `SceneGraph/`: it reads asset files and builds scenes out of them, so
-  it may include from `Resources/` and `SceneGraph/`, and nothing in the library may include
-  from it. `Import/GltfImport.hpp` is currently its only header. The third-party parser
+- `Model/` sits above `Animation/`: a `Model` is a node subtree together with the
+  `ResourceBundle` and the animation clips that belong to it, the unit an application shows,
+  animates and unloads (`remove_model`). `ModelBuilder` builds one. It queues vertices,
+  meshes and renderables until `build()`, so that it can size one arena per vertex stride,
+  plus one for the indices, for the whole model and never grow them (growing copies
+  through `glCopyBufferSubData`, which macOS's driver lacks). A builder destroyed before
+  `build()` removes whatever it had added, which is what makes a failed import leave
+  nothing behind. It is part of the web build, so models built in code work everywhere.
+- `Import/` sits above `Model/`: it reads asset files and builds models out of them, so it
+  may include from every layer up to `Model/`, and nothing in the library may include from
+  it. `Import/GltfImport.hpp` is currently its only header; `GltfImport` is a `Model` plus
+  what is particular to glTF (wireframes, warnings). The third-party parser
   (fastgltf) is confined to the .cpp and linked privately, which is also what lets the whole
   folder drop out of the Emscripten build — fastgltf has no Emscripten port, so
   `Tungsten.hpp` guards its include with `__EMSCRIPTEN__`.

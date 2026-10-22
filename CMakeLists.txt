@@ -105,6 +105,8 @@ add_library(Tungsten STATIC
     include/Tungsten/Gl/GlVertexArray.hpp
     include/Tungsten/Gl/IOglWrapper.hpp
     include/Tungsten/Gpu/GpuTypes.hpp
+    include/Tungsten/Model/Model.hpp
+    include/Tungsten/Model/ModelBuilder.hpp
     include/Tungsten/Rendering/DoubleBuffer.hpp
     include/Tungsten/Rendering/Font.hpp
     include/Tungsten/Rendering/FontManager.hpp
@@ -184,6 +186,8 @@ add_library(Tungsten STATIC
     src/Tungsten/Gl/IOglWrapper.cpp
     src/Tungsten/Gl/OglWrapper.hpp
     src/Tungsten/Gl/TracingOglWrapper.hpp
+    src/Tungsten/Model/Model.cpp
+    src/Tungsten/Model/ModelBuilder.cpp
     src/Tungsten/Rendering/Font.cpp
     src/Tungsten/Rendering/FontManager.cpp
     src/Tungsten/Rendering/FontUtilities.cpp

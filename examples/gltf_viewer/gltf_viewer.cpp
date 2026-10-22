@@ -251,12 +251,9 @@ namespace
             NodeHandle(&scene_, import.root).set_local_transform(
                 Transform{.translation = -centre});
 
-            model_root_ = import.root;
-            model_resources_ = std::move(import.resources);
             alternates_ = std::move(import.wireframes);
-            animations_ = std::move(import.animations);
-            targets_ = std::move(import.targets);
-            play_animation(animations_.empty() ? NO_ANIMATION : 0);
+            model_ = std::move(import);
+            play_animation(model_.animations.empty() ? NO_ANIMATION : 0);
 
             // An import draws triangles; keep showing lines if that was the
             // mode the previous model was in.
@@ -267,21 +264,16 @@ namespace
         }
 
         /**
-         * Removes the current model's nodes, then destroys everything its
-         * import created. In that order: until the nodes are gone, their
-         * renderables still name the bundle's meshes and materials.
+         * Removes the current model's nodes and everything its import
+         * created.
          */
         void unload_model()
         {
-            if (!model_root_)
+            if (!model_.root)
                 return;
 
             player_ = {};
-            animations_.clear();
-            targets_ = {};
-            scene_.remove(model_root_);
-            resources_.destroy_bundle(model_resources_);
-            model_root_ = {};
+            remove_model(model_, scene_, resources_);
             alternates_.clear();
         }
 
@@ -329,7 +321,7 @@ namespace
             // ### is the id, which must not change with it.
             if (ImGui::Button(wireframe_ ? "Triangles###mode" : "Lines###mode"))
                 toggle_wireframe();
-            if (!animations_.empty())
+            if (!model_.animations.empty())
                 draw_animation_list();
             ImGui::End();
         }
@@ -343,14 +335,14 @@ namespace
             {
                 return index == NO_ANIMATION
                            ? "No animation"
-                           : animations_[size_t(index)]->name.c_str();
+                           : model_.animations[size_t(index)]->name.c_str();
             };
 
             ImGui::SetNextItemWidth(ANIMATION_LIST_WIDTH);
             if (!ImGui::BeginCombo("##animation", name_of(animation_index_)))
                 return;
 
-            for (int i = NO_ANIMATION; i < int(animations_.size()); ++i)
+            for (int i = NO_ANIMATION; i < int(model_.animations.size()); ++i)
             {
                 // The name need not be unique, so the index is the id.
                 ImGui::PushID(i);
@@ -363,7 +355,7 @@ namespace
         }
 
         /**
-         * Starts animations_[index] from the beginning, or stops animating if
+         * Starts the model's animation @a index from the beginning, or stops animating if
          * index is NO_ANIMATION. The previous animation's nodes are put back
          * in their rest pose first: the next one need not animate them all.
          */
@@ -373,7 +365,7 @@ namespace
             if (index == NO_ANIMATION)
                 player_ = {};
             else
-                player_ = {animations_[size_t(index)], targets_};
+                player_ = {model_.animations[size_t(index)], model_.targets};
             animation_index_ = index;
         }
 
@@ -441,18 +433,13 @@ namespace
         Renderer renderer_;
         NodeHandle pivot_;
         NodeHandle camera_;
-        // The current model's root node and everything its import created,
-        // which together are what unload_model removes.
-        NodeId model_root_;
-        ResourceBundle model_resources_;
+        // The current model: its nodes, its resources and its animations.
+        Model model_;
         // The mesh and material each imported renderable is not currently
         // drawn with: the line ones to begin with, and after every toggle
         // whichever pair was swapped out.
         std::vector<GltfWireframe> alternates_;
-        // The current model's animations, the nodes they animate, and the
-        // one that is playing.
-        std::vector<std::shared_ptr<const AnimationClip>> animations_;
-        AnimationTargets targets_;
+        // The current model's animation that is playing.
         AnimationPlayer player_;
         int animation_index_ = NO_ANIMATION;
         bool wireframe_ = false;

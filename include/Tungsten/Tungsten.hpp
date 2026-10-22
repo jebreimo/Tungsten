@@ -16,6 +16,8 @@
 #ifndef __EMSCRIPTEN__
     #include "Import/GltfImport.hpp"
 #endif
+#include "Model/Model.hpp"
+#include "Model/ModelBuilder.hpp"
 #include "Rendering/DoubleBuffer.hpp"
 #include "Rendering/FontManager.hpp"
 #include "Rendering/InfiniteGrid.hpp"

@@ -240,14 +240,6 @@ namespace Tungsten::Detail
         return mask;
     }
 
-    Xyz::BBox3F make_bounds(const std::vector<Xyz::Vector3F>& positions)
-    {
-        Xyz::BBox3F bounds;
-        for (const auto& position : positions)
-            bounds += position;
-        return bounds;
-    }
-
     Vector3Track make_vector3_track(Interpolation interpolation,
                                     std::vector<float> times,
                                     const std::vector<Xyz::Vector3F>& outputs)

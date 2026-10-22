@@ -237,17 +237,6 @@ TEST_CASE("GltfConversion: make_specular_mask copes with fewer channels")
     REQUIRE(mask[3] == 0);
 }
 
-TEST_CASE("GltfConversion: make_bounds is empty for no points")
-{
-    REQUIRE(!make_bounds({}));
-
-    const auto bounds = make_bounds({{-1, 0, 2}, {3, -4, 5}});
-    REQUIRE(bool(bounds));
-    REQUIRE(bounds.min[0] == -1);
-    REQUIRE(bounds.min[1] == -4);
-    REQUIRE(bounds.max[2] == 5);
-}
-
 TEST_CASE("GltfConversion: linear outputs become the track's values")
 {
     const auto track = make_vector3_track(Interpolation::LINEAR, {0, 1},
