@@ -24,6 +24,7 @@ namespace Tungsten
 
         virtual bool on_event(const SDL_Event& event)
         {
+            std::ignore = event;
             return false;
         }
 

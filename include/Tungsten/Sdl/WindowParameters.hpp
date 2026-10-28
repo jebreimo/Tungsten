@@ -10,16 +10,6 @@
 
 namespace Tungsten
 {
-    struct WindowPos
-    {
-        WindowPos() = default;
-
-        WindowPos(int x, int y) : x(x), y(y) {}
-
-        int x = SDL_WINDOWPOS_UNDEFINED;
-        int y = SDL_WINDOWPOS_UNDEFINED;
-    };
-
     struct WindowSize
     {
         WindowSize() = default;

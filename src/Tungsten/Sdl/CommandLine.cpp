@@ -135,8 +135,6 @@ namespace Tungsten
         using namespace argos;
         parser.allow_abbreviated_options(true)
             .current_section("DISPLAY OPTIONS")
-            .add(Option{"--windowpos"}.argument("<X>,<Y>")
-                     .help("Set the window position (top left corner)."))
             .add(Option{"--windowsize"}.argument("<HOR>x<VER>")
                      .help("Set the window size."))
             .add(Option{"--fullscreen"}
@@ -186,12 +184,6 @@ namespace Tungsten
         {
             auto size = window_size_arg.split('x', 2, 2).as_ints();
             wp.window_size = {size[0], size[1]};
-        }
-
-        if (auto window_pos_arg = args.value("--windowpos"))
-        {
-            auto pos = window_pos_arg.split(',', 2, 2).as_ints();
-            wp.window_size = {pos[0], pos[1]};
         }
 
         app.set_window_parameters(wp);
