@@ -46,7 +46,7 @@ include(FetchContent)
 
 FetchContent_Declare(argos
     GIT_REPOSITORY "https://github.com/jebreimo/Argos.git"
-    GIT_TAG v1.7.2)
+    GIT_TAG v1.7.3)
 
 FetchContent_Declare(cppembed
     GIT_REPOSITORY "https://github.com/jebreimo/cppembed.git"
