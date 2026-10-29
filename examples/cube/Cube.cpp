@@ -8,8 +8,6 @@
 #include <iostream>
 #include <Argos/Argos.hpp>
 #include <Tungsten/Tungsten.hpp>
-#include <Tungsten/Gl/IOglWrapper.hpp>
-#include <Yconvert/Convert.hpp>
 #include <Ystring/Ystring.hpp>
 
 #include "CubeModel.hpp"
@@ -23,7 +21,6 @@ namespace
             : EventLoop(app),
               renderer_(resources_)
         {
-            std::cout << Tungsten::get_device_info() << '\n';
             Tungsten::register_builtin_shader_families(resources_);
 
             cube_ = add_cube_model(resources_, scene_);
@@ -75,19 +72,16 @@ namespace
             resources_.begin_frame(frame_);
 
             scene_.resolve_transforms();
-            auto& snapshots = snapshots_;
-            builder_.build(scene_, camera_.id(), snapshots.back());
-            snapshots.back().time =
+            builder_.build(scene_, camera_.id(), snapshots_.back());
+            snapshots_.back().time =
                 static_cast<float>(SDL_GetTicks() - start_ticks_) / 1000.0f;
             // The snapshot mirrors the per-frame UBO, so its colours are
             // linear; this one is picked by eye, hence sRGB.
-            snapshots.back().ambient_light =
+            snapshots_.back().ambient_light =
                 Tungsten::srgb_to_linear(Xyz::Vector3F{0.35f, 0.35f, 0.38f});
-            snapshots.swap();
+            snapshots_.swap();
 
-            renderer_.render(snapshots.front(), pass);
-
-            Tungsten::set_ogl_tracing_enabled(false);
+            renderer_.render(snapshots_.front(), pass);
 
             resources_.collect_garbage(frame_);
             ++frame_;
@@ -125,7 +119,6 @@ int main(int argc, char** argv)
     {
         Tungsten::SdlApplication app("TexturedCube");
         app.parse_command_line_options(argc, argv);
-        Tungsten::set_ogl_tracing_enabled(true);
         app.run<Cube>();
         return 0;
     }
