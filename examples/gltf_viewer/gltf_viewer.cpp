@@ -7,12 +7,15 @@
 //****************************************************************************
 
 // A minimal glTF viewer: load the file named on the command line, centre it,
-// and turn it slowly under a two-light studio rig.
+// and show it under a two-light studio rig.
+//
+// Controls: drag with the left mouse button to orbit, with the right button
+// to move across the grid, and use the wheel to zoom.
 //
 // The model is framed by its bounding *sphere* rather than its box. A sphere
-// is what stays put while the model rotates, so the framing computed once at
-// startup is still correct a quarter turn later; framing the box would make
-// the model breathe in and out as its silhouette changed.
+// looks the same from every side, so the framing computed when the model is
+// loaded holds wherever the camera is orbited to, and it gives a size to base
+// the zoom limits and the depth range on.
 //
 // Everything draws through the builtin Blinn-Phong family — see
 // Tungsten/Import/GltfImport.hpp for how the file's metallic-roughness
@@ -45,13 +48,21 @@ namespace
 {
     using namespace Tungsten;
 
-    // Radians per second about +y. Slow enough to study the model, fast
-    // enough that it is obviously moving.
-    constexpr float ROTATION_SPEED = 0.3f;
-
     // How much wider than the model the frame is. A little air stops the
-    // silhouette touching the window edge as it turns.
+    // silhouette touching the window edge as the camera orbits.
     constexpr float FRAMING_MARGIN = 1.15f;
+
+    // The zoom limits, as multiples of the distance that frames the model.
+    // The closest reaches inside the bounding sphere, which is mostly air.
+    constexpr float MIN_ZOOM = 0.1f;
+    constexpr float MAX_ZOOM = 10.0f;
+
+    // The depth range, in multiples of the model's radius. The near plane
+    // has to stay put rather than follow the model, or it would cut away the
+    // grid between the camera and the model. The far plane is generous for
+    // the grid's sake: depth precision depends mostly on the near plane.
+    constexpr float NEAR_PLANE_RADII = 0.01f;
+    constexpr float FAR_PLANE_RADII = 100.0f;
 
     // The distance from the controls to the window's edges.
     constexpr float UI_MARGIN = 10.0f;
@@ -120,7 +131,6 @@ namespace
 
             grid_.add_to(scene_);
 
-            pivot_ = scene_.add_node();
             camera_ = scene_.add_node();
             camera_.add(CameraComponent{.aspect = app.viewport().aspect_ratio()});
             load_model(file_name);
@@ -160,9 +170,24 @@ namespace
             switch (event.type)
             {
             case SDL_EVENT_MOUSE_MOTION:
+                if (io.WantCaptureMouse)
+                    return true;
+                if (event.motion.state & SDL_BUTTON_LMASK)
+                    navigator_.orbit(event.motion.xrel, event.motion.yrel);
+                else if (event.motion.state & SDL_BUTTON_RMASK)
+                    navigator_.pan(event.motion.xrel, event.motion.yrel);
+                else
+                    return false;
+                place_camera();
+                return true;
+            case SDL_EVENT_MOUSE_WHEEL:
+                if (io.WantCaptureMouse)
+                    return true;
+                navigator_.zoom(event.wheel.y);
+                place_camera();
+                return true;
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
             case SDL_EVENT_MOUSE_BUTTON_UP:
-            case SDL_EVENT_MOUSE_WHEEL:
                 return io.WantCaptureMouse;
             case SDL_EVENT_KEY_DOWN:
             case SDL_EVENT_KEY_UP:
@@ -176,9 +201,6 @@ namespace
         void on_update() override
         {
             const auto ticks = SDL_GetTicks();
-            const auto t = float(ticks - start_ticks_) / 1000.0f;
-            pivot_.set_local_transform(
-                Transform{.rotation = euler_rotation(0, ROTATION_SPEED * t, 0)});
 
             // Before on_draw resolves the transforms, so the pose shows in
             // the same frame.
@@ -196,12 +218,7 @@ namespace
 
             // Through the handle, not a cached pointer: the component arrays
             // move their contents as they grow.
-            auto& camera = camera_.get<CameraComponent>();
-            if (camera.aspect != viewport.aspect_ratio())
-            {
-                camera.aspect = viewport.aspect_ratio();
-                place_camera();
-            }
+            camera_.get<CameraComponent>().aspect = viewport.aspect_ratio();
 
             // Before the snapshot is built, so that a click on the button
             // shows in this frame.
@@ -236,16 +253,15 @@ namespace
          */
         void load_model(const std::filesystem::path& file_name)
         {
-            auto import = import_gltf(file_name, resources_, scene_,
-                                      pivot_.id(), {.create_wireframes = true});
+            auto import = import_gltf(file_name, resources_, scene_, {},
+                                      {.create_wireframes = true});
             for (const auto& warning : import.warnings)
                 std::cerr << "Warning: " << warning << '\n';
 
             unload_model();
 
-            // The pivot turns; the model hangs under it shifted so that its
-            // centre sits on the pivot. That is what makes it spin in place
-            // rather than orbit.
+            // Shifted so that its centre sits on the origin, which is where
+            // the navigator starts out looking.
             const auto centre = (import.bounds.min + import.bounds.max) / 2.0f;
             radius_ = Xyz::get_length(import.bounds.max - import.bounds.min) / 2;
             NodeHandle(&scene_, import.root).set_local_transform(
@@ -260,7 +276,7 @@ namespace
             if (std::exchange(wireframe_, false))
                 toggle_wireframe();
 
-            place_camera();
+            frame_model();
         }
 
         /**
@@ -278,12 +294,14 @@ namespace
         }
 
         /**
-         * Backs the camera off far enough that a sphere of radius_ at the
-         * origin fits the viewport, and sets the depth range to straddle it.
+         * Points the navigator at the origin, backed off far enough that a
+         * sphere of radius_ there fits the viewport, and scales its zoom
+         * limits to match. The orbit angles are left as they are, so that
+         * models can be compared from the same side.
          */
-        void place_camera()
+        void frame_model()
         {
-            auto& camera = camera_.get<CameraComponent>();
+            const auto& camera = camera_.get<CameraComponent>();
 
             // The vertical field of view is the given one; the horizontal
             // follows from the aspect ratio, and is the tighter of the two on
@@ -293,14 +311,30 @@ namespace
             const auto half_angle = std::min(half_v, half_h);
 
             const auto distance = FRAMING_MARGIN * radius_ / std::sin(half_angle);
-            camera.near_plane = std::max(distance - radius_, distance * 1e-3f);
-            camera.far_plane = distance + 2 * radius_;
-            constexpr auto pitch = 0.4f;
-            const auto position = distance * Xyz::Vector3F{0, sin(pitch), cos(pitch)};
-            camera_.set_local_transform(
-                Transform{
-                    .translation = position,
-                    .rotation = look_at_rotation(position, {0, 0, 0})
+            navigator_.target = {0, 0, 0};
+            navigator_.distance = distance;
+            navigator_.min_distance = MIN_ZOOM * distance;
+            navigator_.max_distance = MAX_ZOOM * distance;
+
+            place_camera();
+        }
+
+        /**
+         * Places the camera where the navigator says, with a depth range that
+         * holds the model however far the camera has been moved from it.
+         */
+        void place_camera()
+        {
+            const auto position = navigator_.position();
+
+            auto& camera = camera_.get<CameraComponent>();
+            camera.near_plane = NEAR_PLANE_RADII * radius_;
+            camera.far_plane = Xyz::get_length(position)
+                               + FAR_PLANE_RADII * radius_;
+
+            camera_.set_local_transform({
+                .translation = position,
+                .rotation = look_at_rotation(position, navigator_.target)
             });
         }
 
@@ -431,8 +465,8 @@ namespace
         DoubleBuffer<RenderSnapshot> snapshots_;
         SnapshotBuilder builder_{resources_};
         Renderer renderer_;
-        NodeHandle pivot_;
         NodeHandle camera_;
+        OrbitNavigator navigator_;
         // The current model: its nodes, its resources and its animations.
         Model model_;
         // The mesh and material each imported renderable is not currently
@@ -455,7 +489,7 @@ int main(int argc, char** argv)
     try
     {
         argos::ArgumentParser parser(argv[0]);
-        parser.about("Displays a glTF model, centred and slowly rotating.")
+        parser.about("Displays a glTF model, with a camera that orbits it.")
             .add(argos::Argument("FILE")
                 .help("The glTF or GLB file to display."));
         Tungsten::SdlApplication::add_command_line_options(parser);
