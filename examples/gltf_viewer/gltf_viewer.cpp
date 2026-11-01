@@ -23,8 +23,9 @@
 //
 // The controls are drawn with Dear ImGui, on top of the scene: a button that
 // switches between drawing the model's surfaces and the edges of its
-// triangles, and, for a file with animations, a list to pick the one that
-// plays. The first animation starts playing as soon as the file is loaded.
+// triangles, a button that shows or hides the grid, which starts out hidden,
+// and, for a file with animations, a list to pick the one that plays. The
+// first animation starts playing as soon as the file is loaded.
 //
 // Dropping another glTF or GLB file on the window replaces the model. This is
 // the usage reference for unloading: the old model's nodes are removed from
@@ -128,8 +129,6 @@ namespace
               renderer_(resources_)
         {
             register_builtin_shader_families(resources_);
-
-            grid_.add_to(scene_);
 
             camera_ = scene_.add_node();
             camera_.add(CameraComponent{.aspect = app.viewport().aspect_ratio()});
@@ -355,6 +354,9 @@ namespace
             // ### is the id, which must not change with it.
             if (ImGui::Button(wireframe_ ? "Triangles###mode" : "Lines###mode"))
                 toggle_wireframe();
+            if (ImGui::Button(grid_node_ ? "Hide grid###grid"
+                                         : "Show grid###grid"))
+                toggle_grid();
             if (!model_.animations.empty())
                 draw_animation_list();
             ImGui::End();
@@ -441,6 +443,22 @@ namespace
         }
 
         /**
+         * Adds the grid to the scene, or removes it if it is there.
+         */
+        void toggle_grid()
+        {
+            if (grid_node_)
+            {
+                grid_node_.remove();
+                grid_node_ = {};
+            }
+            else
+            {
+                grid_node_ = grid_.add_to(scene_);
+            }
+        }
+
+        /**
          * Adds a directional light aimed by rotating its node: a light shines
          * along its node's -z axis.
          */
@@ -466,6 +484,8 @@ namespace
         SnapshotBuilder builder_{resources_};
         Renderer renderer_;
         NodeHandle camera_;
+        // The grid's node, which is empty while the grid is hidden.
+        NodeHandle grid_node_;
         OrbitNavigator navigator_;
         // The current model: its nodes, its resources and its animations.
         Model model_;
