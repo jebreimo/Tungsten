@@ -252,7 +252,7 @@ namespace
                 Transform{.translation = -centre});
 
             alternates_ = std::move(import.wireframes);
-            model_ = std::move(import);
+            model_ = static_cast<Model>(std::move(import));
             play_animation(model_.animations.empty() ? NO_ANIMATION : 0);
 
             // An import draws triangles; keep showing lines if that was the

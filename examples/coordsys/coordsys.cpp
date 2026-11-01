@@ -12,8 +12,6 @@
 // Controls: drag with the left mouse button to orbit, with the right button
 // to move across the grid, and use the wheel to zoom.
 
-#include <algorithm>
-#include <cmath>
 #include <iostream>
 
 #include "Tungsten/Tungsten.hpp"
@@ -24,13 +22,6 @@ namespace
 
     constexpr float NEAR_PLANE = 0.1f;
     constexpr float FAR_PLANE = 1000.0f;
-
-    constexpr float ORBIT_SPEED = 0.005f;
-    constexpr float PAN_SPEED = 0.002f;
-    constexpr float ZOOM_STEP = 1.1f;
-    constexpr float MIN_DISTANCE = 0.5f;
-    constexpr float MAX_DISTANCE = 500.0f;
-    constexpr float MAX_PITCH = 1.55f;
 
     class Coordsys : public EventLoop
     {
@@ -58,16 +49,15 @@ namespace
             {
             case SDL_EVENT_MOUSE_MOTION:
                 if (event.motion.state & SDL_BUTTON_LMASK)
-                    orbit(event.motion.xrel, event.motion.yrel);
+                    navigator_.orbit(event.motion.xrel, event.motion.yrel);
                 else if (event.motion.state & SDL_BUTTON_RMASK)
-                    pan(event.motion.xrel, event.motion.yrel);
+                    navigator_.pan(event.motion.xrel, event.motion.yrel);
                 else
                     return false;
+                place_camera();
                 return true;
             case SDL_EVENT_MOUSE_WHEEL:
-                distance_ = std::clamp(
-                    distance_ * std::pow(ZOOM_STEP, -event.wheel.y),
-                    MIN_DISTANCE, MAX_DISTANCE);
+                navigator_.zoom(event.wheel.y);
                 place_camera();
                 return true;
             default:
@@ -98,37 +88,13 @@ namespace
         }
 
     private:
-        void orbit(float dx, float dy)
-        {
-            yaw_ -= dx * ORBIT_SPEED;
-            pitch_ = std::clamp(pitch_ + dy * ORBIT_SPEED,
-                                -MAX_PITCH, MAX_PITCH);
-            place_camera();
-        }
-
-        // Moves the target across the grid such that the grid appears to
-        // follow the mouse.
-        void pan(float dx, float dy)
-        {
-            const auto step = PAN_SPEED * distance_;
-            const Xyz::Vector3F right = {std::cos(yaw_), 0, -std::sin(yaw_)};
-            const Xyz::Vector3F forward = {-std::sin(yaw_), 0, -std::cos(yaw_)};
-            target_ = target_ - right * (dx * step) + forward * (dy * step);
-            place_camera();
-        }
-
         // Places the camera on a sphere around the target, looking at it.
         void place_camera()
         {
-            const Xyz::Vector3F offset = {
-                std::cos(pitch_) * std::sin(yaw_),
-                std::sin(pitch_),
-                std::cos(pitch_) * std::cos(yaw_)
-            };
-            const auto position = target_ + offset * distance_;
+            const auto position = navigator_.position();
             camera_.set_local_transform({
                 .translation = position,
-                .rotation = look_at_rotation(position, target_)
+                .rotation = look_at_rotation(position, navigator_.target)
             });
         }
 
@@ -139,10 +105,7 @@ namespace
         SnapshotBuilder builder_{resources_};
         Renderer renderer_;
         NodeHandle camera_;
-        Xyz::Vector3F target_ = {0, 0, 0};
-        float yaw_ = 0.5f;
-        float pitch_ = 0.35f;
-        float distance_ = 8.0f;
+        OrbitNavigator navigator_;
         uint64_t frame_ = 0;
     };
 }

@@ -16,6 +16,7 @@
 #ifndef __EMSCRIPTEN__
     #include "Import/GltfImport.hpp"
 #endif
+#include "Interaction/OrbitNavigator.hpp"
 #include "Model/Model.hpp"
 #include "Model/ModelBuilder.hpp"
 #include "Rendering/DoubleBuffer.hpp"
