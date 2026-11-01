@@ -13,6 +13,8 @@ find_package(imgui CONFIG REQUIRED)
 
 add_executable(gltf_viewer
     gltf_viewer.cpp
+    ImGuiSession.cpp
+    ImGuiSession.hpp
 )
 
 target_link_libraries(gltf_viewer

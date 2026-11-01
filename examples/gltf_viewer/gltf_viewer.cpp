@@ -39,11 +39,10 @@
 #include <vector>
 #include <Argos/Argos.hpp>
 #include <imgui.h>
-#include <imgui_impl_opengl3.h>
 #include <imgui_impl_sdl3.h>
 #include <Tungsten/Tungsten.hpp>
-#include <Tungsten/Gl/GlStateEpoch.hpp>
 #include <Tungsten/Import/GltfImport.hpp>
+#include "ImGuiSession.hpp"
 
 namespace
 {
@@ -73,51 +72,6 @@ namespace
 
     // The animation list's entry for playing none of them.
     constexpr int NO_ANIMATION = -1;
-
-    /**
-     * Owns the ImGui context and its SDL and OpenGL backends. Needs a current
-     * GL context for as long as it lives.
-     */
-    class ImGuiSession
-    {
-    public:
-        ImGuiSession(SDL_Window* window, SDL_GLContext gl_context)
-        {
-            IMGUI_CHECKVERSION();
-            ImGui::CreateContext();
-            // The viewer has no layout worth remembering between runs.
-            ImGui::GetIO().IniFilename = nullptr;
-            ImGui::StyleColorsDark();
-            ImGui_ImplSDL3_InitForOpenGL(window, gl_context);
-            // The oldest context Tungsten asks for on the desktop is 3.3 core.
-            ImGui_ImplOpenGL3_Init("#version 330 core");
-        }
-
-        ~ImGuiSession()
-        {
-            ImGui_ImplOpenGL3_Shutdown();
-            ImGui_ImplSDL3_Shutdown();
-            ImGui::DestroyContext();
-        }
-
-        ImGuiSession(const ImGuiSession&) = delete;
-        ImGuiSession& operator=(const ImGuiSession&) = delete;
-
-        void begin_frame()
-        {
-            ImGui_ImplOpenGL3_NewFrame();
-            ImGui_ImplSDL3_NewFrame();
-            ImGui::NewFrame();
-        }
-
-        void end_frame()
-        {
-            ImGui::Render();
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-            // ImGui binds behind the back of Tungsten's state caches.
-            notify_gl_state_changed();
-        }
-    };
 
     class GltfViewer : public EventLoop
     {
