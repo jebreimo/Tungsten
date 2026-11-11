@@ -7,12 +7,14 @@
 //****************************************************************************
 
 // A minimal glTF and Wavefront OBJ viewer: load the file named on the command
-// line, centre it, and show it under a two-light studio rig.
+// line, centre it unless its origin lies within its bounding box, and show it
+// under a two-light studio rig.
 //
 // Controls: drag with the left mouse button to orbit, with the right button
 // to move across the grid, and use the wheel to zoom.
 //
-// The model is framed by its bounding *sphere* rather than its box. A sphere
+// The model is framed by a bounding *sphere* rather than its box, centred on
+// the point the camera orbits. A sphere
 // looks the same from every side, so the framing computed when the model is
 // loaded holds wherever the camera is orbited to, and it gives a size to base
 // the zoom limits and the depth range on.
@@ -96,6 +98,16 @@ namespace
         result.warnings = std::move(import.warnings);
         result.model = static_cast<Model>(std::move(import));
         return result;
+    }
+
+    bool contains(const Xyz::BBox3F& bounds, const Xyz::Vector3F& point)
+    {
+        for (size_t i = 0; i < 3; ++i)
+        {
+            if (point[i] < bounds.min[i] || point[i] > bounds.max[i])
+                return false;
+        }
+        return true;
     }
 
     bool is_obj_file(const std::filesystem::path& file_name)
@@ -262,11 +274,24 @@ namespace
 
             unload_model();
 
-            // Shifted so that its centre sits on the origin, which is where
-            // the navigator starts out looking.
+            // The navigator starts out looking at the origin. A model whose
+            // origin lies within its bounds keeps it there, since that is
+            // usually a meaningful point such as where it stands; any other
+            // model is shifted so that its centre sits on the origin.
             const auto& bounds = import.model.bounds;
-            const auto centre = (bounds.min + bounds.max) / 2.0f;
-            radius_ = Xyz::get_length(bounds.max - bounds.min) / 2;
+            const auto centre = contains(bounds, {0, 0, 0})
+                                    ? Xyz::Vector3F{0, 0, 0}
+                                    : (bounds.min + bounds.max) / 2.0f;
+
+            // The radius of the sphere around the centre that holds the
+            // bounds: its distance to the farthest corner.
+            Xyz::Vector3F extent;
+            for (size_t i = 0; i < 3; ++i)
+            {
+                extent[i] = std::max(centre[i] - bounds.min[i],
+                                     bounds.max[i] - centre[i]);
+            }
+            radius_ = Xyz::get_length(extent);
             NodeHandle(&scene_, import.model.root).set_local_transform(
                 Transform{.translation = -centre});
 
