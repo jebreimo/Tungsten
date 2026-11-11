@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include "../Model/Model.hpp"
+#include "ImportedWireframe.hpp"
 
 namespace Tungsten
 {
@@ -33,22 +34,6 @@ namespace Tungsten
     };
 
     /**
-     * The wireframe alternative to one imported renderable: assign the mesh
-     * and the material to the node's RenderableComponent to draw the edges of
-     * its triangles instead of their surface.
-     *
-     * The mesh shares its vertices with the renderable's own mesh. Both are
-     * in the import's resources, which own those vertices, so unload them
-     * with remove_model rather than with destroy_mesh.
-     */
-    struct GltfWireframe
-    {
-        NodeId node;
-        MeshRef mesh;
-        MaterialRef material;
-    };
-
-    /**
      * What import_gltf added to the scene: the Model, and what is particular
      * to glTF.
      *
@@ -66,7 +51,7 @@ namespace Tungsten
 
         /** One entry per imported renderable if
          *  GltfImportOptions::create_wireframes was set, otherwise empty. */
-        std::vector<GltfWireframe> wireframes;
+        std::vector<ImportedWireframe> wireframes;
 
         /** One line per primitive or feature that was skipped. Worth showing
          *  to the user: an otherwise successful import can still be missing

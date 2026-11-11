@@ -26,6 +26,7 @@ add_executable(TungstenTest
     test_GltfImport.cpp
     test_GlStateCache.cpp
     test_ModelBuilder.cpp
+    test_ObjImport.cpp
     test_PipelineRegistry.cpp
     test_Renderer.cpp
     test_ResourceManager.cpp

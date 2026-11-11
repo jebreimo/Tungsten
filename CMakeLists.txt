@@ -68,10 +68,11 @@ FetchContent_MakeAvailable(argos cppembed xyz yconvert yimage)
 
 if (NOT EMSCRIPTEN)
     find_package(Freetype REQUIRED)
-    # fastgltf backs the glTF importer. It is not available for the Emscripten
-    # toolchain, so Import/ is left out of the web build entirely (see the
-    # target_sources call below).
+    # fastgltf and tinyobjloader back the glTF and OBJ importers. They come
+    # from vcpkg, which the Emscripten build does not use, so Import/ is left
+    # out of the web build entirely (see the target_sources call below).
     find_package(fastgltf CONFIG REQUIRED)
+    find_package(tinyobjloader CONFIG REQUIRED)
 endif ()
 
 find_package(OpenGL REQUIRED)
@@ -264,16 +265,21 @@ if (NOT EMSCRIPTEN)
             Freetype::Freetype
         PRIVATE
             fastgltf::fastgltf
+            tinyobjloader::tinyobjloader
     )
 
-    # The glTF importer. Excluded from the Emscripten build along with fastgltf
-    # itself; nothing else in the library includes from Import/.
+    # The glTF and OBJ importers. Excluded from the Emscripten build along with
+    # the libraries they use; nothing else in the library includes from
+    # Import/.
     target_sources(Tungsten
         PRIVATE
             include/Tungsten/Import/GltfImport.hpp
+            include/Tungsten/Import/ImportedWireframe.hpp
+            include/Tungsten/Import/ObjImport.hpp
             src/Tungsten/Import/GltfConversion.cpp
             src/Tungsten/Import/GltfConversion.hpp
             src/Tungsten/Import/GltfImport.cpp
+            src/Tungsten/Import/ObjImport.cpp
     )
 endif ()
 

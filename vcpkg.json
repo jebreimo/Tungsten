@@ -16,6 +16,7 @@
     },
     "libjpeg-turbo",
     "sdl3",
-    "tiff"
+    "tiff",
+    "tinyobjloader"
   ]
 }

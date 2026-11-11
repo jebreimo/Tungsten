@@ -12,9 +12,12 @@
 #include "Color.hpp"
 #include "DeviceInfo.hpp"
 #include "Gpu/GpuTypes.hpp"
-// Not available in the Emscripten build: the importer needs fastgltf.
+// Not available in the Emscripten build: the importers need fastgltf and
+// tinyobjloader.
 #ifndef __EMSCRIPTEN__
     #include "Import/GltfImport.hpp"
+    #include "Import/ImportedWireframe.hpp"
+    #include "Import/ObjImport.hpp"
 #endif
 #include "Interaction/OrbitNavigator.hpp"
 #include "Model/Model.hpp"

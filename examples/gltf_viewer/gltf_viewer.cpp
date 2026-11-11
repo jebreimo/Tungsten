@@ -6,8 +6,8 @@
 // License text is included with the source distribution.
 //****************************************************************************
 
-// A minimal glTF viewer: load the file named on the command line, centre it,
-// and show it under a two-light studio rig.
+// A minimal glTF and Wavefront OBJ viewer: load the file named on the command
+// line, centre it, and show it under a two-light studio rig.
 //
 // Controls: drag with the left mouse button to orbit, with the right button
 // to move across the grid, and use the wheel to zoom.
@@ -18,8 +18,10 @@
 // the zoom limits and the depth range on.
 //
 // Everything draws through the builtin Blinn-Phong family — see
-// Tungsten/Import/GltfImport.hpp for how the file's metallic-roughness
-// materials are approximated to reach it.
+// Tungsten/Import/GltfImport.hpp for how a glTF file's metallic-roughness
+// materials are approximated to reach it. An OBJ file's MTL materials map
+// onto it directly (see Tungsten/Import/ObjImport.hpp). Files with the
+// extension .obj are read as OBJ, everything else as glTF.
 //
 // The controls are drawn with Dear ImGui, on top of the scene: a button that
 // switches between drawing the model's surfaces and the edges of its
@@ -27,10 +29,12 @@
 // and, for a file with animations, a list to pick the one that plays. The
 // first animation starts playing as soon as the file is loaded.
 //
-// Dropping another glTF or GLB file on the window replaces the model. This is
+// Dropping another glTF, GLB or OBJ file on the window replaces the model. This is
 // the usage reference for unloading: the old model's nodes are removed from
 // the scene, and the ResourceBundle its import returned is destroyed.
 
+#include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <iostream>
 #include <memory>
@@ -42,6 +46,7 @@
 #include <imgui_impl_sdl3.h>
 #include <Tungsten/Tungsten.hpp>
 #include <Tungsten/Import/GltfImport.hpp>
+#include <Tungsten/Import/ObjImport.hpp>
 #include "ImGuiSession.hpp"
 
 namespace
@@ -72,6 +77,51 @@ namespace
 
     // The animation list's entry for playing none of them.
     constexpr int NO_ANIMATION = -1;
+
+    /**
+     * What the viewer needs from an import, whichever importer made it.
+     */
+    struct ImportedFile
+    {
+        Model model;
+        std::vector<ImportedWireframe> wireframes;
+        std::vector<std::string> warnings;
+    };
+
+    template <typename Import>
+    ImportedFile to_imported_file(Import import)
+    {
+        ImportedFile result;
+        result.wireframes = std::move(import.wireframes);
+        result.warnings = std::move(import.warnings);
+        result.model = static_cast<Model>(std::move(import));
+        return result;
+    }
+
+    bool is_obj_file(const std::filesystem::path& file_name)
+    {
+        auto extension = file_name.extension().string();
+        std::ranges::transform(extension, extension.begin(), [](char c)
+        {
+            return char(std::tolower(static_cast<unsigned char>(c)));
+        });
+        return extension == ".obj";
+    }
+
+    /**
+     * Imports @a file_name with the importer its extension calls for.
+     */
+    ImportedFile import_file(const std::filesystem::path& file_name,
+                             ResourceManager& resources, Scene& scene)
+    {
+        if (is_obj_file(file_name))
+        {
+            return to_imported_file(import_obj(
+                file_name, resources, scene, {}, {.create_wireframes = true}));
+        }
+        return to_imported_file(import_gltf(
+            file_name, resources, scene, {}, {.create_wireframes = true}));
+    }
 
     class GltfViewer : public EventLoop
     {
@@ -206,8 +256,7 @@ namespace
          */
         void load_model(const std::filesystem::path& file_name)
         {
-            auto import = import_gltf(file_name, resources_, scene_, {},
-                                      {.create_wireframes = true});
+            auto import = import_file(file_name, resources_, scene_);
             for (const auto& warning : import.warnings)
                 std::cerr << "Warning: " << warning << '\n';
 
@@ -215,13 +264,14 @@ namespace
 
             // Shifted so that its centre sits on the origin, which is where
             // the navigator starts out looking.
-            const auto centre = (import.bounds.min + import.bounds.max) / 2.0f;
-            radius_ = Xyz::get_length(import.bounds.max - import.bounds.min) / 2;
-            NodeHandle(&scene_, import.root).set_local_transform(
+            const auto& bounds = import.model.bounds;
+            const auto centre = (bounds.min + bounds.max) / 2.0f;
+            radius_ = Xyz::get_length(bounds.max - bounds.min) / 2;
+            NodeHandle(&scene_, import.model.root).set_local_transform(
                 Transform{.translation = -centre});
 
             alternates_ = std::move(import.wireframes);
-            model_ = static_cast<Model>(std::move(import));
+            model_ = std::move(import.model);
             play_animation(model_.animations.empty() ? NO_ANIMATION : 0);
 
             // An import draws triangles; keep showing lines if that was the
@@ -446,7 +496,7 @@ namespace
         // The mesh and material each imported renderable is not currently
         // drawn with: the line ones to begin with, and after every toggle
         // whichever pair was swapped out.
-        std::vector<GltfWireframe> alternates_;
+        std::vector<ImportedWireframe> alternates_;
         // The current model's animation that is playing.
         AnimationPlayer player_;
         int animation_index_ = NO_ANIMATION;
@@ -463,9 +513,10 @@ int main(int argc, char** argv)
     try
     {
         argos::ArgumentParser parser(argv[0]);
-        parser.about("Displays a glTF model, with a camera that orbits it.")
+        parser.about("Displays a glTF or Wavefront OBJ model, with a camera"
+                     " that orbits it.")
             .add(argos::Argument("FILE")
-                .help("The glTF or GLB file to display."));
+                .help("The glTF, GLB or OBJ file to display."));
         Tungsten::SdlApplication::add_command_line_options(parser);
         const auto args = parser.parse(argc, argv);
 
