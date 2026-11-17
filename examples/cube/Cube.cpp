@@ -8,7 +8,6 @@
 #include <iostream>
 #include <Argos/Argos.hpp>
 #include <Tungsten/Tungsten.hpp>
-#include <Ystring/Ystring.hpp>
 
 #include "CubeModel.hpp"
 

@@ -10,7 +10,7 @@
 #include <cmath>
 #include <vector>
 #include <Tungsten/Tungsten.hpp>
-#include <Xyz/Mesh/BuildMesh.hpp>
+#include <Xyz/Mesh/CuboidMesh.hpp>
 
 namespace
 {
@@ -47,14 +47,8 @@ namespace
             .placement = {.origin = {-1, -1, -1}},
             .size = {2, 2, 2}
         };
-        // Every face gets the whole unit square, so the stud pattern repeats
-        // once per face. The rectangle is not optional: without it build_mesh
-        // gives every vertex the texture coordinate (0, 0), which leaves the
-        // surface with no texture gradient at all — and a tangent basis built
-        // from derivatives needs that gradient, so the normal map would have
-        // no effect whatsoever.
-        auto unit_square = [](int) { return Xyz::RectangleF{{0, 0}, {1, 1}}; };
-        Xyz::build_mesh(builder, cuboid, std::function(unit_square));
+        Xyz::RectangleF tex_rect{{0, 0}, {1, 1}};
+        Xyz::build_mesh(builder, cuboid, std::span(&tex_rect, 1));
         return {std::move(indexes), std::move(vertexes)};
     }
 

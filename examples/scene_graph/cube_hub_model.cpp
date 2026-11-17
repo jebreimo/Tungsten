@@ -8,7 +8,7 @@
 #include "cube_hub_model.hpp"
 
 #include <Tungsten/Tungsten.hpp>
-#include <Xyz/Mesh/BuildMesh.hpp>
+#include <Xyz/Mesh/CuboidMesh.hpp>
 
 namespace
 {

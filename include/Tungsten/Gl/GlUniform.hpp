@@ -6,7 +6,7 @@
 // License text is included with the source distribution.
 //****************************************************************************
 #pragma once
-#include <Xyz/Xyz.hpp>
+#include <Xyz/Matrix.hpp>
 
 namespace Tungsten
 {

@@ -7,8 +7,8 @@
 //****************************************************************************
 #include "CubeModel.hpp"
 
+#include <Xyz/Mesh/CuboidMesh.hpp>
 #include <Tungsten/Tungsten.hpp>
-
 #include "EmbeddedResources.hpp"
 
 namespace
@@ -31,17 +31,13 @@ namespace
             .tex_coords = std::optional(Builder2F(vertexes, STRIDE, 6))
         };
 
-        auto get_tex_rect = [](int i)
-        {
-            return Xyz::RectangleF{{float(i) / 6, 1}, {1.f / 6, -1}};
-        };
-
-        auto cuboid = Xyz::make_centered_oriented_cuboid<float>(
+        auto tex_rects = split(Xyz::RectangleF{{0, 1}, {1, -1}}, 1, 6);
+        const auto cuboid = Xyz::make_centered_oriented_cuboid<float>(
             {0, 0, 0},
             {2, 2, 2},
             {-Xyz::to_radians(-90.f), -Xyz::to_radians(-90.f), 0}
         );
-        Xyz::build_mesh(builder, cuboid, std::function(get_tex_rect));
+        Xyz::build_mesh(builder, cuboid, std::span(tex_rects));
         return {std::move(indexes), std::move(vertexes)};
     }
 
