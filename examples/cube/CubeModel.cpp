@@ -35,7 +35,7 @@ namespace
         const auto cuboid = Xyz::make_centered_oriented_cuboid<float>(
             {0, 0, 0},
             {2, 2, 2},
-            {-Xyz::to_radians(-90.f), -Xyz::to_radians(-90.f), 0}
+            {0, 0, Xyz::to_radians(-90.f)}
         );
         Xyz::build_mesh(builder, cuboid, std::span(tex_rects));
         return {std::move(indexes), std::move(vertexes)};
