@@ -10,8 +10,6 @@ cmake_minimum_required(VERSION 3.23)
 project(Tungsten VERSION 0.9.0
     DESCRIPTION "A C++ library for 2D and 3D rendering")
 
-set(CMAKE_CXX_STANDARD 23)
-
 # Set TUNGSTEN_MASTER_PROJECT to ON if Tungsten is the root level project.
 if (NOT DEFINED TUNGSTEN_MASTER_PROJECT)
     if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
@@ -257,6 +255,11 @@ target_link_libraries(Tungsten
         Yimage::Yimage
     PRIVATE
         Argos
+)
+
+target_compile_features(Tungsten
+    PUBLIC
+        cxx_std_23
 )
 
 if (NOT EMSCRIPTEN)
