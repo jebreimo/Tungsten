@@ -46,6 +46,8 @@ namespace
             hub_ = {&scene_, cubes_.root};
             left_ = {&scene_, cubes.left};
             right_ = {&scene_, cubes.right};
+            top_ = {&scene_, cubes.top};
+            bottom_ = {&scene_, cubes.bottom};
 
             camera_ = scene_.add_node();
             Transform camera_transform;
@@ -113,8 +115,10 @@ namespace
             hub.rotation = euler_rotation(0.4f * t, 0.2f * t, 0.0f);
             hub_.set_local_transform(hub);
 
-            spin_child(left_, -CHILD_CUBE_OFFSET, 1.7f * t);
-            spin_child(right_, CHILD_CUBE_OFFSET, -1.3f * t);
+            spin_child(left_, -CHILD_CUBE_OFFSET, 0, 1.7f * t);
+            spin_child(right_, CHILD_CUBE_OFFSET, 0, -1.3f * t);
+            spin_child(top_, 0, CHILD_CUBE_OFFSET, 1.7f * t);
+            spin_child(bottom_, 0, -CHILD_CUBE_OFFSET, -1.3f * t);
 
             // Only the point light's position matters — it has no meaningful
             // orientation — so moving it is enough to sweep its highlight
@@ -159,10 +163,10 @@ namespace
         }
 
     private:
-        static void spin_child(NodeHandle child, float x, float angle)
+        static void spin_child(NodeHandle child, float x, float y, float angle)
         {
             Transform transform;
-            transform.translation = {x, 0, 0};
+            transform.translation = {x, y, 0};
             transform.rotation = euler_rotation(angle, 0.5f * angle, 0);
             transform.scale = {CHILD_CUBE_SCALE, CHILD_CUBE_SCALE, CHILD_CUBE_SCALE};
             child.set_local_transform(transform);
@@ -178,6 +182,8 @@ namespace
         NodeHandle hub_;
         NodeHandle left_;
         NodeHandle right_;
+        NodeHandle top_;
+        NodeHandle bottom_;
         NodeHandle camera_;
         NodeHandle point_light_;
         uint64_t frame_ = 0;

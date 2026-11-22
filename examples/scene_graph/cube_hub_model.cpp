@@ -8,7 +8,7 @@
 #include "cube_hub_model.hpp"
 
 #include <Tungsten/Tungsten.hpp>
-#include <Xyz/Mesh/CuboidMesh.hpp>
+#include <Xyz/Xyz.hpp>
 
 namespace
 {
@@ -34,6 +34,26 @@ namespace
 
         constexpr Xyz::OrientedCuboid<float> cuboid{{{-1, -1, -1}, {0, 0, 0}}, {2, 2, 2}};
         Xyz::build_mesh(builder, cuboid);
+        return {std::move(indexes), std::move(vertexes)};
+    }
+
+    std::pair<std::vector<uint32_t>, std::vector<float>> make_tetrahedron_mesh()
+    {
+        std::vector<uint32_t> indexes;
+        std::vector<float> vertexes;
+
+        using Builder2F = Xyz::MeshAttributeBuilder<Xyz::Vector2F, std::vector<float>>;
+        using Builder3F = Xyz::MeshAttributeBuilder<Xyz::Vector3F, std::vector<float>>;
+
+        Xyz::MeshBuilder builder{
+            .indexes = Xyz::MeshIndexBuilder(indexes),
+            .coords = Builder3F(vertexes, STRIDE),
+            .normals = std::optional(Builder3F(vertexes, STRIDE, 3)),
+            .tex_coords = std::optional(Builder2F(vertexes, STRIDE, 6))
+        };
+
+        const Xyz::OrientedRegularPolyhedron<float> hedron{.radius = std::sqrt(3.f)};
+        Xyz::build_dodecahedron(builder, hedron);
         return {std::move(indexes), std::move(vertexes)};
     }
 
@@ -86,11 +106,11 @@ namespace
     }
 
     NodeId add_child_cube(ModelBuilder& builder, ModelMeshId mesh,
-                          MaterialRef material, float x)
+                          MaterialRef material, float x, float y)
     {
         auto child = builder.scene().add_node(builder.root());
         child.set_local_transform({
-            .translation = {x, 0, 0},
+            .translation = {x, y, 0},
             .scale = {CHILD_CUBE_SCALE, CHILD_CUBE_SCALE, CHILD_CUBE_SCALE}
         });
         builder.add_renderable(child.id(), mesh, material);
@@ -121,12 +141,18 @@ CubeHubModel add_cube_hub_model(Tungsten::ResourceManager& resources,
         make_blinn_phong_material_params(StandardColorMaterial::COPPER,
                                          0.4f));
 
-    auto [indexes, vertexes] = make_cube_mesh();
-    const auto mesh = builder.add_mesh(builder.add_vertices(layout, vertexes),
-                                       std::move(indexes));
+    auto [cube_indexes, cube_vertexes] = make_cube_mesh();
+    const auto cube_mesh = builder.add_mesh(builder.add_vertices(layout, cube_vertexes),
+                                       std::move(cube_indexes));
 
-    builder.add_renderable(builder.root(), mesh, gold);
-    const auto left = add_child_cube(builder, mesh, glass, -CHILD_CUBE_OFFSET);
-    const auto right = add_child_cube(builder, mesh, slate, CHILD_CUBE_OFFSET);
-    return {builder.build(), left, right};
+    auto [tetra_indexes, tetra_vertexes] = make_tetrahedron_mesh();
+    const auto tetra_mesh = builder.add_mesh(builder.add_vertices(layout, tetra_vertexes),
+                                       std::move(tetra_indexes));
+
+    builder.add_renderable(builder.root(), cube_mesh, gold);
+    const auto left = add_child_cube(builder, cube_mesh, glass, -CHILD_CUBE_OFFSET, 0);
+    const auto right = add_child_cube(builder, cube_mesh, slate, CHILD_CUBE_OFFSET, 0);
+    const auto top = add_child_cube(builder, tetra_mesh, slate, 0, CHILD_CUBE_OFFSET);
+    const auto bottom = add_child_cube(builder, tetra_mesh, slate, 0, -CHILD_CUBE_OFFSET);
+    return {builder.build(), left, right, top, bottom};
 }

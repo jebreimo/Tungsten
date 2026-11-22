@@ -27,6 +27,12 @@ struct CubeHubModel
 
     /** The opaque child cube, at CHILD_CUBE_OFFSET. */
     Tungsten::NodeId right;
+
+    /** The child cube at the top, at CHILD_CUBE_OFFSET. */
+    Tungsten::NodeId top;
+
+    /** The child cube at the bottom, at -CHILD_CUBE_OFFSET. */
+    Tungsten::NodeId bottom;
 };
 
 /**

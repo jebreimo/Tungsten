@@ -54,7 +54,7 @@ FetchContent_Declare(cppembed
 
 FetchContent_Declare(xyz
     GIT_REPOSITORY "https://github.com/jebreimo/Xyz.git"
-    GIT_TAG v0.15.0)
+    GIT_TAG v0.15.2)
 
 FetchContent_Declare(yconvert
     GIT_REPOSITORY "https://github.com/jebreimo/Yconvert.git"
