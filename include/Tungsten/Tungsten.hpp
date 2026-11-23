@@ -11,6 +11,7 @@
 #include "Animation/AnimationPlayer.hpp"
 #include "Color.hpp"
 #include "DeviceInfo.hpp"
+#include "FixedStepClock.hpp"
 #include "Gpu/GpuTypes.hpp"
 // Not available in the Emscripten build: the importers need fastgltf and
 // tinyobjloader.

@@ -89,6 +89,7 @@ add_library(Tungsten STATIC
     include/Tungsten/Detail/GenericBitmaskOperators.hpp
     include/Tungsten/DeviceInfo.hpp
     include/Tungsten/Environment.hpp
+    include/Tungsten/FixedStepClock.hpp
     include/Tungsten/Gl/DummyOglWrapper.hpp
     include/Tungsten/Gl/GlBuffer.hpp
     include/Tungsten/Gl/GlFramebuffer.hpp
@@ -168,6 +169,7 @@ add_library(Tungsten STATIC
     src/Tungsten/DeviceInfo.cpp
     src/Tungsten/ExceptionHelpers.cpp
     src/Tungsten/ExceptionHelpers.hpp
+    src/Tungsten/FixedStepClock.cpp
     src/Tungsten/Gl/GlBuffer.cpp
     src/Tungsten/Gl/GlFramebuffer.cpp
     src/Tungsten/Gl/GlProgram.cpp

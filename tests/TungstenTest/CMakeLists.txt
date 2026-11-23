@@ -20,6 +20,7 @@ add_executable(TungstenTest
     test_BuddyAllocator.cpp
     test_ColorMaterials.cpp
     test_ColorSpace.cpp
+    test_FixedStepClock.cpp
     test_FontUtilities.cpp
     test_GenerationalPool.cpp
     test_GltfConversion.cpp
